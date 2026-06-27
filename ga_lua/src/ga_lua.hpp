@@ -1152,6 +1152,7 @@ void register_functions(sol::state& lua)
     using namespace hd::ga;
     using namespace hd::ga::ega;
     using namespace hd::ga::pga;
+    using namespace hd::ga::sta;
 
     lua.set_function("nrm_sq",
                      sol::overload( // EGA 2D types
@@ -1167,7 +1168,16 @@ void register_functions(sol::state& lua)
                          sol::resolve<value_t(pscalar3d)>(nrm_sq),
                          sol::resolve<value_t(mvec3d_e const&)>(nrm_sq),
                          sol::resolve<value_t(mvec3d_u const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec3d const&)>(nrm_sq)));
+                         sol::resolve<value_t(mvec3d const&)>(nrm_sq),
+                         // sta
+                         sol::resolve<value_t(scalar4ds)>(nrm_sq),
+                         sol::resolve<value_t(vec4ds const&)>(nrm_sq),
+                         sol::resolve<value_t(bivec4ds const&)>(nrm_sq),
+                         sol::resolve<value_t(trivec4ds const&)>(nrm_sq),
+                         sol::resolve<value_t(pscalar4ds)>(nrm_sq),
+                         sol::resolve<value_t(mvec4ds_e const&)>(nrm_sq),
+                         sol::resolve<value_t(mvec4ds_u const&)>(nrm_sq),
+                         sol::resolve<value_t(mvec4ds const&)>(nrm_sq)));
 
     lua.set_function("nrm", sol::overload( // EGA 2D types
                                 sol::resolve<value_t(scalar2d)>(nrm),
@@ -1182,7 +1192,16 @@ void register_functions(sol::state& lua)
                                 sol::resolve<value_t(pscalar3d)>(nrm),
                                 sol::resolve<value_t(mvec3d_e const&)>(nrm),
                                 sol::resolve<value_t(mvec3d_u const&)>(nrm),
-                                sol::resolve<value_t(mvec3d const&)>(nrm)));
+                                sol::resolve<value_t(mvec3d const&)>(nrm),
+                                // sta
+                                sol::resolve<scalar4ds(scalar4ds)>(nrm),
+                                sol::resolve<scalar4ds(vec4ds const&)>(nrm),
+                                sol::resolve<scalar4ds(bivec4ds const&)>(nrm),
+                                sol::resolve<scalar4ds(trivec4ds const&)>(nrm),
+                                sol::resolve<scalar4ds(pscalar4ds)>(nrm),
+                                sol::resolve<scalar4ds(mvec4ds_e const&)>(nrm),
+                                sol::resolve<scalar4ds(mvec4ds_u const&)>(nrm),
+                                sol::resolve<scalar4ds(mvec4ds const&)>(nrm)));
 
     lua.set_function("bulk_nrm_sq",
                      sol::overload(
@@ -1324,16 +1343,22 @@ void register_functions(sol::state& lua)
                          ));
 
     // normalization in EGA
-    lua.set_function("normalize", sol::overload(
-                                      // EGA 2D types
-                                      sol::resolve<scalar2d(scalar2d)>(normalize),
-                                      sol::resolve<vec2d(vec2d const&)>(normalize),
-                                      sol::resolve<pscalar2d(pscalar2d)>(normalize),
-                                      // EGA 3D types
-                                      sol::resolve<scalar3d(scalar3d)>(normalize),
-                                      sol::resolve<vec3d(vec3d const&)>(normalize),
-                                      sol::resolve<bivec3d(bivec3d const&)>(normalize),
-                                      sol::resolve<pscalar3d(pscalar3d)>(normalize)));
+    lua.set_function("normalize",
+                     sol::overload(
+                         // EGA 2D types
+                         sol::resolve<scalar2d(scalar2d)>(normalize),
+                         sol::resolve<vec2d(vec2d const&)>(normalize),
+                         sol::resolve<pscalar2d(pscalar2d)>(normalize),
+                         // EGA 3D types
+                         sol::resolve<scalar3d(scalar3d)>(normalize),
+                         sol::resolve<vec3d(vec3d const&)>(normalize),
+                         sol::resolve<bivec3d(bivec3d const&)>(normalize),
+                         sol::resolve<pscalar3d(pscalar3d)>(normalize),
+                         // sta
+                         sol::resolve<scalar4ds(scalar4ds)>(normalize),
+                         sol::resolve<vec4ds(vec4ds const&)>(normalize),
+                         sol::resolve<bivec4ds(bivec4ds const&)>(normalize),
+                         sol::resolve<trivec4ds(trivec4ds const&)>(normalize)));
 
     // bulk_normalization in PGA
     lua.set_function("bulk_normalize",
@@ -1576,7 +1601,16 @@ void register_functions(sol::state& lua)
                                    sol::resolve<pscalar3dp(pscalar3dp)>(gr_inv),
                                    sol::resolve<mvec3dp_e(mvec3dp_e const&)>(gr_inv),
                                    sol::resolve<mvec3dp_u(mvec3dp_u const&)>(gr_inv),
-                                   sol::resolve<mvec3dp(mvec3dp const&)>(gr_inv)));
+                                   sol::resolve<mvec3dp(mvec3dp const&)>(gr_inv),
+                                   // sta
+                                   sol::resolve<scalar4ds(scalar4ds)>(gr_inv),
+                                   sol::resolve<vec4ds(vec4ds const&)>(gr_inv),
+                                   sol::resolve<bivec4ds(bivec4ds const&)>(gr_inv),
+                                   sol::resolve<trivec4ds(trivec4ds const&)>(gr_inv),
+                                   sol::resolve<pscalar4ds(pscalar4ds)>(gr_inv),
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(gr_inv),
+                                   sol::resolve<mvec4ds_u(mvec4ds_u const&)>(gr_inv),
+                                   sol::resolve<mvec4ds(mvec4ds const&)>(gr_inv)));
 
     lua.set_function("rev", sol::overload(
                                 // EGA reverse operations
@@ -1607,7 +1641,16 @@ void register_functions(sol::state& lua)
                                 sol::resolve<pscalar3dp(pscalar3dp)>(rev),
                                 sol::resolve<mvec3dp_e(mvec3dp_e const&)>(rev),
                                 sol::resolve<mvec3dp_u(mvec3dp_u const&)>(rev),
-                                sol::resolve<mvec3dp(mvec3dp const&)>(rev)));
+                                sol::resolve<mvec3dp(mvec3dp const&)>(rev),
+                                // sta
+                                sol::resolve<scalar4ds(scalar4ds)>(rev),
+                                sol::resolve<vec4ds(vec4ds const&)>(rev),
+                                sol::resolve<bivec4ds(bivec4ds const&)>(rev),
+                                sol::resolve<trivec4ds(trivec4ds const&)>(rev),
+                                sol::resolve<pscalar4ds(pscalar4ds)>(rev),
+                                sol::resolve<mvec4ds_e(mvec4ds_e const&)>(rev),
+                                sol::resolve<mvec4ds_u(mvec4ds_u const&)>(rev),
+                                sol::resolve<mvec4ds(mvec4ds const&)>(rev)));
 
     lua.set_function("conj", sol::overload(
                                  // EGA conjugation operations
@@ -1638,7 +1681,16 @@ void register_functions(sol::state& lua)
                                  sol::resolve<pscalar3dp(pscalar3dp)>(conj),
                                  sol::resolve<mvec3dp_e(mvec3dp_e const&)>(conj),
                                  sol::resolve<mvec3dp_u(mvec3dp_u const&)>(conj),
-                                 sol::resolve<mvec3dp(mvec3dp const&)>(conj)));
+                                 sol::resolve<mvec3dp(mvec3dp const&)>(conj),
+                                 // sta
+                                 sol::resolve<scalar4ds(scalar4ds)>(conj),
+                                 sol::resolve<vec4ds(vec4ds const&)>(conj),
+                                 sol::resolve<bivec4ds(bivec4ds const&)>(conj),
+                                 sol::resolve<trivec4ds(trivec4ds const&)>(conj),
+                                 sol::resolve<pscalar4ds(pscalar4ds)>(conj),
+                                 sol::resolve<mvec4ds_e(mvec4ds_e const&)>(conj),
+                                 sol::resolve<mvec4ds_u(mvec4ds_u const&)>(conj),
+                                 sol::resolve<mvec4ds(mvec4ds const&)>(conj)));
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1666,120 +1718,194 @@ void register_functions(sol::state& lua)
                          sol::resolve<scalar3dp(vec3dp const&, vec3dp const&)>(dot),
                          sol::resolve<scalar3dp(bivec3dp const&, bivec3dp const&)>(dot),
                          sol::resolve<scalar3dp(trivec3dp const&, trivec3dp const&)>(dot),
-                         sol::resolve<scalar3dp(pscalar3dp, pscalar3dp)>(dot)));
+                         sol::resolve<scalar3dp(pscalar3dp, pscalar3dp)>(dot),
+                         // sta
+                         sol::resolve<scalar4ds(mvec4ds const&, mvec4ds const&)>(dot),
+                         sol::resolve<scalar4ds(mvec4ds_e const&, mvec4ds_e const&)>(dot),
+                         sol::resolve<scalar4ds(mvec4ds_u const&, mvec4ds_u const&)>(dot),
+                         sol::resolve<scalar4ds(pscalar4ds, pscalar4ds)>(dot),
+                         sol::resolve<scalar4ds(trivec4ds const&, trivec4ds const&)>(dot),
+                         sol::resolve<scalar4ds(bivec4ds const&, bivec4ds const&)>(dot),
+                         sol::resolve<scalar4ds(vec4ds const&, vec4ds const&)>(dot),
+                         sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(dot)));
 
 
     ////////////////////////////////////////////////////////////////////////////////
     // wedge product (= outer product) (wdg)
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("wdg",
-                     sol::overload(
-                         // EGA 2D wedge products
-                         sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
-                         sol::resolve<mvec2d(mvec2d const&, mvec2d_e const&)>(wdg),
-                         sol::resolve<mvec2d(mvec2d_e const&, mvec2d const&)>(wdg),
-                         sol::resolve<pscalar2d(mvec2d const&, pscalar2d)>(wdg),
-                         sol::resolve<pscalar2d(pscalar2d, mvec2d const&)>(wdg),
-                         sol::resolve<mvec2d(mvec2d const&, vec2d const&)>(wdg),
-                         sol::resolve<mvec2d(vec2d const&, mvec2d const&)>(wdg),
-                         sol::resolve<mvec2d(mvec2d const&, scalar2d)>(wdg),
-                         sol::resolve<mvec2d(scalar2d, mvec2d const&)>(wdg),
-                         sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(wdg),
-                         sol::resolve<pscalar2d(mvec2d_e const&, pscalar2d)>(wdg),
-                         sol::resolve<pscalar2d(pscalar2d, mvec2d_e const&)>(wdg),
-                         sol::resolve<vec2d(mvec2d_e const&, vec2d const&)>(wdg),
-                         sol::resolve<vec2d(vec2d const&, mvec2d_e const&)>(wdg),
-                         sol::resolve<mvec2d_e(mvec2d_e const&, scalar2d)>(wdg),
-                         sol::resolve<mvec2d_e(scalar2d, mvec2d_e const&)>(wdg),
-                         sol::resolve<scalar2d(pscalar2d, pscalar2d)>(wdg),
-                         sol::resolve<scalar2d(pscalar2d, vec2d const&)>(wdg),
-                         sol::resolve<scalar2d(vec2d const&, pscalar2d)>(wdg),
-                         sol::resolve<pscalar2d(pscalar2d, scalar2d)>(wdg),
-                         sol::resolve<pscalar2d(scalar2d, pscalar2d)>(wdg),
-                         sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
-                         sol::resolve<vec2d(vec2d const&, scalar2d)>(wdg),
-                         sol::resolve<vec2d(scalar2d, vec2d const&)>(wdg),
-                         sol::resolve<scalar2d(scalar2d, scalar2d)>(wdg),
-                         // EGA 3D wedge products
-                         sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(wdg),
-                         sol::resolve<mvec3d(mvec3d const&, bivec3d const&)>(wdg),
-                         sol::resolve<mvec3d(bivec3d const&, mvec3d const&)>(wdg),
-                         sol::resolve<mvec3d(mvec3d const&, vec3d const&)>(wdg),
-                         sol::resolve<mvec3d(vec3d const&, mvec3d const&)>(wdg),
-                         sol::resolve<mvec3d(mvec3d const&, scalar3d)>(wdg),
-                         sol::resolve<mvec3d(scalar3d, mvec3d const&)>(wdg),
-                         sol::resolve<scalar3d(pscalar3d, pscalar3d)>(wdg),
-                         sol::resolve<scalar3d(pscalar3d, bivec3d const&)>(wdg),
-                         sol::resolve<scalar3d(bivec3d const&, pscalar3d)>(wdg),
-                         sol::resolve<scalar3d(pscalar3d, vec3d const&)>(wdg),
-                         sol::resolve<scalar3d(vec3d const&, pscalar3d)>(wdg),
-                         sol::resolve<pscalar3d(pscalar3d, scalar3d)>(wdg),
-                         sol::resolve<pscalar3d(scalar3d, pscalar3d)>(wdg),
-                         sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(wdg),
-                         sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg),
-                         sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
-                         sol::resolve<bivec3d(bivec3d const&, scalar3d)>(wdg),
-                         sol::resolve<bivec3d(scalar3d, bivec3d const&)>(wdg),
-                         sol::resolve<bivec3d(vec3d const&, vec3d const&)>(wdg),
-                         sol::resolve<vec3d(vec3d const&, scalar3d)>(wdg),
-                         sol::resolve<vec3d(scalar3d, vec3d const&)>(wdg),
-                         sol::resolve<scalar3d(scalar3d, scalar3d)>(wdg),
-                         // PGA 2DP wedge products
-                         sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(wdg),
-                         sol::resolve<mvec2dp_e(mvec2dp_e const&, mvec2dp_e const&)>(wdg),
-                         sol::resolve<bivec2dp(mvec2dp_u const&, mvec2dp_u const&)>(wdg),
-                         sol::resolve<scalar2dp(pscalar2dp, pscalar2dp)>(wdg),
-                         sol::resolve<scalar2dp(pscalar2dp, bivec2dp const&)>(wdg),
-                         sol::resolve<scalar2dp(bivec2dp const&, pscalar2dp)>(wdg),
-                         sol::resolve<scalar2dp(pscalar2dp, vec2dp const&)>(wdg),
-                         sol::resolve<scalar2dp(vec2dp const&, pscalar2dp)>(wdg),
-                         sol::resolve<pscalar2dp(pscalar2dp, scalar2dp)>(wdg),
-                         sol::resolve<pscalar2dp(scalar2dp, pscalar2dp)>(wdg),
-                         sol::resolve<scalar2dp(bivec2dp const&, bivec2dp const&)>(wdg),
-                         sol::resolve<pscalar2dp(bivec2dp const&, vec2dp const&)>(wdg),
-                         sol::resolve<pscalar2dp(vec2dp const&, bivec2dp const&)>(wdg),
-                         sol::resolve<bivec2dp(bivec2dp const&, scalar2dp)>(wdg),
-                         sol::resolve<bivec2dp(scalar2dp, bivec2dp const&)>(wdg),
-                         sol::resolve<bivec2dp(vec2dp const&, vec2dp const&)>(wdg),
-                         sol::resolve<vec2dp(vec2dp const&, scalar2dp)>(wdg),
-                         sol::resolve<vec2dp(scalar2dp, vec2dp const&)>(wdg),
-                         sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(wdg),
-                         // Geometric alias functions pga2dp
-                         sol::resolve<line2d(point2d const&, point2d const&)>(wdg),
-                         // PGA 3DP wedge products
-                         sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(wdg),
-                         sol::resolve<mvec3dp_e(mvec3dp_e const&, mvec3dp_e const&)>(wdg),
-                         sol::resolve<mvec3dp_e(mvec3dp_u const&, mvec3dp_u const&)>(wdg),
-                         sol::resolve<scalar3dp(pscalar3dp, pscalar3dp)>(wdg),
-                         sol::resolve<scalar3dp(pscalar3dp, trivec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(trivec3dp const&, pscalar3dp)>(wdg),
-                         sol::resolve<scalar3dp(pscalar3dp, bivec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(bivec3dp const&, pscalar3dp)>(wdg),
-                         sol::resolve<scalar3dp(pscalar3dp, vec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(vec3dp const&, pscalar3dp)>(wdg),
-                         sol::resolve<pscalar3dp(pscalar3dp, scalar3dp)>(wdg),
-                         sol::resolve<pscalar3dp(scalar3dp, pscalar3dp)>(wdg),
-                         sol::resolve<scalar3dp(trivec3dp const&, trivec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(trivec3dp const&, bivec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(bivec3dp const&, trivec3dp const&)>(wdg),
-                         sol::resolve<pscalar3dp(trivec3dp const&, vec3dp const&)>(wdg),
-                         sol::resolve<pscalar3dp(vec3dp const&, trivec3dp const&)>(wdg),
-                         sol::resolve<trivec3dp(trivec3dp const&, scalar3dp)>(wdg),
-                         sol::resolve<trivec3dp(scalar3dp, trivec3dp const&)>(wdg),
-                         sol::resolve<pscalar3dp(bivec3dp const&, bivec3dp const&)>(wdg),
-                         sol::resolve<trivec3dp(bivec3dp const&, vec3dp const&)>(wdg),
-                         sol::resolve<trivec3dp(vec3dp const&, bivec3dp const&)>(wdg),
-                         sol::resolve<bivec3dp(bivec3dp const&, scalar3dp)>(wdg),
-                         sol::resolve<bivec3dp(scalar3dp, bivec3dp const&)>(wdg),
-                         sol::resolve<bivec3dp(vec3dp const&, vec3dp const&)>(wdg),
-                         sol::resolve<vec3dp(vec3dp const&, scalar3dp)>(wdg),
-                         sol::resolve<vec3dp(scalar3dp, vec3dp const&)>(wdg),
-                         sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(wdg),
-                         // Geometric alias functions pga3dp
-                         sol::resolve<plane3d(line3d const&, point3d const&)>(wdg),
-                         sol::resolve<plane3d(point3d const&, line3d const&)>(wdg),
-                         sol::resolve<line3d(point3d const&, point3d const&)>(wdg)));
+    lua.set_function(
+        "wdg", sol::overload(
+                   // EGA 2D wedge products
+                   sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
+                   sol::resolve<mvec2d(mvec2d const&, mvec2d_e const&)>(wdg),
+                   sol::resolve<mvec2d(mvec2d_e const&, mvec2d const&)>(wdg),
+                   sol::resolve<pscalar2d(mvec2d const&, pscalar2d)>(wdg),
+                   sol::resolve<pscalar2d(pscalar2d, mvec2d const&)>(wdg),
+                   sol::resolve<mvec2d(mvec2d const&, vec2d const&)>(wdg),
+                   sol::resolve<mvec2d(vec2d const&, mvec2d const&)>(wdg),
+                   sol::resolve<mvec2d(mvec2d const&, scalar2d)>(wdg),
+                   sol::resolve<mvec2d(scalar2d, mvec2d const&)>(wdg),
+                   sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(wdg),
+                   sol::resolve<pscalar2d(mvec2d_e const&, pscalar2d)>(wdg),
+                   sol::resolve<pscalar2d(pscalar2d, mvec2d_e const&)>(wdg),
+                   sol::resolve<vec2d(mvec2d_e const&, vec2d const&)>(wdg),
+                   sol::resolve<vec2d(vec2d const&, mvec2d_e const&)>(wdg),
+                   sol::resolve<mvec2d_e(mvec2d_e const&, scalar2d)>(wdg),
+                   sol::resolve<mvec2d_e(scalar2d, mvec2d_e const&)>(wdg),
+                   sol::resolve<scalar2d(pscalar2d, pscalar2d)>(wdg),
+                   sol::resolve<scalar2d(pscalar2d, vec2d const&)>(wdg),
+                   sol::resolve<scalar2d(vec2d const&, pscalar2d)>(wdg),
+                   sol::resolve<pscalar2d(pscalar2d, scalar2d)>(wdg),
+                   sol::resolve<pscalar2d(scalar2d, pscalar2d)>(wdg),
+                   sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
+                   sol::resolve<vec2d(vec2d const&, scalar2d)>(wdg),
+                   sol::resolve<vec2d(scalar2d, vec2d const&)>(wdg),
+                   sol::resolve<scalar2d(scalar2d, scalar2d)>(wdg),
+                   // EGA 3D wedge products
+                   sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(wdg),
+                   sol::resolve<mvec3d(mvec3d const&, bivec3d const&)>(wdg),
+                   sol::resolve<mvec3d(bivec3d const&, mvec3d const&)>(wdg),
+                   sol::resolve<mvec3d(mvec3d const&, vec3d const&)>(wdg),
+                   sol::resolve<mvec3d(vec3d const&, mvec3d const&)>(wdg),
+                   sol::resolve<mvec3d(mvec3d const&, scalar3d)>(wdg),
+                   sol::resolve<mvec3d(scalar3d, mvec3d const&)>(wdg),
+                   sol::resolve<scalar3d(pscalar3d, pscalar3d)>(wdg),
+                   sol::resolve<scalar3d(pscalar3d, bivec3d const&)>(wdg),
+                   sol::resolve<scalar3d(bivec3d const&, pscalar3d)>(wdg),
+                   sol::resolve<scalar3d(pscalar3d, vec3d const&)>(wdg),
+                   sol::resolve<scalar3d(vec3d const&, pscalar3d)>(wdg),
+                   sol::resolve<pscalar3d(pscalar3d, scalar3d)>(wdg),
+                   sol::resolve<pscalar3d(scalar3d, pscalar3d)>(wdg),
+                   sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(wdg),
+                   sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg),
+                   sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
+                   sol::resolve<bivec3d(bivec3d const&, scalar3d)>(wdg),
+                   sol::resolve<bivec3d(scalar3d, bivec3d const&)>(wdg),
+                   sol::resolve<bivec3d(vec3d const&, vec3d const&)>(wdg),
+                   sol::resolve<vec3d(vec3d const&, scalar3d)>(wdg),
+                   sol::resolve<vec3d(scalar3d, vec3d const&)>(wdg),
+                   sol::resolve<scalar3d(scalar3d, scalar3d)>(wdg),
+                   // PGA 2DP wedge products
+                   sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(wdg),
+                   sol::resolve<mvec2dp_e(mvec2dp_e const&, mvec2dp_e const&)>(wdg),
+                   sol::resolve<bivec2dp(mvec2dp_u const&, mvec2dp_u const&)>(wdg),
+                   sol::resolve<scalar2dp(pscalar2dp, pscalar2dp)>(wdg),
+                   sol::resolve<scalar2dp(pscalar2dp, bivec2dp const&)>(wdg),
+                   sol::resolve<scalar2dp(bivec2dp const&, pscalar2dp)>(wdg),
+                   sol::resolve<scalar2dp(pscalar2dp, vec2dp const&)>(wdg),
+                   sol::resolve<scalar2dp(vec2dp const&, pscalar2dp)>(wdg),
+                   sol::resolve<pscalar2dp(pscalar2dp, scalar2dp)>(wdg),
+                   sol::resolve<pscalar2dp(scalar2dp, pscalar2dp)>(wdg),
+                   sol::resolve<scalar2dp(bivec2dp const&, bivec2dp const&)>(wdg),
+                   sol::resolve<pscalar2dp(bivec2dp const&, vec2dp const&)>(wdg),
+                   sol::resolve<pscalar2dp(vec2dp const&, bivec2dp const&)>(wdg),
+                   sol::resolve<bivec2dp(bivec2dp const&, scalar2dp)>(wdg),
+                   sol::resolve<bivec2dp(scalar2dp, bivec2dp const&)>(wdg),
+                   sol::resolve<bivec2dp(vec2dp const&, vec2dp const&)>(wdg),
+                   sol::resolve<vec2dp(vec2dp const&, scalar2dp)>(wdg),
+                   sol::resolve<vec2dp(scalar2dp, vec2dp const&)>(wdg),
+                   sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(wdg),
+                   // Geometric alias functions pga2dp
+                   sol::resolve<line2d(point2d const&, point2d const&)>(wdg),
+                   // PGA 3DP wedge products
+                   sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(wdg),
+                   sol::resolve<mvec3dp_e(mvec3dp_e const&, mvec3dp_e const&)>(wdg),
+                   sol::resolve<mvec3dp_e(mvec3dp_u const&, mvec3dp_u const&)>(wdg),
+                   sol::resolve<scalar3dp(pscalar3dp, pscalar3dp)>(wdg),
+                   sol::resolve<scalar3dp(pscalar3dp, trivec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(trivec3dp const&, pscalar3dp)>(wdg),
+                   sol::resolve<scalar3dp(pscalar3dp, bivec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(bivec3dp const&, pscalar3dp)>(wdg),
+                   sol::resolve<scalar3dp(pscalar3dp, vec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(vec3dp const&, pscalar3dp)>(wdg),
+                   sol::resolve<pscalar3dp(pscalar3dp, scalar3dp)>(wdg),
+                   sol::resolve<pscalar3dp(scalar3dp, pscalar3dp)>(wdg),
+                   sol::resolve<scalar3dp(trivec3dp const&, trivec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(trivec3dp const&, bivec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(bivec3dp const&, trivec3dp const&)>(wdg),
+                   sol::resolve<pscalar3dp(trivec3dp const&, vec3dp const&)>(wdg),
+                   sol::resolve<pscalar3dp(vec3dp const&, trivec3dp const&)>(wdg),
+                   sol::resolve<trivec3dp(trivec3dp const&, scalar3dp)>(wdg),
+                   sol::resolve<trivec3dp(scalar3dp, trivec3dp const&)>(wdg),
+                   sol::resolve<pscalar3dp(bivec3dp const&, bivec3dp const&)>(wdg),
+                   sol::resolve<trivec3dp(bivec3dp const&, vec3dp const&)>(wdg),
+                   sol::resolve<trivec3dp(vec3dp const&, bivec3dp const&)>(wdg),
+                   sol::resolve<bivec3dp(bivec3dp const&, scalar3dp)>(wdg),
+                   sol::resolve<bivec3dp(scalar3dp, bivec3dp const&)>(wdg),
+                   sol::resolve<bivec3dp(vec3dp const&, vec3dp const&)>(wdg),
+                   sol::resolve<vec3dp(vec3dp const&, scalar3dp)>(wdg),
+                   sol::resolve<vec3dp(scalar3dp, vec3dp const&)>(wdg),
+                   sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(wdg),
+                   // Geometric alias functions pga3dp
+                   sol::resolve<plane3d(line3d const&, point3d const&)>(wdg),
+                   sol::resolve<plane3d(point3d const&, line3d const&)>(wdg),
+                   sol::resolve<line3d(point3d const&, point3d const&)>(wdg),
+                   // sta
+                   sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds_e const&, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds_u const&, mvec4ds const&)>(wdg),
+                   sol::resolve<pscalar4ds(mvec4ds const&, pscalar4ds)>(wdg),
+                   sol::resolve<pscalar4ds(pscalar4ds, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, trivec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(trivec4ds const&, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, bivec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(bivec4ds const&, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, vec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(vec4ds const&, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds(mvec4ds const&, scalar4ds)>(wdg),
+                   sol::resolve<mvec4ds(scalar4ds, mvec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds_e(mvec4ds_e const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds_u(mvec4ds_e const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<mvec4ds_u(mvec4ds_u const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<pscalar4ds(mvec4ds_e const&, pscalar4ds)>(wdg),
+                   sol::resolve<pscalar4ds(pscalar4ds, mvec4ds_e const&)>(wdg),
+                   sol::resolve<trivec4ds(mvec4ds_e const&, trivec4ds const&)>(wdg),
+                   sol::resolve<trivec4ds(trivec4ds const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds_e(mvec4ds_e const&, bivec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds_e(bivec4ds const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds_u(mvec4ds_e const&, vec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds_u(vec4ds const&, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds_e(mvec4ds_e const&, scalar4ds)>(wdg),
+                   sol::resolve<mvec4ds_e(scalar4ds, mvec4ds_e const&)>(wdg),
+                   sol::resolve<mvec4ds_e(mvec4ds_u const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<scalar4ds(mvec4ds_u const&, pscalar4ds)>(wdg),
+                   sol::resolve<scalar4ds(pscalar4ds, mvec4ds_u const&)>(wdg),
+                   sol::resolve<pscalar4ds(mvec4ds_u const&, trivec4ds const&)>(wdg),
+                   sol::resolve<pscalar4ds(trivec4ds const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<trivec4ds(mvec4ds_u const&, bivec4ds const&)>(wdg),
+                   sol::resolve<trivec4ds(bivec4ds const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<mvec4ds_e(mvec4ds_u const&, vec4ds const&)>(wdg),
+                   sol::resolve<mvec4ds_e(vec4ds const&, mvec4ds_u const&)>(wdg),
+                   sol::resolve<mvec4ds_u(mvec4ds_u const&, scalar4ds)>(wdg),
+                   sol::resolve<mvec4ds_u(scalar4ds, mvec4ds_u const&)>(wdg),
+                   sol::resolve<scalar4ds(pscalar4ds, pscalar4ds)>(wdg),
+                   sol::resolve<scalar4ds(pscalar4ds, trivec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(trivec4ds const&, pscalar4ds)>(wdg),
+                   sol::resolve<scalar4ds(pscalar4ds, bivec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(bivec4ds const&, pscalar4ds)>(wdg),
+                   sol::resolve<scalar4ds(pscalar4ds, vec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(vec4ds const&, pscalar4ds)>(wdg),
+                   sol::resolve<pscalar4ds(pscalar4ds, scalar4ds)>(wdg),
+                   sol::resolve<pscalar4ds(scalar4ds, pscalar4ds)>(wdg),
+                   sol::resolve<scalar4ds(trivec4ds const&, trivec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(trivec4ds const&, bivec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(bivec4ds const&, trivec4ds const&)>(wdg),
+                   sol::resolve<pscalar4ds(trivec4ds const&, vec4ds const&)>(wdg),
+                   sol::resolve<pscalar4ds(vec4ds const&, trivec4ds const&)>(wdg),
+                   sol::resolve<trivec4ds(trivec4ds const&, scalar4ds)>(wdg),
+                   sol::resolve<trivec4ds(scalar4ds, trivec4ds const&)>(wdg),
+                   sol::resolve<pscalar4ds(bivec4ds const&, bivec4ds const&)>(wdg),
+                   sol::resolve<trivec4ds(bivec4ds const&, vec4ds const&)>(wdg),
+                   sol::resolve<trivec4ds(vec4ds const&, bivec4ds const&)>(wdg),
+                   sol::resolve<bivec4ds(bivec4ds const&, scalar4ds)>(wdg),
+                   sol::resolve<bivec4ds(scalar4ds, bivec4ds const&)>(wdg),
+                   sol::resolve<bivec4ds(vec4ds const&, vec4ds const&)>(wdg),
+                   sol::resolve<vec4ds(vec4ds const&, scalar4ds)>(wdg),
+                   sol::resolve<vec4ds(scalar4ds, vec4ds const&)>(wdg),
+                   sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(wdg)));
 
     // join as convenience alias for wdg()
     lua.set_function("join",
@@ -1884,7 +2010,72 @@ void register_functions(sol::state& lua)
                     sol::resolve<scalar3dp(vec3dp const&, vec3dp const&)>(rwdg),
                     sol::resolve<scalar3dp(vec3dp const&, scalar3dp)>(rwdg),
                     sol::resolve<scalar3dp(scalar3dp, vec3dp const&)>(rwdg),
-                    sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rwdg)));
+                    sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rwdg),
+                    // sta
+                    sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds_e const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds_u const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, pscalar4ds)>(rwdg),
+                    sol::resolve<mvec4ds(pscalar4ds, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(trivec4ds const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(bivec4ds const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(mvec4ds const&, vec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds(vec4ds const&, mvec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(mvec4ds const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, mvec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(mvec4ds_e const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds_u(mvec4ds_e const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<mvec4ds_u(mvec4ds_u const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(mvec4ds_e const&, pscalar4ds)>(rwdg),
+                    sol::resolve<mvec4ds_e(pscalar4ds, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds_u(mvec4ds_e const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds_u(trivec4ds const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(mvec4ds_e const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(bivec4ds const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<vec4ds(mvec4ds_e const&, vec4ds const&)>(rwdg),
+                    sol::resolve<vec4ds(vec4ds const&, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<scalar4ds(mvec4ds_e const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, mvec4ds_e const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(mvec4ds_u const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<mvec4ds_u(mvec4ds_u const&, pscalar4ds)>(rwdg),
+                    sol::resolve<mvec4ds_u(pscalar4ds, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(mvec4ds_u const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<mvec4ds_e(trivec4ds const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<vec4ds(mvec4ds_u const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<vec4ds(bivec4ds const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<scalar4ds(mvec4ds_u const&, vec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(vec4ds const&, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<scalar4ds(mvec4ds_u const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, mvec4ds_u const&)>(rwdg),
+                    sol::resolve<pscalar4ds(pscalar4ds, pscalar4ds)>(rwdg),
+                    sol::resolve<trivec4ds(pscalar4ds, trivec4ds const&)>(rwdg),
+                    sol::resolve<trivec4ds(trivec4ds const&, pscalar4ds)>(rwdg),
+                    sol::resolve<bivec4ds(pscalar4ds, bivec4ds const&)>(rwdg),
+                    sol::resolve<bivec4ds(bivec4ds const&, pscalar4ds)>(rwdg),
+                    sol::resolve<vec4ds(pscalar4ds, vec4ds const&)>(rwdg),
+                    sol::resolve<vec4ds(vec4ds const&, pscalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(pscalar4ds, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, pscalar4ds)>(rwdg),
+                    sol::resolve<bivec4ds(trivec4ds const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<vec4ds(trivec4ds const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<vec4ds(bivec4ds const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(trivec4ds const&, vec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(vec4ds const&, trivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(trivec4ds const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, trivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(bivec4ds const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(bivec4ds const&, vec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(vec4ds const&, bivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(bivec4ds const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, bivec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(vec4ds const&, vec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(vec4ds const&, scalar4ds)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, vec4ds const&)>(rwdg),
+                    sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(rwdg)));
 
     // meet as convenience alias for rwdg()
     lua.set_function("meet",
@@ -1933,7 +2124,34 @@ void register_functions(sol::state& lua)
                          sol::resolve<bivec3dp(bivec3dp const&, bivec3dp const&)>(cmt),
                          sol::resolve<vec3dp(bivec3dp const&, vec3dp const&)>(cmt),
                          sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(cmt),
-                         sol::resolve<bivec3dp(vec3dp const&, vec3dp const&)>(cmt)));
+                         sol::resolve<bivec3dp(vec3dp const&, vec3dp const&)>(cmt),
+                         // sta
+                         sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(pscalar4ds, pscalar4ds)>(cmt),
+                         sol::resolve<vec4ds(pscalar4ds, trivec4ds const&)>(cmt),
+                         sol::resolve<vec4ds(trivec4ds const&, pscalar4ds)>(cmt),
+                         sol::resolve<scalar4ds(pscalar4ds, bivec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(bivec4ds const&, pscalar4ds)>(cmt),
+                         sol::resolve<trivec4ds(pscalar4ds, vec4ds const&)>(cmt),
+                         sol::resolve<trivec4ds(vec4ds const&, pscalar4ds)>(cmt),
+                         sol::resolve<pscalar4ds(pscalar4ds, scalar4ds)>(cmt),
+                         sol::resolve<pscalar4ds(scalar4ds, pscalar4ds)>(cmt),
+                         sol::resolve<bivec4ds(trivec4ds const&, trivec4ds const&)>(cmt),
+                         sol::resolve<trivec4ds(trivec4ds const&, bivec4ds const&)>(cmt),
+                         sol::resolve<trivec4ds(bivec4ds const&, trivec4ds const&)>(cmt),
+                         sol::resolve<pscalar4ds(trivec4ds const&, vec4ds const&)>(cmt),
+                         sol::resolve<pscalar4ds(vec4ds const&, trivec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(trivec4ds const&, scalar4ds)>(cmt),
+                         sol::resolve<scalar4ds(scalar4ds, trivec4ds const&)>(cmt),
+                         sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(cmt),
+                         sol::resolve<vec4ds(bivec4ds const&, vec4ds const&)>(cmt),
+                         sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(bivec4ds const&, scalar4ds)>(cmt),
+                         sol::resolve<scalar4ds(scalar4ds, bivec4ds const&)>(cmt),
+                         sol::resolve<bivec4ds(vec4ds const&, vec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(vec4ds const&, scalar4ds)>(cmt),
+                         sol::resolve<scalar4ds(scalar4ds, vec4ds const&)>(cmt),
+                         sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(cmt)));
 
     lua.set_function("cross", sol::resolve<vec3d(vec3d const&, vec3d const&)>(cross));
 
@@ -1963,33 +2181,38 @@ void register_functions(sol::state& lua)
     // angles and rotations
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function(
-        "angle",
-        sol::overload( // EGA angle functions
-            sol::resolve<value_t(vec2d const&, vec2d const&)>(angle),
-            sol::resolve<value_t(vec3d const&, vec3d const&)>(angle),
-            sol::resolve<value_t(bivec3d const&, bivec3d const&)>(angle),
-            sol::resolve<value_t(vec3d const&, bivec3d const&)>(angle),
-            sol::resolve<value_t(bivec3d const&, vec3d const&)>(angle),
-            // PGA angle functions
-            sol::resolve<value_t(vec2dp const&, vec2dp const&)>(angle),
-            sol::resolve<value_t(bivec2dp const&, bivec2dp const&)>(angle),
-            sol::resolve<value_t(vec3dp const&, vec3dp const&)>(angle),
-            sol::resolve<value_t(bivec3dp const&, bivec3dp const&)>(angle),
-            sol::resolve<value_t(trivec3dp const&, bivec3dp const&)>(angle),
-            sol::resolve<value_t(bivec3dp const&, trivec3dp const&)>(angle),
-            sol::resolve<value_t(trivec3dp const&, trivec3dp const&)>(angle)));
+    lua.set_function("angle",
+                     sol::overload( // EGA angle functions
+                         sol::resolve<value_t(vec2d const&, vec2d const&)>(angle),
+                         sol::resolve<value_t(vec3d const&, vec3d const&)>(angle),
+                         sol::resolve<value_t(bivec3d const&, bivec3d const&)>(angle),
+                         sol::resolve<value_t(vec3d const&, bivec3d const&)>(angle),
+                         sol::resolve<value_t(bivec3d const&, vec3d const&)>(angle),
+                         // PGA angle functions
+                         sol::resolve<value_t(vec2dp const&, vec2dp const&)>(angle),
+                         sol::resolve<value_t(bivec2dp const&, bivec2dp const&)>(angle),
+                         sol::resolve<value_t(vec3dp const&, vec3dp const&)>(angle),
+                         sol::resolve<value_t(bivec3dp const&, bivec3dp const&)>(angle),
+                         sol::resolve<value_t(trivec3dp const&, bivec3dp const&)>(angle),
+                         sol::resolve<value_t(bivec3dp const&, trivec3dp const&)>(angle),
+                         sol::resolve<value_t(trivec3dp const&, trivec3dp const&)>(angle),
+                         // sta
+                         sol::resolve<value_t(vec4ds const&, vec4ds const&)>(angle)));
 
     lua.set_function("angle_to_re", sol::resolve<value_t(mvec2d_e const&)>(angle_to_re));
 
     lua.set_function("exp",
                      sol::overload(sol::resolve<mvec2d_e(pscalar2d, value_t)>(exp),
-                                   sol::resolve<mvec3d_e(bivec3d const&, value_t)>(exp)));
+                                   sol::resolve<mvec3d_e(bivec3d const&, value_t)>(exp),
+                                   // sta
+                                   sol::resolve<mvec4ds_e(bivec4ds const&)>(exp)));
 
     lua.set_function(
         "get_rotor",
         sol::overload(sol::resolve<mvec2d_e(pscalar2d, value_t)>(get_rotor),
-                      sol::resolve<mvec3d_e(bivec3d const&, value_t)>(get_rotor)));
+                      sol::resolve<mvec3d_e(bivec3d const&, value_t)>(get_rotor),
+                      // sta
+                      sol::resolve<mvec4ds_e(bivec4ds const&, value_t)>(get_rotor)));
 
     lua.set_function(
         "rotate",
@@ -2048,14 +2271,32 @@ void register_functions(sol::state& lua)
                                    sol::resolve<vec2d(vec2d const&)>(l_dual),
                                    sol::resolve<pscalar2d(scalar2d)>(l_dual),
                                    sol::resolve<mvec2d_e(mvec2d_e const&)>(l_dual),
-                                   sol::resolve<mvec2d(mvec2d const&)>(l_dual)));
+                                   sol::resolve<mvec2d(mvec2d const&)>(l_dual),
+                                   // sta
+                                   sol::resolve<pscalar4ds(scalar4ds)>(l_dual),
+                                   sol::resolve<trivec4ds(vec4ds const&)>(l_dual),
+                                   sol::resolve<bivec4ds(bivec4ds const&)>(l_dual),
+                                   sol::resolve<vec4ds(trivec4ds const&)>(l_dual),
+                                   sol::resolve<scalar4ds(pscalar4ds)>(l_dual),
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(l_dual),
+                                   sol::resolve<mvec4ds_u(mvec4ds_u const&)>(l_dual),
+                                   sol::resolve<mvec4ds(mvec4ds const&)>(l_dual)));
 
     lua.set_function("r_dual",
                      sol::overload(sol::resolve<scalar2d(pscalar2d)>(r_dual),
                                    sol::resolve<vec2d(vec2d const&)>(r_dual),
                                    sol::resolve<pscalar2d(scalar2d)>(r_dual),
                                    sol::resolve<mvec2d_e(mvec2d_e const&)>(r_dual),
-                                   sol::resolve<mvec2d(mvec2d const&)>(r_dual)));
+                                   sol::resolve<mvec2d(mvec2d const&)>(r_dual),
+                                   // sta
+                                   sol::resolve<pscalar4ds(scalar4ds)>(r_dual),
+                                   sol::resolve<trivec4ds(vec4ds const&)>(r_dual),
+                                   sol::resolve<bivec4ds(bivec4ds const&)>(r_dual),
+                                   sol::resolve<vec4ds(trivec4ds const&)>(r_dual),
+                                   sol::resolve<scalar4ds(pscalar4ds)>(r_dual),
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(r_dual),
+                                   sol::resolve<mvec4ds_u(mvec4ds_u const&)>(r_dual),
+                                   sol::resolve<mvec4ds(mvec4ds const&)>(r_dual)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // complement operations
@@ -2076,7 +2317,16 @@ void register_functions(sol::state& lua)
                          sol::resolve<scalar3dp(pscalar3dp)>(r_cmpl),
                          sol::resolve<mvec3dp_u(mvec3dp_u const&)>(r_cmpl),
                          sol::resolve<mvec3dp_e(mvec3dp_e const&)>(r_cmpl),
-                         sol::resolve<mvec3dp(mvec3dp const&)>(r_cmpl)));
+                         sol::resolve<mvec3dp(mvec3dp const&)>(r_cmpl),
+                         // sta
+                         sol::resolve<pscalar4ds(scalar4ds)>(r_cmpl),
+                         sol::resolve<trivec4ds(vec4ds const&)>(r_cmpl),
+                         sol::resolve<bivec4ds(bivec4ds const&)>(r_cmpl),
+                         sol::resolve<vec4ds(trivec4ds const&)>(r_cmpl),
+                         sol::resolve<scalar4ds(pscalar4ds)>(r_cmpl),
+                         sol::resolve<mvec4ds_u(mvec4ds_u const&)>(r_cmpl),
+                         sol::resolve<mvec4ds_e(mvec4ds_e const&)>(r_cmpl),
+                         sol::resolve<mvec4ds(mvec4ds const&)>(r_cmpl)));
 
     lua.set_function("l_cmpl",
                      sol::overload( // EGA 2D l_cmpl functions
@@ -2093,7 +2343,16 @@ void register_functions(sol::state& lua)
                          sol::resolve<scalar3dp(pscalar3dp)>(l_cmpl),
                          sol::resolve<mvec3dp_u(mvec3dp_u const&)>(l_cmpl),
                          sol::resolve<mvec3dp_e(mvec3dp_e const&)>(l_cmpl),
-                         sol::resolve<mvec3dp(mvec3dp const&)>(l_cmpl)));
+                         sol::resolve<mvec3dp(mvec3dp const&)>(l_cmpl),
+                         // sta
+                         sol::resolve<pscalar4ds(scalar4ds)>(l_cmpl),
+                         sol::resolve<trivec4ds(vec4ds const&)>(l_cmpl),
+                         sol::resolve<bivec4ds(bivec4ds const&)>(l_cmpl),
+                         sol::resolve<vec4ds(trivec4ds const&)>(l_cmpl),
+                         sol::resolve<scalar4ds(pscalar4ds)>(l_cmpl),
+                         sol::resolve<mvec4ds_u(mvec4ds_u const&)>(l_cmpl),
+                         sol::resolve<mvec4ds_e(mvec4ds_e const&)>(l_cmpl),
+                         sol::resolve<mvec4ds(mvec4ds const&)>(l_cmpl)));
 
     lua.set_function("cmpl", sol::overload( // EGA 3D cmpl functions
                                  sol::resolve<pscalar3d(scalar3d)>(cmpl),
@@ -2128,7 +2387,10 @@ void register_functions(sol::state& lua)
             // PGA 3DP projection functions
             sol::resolve<vec3dp(vec3dp const&, vec3dp const&)>(project_onto),
             sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(project_onto),
-            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(project_onto)));
+            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(project_onto),
+            // sta
+            sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(project_onto),
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(project_onto)));
 
     lua.set_function(
         "reject_from",
@@ -2142,7 +2404,10 @@ void register_functions(sol::state& lua)
             // PGA 3DP rejection functions
             sol::resolve<vec3dp(vec3dp const&, vec3dp const&)>(reject_from),
             sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(reject_from),
-            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(reject_from)));
+            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(reject_from),
+            // sta
+            sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(reject_from),
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(reject_from)));
 
     lua.set_function(
         "reflect_on",
@@ -2159,12 +2424,20 @@ void register_functions(sol::state& lua)
             // PGA 3DP reflection functions
             sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(reflect_on),
             sol::resolve<bivec3dp(bivec3dp const&, trivec3dp const&)>(reflect_on),
-            sol::resolve<trivec3dp(trivec3dp const&, trivec3dp const&)>(reflect_on)));
+            sol::resolve<trivec3dp(trivec3dp const&, trivec3dp const&)>(reflect_on),
+            // sta
+            sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(reflect_on),
+            sol::resolve<vec4ds(vec4ds const&, trivec4ds const&)>(reflect_on),
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(reflect_on),
+            sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(reflect_on)));
 
     lua.set_function(
         "reflect_on_vec",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec)));
+        sol::overload(
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec),
+            // sta
+            sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(reflect_on_vec)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // testing for congruence
@@ -2212,7 +2485,13 @@ void register_functions(sol::state& lua)
             [](vec3dp const& a, vec3dp const& b) { return is_congruent(a, b); },
             [](bivec3dp const& a, bivec3dp const& b) { return is_congruent(a, b); },
             [](trivec3dp const& a, trivec3dp const& b) { return is_congruent(a, b); },
-            [](pscalar3dp a, pscalar3dp b) { return is_congruent(a, b); }));
+            [](pscalar3dp a, pscalar3dp b) { return is_congruent(a, b); },
+            // sta
+            sol::resolve<bool(scalar4ds, scalar4ds, value_t)>(is_congruent),
+            sol::resolve<bool(vec4ds const&, vec4ds const&, value_t)>(is_congruent),
+            sol::resolve<bool(bivec4ds const&, bivec4ds const&, value_t)>(is_congruent),
+            sol::resolve<bool(trivec4ds const&, trivec4ds const&, value_t)>(is_congruent),
+            sol::resolve<bool(pscalar4ds, pscalar4ds, value_t)>(is_congruent)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // common helper functions for scripting in lua
@@ -2267,7 +2546,16 @@ void register_functions(sol::state& lua)
                                 sol::resolve<trivec3dp(trivec3dp const&)>(inv),
                                 sol::resolve<mvec3dp_e(mvec3dp_e const&)>(inv),
                                 sol::resolve<mvec3dp_u(mvec3dp_u const&)>(inv),
-                                sol::resolve<mvec3dp(mvec3dp const&)>(inv)));
+                                sol::resolve<mvec3dp(mvec3dp const&)>(inv),
+                                // sta
+                                sol::resolve<scalar4ds(scalar4ds)>(inv),
+                                sol::resolve<vec4ds(vec4ds const&)>(inv),
+                                sol::resolve<bivec4ds(bivec4ds const&)>(inv),
+                                sol::resolve<trivec4ds(trivec4ds const&)>(inv),
+                                sol::resolve<pscalar4ds(pscalar4ds)>(inv),
+                                sol::resolve<mvec4ds_e(mvec4ds_e const&)>(inv),
+                                sol::resolve<mvec4ds_u(mvec4ds_u const&)>(inv),
+                                sol::resolve<mvec4ds(mvec4ds const&)>(inv)));
 
 
     // rrev() - Regressive reversion (verified existing signatures - PGA only)
@@ -2288,7 +2576,16 @@ void register_functions(sol::state& lua)
                                  sol::resolve<pscalar3dp(pscalar3dp)>(rrev),
                                  sol::resolve<mvec3dp_e(mvec3dp_e const&)>(rrev),
                                  sol::resolve<mvec3dp_u(mvec3dp_u const&)>(rrev),
-                                 sol::resolve<mvec3dp(mvec3dp const&)>(rrev)));
+                                 sol::resolve<mvec3dp(mvec3dp const&)>(rrev),
+                                 // sta
+                                 sol::resolve<scalar4ds(scalar4ds)>(rrev),
+                                 sol::resolve<vec4ds(vec4ds const&)>(rrev),
+                                 sol::resolve<bivec4ds(bivec4ds const&)>(rrev),
+                                 sol::resolve<trivec4ds(trivec4ds const&)>(rrev),
+                                 sol::resolve<pscalar4ds(pscalar4ds)>(rrev),
+                                 sol::resolve<mvec4ds_e(mvec4ds_e const&)>(rrev),
+                                 sol::resolve<mvec4ds_u(mvec4ds_u const&)>(rrev),
+                                 sol::resolve<mvec4ds(mvec4ds const&)>(rrev)));
 
     lua.set_function(
         "rdot", sol::overload(
@@ -2464,13 +2761,17 @@ void register_functions(sol::state& lua)
     lua.set_function("log", sol::overload(sol::resolve<pscalar2d(mvec2d_e const&)>(log),
                                           sol::resolve<bivec3d(mvec3d_e const&)>(log),
                                           sol::resolve<vec2dp(mvec2dp_u const&)>(log),
-                                          sol::resolve<bivec3dp(mvec3dp_e const&)>(log)));
+                                          sol::resolve<bivec3dp(mvec3dp_e const&)>(log),
+                                          // sta
+                                          sol::resolve<bivec4ds(mvec4ds_e const&)>(log)));
 
     lua.set_function("sqrt",
                      sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&)>(sqrt),
                                    sol::resolve<mvec3d_e(mvec3d_e const&)>(sqrt),
                                    sol::resolve<mvec2dp_u(mvec2dp_u const&)>(sqrt),
-                                   sol::resolve<mvec3dp_e(mvec3dp_e const&)>(sqrt)));
+                                   sol::resolve<mvec3dp_e(mvec3dp_e const&)>(sqrt),
+                                   // sta
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(sqrt)));
 
     lua.set_function(
         "twdg1",
@@ -2606,6 +2907,88 @@ void register_functions(sol::state& lua)
                      sol::resolve<pose2dp(mvec2dp_u const&)>(pose2dp_from_motor));
     lua.set_function("pose3dp_from_motor",
                      sol::resolve<pose3dp(mvec3dp_e const&)>(pose3dp_from_motor));
+
+    // ---- Phase 3c: STA-only functions (generated via utilities/gen_lua_overloads.py)
+    // ----
+    lua.set_function(
+        "get_boost",
+        sol::overload(sol::resolve<mvec4ds_e(bivec4ds const&, value_t)>(get_boost)));
+
+    lua.set_function("is_lightlike",
+                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_lightlike),
+                                   sol::resolve<bool(bivec4ds const&)>(is_lightlike),
+                                   sol::resolve<bool(trivec4ds const&)>(is_lightlike)));
+
+    lua.set_function("is_spacelike",
+                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_spacelike),
+                                   sol::resolve<bool(bivec4ds const&)>(is_spacelike),
+                                   sol::resolve<bool(trivec4ds const&)>(is_spacelike)));
+
+    lua.set_function("is_timelike",
+                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_timelike),
+                                   sol::resolve<bool(bivec4ds const&)>(is_timelike),
+                                   sol::resolve<bool(trivec4ds const&)>(is_timelike)));
+
+    lua.set_function("l_undual",
+                     sol::overload(sol::resolve<pscalar4ds(scalar4ds)>(l_undual),
+                                   sol::resolve<trivec4ds(vec4ds const&)>(l_undual),
+                                   sol::resolve<bivec4ds(bivec4ds const&)>(l_undual),
+                                   sol::resolve<vec4ds(trivec4ds const&)>(l_undual),
+                                   sol::resolve<scalar4ds(pscalar4ds)>(l_undual),
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(l_undual),
+                                   sol::resolve<mvec4ds_u(mvec4ds_u const&)>(l_undual),
+                                   sol::resolve<mvec4ds(mvec4ds const&)>(l_undual)));
+
+    lua.set_function("r_undual",
+                     sol::overload(sol::resolve<pscalar4ds(scalar4ds)>(r_undual),
+                                   sol::resolve<trivec4ds(vec4ds const&)>(r_undual),
+                                   sol::resolve<bivec4ds(bivec4ds const&)>(r_undual),
+                                   sol::resolve<vec4ds(trivec4ds const&)>(r_undual),
+                                   sol::resolve<scalar4ds(pscalar4ds)>(r_undual),
+                                   sol::resolve<mvec4ds_e(mvec4ds_e const&)>(r_undual),
+                                   sol::resolve<mvec4ds_u(mvec4ds_u const&)>(r_undual),
+                                   sol::resolve<mvec4ds(mvec4ds const&)>(r_undual)));
+
+    lua.set_function(
+        "rapidity",
+        sol::overload(sol::resolve<value_t(vec4ds const&, vec4ds const&)>(rapidity)));
+
+    lua.set_function("rel_bivec_split",
+                     sol::overload(sol::resolve<bivec4ds(bivec4ds const&, vec4ds const&)>(
+                         rel_bivec_split)));
+
+    lua.set_function("rel_vec_split",
+                     sol::overload(sol::resolve<bivec4ds(bivec4ds const&, vec4ds const&)>(
+                         rel_vec_split)));
+
+    lua.set_function(
+        "space_split",
+        sol::overload(sol::resolve<bivec4ds(vec4ds const&, vec4ds const&)>(space_split)));
+
+    lua.set_function(
+        "time_split",
+        sol::overload(sol::resolve<scalar4ds(vec4ds const&, vec4ds const&)>(time_split)));
+
+    lua.set_function(
+        "transform",
+        sol::overload(
+            sol::resolve<vec4ds(vec4ds const&, mvec4ds_e const&)>(transform),
+            sol::resolve<bivec4ds(bivec4ds const&, mvec4ds_e const&)>(transform),
+            sol::resolve<trivec4ds(trivec4ds const&, mvec4ds_e const&)>(transform),
+            sol::resolve<mvec4ds(mvec4ds const&, mvec4ds_e const&)>(transform)));
+
+    lua.set_function(
+        "transform_opt",
+        sol::overload(
+            sol::resolve<vec4ds(vec4ds const&, mvec4ds_e const&)>(transform_opt),
+            sol::resolve<trivec4ds(trivec4ds const&, mvec4ds_e const&)>(transform_opt),
+            sol::resolve<bivec4ds(bivec4ds const&, mvec4ds_e const&)>(transform_opt),
+            sol::resolve<std::vector<vec4ds>(std::vector<vec4ds> const&,
+                                             mvec4ds_e const&)>(transform_opt),
+            sol::resolve<std::vector<trivec4ds>(std::vector<trivec4ds> const&,
+                                                mvec4ds_e const&)>(transform_opt),
+            sol::resolve<std::vector<bivec4ds>(std::vector<bivec4ds> const&,
+                                               mvec4ds_e const&)>(transform_opt)));
 
     // Note:
     // - Geometric product is only available as operator*, not as
@@ -2815,6 +3198,76 @@ void register_constants(sol::state& lua)
     lua["one_3dp"] = one_3dp;
     lua["one_3dp_mv"] = one_3dp_mv;
     lua["one_3dp_mv_e"] = one_3dp_mv_e;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // STA constants (G(1,3,0))
+    ////////////////////////////////////////////////////////////////////////////////
+    using namespace hd::ga::sta;
+
+    // STA basis vectors (g1..g4 spacelike/timelike)
+    lua["g1_4ds"] = g1_4ds;
+    lua["g2_4ds"] = g2_4ds;
+    lua["g3_4ds"] = g3_4ds;
+    lua["g4_4ds"] = g4_4ds;
+
+    // STA basis vectors as multivectors
+    lua["g1_4ds_mv"] = g1_4ds_mv;
+    lua["g2_4ds_mv"] = g2_4ds_mv;
+    lua["g3_4ds_mv"] = g3_4ds_mv;
+    lua["g4_4ds_mv"] = g4_4ds_mv;
+
+    // STA direction vectors
+    lua["x_dir_4ds"] = x_dir_4ds;
+    lua["y_dir_4ds"] = y_dir_4ds;
+    lua["z_dir_4ds"] = z_dir_4ds;
+    lua["t_dir_4ds"] = t_dir_4ds;
+
+    // STA bivectors
+    lua["g14_4ds"] = g14_4ds;
+    lua["g24_4ds"] = g24_4ds;
+    lua["g34_4ds"] = g34_4ds;
+    lua["g23_4ds"] = g23_4ds;
+    lua["g31_4ds"] = g31_4ds;
+    lua["g12_4ds"] = g12_4ds;
+
+    // STA bivectors as multivectors
+    lua["g14_4ds_mv"] = g14_4ds_mv;
+    lua["g24_4ds_mv"] = g24_4ds_mv;
+    lua["g34_4ds_mv"] = g34_4ds_mv;
+    lua["g23_4ds_mv"] = g23_4ds_mv;
+    lua["g31_4ds_mv"] = g31_4ds_mv;
+    lua["g12_4ds_mv"] = g12_4ds_mv;
+
+    // STA bivectors as even-grade multivectors
+    lua["g14_4ds_mv_e"] = g14_4ds_mv_e;
+    lua["g24_4ds_mv_e"] = g24_4ds_mv_e;
+    lua["g34_4ds_mv_e"] = g34_4ds_mv_e;
+    lua["g23_4ds_mv_e"] = g23_4ds_mv_e;
+    lua["g31_4ds_mv_e"] = g31_4ds_mv_e;
+    lua["g12_4ds_mv_e"] = g12_4ds_mv_e;
+
+    // STA trivectors
+    lua["g234_4ds"] = g234_4ds;
+    lua["g314_4ds"] = g314_4ds;
+    lua["g124_4ds"] = g124_4ds;
+    lua["g123_4ds"] = g123_4ds;
+
+    // STA trivectors as multivectors
+    lua["g234_4ds_mv"] = g234_4ds_mv;
+    lua["g314_4ds_mv"] = g314_4ds_mv;
+    lua["g124_4ds_mv"] = g124_4ds_mv;
+    lua["g123_4ds_mv"] = g123_4ds_mv;
+
+    // STA pseudoscalar
+    lua["I_4ds"] = I_4ds;
+    lua["g1234_4ds"] = g1234_4ds;
+    lua["I_4ds_mv"] = I_4ds_mv;
+    lua["I_4ds_mv_e"] = I_4ds_mv_e;
+
+    // STA scalar one
+    lua["one_4ds"] = one_4ds;
+    lua["one_4ds_mv"] = one_4ds_mv;
+    lua["one_4ds_mv_e"] = one_4ds_mv_e;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
