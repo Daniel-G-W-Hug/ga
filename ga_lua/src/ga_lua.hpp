@@ -11,6 +11,7 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // register basic types, geometric operations and constants
@@ -22,6 +23,8 @@ void register_3d_types(sol::state& lua);
 // PGA type registration functions
 void register_2dp_types(sol::state& lua);
 void register_3dp_types(sol::state& lua);
+// STA type registration (G(1,3,0): scalar4ds ... mvec4ds, dualnum4ds)
+void register_4ds_types(sol::state& lua);
 // PGA geometric convenience types (point / vector / line / plane subclasses)
 void register_convenience_types(sol::state& lua);
 // PGA physics pure-data structs (pose / kin_state / joint_state / loop_constraint)
@@ -3057,4 +3060,292 @@ void register_physics_pods(sol::state& lua)
         "anchor_b", &loop_constraint3dp::anchor_b, "type", &loop_constraint3dp::type,
         sol::meta_function::to_string,
         [](loop_constraint3dp const& c) { return fmt::format("{}", c); });
+}
+
+void register_4ds_types(sol::state& lua)
+{
+    using namespace hd::ga;
+    using namespace hd::ga::sta;
+
+    // Basic scalar type
+    lua.new_usertype<scalar4ds>(
+        "scalar4ds",
+        sol::constructors<scalar4ds(), scalar4ds(value_t const&), scalar4ds(value_t&&)>(),
+        "copy", [](const scalar4ds& obj) { return scalar4ds(obj); },
+        sol::meta_function::to_string,
+        [](const scalar4ds& s) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Scalar4ds({})", suppress_negative_zero(double(s)));
+        },
+        sol::meta_function::unary_minus, sol::resolve<scalar4ds(scalar4ds)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<scalar4ds(scalar4ds, scalar4ds)>(operator*),
+                      sol::resolve<scalar4ds(scalar4ds, value_t)>(operator*),
+                      sol::resolve<scalar4ds(value_t, scalar4ds)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<scalar4ds(scalar4ds, value_t)>(operator/));
+
+    // Vector type with x,y,z,w components
+    lua.new_usertype<vec4ds>(
+        "vec4ds",
+        sol::constructors<vec4ds(), vec4ds(value_t, value_t, value_t, value_t),
+                          vec4ds(vec4ds const&), vec4ds(vec4ds&&)>(),
+        "copy", [](const vec4ds& obj) { return vec4ds(obj); },
+        // component access
+        "x", &vec4ds::x, "y", &vec4ds::y, "z", &vec4ds::z, "w", &vec4ds::w,
+        sol::meta_function::to_string,
+        [](const vec4ds& v) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Vec4ds({},{},{},{})", suppress_negative_zero(v.x),
+                               suppress_negative_zero(v.y), suppress_negative_zero(v.z),
+                               suppress_negative_zero(v.w));
+        },
+        sol::meta_function::unary_minus, sol::resolve<vec4ds(vec4ds const&)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<vec4ds(vec4ds const&, value_t)>(operator*),
+                      sol::resolve<vec4ds(value_t, vec4ds const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<vec4ds(vec4ds const&, value_t)>(operator/),
+        sol::meta_function::power_of,
+        sol::resolve<bivec4ds(vec4ds const&, vec4ds const&)>(wdg));
+
+    // Bivector type with vx,vy,vz,mx,my,mz components
+    lua.new_usertype<bivec4ds>(
+        "bivec4ds",
+        sol::constructors<bivec4ds(),
+                          bivec4ds(value_t, value_t, value_t, value_t, value_t, value_t),
+                          bivec4ds(bivec4ds const&), bivec4ds(bivec4ds&&)>(),
+        "copy", [](const bivec4ds& obj) { return bivec4ds(obj); },
+        // component access
+        "vx", &bivec4ds::vx, "vy", &bivec4ds::vy, "vz", &bivec4ds::vz, "mx",
+        &bivec4ds::mx, "my", &bivec4ds::my, "mz", &bivec4ds::mz,
+        sol::meta_function::to_string,
+        [](const bivec4ds& bv) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "BiVec4ds({},{},{},{},{},{})", suppress_negative_zero(bv.vx),
+                suppress_negative_zero(bv.vy), suppress_negative_zero(bv.vz),
+                suppress_negative_zero(bv.mx), suppress_negative_zero(bv.my),
+                suppress_negative_zero(bv.mz));
+        },
+        sol::meta_function::unary_minus,
+        sol::resolve<bivec4ds(bivec4ds const&)>(operator-), sol::meta_function::addition,
+        sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<bivec4ds(bivec4ds const&, value_t)>(operator*),
+                      sol::resolve<bivec4ds(value_t, bivec4ds const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<bivec4ds(bivec4ds const&, value_t)>(operator/));
+
+    // Trivector type with x,y,z,w components
+    lua.new_usertype<trivec4ds>(
+        "trivec4ds",
+        sol::constructors<trivec4ds(), trivec4ds(value_t, value_t, value_t, value_t),
+                          trivec4ds(trivec4ds const&), trivec4ds(trivec4ds&&)>(),
+        "copy", [](const trivec4ds& obj) { return trivec4ds(obj); },
+        // component access
+        "x", &trivec4ds::x, "y", &trivec4ds::y, "z", &trivec4ds::z, "w", &trivec4ds::w,
+        sol::meta_function::to_string,
+        [](const trivec4ds& tv) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("TriVec4ds({},{},{},{})", suppress_negative_zero(tv.x),
+                               suppress_negative_zero(tv.y), suppress_negative_zero(tv.z),
+                               suppress_negative_zero(tv.w));
+        },
+        sol::meta_function::unary_minus,
+        sol::resolve<trivec4ds(trivec4ds const&)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<trivec4ds(trivec4ds const&, trivec4ds const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<trivec4ds(trivec4ds const&, trivec4ds const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<trivec4ds(trivec4ds const&, value_t)>(operator*),
+                      sol::resolve<trivec4ds(value_t, trivec4ds const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<trivec4ds(trivec4ds const&, value_t)>(operator/));
+
+    // Pseudoscalar type
+    lua.new_usertype<pscalar4ds>(
+        "pscalar4ds",
+        sol::constructors<pscalar4ds(), pscalar4ds(value_t const&),
+                          pscalar4ds(value_t&&)>(),
+        "copy", [](const pscalar4ds& obj) { return pscalar4ds(obj); },
+        sol::meta_function::to_string,
+        [](const pscalar4ds& ps) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("PScalar4ds({})", suppress_negative_zero(double(ps)));
+        },
+        sol::meta_function::unary_minus, sol::resolve<pscalar4ds(pscalar4ds)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<pscalar4ds(pscalar4ds, pscalar4ds)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<pscalar4ds(pscalar4ds, pscalar4ds)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<pscalar4ds(pscalar4ds, value_t)>(operator*),
+                      sol::resolve<pscalar4ds(value_t, pscalar4ds)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<pscalar4ds(pscalar4ds, value_t)>(operator/));
+
+    // Dual numbers (for PGA-specific calculations)
+    lua.new_usertype<dualnum4ds>(
+        "dualnum4ds",
+        sol::constructors<dualnum4ds(), dualnum4ds(value_t, value_t),
+                          dualnum4ds(scalar4ds), dualnum4ds(pscalar4ds),
+                          dualnum4ds(scalar4ds, pscalar4ds),
+                          dualnum4ds(dualnum4ds const&), dualnum4ds(dualnum4ds&&)>(),
+        "copy", [](const dualnum4ds& obj) { return dualnum4ds(obj); },
+        // component access
+        "c0", &dualnum4ds::c0, "c1", &dualnum4ds::c1, sol::meta_function::to_string,
+        [](const dualnum4ds& dn) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("DualNum4ds({},{})", suppress_negative_zero(dn.c0),
+                               suppress_negative_zero(dn.c1));
+        },
+        sol::meta_function::unary_minus,
+        sol::resolve<dualnum4ds(dualnum4ds const&)>(operator-),
+        sol::meta_function::addition,
+        sol::overload(
+            sol::resolve<dualnum4ds(dualnum4ds const&, dualnum4ds const&)>(operator+),
+            sol::resolve<dualnum4ds(scalar4ds, dualnum4ds const&)>(operator+),
+            sol::resolve<dualnum4ds(dualnum4ds const&, scalar4ds)>(operator+),
+            sol::resolve<dualnum4ds(pscalar4ds, dualnum4ds const&)>(operator+),
+            sol::resolve<dualnum4ds(dualnum4ds const&, pscalar4ds)>(operator+)),
+        sol::meta_function::subtraction,
+        sol::overload(
+            sol::resolve<dualnum4ds(dualnum4ds const&, dualnum4ds const&)>(operator-),
+            sol::resolve<dualnum4ds(scalar4ds, dualnum4ds const&)>(operator-),
+            sol::resolve<dualnum4ds(dualnum4ds const&, scalar4ds)>(operator-),
+            sol::resolve<dualnum4ds(pscalar4ds, dualnum4ds const&)>(operator-),
+            sol::resolve<dualnum4ds(dualnum4ds const&, pscalar4ds)>(operator-)),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<dualnum4ds(dualnum4ds const&, value_t)>(operator*),
+                      sol::resolve<dualnum4ds(value_t, dualnum4ds const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<dualnum4ds(dualnum4ds const&, value_t)>(operator/));
+
+    // PGA 3DP multivector types
+    lua.new_usertype<mvec4ds_e>(
+        "mvec4ds_e",
+        sol::constructors<mvec4ds_e(),
+                          mvec4ds_e(value_t, value_t, value_t, value_t, value_t, value_t,
+                                    value_t, value_t),
+                          mvec4ds_e(mvec4ds_e const&), mvec4ds_e(mvec4ds_e&&),
+                          mvec4ds_e(scalar4ds), mvec4ds_e(bivec4ds const&),
+                          mvec4ds_e(pscalar4ds), mvec4ds_e(scalar4ds, bivec4ds const&),
+                          mvec4ds_e(bivec4ds const&, pscalar4ds),
+                          mvec4ds_e(scalar4ds, pscalar4ds),
+                          mvec4ds_e(scalar4ds, bivec4ds const&, pscalar4ds)>(),
+        "copy", [](const mvec4ds_e& obj) { return mvec4ds_e(obj); },
+        // component access
+        "c0", &mvec4ds_e::c0, "c1", &mvec4ds_e::c1, "c2", &mvec4ds_e::c2, "c3",
+        &mvec4ds_e::c3, "c4", &mvec4ds_e::c4, "c5", &mvec4ds_e::c5, "c6", &mvec4ds_e::c6,
+        "c7", &mvec4ds_e::c7, sol::meta_function::to_string,
+        [](const mvec4ds_e& mve) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec4ds_E({},{},{},{},{},{},{},{})", suppress_negative_zero(mve.c0),
+                suppress_negative_zero(mve.c1), suppress_negative_zero(mve.c2),
+                suppress_negative_zero(mve.c3), suppress_negative_zero(mve.c4),
+                suppress_negative_zero(mve.c5), suppress_negative_zero(mve.c6),
+                suppress_negative_zero(mve.c7));
+        },
+        sol::meta_function::unary_minus,
+        sol::resolve<mvec4ds_e(mvec4ds_e const&)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<mvec4ds_e(mvec4ds_e const&, mvec4ds_e const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<mvec4ds_e(mvec4ds_e const&, mvec4ds_e const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(
+            sol::resolve<mvec4ds_e(mvec4ds_e const&, value_t)>(operator*),
+            sol::resolve<mvec4ds_e(value_t, mvec4ds_e const&)>(operator*),
+            sol::resolve<mvec4ds_e(mvec4ds_e const&, mvec4ds_e const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<mvec4ds_e(mvec4ds_e const&, value_t)>(operator/));
+
+    lua.new_usertype<mvec4ds_u>(
+        "mvec4ds_u",
+        sol::constructors<mvec4ds_u(),
+                          mvec4ds_u(value_t, value_t, value_t, value_t, value_t, value_t,
+                                    value_t, value_t),
+                          mvec4ds_u(mvec4ds_u const&), mvec4ds_u(mvec4ds_u&&),
+                          mvec4ds_u(vec4ds const&), mvec4ds_u(trivec4ds const&),
+                          mvec4ds_u(vec4ds const&, trivec4ds const&)>(),
+        "copy", [](const mvec4ds_u& obj) { return mvec4ds_u(obj); },
+        // component access
+        "c0", &mvec4ds_u::c0, "c1", &mvec4ds_u::c1, "c2", &mvec4ds_u::c2, "c3",
+        &mvec4ds_u::c3, "c4", &mvec4ds_u::c4, "c5", &mvec4ds_u::c5, "c6", &mvec4ds_u::c6,
+        "c7", &mvec4ds_u::c7, sol::meta_function::to_string,
+        [](const mvec4ds_u& mvu) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec4ds_U({},{},{},{},{},{},{},{})", suppress_negative_zero(mvu.c0),
+                suppress_negative_zero(mvu.c1), suppress_negative_zero(mvu.c2),
+                suppress_negative_zero(mvu.c3), suppress_negative_zero(mvu.c4),
+                suppress_negative_zero(mvu.c5), suppress_negative_zero(mvu.c6),
+                suppress_negative_zero(mvu.c7));
+        },
+        sol::meta_function::unary_minus,
+        sol::resolve<mvec4ds_u(mvec4ds_u const&)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<mvec4ds_u(mvec4ds_u const&, mvec4ds_u const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<mvec4ds_u(mvec4ds_u const&, mvec4ds_u const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<mvec4ds_u(mvec4ds_u const&, value_t)>(operator*),
+                      sol::resolve<mvec4ds_u(value_t, mvec4ds_u const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<mvec4ds_u(mvec4ds_u const&, value_t)>(operator/));
+
+    lua.new_usertype<mvec4ds>(
+        "mvec4ds",
+        sol::constructors<mvec4ds(),
+                          mvec4ds(value_t, value_t, value_t, value_t, value_t, value_t,
+                                  value_t, value_t, value_t, value_t, value_t, value_t,
+                                  value_t, value_t, value_t, value_t),
+                          mvec4ds(mvec4ds const&), mvec4ds(mvec4ds&&), mvec4ds(scalar4ds),
+                          mvec4ds(vec4ds const&), mvec4ds(bivec4ds const&),
+                          mvec4ds(trivec4ds const&), mvec4ds(pscalar4ds),
+                          mvec4ds(mvec4ds_e const&), mvec4ds(mvec4ds_u const&)>(),
+        "copy", [](const mvec4ds& obj) { return mvec4ds(obj); },
+        // component access
+        "c0", &mvec4ds::c0, "c1", &mvec4ds::c1, "c2", &mvec4ds::c2, "c3", &mvec4ds::c3,
+        "c4", &mvec4ds::c4, "c5", &mvec4ds::c5, "c6", &mvec4ds::c6, "c7", &mvec4ds::c7,
+        "c8", &mvec4ds::c8, "c9", &mvec4ds::c9, "c10", &mvec4ds::c10, "c11",
+        &mvec4ds::c11, "c12", &mvec4ds::c12, "c13", &mvec4ds::c13, "c14", &mvec4ds::c14,
+        "c15", &mvec4ds::c15, sol::meta_function::to_string,
+        [](const mvec4ds& mv) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec4ds({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})",
+                suppress_negative_zero(mv.c0), suppress_negative_zero(mv.c1),
+                suppress_negative_zero(mv.c2), suppress_negative_zero(mv.c3),
+                suppress_negative_zero(mv.c4), suppress_negative_zero(mv.c5),
+                suppress_negative_zero(mv.c6), suppress_negative_zero(mv.c7),
+                suppress_negative_zero(mv.c8), suppress_negative_zero(mv.c9),
+                suppress_negative_zero(mv.c10), suppress_negative_zero(mv.c11),
+                suppress_negative_zero(mv.c12), suppress_negative_zero(mv.c13),
+                suppress_negative_zero(mv.c14), suppress_negative_zero(mv.c15));
+        },
+        sol::meta_function::unary_minus, sol::resolve<mvec4ds(mvec4ds const&)>(operator-),
+        sol::meta_function::addition,
+        sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(operator+),
+        sol::meta_function::subtraction,
+        sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(operator-),
+        sol::meta_function::multiplication,
+        sol::overload(sol::resolve<mvec4ds(mvec4ds const&, value_t)>(operator*),
+                      sol::resolve<mvec4ds(value_t, mvec4ds const&)>(operator*),
+                      sol::resolve<mvec4ds(mvec4ds const&, mvec4ds const&)>(operator*)),
+        sol::meta_function::division,
+        sol::resolve<mvec4ds(mvec4ds const&, value_t)>(operator/));
 }

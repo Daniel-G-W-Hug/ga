@@ -196,6 +196,7 @@ int main(int argc, char* argv[])
         register_3d_types(lua);
         register_2dp_types(lua);
         register_3dp_types(lua);
+        register_4ds_types(lua);         // STA (G(1,3,0))
         register_convenience_types(lua); // subclasses; after the base value types
         register_physics_pods(lua);      // pose / kin_state / joint_state / enums
         register_functions(lua);
