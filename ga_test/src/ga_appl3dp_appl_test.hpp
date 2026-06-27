@@ -608,6 +608,155 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
+    // Wafer-axis TILT -> global flatness (Zhou et al., Precision Eng. 27 (2003) 175):
+    // dropping the parallel-axis idealization. Our flat-surface assumption holds only
+    // when the wheel axis is exactly parallel to the wafer axis. In reality the wafer
+    // axis is slightly misaligned by two small alignment angles -- alpha about X, beta
+    // about Y (Zhou Eq.1, matrices B and C) -- and that tilt is what sets the GLOBAL
+    // FLATNESS of the ground wafer (distinct from the WAVINESS the Phase-D.1 axial-runout
+    // model carves). This reproduces Zhou Figs 5-7: a single wheel grain, sampled in the
+    // (tilted, spinning) wafer frame over a common period, traces a 3D cutting path whose
+    // height z (the wafer-axis component) is a CONE for an alpha-tilt, a CONVEX dome for
+    // +beta and a CONCAVE bowl for -beta -- flat only when alpha = beta = 0.
+    //
+    // Zhou Eq.1 is r2 = A B C D [r1, L, -f]^T (matrix chain). The same kinematics in PGA:
+    // the wheel grain (radius r1, spin omega1, axis offset L) expressed in the wafer
+    // frame (spin omega2, static tilt alpha,beta) via a motor sandwich -- our
+    // kinematic_system3dp get_pos_trafo. The cutting PATH (not yet the removed-material
+    // envelope or the density-driven centre concavity of Zhou Figs 8-16) is what Figs 5-7
+    // plot.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: wafer-tilt flatness profile, Zhou Figs 5-7 (cone / dome / bowl)")
+    {
+        fmt::println("");
+        fmt::println(
+            "pga3dp: wafer-tilt flatness profile, Zhou Figs 5-7 (cone/dome/bowl)");
+        fmt::println("");
+
+        // Zhou geometry: R1 = R2 = 150 mm, L = R1 (half-overlap, rim through wafer
+        // centre), grain at (r1, theta1) = (150, 0). Speed ratio n2/n1 = 1/30 (wafer /
+        // wheel), as in the Fig.5 rosette. Root: e1 = wafer/wheel axis (Zhou Z), e2-e3 =
+        // grinding plane (Zhou X-Y); the wheel-axis offset L is along +e2 (Zhou X).
+        double const R = 150.0;              // wheel radius == wafer radius [mm]
+        double const L = R;                  // wheel-axis offset (half-overlap)
+        double const r1 = R;                 // grain radius on the wheel
+        double const w1 = rpm2radps(1500.0); // wheel spin n1 [rad/s]
+        double const w2 = rpm2radps(50.0);   // wafer spin n2 [rad/s]  (n2/n1 = 1/30)
+
+        // Sample one grain in the wafer frame over one wafer revolution (the single-grain
+        // cutting path of Zhou Figs 5-7) for a given pair of alignment tilts and return
+        // the profile-height (z = wafer-axis component) statistics + the radial extent.
+        auto profile = [&](double a_deg, double b_deg) {
+            double const a = a_deg * pi / 180.0;
+            double const b = b_deg * pi / 180.0;
+
+            kinematic_system3dp sys;
+            sys.add_frame(static_frame3dp("W")); // inertial root (wheel-axis aligned)
+            // wheel: centre offset L along +e2, spins about its own axis e1 at n1
+            sys.add_frame(static_frame3dp("wheel_rot", vec3dp{0.0, L, 0.0, 1.0}),
+                          kin_state3dp{.omega = vec3dp{w1, 0.0, 0.0, 0.0}},
+                          sys.index_of("W"));
+            // grain at radius r1 from the wheel centre; placed so it reaches the wafer
+            // centre (L - r1 = 0) at t = 0
+            sys.add_frame(static_frame3dp("grain", vec3dp{0.0, -r1, 0.0, 1.0}),
+                          kin_state3dp{}, sys.index_of("wheel_rot"));
+            // wafer: a STATIC misalignment tilt (alpha about e2, beta about e3) carrying
+            // a frame that spins about the tilted axis at n2 -- Zhou's B*C then A
+            sys.add_frame(static_frame3dp("wafer_tilt", O_3dp, vec3dp{0.0, a, b, 0.0}),
+                          kin_state3dp{}, sys.index_of("W"));
+            sys.add_frame(static_frame3dp("wafer_rot"),
+                          kin_state3dp{.omega = vec3dp{w2, 0.0, 0.0, 0.0}},
+                          sys.index_of("wafer_tilt"));
+
+            size_t const wheel = sys.index_of("wheel_rot");
+            size_t const wafer = sys.index_of("wafer_rot");
+            double const T = 2.0 * pi / w2; // one wafer revolution
+            int const N = 6000;
+            struct {
+                double zmin = 1e9, zmax = -1e9, z_ctr = 0.0, rmax = 0.0;
+            } p;
+            for (int k = 0; k <= N; ++k) {
+                double const t = T * double(k) / double(N);
+                sys.set_pose(wheel, pose3dp{vec3dp{0.0, L, 0.0, 1.0},
+                                            vec3dp{w1 * t, 0.0, 0.0, 0.0}});
+                sys.set_pose(wafer, pose3dp{O_3dp, vec3dp{w2 * t, 0.0, 0.0, 0.0}});
+                // grain in the wafer frame: z = e1 (wafer-axis) component = profile
+                // height
+                auto const g =
+                    unitize(move3dp(O_3dp, sys.get_pos_trafo("grain", "wafer_rot")));
+                double const z = g.x;
+                double const r = std::sqrt(g.y * g.y + g.z * g.z);
+                // the grain orbits out to 2R, but only marks the wafer where it is ON it
+                // (r2 <= R2) -- Zhou clips the cutting path to the wafer in Figs 5-7
+                if (r > R + 1e-6) continue;
+                p.zmin = std::min(p.zmin, z);
+                p.zmax = std::max(p.zmax, z);
+                if (r < 3.0) p.z_ctr = z;
+                p.rmax = std::max(p.rmax, r);
+            }
+            return p;
+        };
+
+        double const tol = 1.0e-9; // the chain is exact -> tight tolerances
+        double const amp = R * std::tan(0.1 * pi / 180.0); // 150*tan(0.1 deg) = 0.2618 mm
+
+        // (1) perfect alignment alpha = beta = 0 -> FLAT (z == 0 everywhere)
+        auto const flat = profile(0.0, 0.0);
+        CHECK(std::abs(flat.zmin) < tol);
+        CHECK(std::abs(flat.zmax) < tol);
+        fmt::println("alpha=0.0 beta= 0.0 : z in [{:+.4f},{:+.4f}] mm  -> FLAT",
+                     flat.zmin, flat.zmax);
+
+        // The exact clipped rim amplitude is not a closed form (it depends on which wafer
+        // points the discrete cutting path reaches), so gate the SHAPE -- symmetric cone
+        // / one-sided dome / mirror bowl -- and a sensible amplitude band, not an exact
+        // value. The reference R*tan(alpha) = 0.2618 mm is the unclipped rim amplitude.
+
+        // (2) alpha = 0.1, beta = 0 -> CONE: symmetric about z = 0, apex at the centre,
+        // reaching the wafer rim with an amplitude of order R*tan(alpha)
+        auto const cone = profile(0.1, 0.0);
+        CHECK(std::abs(cone.zmax + cone.zmin) < 1e-3 * amp); // symmetric about z = 0
+        CHECK(std::abs(cone.z_ctr) < 1e-3);                  // apex at the centre
+        CHECK(cone.zmax > 0.5 * amp);                        // a real cone (~0.2 mm)
+        CHECK(cone.zmax < 1.01 * amp);                       // bounded by R*tan(alpha)
+        CHECK(cone.rmax > 0.99 * R);                         // path reaches the wafer rim
+        fmt::println(
+            "alpha=0.1 beta= 0.0 : z in [{:+.4f},{:+.4f}] mm  -> CONE (symmetric)",
+            cone.zmin, cone.zmax);
+
+        // (3) beta = +0.1 -> CONVEX dome: z stays >= 0 (one-sided, bulges up)
+        auto const dome = profile(0.0, 0.1);
+        CHECK(dome.zmin == doctest::Approx(0.0).epsilon(1e-4));
+        CHECK(dome.zmax > 0.3 * amp); // a real dome
+        // the on-wafer beta-dome amplitude comes out at ABOUT HALF the alpha-cone
+        // amplitude -- reproducing Zhou's observation that "the effect of beta on the
+        // global flatness is about half that of alpha". It emerges from the clipping
+        // geometry, not put in by hand.
+        CHECK(dome.zmax < 0.75 * cone.zmax);
+        fmt::println("alpha=0.0 beta=+0.1 : z in [{:+.4f},{:+.4f}] mm  -> CONVEX (dome); "
+                     "dome/cone = {:.2f} (Zhou: beta ~ half alpha)",
+                     dome.zmin, dome.zmax, dome.zmax / cone.zmax);
+
+        // (4) beta = -0.1 -> CONCAVE bowl: z stays <= 0 (the mirror of the dome)
+        auto const bowl = profile(0.0, -0.1);
+        CHECK(bowl.zmax == doctest::Approx(0.0).epsilon(1e-4));
+        CHECK(bowl.zmin < -0.3 * amp);
+        CHECK(bowl.zmin == doctest::Approx(-dome.zmax).epsilon(1e-4)); // mirror of +beta
+        fmt::println("alpha=0.0 beta=-0.1 : z in [{:+.4f},{:+.4f}] mm  -> CONCAVE (bowl)",
+                     bowl.zmin, bowl.zmax);
+
+        // global-flatness magnitude: 0.1 deg of alpha gives a rim amplitude of
+        // R*tan(0.1 deg) = 0.262 mm over the 150 mm radius, matching Zhou's "0.1 deg in
+        // alpha creates a variation of about 0.2 mm over 300 mm".
+        CHECK(amp == doctest::Approx(0.2618).epsilon(1e-3));
+        fmt::println("");
+        fmt::println("global-flatness rim amplitude at 0.1 deg: R*tan(a) = {:.4f} mm "
+                     "(Zhou: ~0.2 mm over 300 mm)",
+                     amp);
+        fmt::println("");
+    }
+
     // Phase D.1 of the wafer-grinding plan (TODO/grinding.md): the surface-formation
     // on-ramp. The wheel-spindle vibration -- the axial runout z_b (Eq.14) -- oscillates
     // at frequency f_b and modulates the grain cutting depth, carving a waviness whose
