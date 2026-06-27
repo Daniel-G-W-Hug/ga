@@ -110,10 +110,11 @@ fall.
   `#include "ga/ga_sta.hpp"` and `register_4ds_types` (adapted from `register_3dp_types`
   by `3dp→4ds` / `pga→sta`, since STA shares pga3dp's grade structure and underlying
   `_t` templates). Added the 45 STA constants, the 13 STA-only functions
-  (`transform`/`transform_opt`, the space-time splits, `is_{timelike,spacelike,lightlike}`,
-  `rapidity`, `get_boost`, `l_undual`/`r_undual`), and STA overloads on the 26 shared
-  `set_function`s (`nrm`/`dot`/`inv`/`exp`/`log`/`sqrt`/duals/complements/`wdg`/`rwdg`/…)
-  via `splice_overloads.py`. `register_functions` gained `using namespace hd::ga::sta`.
+  (`transform`/`transform_opt`, the space-time splits, `rapidity`, `get_boost`,
+  `is_{timelike,spacelike,lightlike}`, `l_undual`/`r_undual`), and STA overloads on the
+  26 shared `set_function`s
+  (`nrm`/`dot`/`inv`/`exp`/`log`/`sqrt`/duals/complements/`wdg`/`rwdg`/…) via
+  `splice_overloads.py`. `register_functions` gained `using namespace hd::ga::sta`.
 - **Phase 4 — top-level helpers — DONE** (modulo deliberate skips): bound the unit
   conversions (`Hz2radps`, `radps2Hz`, `radps2rpm`, `rpm2radps`), `rgr`, and `sign`
   (`gr` was bound in Phase 2). The solver / integrator free functions (`lu_solve`,
