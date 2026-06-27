@@ -25,6 +25,8 @@ void register_3dp_types(sol::state& lua);
 // Function and constant registration
 void register_functions(sol::state& lua);
 void register_constants(sol::state& lua);
+// Lua-level forwarders (templates that cannot be sol::resolve-bound)
+void register_forwarders(sol::state& lua);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2521,6 +2523,26 @@ void register_functions(sol::state& lua)
 
     // ---- Phase 2a: PGA function parity with ga_py (generated via
     // utilities/gen_lua_overloads.py) ----
+
+    // gr(): grade of a graded object (top-level hd::ga; also used by the dist
+    // forwarders in register_forwarders())
+    lua.set_function(
+        "gr",
+        sol::overload(
+            // EGA
+            sol::resolve<size_t(scalar2d)>(gr), sol::resolve<size_t(vec2d const&)>(gr),
+            sol::resolve<size_t(pscalar2d)>(gr), sol::resolve<size_t(scalar3d)>(gr),
+            sol::resolve<size_t(vec3d const&)>(gr),
+            sol::resolve<size_t(bivec3d const&)>(gr), sol::resolve<size_t(pscalar3d)>(gr),
+            // PGA
+            sol::resolve<size_t(scalar2dp)>(gr), sol::resolve<size_t(vec2dp const&)>(gr),
+            sol::resolve<size_t(bivec2dp const&)>(gr),
+            sol::resolve<size_t(pscalar2dp)>(gr), sol::resolve<size_t(scalar3dp)>(gr),
+            sol::resolve<size_t(vec3dp const&)>(gr),
+            sol::resolve<size_t(bivec3dp const&)>(gr),
+            sol::resolve<size_t(trivec3dp const&)>(gr),
+            sol::resolve<size_t(pscalar3dp)>(gr)));
+
     lua.set_function("rinv",
                      sol::overload(sol::resolve<vec2dp(vec2dp const&)>(rinv),
                                    sol::resolve<bivec2dp(bivec2dp const&)>(rinv),
@@ -2766,4 +2788,79 @@ void register_constants(sol::state& lua)
     lua["one_3dp"] = one_3dp;
     lua["one_3dp_mv"] = one_3dp_mv;
     lua["one_3dp_mv_e"] = one_3dp_mv_e;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Lua-level forwarders for the PGA contraction / expansion / projection /
+// distance products. These are generic C++ `if constexpr` templates that cannot
+// be bound by sol::resolve, so - exactly as the Python wrapper does in
+// ga_py/python/ga_py/__init__.py - they are defined as thin Lua functions over the
+// already-registered primitives (rwdg, wdg, the bulk/weight duals, unitize, the
+// norms, att, gr). One definition works for every operand type because those
+// primitives are themselves overloaded.
+//
+// pga2dp is odd-dimensional (single bulk_dual / weight_dual); pga3dp is
+// even-dimensional (left/right l_bulk_dual / r_bulk_dual / l_weight_dual /
+// r_weight_dual). The contraction/expansion side must match the operand side.
+////////////////////////////////////////////////////////////////////////////////
+void register_forwarders(sol::state& lua)
+{
+    lua.script(R"lua(
+        -- PGA 2dp bulk/weight contractions:  rwdg(dual(a), b) / rwdg(a, dual(b))
+        function l_bulk_contract2dp(a, b)   return rwdg(bulk_dual(a), b)   end
+        function l_weight_contract2dp(a, b) return rwdg(weight_dual(a), b) end
+        function r_bulk_contract2dp(a, b)   return rwdg(a, bulk_dual(b))   end
+        function r_weight_contract2dp(a, b) return rwdg(a, weight_dual(b)) end
+
+        -- PGA 2dp bulk/weight expansions:  wdg(dual(a), b) / wdg(a, dual(b))
+        function l_bulk_expand2dp(a, b)   return wdg(bulk_dual(a), b)   end
+        function l_weight_expand2dp(a, b) return wdg(weight_dual(a), b) end
+        function r_bulk_expand2dp(a, b)   return wdg(a, bulk_dual(b))   end
+        function r_weight_expand2dp(a, b) return wdg(a, weight_dual(b)) end
+
+        -- PGA 3dp bulk/weight contractions (left/right complement variants)
+        function l_bulk_contract3dp(a, b)   return rwdg(l_bulk_dual(a), b)   end
+        function l_weight_contract3dp(a, b) return rwdg(l_weight_dual(a), b) end
+        function r_bulk_contract3dp(a, b)   return rwdg(a, r_bulk_dual(b))   end
+        function r_weight_contract3dp(a, b) return rwdg(a, r_weight_dual(b)) end
+
+        -- PGA 3dp bulk/weight expansions
+        function l_bulk_expand3dp(a, b)   return wdg(l_bulk_dual(a), b)   end
+        function l_weight_expand3dp(a, b) return wdg(l_weight_dual(a), b) end
+        function r_bulk_expand3dp(a, b)   return wdg(a, r_bulk_dual(b))   end
+        function r_weight_expand3dp(a, b) return wdg(a, r_weight_dual(b)) end
+
+        -- "is the weight squared norm essentially 1?" guard (matches ga_py's _EPS)
+        local _EPS = 1e-9
+        local function _unitize_if_needed(p)
+            local n = weight_nrm_sq(p)
+            if n > _EPS and n ~= 1.0 then p = unitize(p) end
+            return p
+        end
+
+        -- projections of the lower-grade a onto the larger-grade b  (gr(a) < gr(b))
+        function ortho_proj2dp(a, b)   return _unitize_if_needed(rwdg(b, r_weight_expand2dp(a, b))) end
+        function central_proj2dp(a, b) return _unitize_if_needed(rwdg(b, r_bulk_expand2dp(a, b)))   end
+        function ortho_antiproj2dp(a, b) return wdg(b, r_weight_contract2dp(a, b)) end
+        function ortho_proj3dp(a, b)   return _unitize_if_needed(rwdg(b, r_weight_expand3dp(a, b))) end
+        function central_proj3dp(a, b) return _unitize_if_needed(rwdg(b, r_bulk_expand3dp(a, b)))   end
+        function ortho_antiproj3dp(a, b) return wdg(b, r_weight_contract3dp(a, b)) end
+
+        -- Euclidean distance -> dualnum(homogeneous_magnitude, weight). The C++
+        -- `if constexpr (gr(a)+gr(b) == n)` is dispatched here via gr().
+        function dist2dp(a, b)
+            local c1 = to_val(weight_nrm(wdg(a, att(b))))
+            local c0
+            if gr(a) + gr(b) == 3 then c0 = to_val(rwdg(a, b))
+            else                       c0 = to_val(bulk_nrm(att(wdg(a, b)))) end
+            return dualnum2dp.new(c0, c1)
+        end
+        function dist3dp(a, b)
+            local c1 = to_val(weight_nrm(wdg(a, att(b))))
+            local c0
+            if gr(a) + gr(b) == 4 then c0 = to_val(rwdg(a, b))
+            else                       c0 = to_val(bulk_nrm(att(wdg(a, b)))) end
+            return dualnum3dp.new(c0, c1)
+        end
+    )lua");
 }

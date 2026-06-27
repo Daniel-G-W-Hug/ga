@@ -56,6 +56,7 @@ ALGEBRA_NS = {
     "ega": "hd::ga::ega",
     "pga": "hd::ga::pga",
     "sta": "hd::ga::sta",
+    "top": "hd::ga",  # top-level free functions (gr, sign, unit conversions, ...)
 }
 
 

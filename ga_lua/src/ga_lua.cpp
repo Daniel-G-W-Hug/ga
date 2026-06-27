@@ -198,6 +198,7 @@ int main(int argc, char* argv[])
         register_3dp_types(lua);
         register_functions(lua);
         register_constants(lua);
+        register_forwarders(lua); // Lua-level template forwarders (after primitives)
 
         // Set script directory as global variable for platform-aware path handling
         lua["script_dir"] = get_script_directory();

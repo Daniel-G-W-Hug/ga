@@ -115,10 +115,14 @@ def collect_ga_py(ga_py):
 def collect_ga_lua():
     """Parse ga_lua.hpp into flat sets of bound types / functions / constants."""
     src = GA_LUA_HPP.read_text()
+    # functions reach Lua two ways: C++ `set_function("name", ...)` (the name may
+    # sit on the next line) and Lua-level `function name(...)` definitions inside the
+    # embedded prelude string (register_forwarders -> lua.script). Count both.
+    funcs = set(re.findall(r'set_function\(\s*"([A-Za-z0-9_]+)"', src))
+    funcs |= set(re.findall(r"^\s*function ([A-Za-z0-9_]+)\(", src, re.MULTILINE))
     return {
         "types": set(re.findall(r"new_usertype<\s*([A-Za-z0-9_]+)\s*>", src)),
-        # the function name may sit on the line after `set_function(` -> allow whitespace
-        "functions": set(re.findall(r'set_function\(\s*"([A-Za-z0-9_]+)"', src)),
+        "functions": funcs,
         "constants": set(re.findall(r'lua\[\s*"([A-Za-z0-9_]+)"\s*\]\s*=', src)),
     }
 
