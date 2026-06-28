@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "active_grinding_topo.hpp"
+#include "view_fonts.hpp"
 
 #include "ga/ga_pga.hpp"
 
@@ -260,8 +261,7 @@ void active_grinding_topo::drawColorbar(QPainter* qp, double cbx0, double cbx1,
     qp->drawRect(QRectF(auPt(cbx0, cby1), auPt(cbx1, cby0)));
 
     // tick labels (surface height [um]) at t = 0, 0.25, .. 1
-    QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    f.setPointSize(9);
+    QFont f = mono_font(9);
     qp->setFont(f);
     qp->setPen(QPen(QColor(20, 20, 20), 1));
     double const hmax = 2.0 * m_params.A_b; // +-2*A_b [um]
@@ -301,9 +301,7 @@ void active_grinding_topo::paint(QPainter* qp, QStyleOptionGraphicsItem const* o
     drawColorbar(qp, m_x1 + 0.18, m_x1 + 0.34, yc - cbh, yc + cbh);
 
     // patch-direction axis labels
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(10);
-    lbl.setBold(true);
+    QFont lbl = mono_font(10, /*bold=*/true);
     qp->setFont(lbl);
     qp->setPen(QPen(QColor(30, 30, 30), 1));
     qp->drawText(auPt(0.5 * (m_x0 + m_x1) - 0.5, m_y0 - 0.30), "mark direction (radial)");
@@ -316,8 +314,7 @@ void active_grinding_topo::paint(QPainter* qp, QStyleOptionGraphicsItem const* o
 
     // numeric extent of the patch [um]: mark direction 0..W along the bottom edge,
     // circumferential 0..H along the left edge (s_c = 0 is the top image row).
-    QFont tick = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    tick.setPointSize(9);
+    QFont tick = mono_font(9);
     qp->setFont(tick);
     qp->setPen(QPen(QColor(30, 30, 30), 1));
     double const W = patch_w_um(), H = patch_h_um();
@@ -331,9 +328,7 @@ void active_grinding_topo::paint(QPainter* qp, QStyleOptionGraphicsItem const* o
     // info block, anchored BELOW the colour legend so it never runs into it (the legend
     // can extend lower than a thin WMD patch): the GA-derived wavelengths, the preset,
     // and the animated quantity.
-    QFont info = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    info.setPointSize(10);
-    info.setBold(true);
+    QFont info = mono_font(10, /*bold=*/true);
     qp->setFont(info);
     qp->setPen(QPen(QColor(20, 20, 20), 1));
     // first line sits below BOTH the colour legend and the "mark direction" label

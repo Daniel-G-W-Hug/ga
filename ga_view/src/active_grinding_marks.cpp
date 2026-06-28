@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "active_grinding_marks.hpp"
+#include "view_fonts.hpp"
 
 #include "ga/ga_pga.hpp"
 
@@ -199,9 +200,7 @@ void active_grinding_marks::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
 
     double const R = m_params.R;
 
-    QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl_font.setPointSize(9);
-    lbl_font.setBold(true);
+    QFont lbl_font = mono_font(9, /*bold=*/true);
 
     char const* const tf = display_frame();
 
@@ -262,9 +261,7 @@ void active_grinding_marks::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
     qp->drawText(toScreen(wheel_c) + QPointF(6.0, -6.0), "wheel");
 
     // current spin ratio (bottom-left, in pixel coords) -- larger so it stays readable
-    QFont ratio_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    ratio_font.setPointSize(14);
-    ratio_font.setBold(true);
+    QFont ratio_font = mono_font(14, /*bold=*/true);
     qp->setFont(ratio_font);
     qp->setPen(QPen(QColor(40, 40, 40), 1));
     qp->drawText(QPointF(cs->x.nmin() + 10.0, cs->y.nmin() - 12.0),

@@ -67,7 +67,7 @@ void item_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     if (cm->vt_mark[idx].display_name != "") {
         // draw vector name
 
-        qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+        qp->setFont(named_font("Arial", 14, QFont::Bold));
         QFontMetrics fm = qp->fontMetrics();
         QString qstr = QString::fromStdString(cm->vt_mark[idx].display_name);
 

@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_common.hpp"
 #include "item_bivt2dp.hpp"
+#include "active_common.hpp"
 
 #include "ga/ga_pga.hpp"
 using namespace hd::ga;      // use ga types, constants, etc.
@@ -58,7 +58,7 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     if (cm->bivtp_mark[idx].display_name != "") {
         // draw vector name
 
-        qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+        qp->setFont(named_font("Arial", 14, QFont::Bold));
         QFontMetrics fm = qp->fontMetrics();
         QString qstr = QString::fromStdString(cm->bivtp_mark[idx].display_name);
 

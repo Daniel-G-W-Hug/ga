@@ -3,6 +3,7 @@
 
 #include "w_coordsys.hpp"
 #include "coordsys_model.hpp"
+#include "view_fonts.hpp"
 
 #include <QCursor>
 #include <QFont>
@@ -97,8 +98,8 @@ QRect w_Coordsys::legendRect() const
     int const padding = 8;
     int const inner_w = box_w - 2 * padding; // available text width
 
-    QFontMetrics const fm_h{QFont("Helvetica", 14, QFont::Bold)};
-    QFontMetrics const fm_t{QFont("Helvetica", 12, QFont::Normal)};
+    QFontMetrics const fm_h{named_font("Arial", 14, QFont::Bold)};
+    QFontMetrics const fm_t{named_font("Arial", 12)};
     int const key_col_w = box_w / 4;
     int const desc_w = inner_w - key_col_w;
 
@@ -198,7 +199,7 @@ void w_Coordsys::drawForeground(QPainter* qp, const QRectF& rect)
             int y = box.top() + padding;
 
             // Heading: Helvetica 14 Bold (matches axis label style), word-wrapped
-            qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+            qp->setFont(named_font("Arial", 14, QFont::Bold));
             QFontMetrics const fm_h{qp->font()};
             qp->setPen(Qt::black);
             QString const heading_str = QString::fromStdString(leg.heading);
@@ -216,20 +217,20 @@ void w_Coordsys::drawForeground(QPainter* qp, const QRectF& rect)
                 qp->drawLine(box.left() + 4, y + 4, box.right() - 4, y + 4);
                 y += 9;
 
-                qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+                qp->setFont(named_font("Arial", 12));
                 QFontMetrics const fm_t{qp->font()};
                 int const key_col_w = box.width() / 4; // "Key" column: ~25% of box
                 int const desc_w = inner_w - key_col_w;
 
                 // Column headers (italic)
-                qp->setFont(QFont("Helvetica", 12, QFont::Normal, true /*italic*/));
+                qp->setFont(named_font("Arial", 12, QFont::Normal, true /*italic*/));
                 qp->setPen(Qt::darkGray);
                 qp->drawText(x, y + fm_t.ascent(), "Key");
                 qp->drawText(x + key_col_w, y + fm_t.ascent(), "Function");
                 y += fm_t.height() + 4;
 
                 // Entry rows — description wraps if wider than its column
-                qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+                qp->setFont(named_font("Arial", 12));
                 qp->setPen(Qt::black);
                 for (key_legend_entry const& entry : leg.entries) {
                     QString const key_str = QString::fromStdString(entry.key);

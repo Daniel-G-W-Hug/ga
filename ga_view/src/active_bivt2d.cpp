@@ -152,7 +152,7 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 
     // draw name, length, optionally unit of vectors and bivector
 
-    qp->setFont(QFont("Helvetica", 14, QFont::Normal));
+    qp->setFont(named_font("Arial", 14));
     QFontMetrics fm = qp->fontMetrics();
     // qp->setPen(Qt::white);  // set font color
 

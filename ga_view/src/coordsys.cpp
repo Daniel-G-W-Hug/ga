@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "coordsys.hpp"
+#include "view_fonts.hpp"
 
 #include <QPainter>
 #include <QPalette>
@@ -156,7 +157,7 @@ void Axis::draw(QPainter* qp, int offset)
 {
 
     // Create font
-    qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+    qp->setFont(named_font("Arial", 12));
     // Set font color
     // qp->setPen(Qt::white);
     // Get QFontMetrics reference
@@ -190,7 +191,7 @@ void Axis::draw(QPainter* qp, int offset)
 
             // x axis label
             qp->save();
-            qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+            qp->setFont(named_font("Arial", 14, QFont::Bold));
             QFontMetrics fmbx = qp->fontMetrics();
             qp->drawText((ad.rng.max - ad.rng.min) / 2 * sf + mo -
                              fmbx.horizontalAdvance(label) / 2,
@@ -200,7 +201,7 @@ void Axis::draw(QPainter* qp, int offset)
             // notify user on log10 scaling of axis
             if (ad.scal == axis_scal::logarithmic) {
                 qp->save();
-                qp->setFont(QFont("Helvetica", 14, QFont::Normal));
+                qp->setFont(named_font("Arial", 14));
                 fmbx = qp->fontMetrics();
                 qp->drawText((ad.rng.max - ad.rng.min) * sf + mo -
                                  fmbx.horizontalAdvance(QString("log10(x)")),
@@ -238,7 +239,7 @@ void Axis::draw(QPainter* qp, int offset)
 
             // y axis label
             qp->save();
-            qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+            qp->setFont(named_font("Arial", 14, QFont::Bold));
             QFontMetrics fmby = qp->fontMetrics();
             qp->translate(offset - fmby.height() - 30,
                           (ad.rng.max - ad.rng.min) * sf / 2 + mo +
@@ -250,7 +251,7 @@ void Axis::draw(QPainter* qp, int offset)
             // notify user on log10 scaling of axis
             if (ad.scal == axis_scal::logarithmic) {
                 qp->save();
-                qp->setFont(QFont("Helvetica", 14, QFont::Normal));
+                qp->setFont(named_font("Arial", 14));
                 fmby = qp->fontMetrics();
                 qp->translate(offset - fmby.height() - 30,
                               (ad.rng.max - ad.rng.min) * sf + mo);
@@ -446,7 +447,7 @@ void Coordsys::draw(QPainter* qp)
 
     // draw title
     qp->save();
-    qp->setFont(QFont("Helvetica", 16, QFont::Bold));
+    qp->setFont(named_font("Arial", 16, QFont::Bold));
     QFontMetrics fmbx = qp->fontMetrics();
     qp->drawText((x.nmax() + x.nmin()) / 2 - fmbx.horizontalAdvance(title) / 2,
                  y.nmax() - fmbx.height() / 2, title);

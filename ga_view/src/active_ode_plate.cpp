@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_common.hpp"
 #include "active_ode_plate.hpp"
+#include "active_common.hpp"
 
 #include "ga/ga_pga.hpp"
 
@@ -296,9 +296,8 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
         // Tips of the individual force arrows (recomputed for parallelogram construction)
         QPointF const grav_tip_cm =
             toScreen(vec2dp{cm_w.x, cm_w.y - mg * FORCE_SCALE, 1.0});
-        QPointF const cf_tip_cm =
-            toScreen(vec2dp{cm_w.x + m_f_cf_w.x * FORCE_SCALE,
-                            cm_w.y + m_f_cf_w.y * FORCE_SCALE, 1.0});
+        QPointF const cf_tip_cm = toScreen(vec2dp{
+            cm_w.x + m_f_cf_w.x * FORCE_SCALE, cm_w.y + m_f_cf_w.y * FORCE_SCALE, 1.0});
         QPointF const sum_tip_cm =
             toScreen(vec2dp{cm_w.x + m_f_cf_w.x * FORCE_SCALE,
                             cm_w.y + (m_f_cf_w.y - mg) * FORCE_SCALE, 1.0});
@@ -383,19 +382,16 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
             double const py = m_pivot_w.y + c.dy;
             double const tx = sgn * c.tx;
             double const ty = sgn * c.ty;
-            QPointF const arw_start =
-                toScreen(vec2dp{px - tx * 2.0 * arrow_half, py - ty * 2.0 * arrow_half, 1.0});
-            QPointF const arw_end =
-                toScreen(vec2dp{px, py, 1.0});
+            QPointF const arw_start = toScreen(
+                vec2dp{px - tx * 2.0 * arrow_half, py - ty * 2.0 * arrow_half, 1.0});
+            QPointF const arw_end = toScreen(vec2dp{px, py, 1.0});
             qp->drawPath(arrowHead(arw_start, arw_end));
         }
     }
 
     // 7. Draw simulation time near pivot
     qp->setPen(QPen(Qt::darkBlue, 1));
-    QFont mono_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    mono_font.setPointSize(9);
-    qp->setFont(mono_font);
+    qp->setFont(mono_font(9));
     qp->drawText(pivot_screen + QPointF(8.0, -8.0),
                  QString("t = %1 s").arg(m_time, 0, 'f', 2));
 

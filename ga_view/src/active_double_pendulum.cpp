@@ -201,9 +201,7 @@ void active_double_pendulum::drawPlate(QPainter* qp, std::string const& name, do
         arrowHead(cm_s, toScreen(vec2dp{cm.x + d2.x * len, cm.y + d2.y * len, 1.0})));
 
     // cm dot + label
-    QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl_font.setPointSize(9);
-    lbl_font.setBold(true);
+    QFont lbl_font = mono_font(9, /*bold=*/true);
     qp->setPen(QPen(Qt::black, 2));
     qp->setBrush(QBrush(Qt::black));
     qp->drawEllipse(cm_s, 2.5, 2.5);
@@ -235,9 +233,7 @@ void active_double_pendulum::drawForces(QPainter* qp)
     vec2dp const R1{m_params.m1 * a1.x - fg1.x + R2.x, m_params.m1 * a1.y - fg1.y + R2.y,
                     0.0};
 
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(8);
-    lbl.setBold(true);
+    QFont lbl = mono_font(8, /*bold=*/true);
 
     auto draw_force = [&](vec2dp const& base, vec2dp const& f, QColor const& col,
                           char const* text) {
@@ -283,9 +279,7 @@ void active_double_pendulum::drawICR(QPainter* qp)
         }
     }
 
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(8);
-    lbl.setBold(true);
+    QFont lbl = mono_font(8, /*bold=*/true);
 
     auto draw_icr = [&](char const* frame, char const* text) {
         twist2dp const V = m_ds.twist_world(frame);
@@ -366,10 +360,7 @@ void active_double_pendulum::paint(QPainter* qp, QStyleOptionGraphicsItem const*
         qp->setPen(QPen(QColor(0, 140, 0), 1.6));
         qp->drawPath(arrowLine(o, toScreen(vec2dp{0.0, len, 1.0})));
         qp->drawPath(arrowHead(o, toScreen(vec2dp{0.0, len, 1.0})));
-        QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        lbl_font.setPointSize(9);
-        lbl_font.setBold(true);
-        qp->setFont(lbl_font);
+        qp->setFont(mono_font(9, /*bold=*/true));
         qp->setPen(QPen(Qt::black, 1));
         qp->drawText(o + QPointF(-16.0, 14.0), "W");
     }
@@ -381,9 +372,7 @@ void active_double_pendulum::paint(QPainter* qp, QStyleOptionGraphicsItem const*
         double const pe = m_ds.potential_energy();
         double const e = ke + pe;
         double const scale = std::max(std::abs(m_E0), 1.0);
-        QFont mono = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        mono.setPointSize(12);
-        qp->setFont(mono);
+        qp->setFont(mono_font(12));
         qp->setPen(QPen(QColor(40, 40, 40), 1));
         double const x = cs->x.nmin() + 12.0;
         double const y = cs->y.nmax() + 20.0;

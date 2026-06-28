@@ -225,9 +225,7 @@ void active_merry_go_round::drawSystem(QPainter* qp,
         qp->drawPath(arrowHead(o_s, e2_s));
     };
 
-    QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl_font.setPointSize(9);
-    lbl_font.setBold(true);
+    QFont lbl_font = mono_font(9, /*bold=*/true);
 
     // --- traced path of the marked point (drawn first, underneath) ---
     if (m_path.size() >= 2) {
@@ -327,11 +325,8 @@ void active_merry_go_round::paintDashboard(QPainter* qp)
     double const H = B - T;
     double const mgn = 12.0;
 
-    QFont title_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    title_font.setPointSize(9);
-    title_font.setBold(true);
-    QFont small_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    small_font.setPointSize(8);
+    QFont title_font = mono_font(9, /*bold=*/true);
+    QFont small_font = mono_font(8);
 
     // --- top band: legend (left, overlay) + theta caption + mini (right) ---
     // capH reserves a row at the very top of the band for the shared theta caption, so it

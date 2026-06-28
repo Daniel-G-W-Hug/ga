@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_common.hpp"
 #include "active_frame_trafo.hpp"
+#include "active_common.hpp"
 
 #include "ga/ga_pga.hpp"
 
@@ -35,7 +35,7 @@ active_frame_trafo::active_frame_trafo(Coordsys* cs, w_Coordsys* wcs,
     // For rotation they diverge, making the frame-dependence visible.
     m_B_b = m_params.B_b_init;
     m_B_w = m_params.B_b_init;
-    m_M   = rgpr(m_params.M0, exp(0.5 * m_B_b));
+    m_M = rgpr(m_params.M0, exp(0.5 * m_B_b));
 
     connect(wcs, &w_Coordsys::viewResized, this, &active_frame_trafo::viewChanged);
 
@@ -55,8 +55,8 @@ void active_frame_trafo::tick()
     if (m_params.world_frame_drive) {
         // Analytical M(t) = T(O(t)) ⟇ R(cm_omega*t)
         // O(t) moves in a straight line → exact CM path regardless of rotation.
-        double const ox    = m_params.cm_ox + m_params.cm_vx * m_t;
-        double const oy    = m_params.cm_oy + m_params.cm_vy * m_t;
+        double const ox = m_params.cm_ox + m_params.cm_vx * m_t;
+        double const oy = m_params.cm_oy + m_params.cm_vy * m_t;
         double const theta = m_params.cm_omega * m_t;
         mvec2dp_u const R_t = exp(0.5 * vec2dp{0.0, 0.0, theta});
         mvec2dp_u const T_t = exp(0.5 * vec2dp{-oy, ox, 0.0});
@@ -65,9 +65,7 @@ void active_frame_trafo::tick()
         // Instantaneous world-frame generator: Momentanpol at IC = O + (-vy/ω, vx/ω)
         // L_w = (ω*ox - vy)*e31 + (ω*oy + vx)*e32 + ω*e12
         double const o_z = m_params.cm_omega;
-        vec2dp const Omega_w{o_z * ox - m_params.cm_vy,
-                              o_z * oy + m_params.cm_vx,
-                              o_z};
+        vec2dp const Omega_w{o_z * ox - m_params.cm_vy, o_z * oy + m_params.cm_vx, o_z};
 
         // Body-frame generator = inverse sandwich of world-frame generator
         vec2dp const Omega_b_inst = move2dp(Omega_w, rrev(m_M));
@@ -75,8 +73,8 @@ void active_frame_trafo::tick()
         // Euler-integrate both accumulators for informational text display
         m_B_w = m_B_w + Omega_w * DT;
         m_B_b = m_B_b + Omega_b_inst * DT;
-
-    } else {
+    }
+    else {
         // Body-frame driven: constant Omega_b, M from accumulated B_b
         m_M = rgpr(m_params.M0, exp(0.5 * m_B_b));
 
@@ -104,7 +102,7 @@ void active_frame_trafo::tick()
 
 void active_frame_trafo::resetAnimation()
 {
-    m_t   = 0.0;
+    m_t = 0.0;
     m_B_b = m_params.B_b_init;
     m_B_w = m_params.B_b_init;
 
@@ -112,7 +110,8 @@ void active_frame_trafo::resetAnimation()
         mvec2dp_u const T_0 = exp(0.5 * vec2dp{-m_params.cm_oy, m_params.cm_ox, 0.0});
         mvec2dp_u const R_0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0}); // identity rotation
         m_M = rgpr(T_0, R_0);
-    } else {
+    }
+    else {
         m_M = rgpr(m_params.M0, exp(0.5 * m_B_b));
     }
 
@@ -151,7 +150,7 @@ void active_frame_trafo::drawWorldFrame(QPainter* qp, vec2dp const& /*O_w*/,
     vec2dp const W_e1_tip{m_params.wx + AXIS_LEN, m_params.wy, 1.0};
     vec2dp const W_e2_tip{m_params.wx, m_params.wy + AXIS_LEN, 1.0};
 
-    QPointF const W_s  = toScreen(W_orig);
+    QPointF const W_s = toScreen(W_orig);
     QPointF const e1_s = toScreen(W_e1_tip);
     QPointF const e2_s = toScreen(W_e2_tip);
 
@@ -172,10 +171,7 @@ void active_frame_trafo::drawWorldFrame(QPainter* qp, vec2dp const& /*O_w*/,
     qp->drawEllipse(W_s, 3.0, 3.0);
 
     // Label "W"
-    QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl_font.setPointSize(9);
-    lbl_font.setBold(true);
-    qp->setFont(lbl_font);
+    qp->setFont(mono_font(9, /*bold=*/true));
     qp->setPen(QPen(Qt::black, 1));
     qp->drawText(W_s + QPointF(-14.0, -6.0), "W");
 
@@ -195,8 +191,8 @@ void active_frame_trafo::drawTrajectory(QPainter* qp)
 }
 
 // Body frame B: axes + flagpole + rectangular flag with Bosch logo
-void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w,
-                                  vec2dp const& e1_w, vec2dp const& e2_w)
+void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w, vec2dp const& e1_w,
+                                  vec2dp const& e2_w)
 {
     QPointF const O_s = toScreen(O_w);
 
@@ -221,21 +217,18 @@ void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w,
     qp->drawPath(arrowHead(O_s, Be2_s));
 
     // Label "B"
-    QFont lbl_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl_font.setPointSize(9);
-    lbl_font.setBold(true);
-    qp->setFont(lbl_font);
+    qp->setFont(mono_font(9, /*bold=*/true));
     qp->setPen(QPen(QColor(100, 0, 0), 1));
     qp->drawText(O_s + QPointF(6.0, -6.0), "B");
 
     // --- Flagpole: base at body-frame (POLE_OFFSET, 0), along e2_b ---
 
-    vec2dp const pole_base_w{O_w.x + e1_w.x * POLE_OFFSET,
-                              O_w.y + e1_w.y * POLE_OFFSET, 1.0};
+    vec2dp const pole_base_w{O_w.x + e1_w.x * POLE_OFFSET, O_w.y + e1_w.y * POLE_OFFSET,
+                             1.0};
     vec2dp const pole_tip_w{pole_base_w.x + e2_w.x * POLE_LEN,
-                             pole_base_w.y + e2_w.y * POLE_LEN, 1.0};
+                            pole_base_w.y + e2_w.y * POLE_LEN, 1.0};
     QPointF const pole_base_s = toScreen(pole_base_w);
-    QPointF const pole_tip_s  = toScreen(pole_tip_w);
+    QPointF const pole_tip_s = toScreen(pole_tip_w);
 
     qp->setPen(QPen(QColor(60, 60, 60), 1.8, Qt::SolidLine));
     qp->setBrush(Qt::NoBrush);
@@ -255,10 +248,8 @@ void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w,
     };
 
     QPolygonF flag_poly;
-    flag_poly << flag_pt(0.0,    0.0)
-              << flag_pt(FLAG_W, 0.0)
-              << flag_pt(FLAG_W, -FLAG_H)
-              << flag_pt(0.0,    -FLAG_H);
+    flag_poly << flag_pt(0.0, 0.0) << flag_pt(FLAG_W, 0.0) << flag_pt(FLAG_W, -FLAG_H)
+              << flag_pt(0.0, -FLAG_H);
 
     qp->setPen(QPen(QColor(50, 100, 200), 1.2));
     qp->setBrush(QBrush(QColor(70, 130, 180, 200)));
@@ -281,10 +272,11 @@ void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w,
 
         // Fit the PNG at its native aspect ratio inside the flag rectangle
         // so the logo circle appears undistorted.
-        double const png_ar = static_cast<double>(bosch_logo.width()) / bosch_logo.height();
+        double const png_ar =
+            static_cast<double>(bosch_logo.width()) / bosch_logo.height();
         double dest_w = flag_h_px * png_ar; // try fitting by height first
         double dest_h = flag_h_px;
-        if (dest_w > flag_w_px) {           // too wide → fit by width instead
+        if (dest_w > flag_w_px) { // too wide → fit by width instead
             dest_w = flag_w_px;
             dest_h = dest_w / png_ar;
         }
@@ -294,8 +286,8 @@ void active_frame_trafo::drawBody(QPainter* qp, vec2dp const& O_w,
         qp->save();
         qp->translate(pole_tip_s);
         qp->rotate(angle_deg);
-        qp->drawPixmap(QRectF(x_off, y_off, dest_w, dest_h),
-                       bosch_logo, QRectF(bosch_logo.rect()));
+        qp->drawPixmap(QRectF(x_off, y_off, dest_w, dest_h), bosch_logo,
+                       QRectF(bosch_logo.rect()));
         qp->restore();
     }
 
@@ -315,15 +307,15 @@ void active_frame_trafo::drawHomeMarker(QPainter* qp)
     // For world_frame_drive: home = initial config T(cm_ox,cm_oy) ⟇ R(0)
     // For body-frame drive:  home = M0 (the preset initial motor)
     mvec2dp_u const M_home = m_params.world_frame_drive
-        ? exp(0.5 * vec2dp{-m_params.cm_oy, m_params.cm_ox, 0.0})
-        : m_params.M0;
+                                 ? exp(0.5 * vec2dp{-m_params.cm_oy, m_params.cm_ox, 0.0})
+                                 : m_params.M0;
 
     // Body origin and directions at t=0: apply M_home
-    vec2dp const O_b {0.0, 0.0, 1.0};
+    vec2dp const O_b{0.0, 0.0, 1.0};
     vec2dp const e1_b{1.0, 0.0, 0.0};
     vec2dp const e2_b{0.0, 1.0, 0.0};
 
-    vec2dp const H_o  = move2dp(O_b,  M_home);
+    vec2dp const H_o = move2dp(O_b, M_home);
     vec2dp const H_e1 = move2dp(e1_b, M_home); // unit direction
     vec2dp const H_e2 = move2dp(e2_b, M_home);
 
@@ -331,7 +323,7 @@ void active_frame_trafo::drawHomeMarker(QPainter* qp)
     vec2dp const H_e1_tip{H_o.x + H_e1.x * HL, H_o.y + H_e1.y * HL, 1.0};
     vec2dp const H_e2_tip{H_o.x + H_e2.x * HL, H_o.y + H_e2.y * HL, 1.0};
 
-    QPointF const H_s   = toScreen(H_o);
+    QPointF const H_s = toScreen(H_o);
     QPointF const He1_s = toScreen(H_e1_tip);
     QPointF const He2_s = toScreen(H_e2_tip);
 
@@ -356,10 +348,7 @@ void active_frame_trafo::drawHomeMarker(QPainter* qp)
     qp->drawEllipse(H_s, 3.5, 3.5);
 
     // Label "M₀·O"
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(8);
-    lbl.setBold(true);
-    qp->setFont(lbl);
+    qp->setFont(mono_font(8, /*bold=*/true));
     qp->setPen(QPen(col, 1));
     qp->drawText(H_s + QPointF(6.0, -6.0), "M\u2080\u00B7O");
 }
@@ -377,28 +366,25 @@ void active_frame_trafo::drawHomeMarker(QPainter* qp)
 //   – Pure translation : Ω_b ≡ Ω_w (arrows always coincide)
 //   – Rotation / Combined, M0=id    : arrows coincide at t=0, may diverge
 //   – Rotation / Combined, M0≠id   : arrows differ immediately (M0 couples frames)
-void active_frame_trafo::drawGeneratorVectors(QPainter* qp,
-                                              vec2dp const& O_w,
-                                              vec2dp const& e1_w,
-                                              vec2dp const& e2_w)
+void active_frame_trafo::drawGeneratorVectors(QPainter* qp, vec2dp const& O_w,
+                                              vec2dp const& e1_w, vec2dp const& e2_w)
 {
     if (!m_params.draw_gen_vectors) return;
     vec2dp const& Omega_b = m_params.Omega_b;
-    vec2dp const  Omega_w = move2dp(Omega_b, m_M);
+    vec2dp const Omega_w = move2dp(Omega_b, m_M);
 
-    QPointF const O_s      = toScreen(O_w);
-    double const  px_per_x = std::abs(cs->x.px_density_rng());
+    QPointF const O_s = toScreen(O_w);
+    double const px_per_x = std::abs(cs->x.px_density_rng());
 
     // Draw one generator: translation arrow + rotation-sense arc, both at body origin.
     // dir_x, dir_y: velocity direction in world-frame coords.
     auto draw_gen = [&](QColor const& col, double dir_x, double dir_y, double omega_z) {
-
         // Translation component: arrow from body origin
         double const tmag = std::sqrt(dir_x * dir_x + dir_y * dir_y);
         if (tmag > 1e-6) {
             double const len = std::min(tmag * VEC_SCALE, VEC_MAX);
-            double const ux  = dir_x / tmag;
-            double const uy  = dir_y / tmag;
+            double const ux = dir_x / tmag;
+            double const uy = dir_y / tmag;
             vec2dp const tip_w{O_w.x + ux * len, O_w.y + uy * len, 1.0};
             QPointF const tip_s = toScreen(tip_w);
             qp->setPen(QPen(col, 2.0, Qt::SolidLine));
@@ -414,7 +400,7 @@ void active_frame_trafo::drawGeneratorVectors(QPainter* qp,
             double const r_px = ARC_R * px_per_x;
             QRectF const rect(O_s.x() - r_px, O_s.y() - r_px, 2.0 * r_px, 2.0 * r_px);
             int const start_qt = 45 * 16;
-            int const span_qt  = (omega_z > 0) ? -270 * 16 : +270 * 16;
+            int const span_qt = (omega_z > 0) ? -270 * 16 : +270 * 16;
             qp->setPen(QPen(col, 2.0, Qt::SolidLine));
             qp->setBrush(Qt::NoBrush);
             qp->drawArc(rect, start_qt, span_qt);
@@ -426,12 +412,12 @@ void active_frame_trafo::drawGeneratorVectors(QPainter* qp,
     double const Ob_dir_y = Omega_b.y * e1_w.y + (-Omega_b.x) * e2_w.y;
 
     // Ω_w: world-frame direction directly from generator components
-    double const Ow_dir_x =  Omega_w.y;
+    double const Ow_dir_x = Omega_w.y;
     double const Ow_dir_y = -Omega_w.x;
 
     // Draw Ω_w (magenta) first so Ω_b (blue) appears on top when they overlap
     draw_gen(QColor(180, 0, 180), Ow_dir_x, Ow_dir_y, Omega_w.z);
-    draw_gen(QColor(0,  60, 200), Ob_dir_x, Ob_dir_y, Omega_b.z);
+    draw_gen(QColor(0, 60, 200), Ob_dir_x, Ob_dir_y, Omega_b.z);
 }
 
 // Text overlay: B_b, B_w (with decoded pivot when rotating), M0, M(t), time.
@@ -439,14 +425,13 @@ void active_frame_trafo::drawGeneratorVectors(QPainter* qp,
 // the fixed-layout lines in the pure-translation scene (B.z == 0 → no sub-line).
 void active_frame_trafo::drawTextOverlay(QPainter* qp)
 {
-    QFont mono = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    mono.setPointSize(9);
+    QFont mono = mono_font(9);
     qp->setFont(mono);
 
     // Anchor: fixed model-space position left of world frame marker.
     // text_wy sentinel −999.0 falls back to wy + 0.25.
-    double const twy = (m_params.text_wy > -990.0) ? m_params.text_wy
-                                                    : m_params.wy + 0.25;
+    double const twy =
+        (m_params.text_wy > -990.0) ? m_params.text_wy : m_params.wy + 0.25;
     QPointF const anchor = toScreen(vec2dp{m_params.wx - 3.3, twy, 1.0});
 
     QFontMetrics const fm(mono);
@@ -466,90 +451,85 @@ void active_frame_trafo::drawTextOverlay(QPainter* qp)
     auto draw_pivot_line = [&](vec2dp const& B, QString const& label, QColor const& col) {
         qp->setPen(QPen(col, 1));
         if (std::abs(B.z) > pivot_eps) {
+            qp->drawText(at(line++), QString("     \u2192 %1=(%2, %3),  \u03C6=%4 rad")
+                                         .arg(label)
+                                         .arg(B.x / B.z, 6, 'f', 3)
+                                         .arg(B.y / B.z, 6, 'f', 3)
+                                         .arg(B.z, 6, 'f', 3));
+        }
+        else {
             qp->drawText(at(line++),
-                QString("     \u2192 %1=(%2, %3),  \u03C6=%4 rad")
-                    .arg(label)
-                    .arg(B.x / B.z, 6, 'f', 3)
-                    .arg(B.y / B.z, 6, 'f', 3)
-                    .arg(B.z,       6, 'f', 3));
-        } else {
-            qp->drawText(at(line++),
-                QString("     \u2192 %1=(  n/a,   n/a),  \u03C6=%2 rad")
-                    .arg(label)
-                    .arg(B.z, 6, 'f', 3));
+                         QString("     \u2192 %1=(  n/a,   n/a),  \u03C6=%2 rad")
+                             .arg(label)
+                             .arg(B.z, 6, 'f', 3));
         }
     };
 
     // --- B_b (blue) ---
     qp->setPen(QPen(QColor(0, 60, 200), 1));
-    qp->drawText(at(line++),
-        QString("B_b=(%1, %2, %3)")
-            .arg(m_B_b.x, 7, 'f', 3)
-            .arg(m_B_b.y, 7, 'f', 3)
-            .arg(m_B_b.z, 7, 'f', 3));
+    qp->drawText(at(line++), QString("B_b=(%1, %2, %3)")
+                                 .arg(m_B_b.x, 7, 'f', 3)
+                                 .arg(m_B_b.y, 7, 'f', 3)
+                                 .arg(m_B_b.z, 7, 'f', 3));
     if (show_pivot) draw_pivot_line(m_B_b, "pivot_b", QColor(0, 80, 160));
 
     // --- B_w (magenta) ---
     qp->setPen(QPen(QColor(180, 0, 180), 1));
-    qp->drawText(at(line++),
-        QString("B_w=(%1, %2, %3)")
-            .arg(m_B_w.x, 7, 'f', 3)
-            .arg(m_B_w.y, 7, 'f', 3)
-            .arg(m_B_w.z, 7, 'f', 3));
+    qp->drawText(at(line++), QString("B_w=(%1, %2, %3)")
+                                 .arg(m_B_w.x, 7, 'f', 3)
+                                 .arg(m_B_w.y, 7, 'f', 3)
+                                 .arg(m_B_w.z, 7, 'f', 3));
     if (show_pivot) draw_pivot_line(m_B_w, "pivot_w", QColor(140, 0, 140));
 
     // --- M0 / initial-config block (dark olive, constant) ---
     if (m_params.world_frame_drive) {
         // Show world-frame drive parameters instead of M0 motor components
         qp->setPen(QPen(QColor(100, 80, 0), 1));
-        qp->drawText(at(line++),
-            QString("v_w =(%1, %2),  \u03C9=%3 rad/s")
-                .arg(m_params.cm_vx,    6, 'f', 3)
-                .arg(m_params.cm_vy,    6, 'f', 3)
-                .arg(m_params.cm_omega, 6, 'f', 3));
+        qp->drawText(at(line++), QString("v_w =(%1, %2),  \u03C9=%3 rad/s")
+                                     .arg(m_params.cm_vx, 6, 'f', 3)
+                                     .arg(m_params.cm_vy, 6, 'f', 3)
+                                     .arg(m_params.cm_omega, 6, 'f', 3));
         qp->setPen(QPen(QColor(130, 105, 0), 1));
         qp->drawText(at(line++),
-            QString("     \u2192 home: O_w=(%1, %2),  \u03C6\u2080=%3 rad")
-                .arg(m_params.cm_ox, 6, 'f', 3)
-                .arg(m_params.cm_oy, 6, 'f', 3)
-                .arg(0.0,            6, 'f', 3));
-    } else {
+                     QString("     \u2192 home: O_w=(%1, %2),  \u03C6\u2080=%3 rad")
+                         .arg(m_params.cm_ox, 6, 'f', 3)
+                         .arg(m_params.cm_oy, 6, 'f', 3)
+                         .arg(0.0, 6, 'f', 3));
+    }
+    else {
         qp->setPen(QPen(QColor(100, 80, 0), 1));
-        qp->drawText(at(line++),
-            QString("M\u2080 =(e1=%1, e2=%2, e3=%3, e321=%4)")
-                .arg(m_params.M0.c0, 6, 'f', 3)
-                .arg(m_params.M0.c1, 6, 'f', 3)
-                .arg(m_params.M0.c2, 6, 'f', 3)
-                .arg(m_params.M0.c3, 6, 'f', 3));
+        qp->drawText(at(line++), QString("M\u2080 =(e1=%1, e2=%2, e3=%3, e321=%4)")
+                                     .arg(m_params.M0.c0, 6, 'f', 3)
+                                     .arg(m_params.M0.c1, 6, 'f', 3)
+                                     .arg(m_params.M0.c2, 6, 'f', 3)
+                                     .arg(m_params.M0.c3, 6, 'f', 3));
         // M0 geometric decoding: body-origin position and frame orientation in world
         {
-            vec2dp const O_h  = move2dp(vec2dp{0.0, 0.0, 1.0}, m_params.M0);
+            vec2dp const O_h = move2dp(vec2dp{0.0, 0.0, 1.0}, m_params.M0);
             vec2dp const e1_h = move2dp(vec2dp{1.0, 0.0, 0.0}, m_params.M0);
-            double const phi  = std::atan2(e1_h.y, e1_h.x);
+            double const phi = std::atan2(e1_h.y, e1_h.x);
             qp->setPen(QPen(QColor(130, 105, 0), 1));
             qp->drawText(at(line++),
-                QString("     \u2192 home: O_w=(%1, %2),  \u03C6\u2080=%3 rad")
-                    .arg(O_h.x, 6, 'f', 3)
-                    .arg(O_h.y, 6, 'f', 3)
-                    .arg(phi,   6, 'f', 3));
+                         QString("     \u2192 home: O_w=(%1, %2),  \u03C6\u2080=%3 rad")
+                             .arg(O_h.x, 6, 'f', 3)
+                             .arg(O_h.y, 6, 'f', 3)
+                             .arg(phi, 6, 'f', 3));
         }
     }
 
     // --- M(t) (dark gray) ---
     qp->setPen(QPen(QColor(80, 80, 80), 1));
-    qp->drawText(at(line++),
-        QString("M  =(e1=%1, e2=%2, e3=%3, e321=%4)")
-            .arg(m_M.c0, 6, 'f', 3)
-            .arg(m_M.c1, 6, 'f', 3)
-            .arg(m_M.c2, 6, 'f', 3)
-            .arg(m_M.c3, 6, 'f', 3));
+    qp->drawText(at(line++), QString("M  =(e1=%1, e2=%2, e3=%3, e321=%4)")
+                                 .arg(m_M.c0, 6, 'f', 3)
+                                 .arg(m_M.c1, 6, 'f', 3)
+                                 .arg(m_M.c2, 6, 'f', 3)
+                                 .arg(m_M.c3, 6, 'f', 3));
 
     // --- time (dark blue) ---
     qp->setPen(QPen(Qt::darkBlue, 1));
-    qp->drawText(at(line),
-        QString("t  = %1 s%2")
-            .arg(m_t, 5, 'f', 2)
-            .arg(m_paused ? "  [PAUSED]" : ""));
+    qp->drawText(
+        at(line),
+        QString("t  = %1 s%2").arg(m_t, 5, 'f', 2).arg(m_paused ? "  [PAUSED]" : ""));
 }
 
 // ---------------------------------------------------------------------------
@@ -557,7 +537,7 @@ void active_frame_trafo::drawTextOverlay(QPainter* qp)
 // ---------------------------------------------------------------------------
 
 void active_frame_trafo::paint(QPainter* qp, QStyleOptionGraphicsItem const* option,
-                                QWidget* widget)
+                               QWidget* widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
@@ -569,13 +549,14 @@ void active_frame_trafo::paint(QPainter* qp, QStyleOptionGraphicsItem const* opt
 
     // Current motor and body-frame quantities in world frame
     if (m_params.world_frame_drive) {
-        double const ox    = m_params.cm_ox + m_params.cm_vx * m_t;
-        double const oy    = m_params.cm_oy + m_params.cm_vy * m_t;
+        double const ox = m_params.cm_ox + m_params.cm_vx * m_t;
+        double const oy = m_params.cm_oy + m_params.cm_vy * m_t;
         double const theta = m_params.cm_omega * m_t;
         mvec2dp_u const R_t = exp(0.5 * vec2dp{0.0, 0.0, theta});
         mvec2dp_u const T_t = exp(0.5 * vec2dp{-oy, ox, 0.0});
         m_M = rgpr(T_t, R_t);
-    } else {
+    }
+    else {
         m_M = rgpr(m_params.M0, exp(0.5 * m_B_b));
     }
 
@@ -583,7 +564,7 @@ void active_frame_trafo::paint(QPainter* qp, QStyleOptionGraphicsItem const* opt
     vec2dp const e1_b{1.0, 0.0, 0.0};
     vec2dp const e2_b{0.0, 1.0, 0.0};
 
-    vec2dp const O_w  = move2dp(O_b, m_M);
+    vec2dp const O_w = move2dp(O_b, m_M);
     vec2dp const e1_w = move2dp(e1_b, m_M); // direction (z=0): not translated
     vec2dp const e2_w = move2dp(e2_b, m_M);
 

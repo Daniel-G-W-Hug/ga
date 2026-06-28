@@ -61,9 +61,9 @@ void active_planar_delta::build_system()
     };
 
     // seed at the t = 0 *driven* config (not the bare nominal): shoulder B carries the
-    // phase lead, so shoulderB(0) = shoulder_b0 + amp*sin(phase) != shoulder_b0. Using the
-    // driven values here makes the start configuration coincide with the t = 0 point of the
-    // Lissajous, so the trace begins continuously (no first-frame jump).
+    // phase lead, so shoulderB(0) = shoulder_b0 + amp*sin(phase) != shoulder_b0. Using
+    // the driven values here makes the start configuration coincide with the t = 0 point
+    // of the Lissajous, so the trace begins continuously (no first-frame jump).
     m_t = 0.0;
     double const phiA0 = shoulderA();
     double const phiB0 = shoulderB();
@@ -273,10 +273,7 @@ void active_planar_delta::paint(QPainter* qp, QStyleOptionGraphicsItem const* op
     qp->drawEllipse(toScreen(P), 3.5, 3.5);
 
     // --- frame labels ---
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(9);
-    lbl.setBold(true);
-    qp->setFont(lbl);
+    qp->setFont(mono_font(9, /*bold=*/true));
     qp->setPen(QPen(Qt::black, 1));
     qp->drawText(toScreen(SA) + QPointF(-26.0, 16.0), "SA");
     qp->drawText(toScreen(SB) + QPointF(10.0, 16.0), "SB");
@@ -286,9 +283,7 @@ void active_planar_delta::paint(QPainter* qp, QStyleOptionGraphicsItem const* op
 
     // --- live readout (top-left, in pixel coordinates) ---
     {
-        QFont mono = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        mono.setPointSize(12);
-        qp->setFont(mono);
+        qp->setFont(mono_font(12));
         qp->setPen(QPen(QColor(40, 40, 40), 1));
         double const x = cs->x.nmin() + 12.0;
         double const y = cs->y.nmax() + 20.0;

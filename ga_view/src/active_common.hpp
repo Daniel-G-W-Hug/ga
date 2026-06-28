@@ -3,6 +3,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "view_fonts.hpp" // mono_font / named_font (DPI-independent text sizing)
+
 #include <QColor>
 #include <QDebug>
 #include <QPainterPath>

@@ -6,7 +6,6 @@
 
 #include "ga/ga_pga.hpp"
 
-#include <QFontDatabase>
 #include <QtMath>
 #include <algorithm>
 #include <cmath>
@@ -257,10 +256,7 @@ void active_four_bar::paint(QPainter* qp, QStyleOptionGraphicsItem const* option
     qp->drawEllipse(toScreen(P), 3.5, 3.5);
 
     // --- frame labels ---
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(9);
-    lbl.setBold(true);
-    qp->setFont(lbl);
+    qp->setFont(mono_font(9, /*bold=*/true));
     qp->setPen(QPen(Qt::black, 1));
     qp->drawText(toScreen(O2) + QPointF(-22.0, 16.0), "O2");
     qp->drawText(toScreen(O4) + QPointF(8.0, 16.0), "O4");
@@ -270,9 +266,7 @@ void active_four_bar::paint(QPainter* qp, QStyleOptionGraphicsItem const* option
 
     // --- live readout (top-left, in pixel coordinates) ---
     {
-        QFont mono = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        mono.setPointSize(12);
-        qp->setFont(mono);
+        qp->setFont(mono_font(12));
         qp->setPen(QPen(QColor(40, 40, 40), 1));
         double const x = cs->x.nmin() + 12.0;
         double const y = cs->y.nmax() + 20.0;

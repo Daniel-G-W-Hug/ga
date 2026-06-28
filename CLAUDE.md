@@ -922,6 +922,38 @@ other scenes still run, but it does **not** exercise the new scene's own ctor/se
 page to the view for that, and hand off to the user for the visual-layout check (legend
 placement, colours, labels are tuned to their feedback, as for the existing scenes).
 
+### Text sizing in ga_view — cross-platform fonts (MANDATORY for any drawn text)
+
+All ga_view text is tuned for a macOS layout but must render identically on Windows. Two
+platform traps, both solved by the helpers in
+[ga_view/src/view_fonts.hpp](ga_view/src/view_fonts.hpp) — **use them for every painter
+text; never call `setPointSize()` or the `QFont(family, pointSize, …)` constructor
+directly in scene/chrome code:**
+
+- **DPI / point-size trap.** A point is 1/72 inch, so Qt scales a point size to pixels by
+  the screen's *logical* DPI — 72 on macOS (1 pt → 1 px) but 96 on Windows (1 pt → 1.333
+  px). All scene geometry, axis ticks and the legend box are laid out in *pixels*, so
+  point-sized text comes out ~33 % larger on Windows relative to the drawing (labels
+  collide, the fixed-width legend box overflows). `setPixelSize()` renders the same height
+  on every platform. The helpers do this; **pass the same numeric value the macOS point
+  size used** (`pt == px` at 72 dpi), which preserves the tuned layout verbatim.
+
+- **Font-substitution trap.** A family present only on macOS is silently substituted on
+  Windows (e.g. `"Helvetica"` → Arial), shifting glyph *widths* even at equal pixel
+  height — visible as long legend lines wrapping/overflowing differently. Use families
+  present on **both** OSes with matching metrics.
+
+The two helpers (both DPI-independent via `setPixelSize`):
+
+- `named_font("Arial", px, weight = QFont::Normal, italic = false)` — proportional text
+  (titles, axis labels, the legend box). Use `"Arial"`, **not** `"Helvetica"`.
+- `mono_font(px, bold = false)` — monospace text (live readouts, point labels like
+  `A`/`B`/`O2`). Backed by `"Courier New"` (present on macOS + Windows), **not**
+  `QFontDatabase::systemFont(FixedFont)` (which is Menlo on macOS vs Consolas on Windows).
+
+`main.cpp` sets the app-default widget font to `"Arial"` for the same reason. After any
+font change, hand off to the user to compare macOS vs Windows — only they can see both.
+
 ## Congruence Testing (`is_congruent`)
 
 Two GA elements are **congruent** if they span the same subspace up to a non-zero

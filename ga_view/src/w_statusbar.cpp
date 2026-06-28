@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "w_statusbar.hpp"
+#include "view_fonts.hpp"
 
 #include <QPainter>
 #include <QPalette>
@@ -49,7 +50,7 @@ void w_Statusbar::draw(QPainter* qp)
     qp->setPen(QPen(Qt::lightGray, 1, Qt::SolidLine));
     qp->drawRect(0, 0, w_width, w_height);
 
-    qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+    qp->setFont(named_font("Arial", 12));
     qp->setPen(QPen(Qt::black, 1, Qt::SolidLine));
     QFontMetrics fm = qp->fontMetrics();
 

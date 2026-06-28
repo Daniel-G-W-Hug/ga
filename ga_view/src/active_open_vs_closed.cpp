@@ -207,9 +207,7 @@ void active_open_vs_closed::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
                                cs->y.nmin() - cs->y.nmax())));
     qp->save();
 
-    QFont lbl = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    lbl.setPointSize(11);
-    lbl.setBold(true);
+    QFont lbl = mono_font(11, /*bold=*/true);
 
     // --- vertical divider between the two panels ---
     {
@@ -259,9 +257,7 @@ void active_open_vs_closed::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
 
     // --- live readout (top-left, in pixel coordinates) ---
     {
-        QFont mono = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        mono.setPointSize(12);
-        qp->setFont(mono);
+        qp->setFont(mono_font(12));
         qp->setPen(QPen(QColor(40, 40, 40), 1));
         double const x = cs->x.nmin() + 12.0;
         double const y = cs->y.nmax() + 20.0;
