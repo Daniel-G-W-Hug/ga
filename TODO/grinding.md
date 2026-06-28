@@ -79,9 +79,20 @@ primary source) is now provided in-session.
    7.03 mm (WMD), lambda_c = 124 um (WCD), both in Tao Table-3 range. Window 1.6 ms (80k RK4
    steps, dt 2e-8), undamped so the tilt rings cleanly; constant infeed is a <1 nm ramp over
    the window (negligible to the ripple — enters the depth/Step-3). appl3dp 54/9304 green.
-3. **(Optional, NOT done) Visualize** the dynamically-generated profile — extend
-   `active_grinding_flatness` or a new ga_view scene to show the combined surface (mean
-   cone/dome + z_b waviness) building under the live dynamics. **RESUME HERE.**
+3. **Visualize [DONE 2026-06-28, COMMITTED `6e00c48`].** Extended `active_grinding_flatness`
+   with a default-off `dynamic` mode (the static Zhou view is byte-unchanged) and registered
+   an EXTRA ga_view view "Wafer grinding: dynamic flatness + waviness, Tao Dyn.2": the
+   flatness panels (X-Y rosette + X-Z) show the cone/dome from the MEAN tilt, and a new
+   bottom panel shows the live `z_b` waviness ripple at `f_b` with quantified A_b / lambda_m
+   dimension callouts (own large exaggeration, since the ~0.1 um waviness is ~2000x below the
+   ~0.2 mm flatness). The legend explains the difference to the static view. Same commit also
+   reordered the whole wafer-grinding scene cluster into build-up/evolution order (grain
+   marks -> spindle DOFs -> Zhou flatness -> topography -> Fig.12 curves -> Dyn.2 last) and
+   widened the flatness legends. User visually approved.
+
+**PHASE Dyn (the reopened DYNAMIC-MODEL step) COMPLETE 2026-06-28** — Dyn.1 (static
+deviation) + Dyn.2 (dynamic vibration) app-tests + Dyn.2 ga_view view, all committed
+(`ba5a520` / `4f80d91` / `8fe8779` / `6e00c48`). The reopened plan's explicit scope is done.
 
 **PAPERS NEEDED for a clean restart:**
 
