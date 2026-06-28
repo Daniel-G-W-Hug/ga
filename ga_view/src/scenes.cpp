@@ -2565,9 +2565,9 @@ std::vector<Coordsys_model> build_models()
             {"orange dot:", "the tracked rim grain"},
             {"orange marks:", "grain strokes cut into the wafer (r <= R only)"},
             {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
-        leg.x_pct = 0.02;
+        leg.x_pct = 0.01;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.24;
+        leg.size_pct = 0.3;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2604,9 +2604,9 @@ std::vector<Coordsys_model> build_models()
             {"orange dot:", "the tracked rim grain"},
             {"orange marks:", "strokes cut into the wafer (rotate with it)"},
             {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
-        leg.x_pct = 0.02;
+        leg.x_pct = 0.01;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.24;
+        leg.size_pct = 0.3;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2666,9 +2666,9 @@ std::vector<Coordsys_model> build_models()
             "PGA3D kinematics (Zhou 2003): dropping the parallel-axis idealization.\nA "
             "small "
             "wafer-axis misalignment -- alpha about X, beta about Y -- makes a single "
-            "wheel grain carve a non-flat profile. alpha alone -> a CONE;\n\n+beta -> a "
+            "wheel grain carve a non-flat profile. alpha alone -> a CONE;\n+beta -> a "
             "CONVEX "
-            "dome;\n-beta -> a CONCAVE bowl; alpha=beta=0 -> FLAT.\n\nThe path is the "
+            "dome;\n-beta -> a CONCAVE bowl; alpha=beta=0 -> FLAT.\nThe path is the "
             "grain"
             " expressed in the tilted, spinning wafer frame, clipped to the wafer "
             "(r2<=R2); "
@@ -2754,14 +2754,14 @@ std::vector<Coordsys_model> build_models()
 
         diagram_legend leg;
         leg.heading =
-            "Live spindle dynamics (Tao 2022, Phase Dyn.2):\nONE machine model carries "
+            "Live spindle dynamics (Tao 2022, Phase Dyn.2): ONE machine model carries "
             "BOTH wafer-error sources -- the culmination of the grinding sequence. "
             "DIFFERENCE to the static Zhou flatness view -- that view shows only the "
             "global FLATNESS (cone/dome from the mean alignment tilt); this view keeps "
             "it (X-Y rosette + X-Z profile) and ADDS the spindle-vibration WAVINESS: the "
             "live axial runout z_b = z - R_w*sin(phi) ripples at the tilt natural "
             "frequency f_b (Eq.22, an output of the spindle run, not a fitted number), "
-            "carving a waviness of wavelength lambda_m = v_w / f_b.\nThe ~0.1 um "
+            "carving a waviness of wavelength lambda_m = v_w / f_b. The ~0.1 um "
             "waviness is ~2000x smaller than the ~0.2 mm flatness, so it gets its own "
             "exaggerated bottom panel. C steps the (alpha,beta) tilt grid as in the "
             "static view.";
@@ -2773,9 +2773,9 @@ std::vector<Coordsys_model> build_models()
                        {"blue:", "the z_b vibration WAVINESS along the mark"},
                        {"X-Y, X-Z:", "the flatness rosette + profile (z exaggerated)"},
                        {"bottom:", "the z_b waviness, lambda_m = v_w / f_b (own scale)"}};
-        leg.x_pct = 0.02;
+        leg.x_pct = 0.01;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.46; // wider box -> heading wraps to fewer lines (shorter box)
+        leg.size_pct = 0.49; // wider box -> heading wraps to fewer lines (shorter box)
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));

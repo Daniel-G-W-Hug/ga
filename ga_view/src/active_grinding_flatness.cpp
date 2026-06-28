@@ -310,8 +310,8 @@ void active_grinding_flatness::paint(QPainter* qp, QStyleOptionGraphicsItem cons
         qp->drawText(QPointF(xw + 8.0, 0.5 * (y0 + y1) + 4.0), lbl);
     };
     qp->setPen(QPen(Qt::black, 1.0));
-    qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-0.95)), "Scale:");
-    hbar(-3.2, -1.2, 150.0, "150 mm  (radial X / Y)");
+    qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-1.3)), "Scale:");
+    hbar(-3.2, -1.4, 150.0, "150 mm  (radial X / Y)");
     vbar(-3.2, -1.85, 0.2, "0.2 mm  (height z)");
     qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.0)),
                  QString::asprintf("height drawn ~%.0fx exaggerated", S_Z / S_XY));
