@@ -1,46 +1,6 @@
 \subsection{Glossary}
 \label{subsection_glossary}
 
-\textbf{Moment and torque} (source Wikipedia):
-\begin{itemize}
-    \item A moment is a mathematical expression involving the product of a distance and a
-    physical quantity such as a force or electric charge. Moments are usually defined with
-    respect to a fixed reference point and refer to physical quantities located some
-    distance from the reference point. The moment of force, often called torque, is the
-    product of a force on an object and the distance from the reference point to the
-    object.
-
-    \item In physics and mechanics, torque is the rotational correspondent of linear
-    force. It is referred to as the moment of force, or simply the moment. Just as a
-    linear force is a push or a pull applied to a body, a torque can be thought of as a
-    twist applied to an object with respect to a chosen point.
-
-    \item Torque is referred to using different vocabulary depending on geographical
-    location and field of study. Torque and moment are often used interchangeably for the
-    rotational effect of a force, but in mechanics, the main difference is application:
-    torque refers to a force causing rotation in a dynamic system, while moment is often
-    used for the turning effect in a static, or non-moving, system. Both are calculated as
-    the force multiplied by the perpendicular distance from the pivot point.
-
-    \item When modelling physics in $PGA$ forces and moments, describing the translational
-    and rotational physical aspects, do not need to be considered separately, but can be
-    modelled within one object containing all information. For example, by modelling the
-    line of action $F$ of a force $f$ acting at a point $P$ as $F = P \wedge f$ as in
-    equation~(\ref{eq:line_of_action}) both effects are covered, the force $f$ itself and
-    the torque generated at any point are covered by the mathematical object $F$. The
-    torque generated at the origin $M_{O} = bulk(F)$ can be as easily recovered from $F$
-    as the resulting free moment at any other point.
-\end{itemize}
-
-\textbf{Momentum}
-\begin{itemize}
-    \item Momentum (German: Impuls, Bewegungsgröße) characterizes the movement of an
-    object. It has a direction (the direction of the speed vector) and a magnitude (the
-    product of the mass and the magnitude of the speed vector). A heavier object moving at
-    the same speed has more momentum compared to an object of less mass. Momentum can
-    change in direction and/or magnitude.
-\end{itemize}
-
 \textbf{Pose}
 \begin{itemize}
     \item A pose is the rigid placement of one frame relative to another: an origin and an
@@ -73,6 +33,21 @@
     the regressive $\veedot$ and acting only through the origin, is the rotor (rotations
     only).
 \end{itemize}
+
+\textbf{Screw (Chasles' theorem)}
+\begin{itemize}
+    \item By Chasles' theorem every rigid motion is a screw: a rotation about an axis
+    combined with a translation along it.
+
+    \item In $PGA$ the screw axis is a line (a bivector in $3D$); the central quantities
+    are all screws on such an axis: the twist (a velocity screw), the wrench (a force
+    screw), and the motor (the finite screw motion $\exp_\veedot$ of a twist).
+
+    \item A pure rotation and a pure translation are the degenerate screws of zero and
+    infinite pitch.
+\end{itemize}
+
+\newpage
 
 \textbf{Twist}
 \begin{itemize}
@@ -107,43 +82,6 @@
     vs.\ finite movements.
 \end{itemize}
 
-\textbf{Screw (Chasles' theorem)}
-\begin{itemize}
-    \item By Chasles' theorem every rigid motion is a screw: a rotation about an axis
-    combined with a translation along it.
-
-    \item In $PGA$ the screw axis is a line (a bivector in $3D$); the central quantities
-    are all screws on such an axis: the twist (a velocity screw), the wrench (a force
-    screw), and the motor (the finite screw motion $\exp_\veedot$ of a twist).
-
-    \item A pure rotation and a pure translation are the degenerate screws of zero and
-    infinite pitch.
-\end{itemize}
-
-\textbf{Adjoint}
-\begin{itemize}
-    \item The adjoint $\mathrm{Ad}_M$ re-expresses a twist in another frame.
-
-    \item In $PGA$ it is the same sandwich that moves any object, $\mathrm{Ad}_M(B) = M
-    \veedot B \veedot \rrev{M}$ (see eqn.~(\ref{eq:adjoint_is_sandwich})).
-
-    \item Point action and twist transport are thus one operation; no separate $6\times6$
-    adjoint matrix is needed (see Sec.~\ref{subsubsection:transport_along_chain}).
-\end{itemize}
-
-\textbf{Commutator (Lie bracket)}
-\begin{itemize}
-    \item The Lie bracket (commutator) of two twists measures how far they fail to
-    commute.
-
-    \item In $PGA$ it is a native product, $[A, B] = \mathrm{rcmt}(A, B)$: the
-    $\mathfrak{se}(2)/\mathfrak{se}(3)$ twist bracket.
-
-    \item It supplies the Coriolis/centrifugal coupling in the Newton-Euler recursion (see
-    eqn.~(\ref{eq:newton_euler_recursion})) and the gyroscopic term $\mathrm{rcmt}(\Omega,
-    I[\Omega])$ in the body-frame Euler equation.
-\end{itemize}
-
 \textbf{Lie group vs.\ Lie algebra}
 \begin{itemize}
     \item The motors form a Lie group: the manifold of finite rigid motions, composed by
@@ -170,6 +108,61 @@
     Sec.~\ref{subsubsection_lie_algebra_vs_lie_group}).
 \end{itemize}
 
+\textbf{Adjoint}
+\begin{itemize}
+    \item The adjoint $\mathrm{Ad}_M$ re-expresses a twist in another frame.
+
+    \item In $PGA$ it is the same sandwich that moves any object, $\mathrm{Ad}_M(B) = M
+    \veedot B \veedot \rrev{M}$ (see eqn.~(\ref{eq:adjoint_is_sandwich})).
+
+    \item Point action and twist transport are thus one operation; no separate $6\times6$
+    adjoint matrix is needed (see Sec.~\ref{subsubsection:transport_along_chain}).
+\end{itemize}
+
+\textbf{Commutator (Lie bracket)}
+\begin{itemize}
+    \item The Lie bracket (commutator) of two twists measures how far they fail to
+    commute.
+
+    \item In $PGA$ it is a native product, $[A, B] = \mathrm{rcmt}(A, B)$: the
+    $\mathfrak{se}(2)/\mathfrak{se}(3)$ twist bracket.
+
+    \item It supplies the Coriolis/centrifugal coupling in the Newton-Euler recursion (see
+    eqn.~(\ref{eq:newton_euler_recursion})) and the gyroscopic term $\mathrm{rcmt}(\Omega,
+    I[\Omega])$ in the body-frame Euler equation.
+\end{itemize}
+
+\textbf{Moment and torque} (source Wikipedia):
+\begin{itemize}
+    \item A moment is a mathematical expression involving the product of a distance and a
+    physical quantity such as a force or electric charge. Moments are usually defined with
+    respect to a fixed reference point and refer to physical quantities located some
+    distance from the reference point. The moment of force, often called torque, is the
+    product of a force on an object and the distance from the reference point to the
+    object.
+
+    \item In physics and mechanics, torque is the rotational correspondent of linear
+    force. It is referred to as the moment of force, or simply the moment. Just as a
+    linear force is a push or a pull applied to a body, a torque can be thought of as a
+    twist applied to an object with respect to a chosen point.
+
+    \item Torque is referred to using different vocabulary depending on geographical
+    location and field of study. Torque and moment are often used interchangeably for the
+    rotational effect of a force, but in mechanics, the main difference is application:
+    torque refers to a force causing rotation in a dynamic system, while moment is often
+    used for the turning effect in a static, or non-moving, system. Both are calculated as
+    the force multiplied by the perpendicular distance from the pivot point.
+
+    \item When modelling physics in $PGA$ forces and moments, describing the translational
+    and rotational physical aspects, do not need to be considered separately, but can be
+    modelled within one object containing all information. For example, by modelling the
+    line of action $F$ of a force $f$ acting at a point $P$ as $F = P \wedge f$ as in
+    equation~(\ref{eq:line_of_action}) both effects are covered, the force $f$ itself and
+    the torque generated at any point are covered by the mathematical object $F$. The
+    torque generated at the origin $M_{O} = bulk(F)$ can be as easily recovered from $F$
+    as the resulting free moment at any other point.
+\end{itemize}
+
 \textbf{Wrench}
 \begin{itemize}
     \item A wrench is the force/torque screw dual to a twist: the bivector line of action
@@ -185,9 +178,18 @@
     eqn.~(\ref{eq:spatial_pairing})).
 \end{itemize}
 
+\textbf{Momentum}
+\begin{itemize}
+    \item Momentum (German: Impuls, Bewegungsgröße) characterizes the movement of an
+    object. It has a direction (the direction of the speed vector) and a magnitude (the
+    product of the mass and the magnitude of the speed vector). A heavier object moving at
+    the same speed has more momentum compared to an object of less mass. Momentum can
+    change in direction and/or magnitude.
+\end{itemize}
+
 \textbf{Inertia map}
 \begin{itemize}
-    \item The inertia map $I[\cdot]$ is the linear operator sending a body's velocity
+    \item The inertia map $I[\cdot]$ is the linear operator mapping a body's velocity
     twist $\Omega$ to its momentum wrench, $P = I[\Omega]$ (see
     Sec.~\ref{subsubsection:structure_inertia_maps}).
 
