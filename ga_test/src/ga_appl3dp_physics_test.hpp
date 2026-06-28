@@ -1692,7 +1692,9 @@ struct spindle_idx {
 inline spindle_idx build_tao_spindle(dynamic_system3dp& sys, tao_spindle_params const& p,
                                      std::array<value_t, 5> const& q0 = {},
                                      value_t spin_rate = 0.0,
-                                     std::array<value_t, 5> const& qdot0 = {})
+                                     std::array<value_t, 5> const& qdot0 = {},
+                                     std::array<value_t, 2> const& tilt_rest = {},
+                                     value_t c_bearing = 0.0)
 {
     auto const massless = body3dp{};
     auto const rotor = make_rotor_body(p.m, p.Jx, p.Jz);
@@ -1726,11 +1728,24 @@ inline spindle_idx build_tao_spindle(dynamic_system3dp& sys, tao_spindle_params 
     ix.housing = ix.jph; // bearings on the non-spinning phi frame
 
     value_t const Lb = p.Lb(), kr = p.kx / 2.0;
-    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, Lb, 1}, vec3dp{0, 0, Lb, 1},
-                            vec3dp{kr, kr, 0, 0}, 0.0);
-    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, -Lb, 1}, vec3dp{0, 0, -Lb, 1},
-                            vec3dp{kr, kr, 0, 0}, 0.0);
-    sys.add_grounded_spring(ix.housing, O_3dp, O_3dp, vec3dp{0, 0, p.kz, 0}, 0.0);
+    // Optional STATIC bearing-anchor misalignment (Zhou-flatness bridge, Phase Dyn.1):
+    // offset the two radial ground anchors so the unstressed (zero-force) configuration
+    // is tilted by (alpha about e1 -> theta, beta about e2 -> phi). Under that small tilt
+    // the
+    // +-Lb body points tip (linearized) to (+-Lb*beta, -+Lb*alpha, +-Lb); placing each
+    // ground anchor there makes the tilted pose the spring rest, so the spindle SETTLES
+    // to (theta,phi) = (alpha,beta) -- the static alignment deviation, now produced by
+    // the dynamics rather than hand-set. Default {0,0} keeps the anchors at +-Lb (Phase C
+    // byte-unchanged). c_bearing adds isotropic point damping so the settling is
+    // non-oscillatory (default 0 -> Phase C byte-unchanged).
+    value_t const ta = tilt_rest[0], tb = tilt_rest[1];
+    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, Lb, 1},
+                            vec3dp{Lb * tb, -Lb * ta, Lb, 1}, vec3dp{kr, kr, 0, 0},
+                            c_bearing);
+    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, -Lb, 1},
+                            vec3dp{-Lb * tb, Lb * ta, -Lb, 1}, vec3dp{kr, kr, 0, 0},
+                            c_bearing);
+    sys.add_grounded_spring(ix.housing, O_3dp, O_3dp, vec3dp{0, 0, p.kz, 0}, c_bearing);
     if (spin_rate != 0.0) sys.set_driven_rate(ix.spin, spin_rate); // motor-clamped spin
     return ix;
 }
@@ -1910,6 +1925,179 @@ TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
         CHECK(zb_model ==
               doctest::Approx(zb_lin).epsilon(1e-3)); // == Eq.14 to small angle
 
+        fmt::println("");
+    }
+
+    // -------------------------------------------------------------------------------------
+    // Phase Dyn.1 -- the static-deviation run: the Zhou-geometry <-> Tao-dynamics BRIDGE.
+    //
+    // Until now the two error sources lived in separate worlds: the global FLATNESS came
+    // from a HAND-SET kinematic wafer tilt (Zhou Figs 5-7, ga_appl3dp_appl_test.hpp), and
+    // the spindle DYNAMICS (Phase C) only produced free vibrations about an ideal pose.
+    // This case fuses them. The alignment misalignment (alpha,beta) is injected as a
+    // STATIC bearing-anchor offset (build_tao_spindle's tilt_rest), so under its own
+    // springs/dampers the spindle SETTLES to a tilted equilibrium
+    // (theta,phi)=(alpha,beta). That settled tilt -- now an OUTPUT of the dynamics, not
+    // an input -- is then fed into the Zhou single-grain cutting-path sampler and shown
+    // to reproduce the same cone/dome/bowl global-flatness shapes.
+    //
+    // Axis relabeling: the spindle's two independent tilt DOFs are theta (about e1) and
+    // phi (about e2); the Zhou sampler tilts the wafer by (a about e2, b about e3). Each
+    // spindle tilt DOF maps onto one of Zhou's two perpendicular tilt slots -- theta -> a
+    // (the SYMMETRIC slot, along the grain's radial line -> CONE), phi -> b (the
+    // perpendicular slot -> sign-dependent DOME/BOWL). The bridge is the
+    // magnitude-and-shape correspondence: a dynamically-settled tilt of magnitude alpha
+    // carves Zhou's cone, one of magnitude beta carves the dome.
+    //
+    // A constant infeed (prescribed axial translation on Jz) is a UNIFORM z offset of the
+    // whole path -- it sets the engagement depth but not the flatness SHAPE -- so it is
+    // omitted from this shape gate and enters in the Step-2 dynamic-vibration run (where
+    // the time-varying z_b adds the waviness on top of this mean tilt).
+    TEST_CASE(
+        "pga3dp: Tao spindle - static tilt deviation -> Zhou flatness (Phase Dyn.1)")
+    {
+        fmt::println("pga3dp: Tao spindle - static tilt deviation -> Zhou flatness "
+                     "(Phase Dyn.1)");
+
+        tao_spindle_params const p;
+        value_t const deg = pi / 180.0;
+        value_t const alpha = 0.1 * deg, beta = 0.1 * deg; // target misalignment [rad]
+        value_t const c_bearing = 4000.0; // ~critical tilt damping -> monotone settle
+        value_t const dt = 2.0e-8;
+        int const nsteps = 60000; // 1.2 ms ~ 8 tilt periods: fully settled
+
+        // Release the spindle from the IDEAL (theta=phi=0) pose with the anchors offset
+        // to the misaligned rest; integrate until it settles, and report the equilibrium
+        // tilt.
+        auto settle = [&](value_t a, value_t b) {
+            dynamic_system3dp sys;
+            auto const ix = build_tao_spindle(sys, p, {}, 0.0, {}, {a, b}, c_bearing);
+            for (int n = 0; n < nsteps; ++n)
+                sys.step(dt);
+            struct {
+                value_t th, ph, rad;
+            } r;
+            r.th = sys.joint_phi(ix.jth);
+            r.ph = sys.joint_phi(ix.jph);
+            // the radial/axial DOFs are NOT driven by a pure tilt offset (the two anchor
+            // forces cancel) -- confirm they stay at the ideal
+            r.rad =
+                std::max({std::abs(sys.joint_phi(ix.jx)), std::abs(sys.joint_phi(ix.jy)),
+                          std::abs(sys.joint_phi(ix.jz))});
+            return r;
+        };
+
+        // (theta,phi) = (alpha,0): settles to the alpha-tilt equilibrium
+        auto const ce = settle(alpha, 0.0);
+        fmt::println("  settle(alpha,0): theta_eq = {:.5e} (target {:.5e}), phi_eq = "
+                     "{:.2e}, |x,y,z| <= {:.1e} m",
+                     ce.th, alpha, ce.ph, ce.rad);
+        CHECK(ce.th == doctest::Approx(alpha).epsilon(1e-3)); // dynamics reproduce alpha
+        CHECK(std::abs(ce.ph) < 1e-3 * alpha);                // no phi cross-coupling
+        CHECK(ce.rad < 1e-7);                                 // radial/axial undisturbed
+
+        // (theta,phi) = (0,beta): settles to the beta-tilt equilibrium
+        auto const de = settle(0.0, beta);
+        fmt::println("  settle(0,beta): phi_eq   = {:.5e} (target {:.5e}), theta_eq = "
+                     "{:.2e}",
+                     de.ph, beta, de.th);
+        CHECK(de.ph == doctest::Approx(beta).epsilon(1e-3)); // dynamics reproduce beta
+        CHECK(std::abs(de.th) < 1e-3 * beta);
+
+        // Confirm (alpha,beta) is a genuine EQUILIBRIUM: with the spindle placed exactly
+        // at the misaligned rest (no spin, no velocity), the tilt accelerations vanish --
+        // so the settled state above is the static fixed point, not a slow transient.
+        // Compare to the restoring acceleration from the ideal (theta=phi=0) pose.
+        {
+            dynamic_system3dp eq, off;
+            auto const ie =
+                build_tao_spindle(eq, p, {0, 0, 0, alpha, beta}, 0.0, {}, {alpha, beta});
+            auto const io = build_tao_spindle(off, p, {}, 0.0, {}, {alpha, beta});
+            value_t const a_eq = std::abs(eq.joint_accel(ie.jth));
+            value_t const a_off =
+                std::abs(off.joint_accel(io.jth)); // restoring from ideal
+            fmt::println(
+                "  equilibrium: |theta-ddot| at rest = {:.3e} rad/s^2 (restoring "
+                "from ideal = {:.3e}); ratio {:.1e}",
+                a_eq, a_off, a_eq / a_off);
+            CHECK(a_eq <
+                  1e-5 * a_off); // negligible vs the restoring scale -> equilibrium
+        }
+
+        // ---- Flatness consequence: feed the settled tilt into the Zhou sampler
+        // ---------- One wheel grain (radius r1=R, axis offset L=R, half-overlap) sampled
+        // in the tilted, spinning wafer frame over one wafer revolution; z = wafer-axis
+        // component = profile height. Identical to the committed Zhou Figs 5-7 case, but
+        // the tilt now comes from the dynamics (theta_eq -> a, phi_eq -> b). Geometry in
+        // mm; only the dimensionless settled ANGLES cross over from the SI dynamics.
+        double const R = 150.0, L = R, r1 = R;
+        double const w1 = rpm2radps(1500.0), w2 = rpm2radps(50.0); // n2/n1 = 1/30
+        auto profile = [&](double a, double b) {
+            kinematic_system3dp sys;
+            sys.add_frame(static_frame3dp("W"));
+            sys.add_frame(static_frame3dp("wheel_rot", vec3dp{0.0, L, 0.0, 1.0}),
+                          kin_state3dp{.omega = vec3dp{w1, 0.0, 0.0, 0.0}},
+                          sys.index_of("W"));
+            sys.add_frame(static_frame3dp("grain", vec3dp{0.0, -r1, 0.0, 1.0}),
+                          kin_state3dp{}, sys.index_of("wheel_rot"));
+            sys.add_frame(static_frame3dp("wafer_tilt", O_3dp, vec3dp{0.0, a, b, 0.0}),
+                          kin_state3dp{}, sys.index_of("W"));
+            sys.add_frame(static_frame3dp("wafer_rot"),
+                          kin_state3dp{.omega = vec3dp{w2, 0.0, 0.0, 0.0}},
+                          sys.index_of("wafer_tilt"));
+            size_t const wheel = sys.index_of("wheel_rot"),
+                         wafer = sys.index_of("wafer_rot");
+            double const T = 2.0 * pi / w2;
+            int const N = 6000;
+            struct {
+                double zmin = 1e9, zmax = -1e9, z_ctr = 0.0, rmax = 0.0;
+            } pr;
+            for (int k = 0; k <= N; ++k) {
+                double const t = T * double(k) / double(N);
+                sys.set_pose(wheel, pose3dp{vec3dp{0.0, L, 0.0, 1.0},
+                                            vec3dp{w1 * t, 0.0, 0.0, 0.0}});
+                sys.set_pose(wafer, pose3dp{O_3dp, vec3dp{w2 * t, 0.0, 0.0, 0.0}});
+                auto const g =
+                    unitize(move3dp(O_3dp, sys.get_pos_trafo("grain", "wafer_rot")));
+                double const z = g.x, r = std::sqrt(g.y * g.y + g.z * g.z);
+                if (r > R + 1e-6) continue;
+                pr.zmin = std::min(pr.zmin, z);
+                pr.zmax = std::max(pr.zmax, z);
+                if (r < 3.0) pr.z_ctr = z;
+                pr.rmax = std::max(pr.rmax, r);
+            }
+            return pr;
+        };
+
+        double const amp = R * std::tan(0.1 * deg); // 0.2618 mm unclipped rim amplitude
+
+        auto const flat = profile(0.0, 0.0); // ideal alignment -> FLAT
+        CHECK(std::abs(flat.zmin) < 1e-9);
+        CHECK(std::abs(flat.zmax) < 1e-9);
+
+        auto const cone = profile(ce.th, 0.0); // settled alpha -> CONE (symmetric)
+        CHECK(std::abs(cone.zmax + cone.zmin) < 1e-3 * amp);
+        CHECK(std::abs(cone.z_ctr) < 1e-3);
+        CHECK(cone.zmax > 0.5 * amp);
+        CHECK(cone.zmax < 1.01 * amp);
+        CHECK(cone.rmax > 0.99 * R);
+
+        auto const dome = profile(0.0, de.ph); // settled +beta -> CONVEX dome
+        CHECK(dome.zmin == doctest::Approx(0.0).epsilon(1e-4));
+        CHECK(dome.zmax > 0.3 * amp);
+        CHECK(dome.zmax < 0.75 * cone.zmax); // ~half the cone (Zhou: beta ~ half alpha)
+
+        auto const bowl = profile(0.0, -de.ph); // settled -beta -> CONCAVE bowl (mirror)
+        CHECK(bowl.zmax == doctest::Approx(0.0).epsilon(1e-4));
+        CHECK(bowl.zmin == doctest::Approx(-dome.zmax).epsilon(1e-4));
+
+        fmt::println("  flat z in [{:+.4f},{:+.4f}] | cone [{:+.4f},{:+.4f}] | dome "
+                     "[{:+.4f},{:+.4f}] | bowl [{:+.4f},{:+.4f}] mm",
+                     flat.zmin, flat.zmax, cone.zmin, cone.zmax, dome.zmin, dome.zmax,
+                     bowl.zmin, bowl.zmax);
+        fmt::println("  -> dynamically-settled tilt reproduces Zhou's cone/dome/bowl "
+                     "flatness (dome/cone = {:.2f})",
+                     dome.zmax / cone.zmax);
         fmt::println("");
     }
 
