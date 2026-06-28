@@ -46,28 +46,42 @@ realistic. **Done & committed since reopening:**
   C steps Fig.7's 3x3 grid). SCOPE was the cutting-PATH figures (5-7) only; the
   removed-material envelope + density-driven centre concavity (Zhou Figs 8-16) is NOT done.
 
-### NEXT STEP (user-stated, to start in a fresh session): the DYNAMIC model
+### NEXT STEP (user-stated): the DYNAMIC model — Dyn.1 + Dyn.2 DONE 2026-06-28
 
 Goal: a dynamic grinding model with a **constant feed**, with the position parameters set
 to **deviations from the ideal** — **STATIC first, then DYNAMIC (spindle vibration)** — and
 the resulting wafer profile observed. This unifies the two halves we have: the global
 **flatness** (from the tilt, Zhou) and the **waviness** (from the axial runout z_b, Tao
-Phase D.1), now both produced by the live machine model.
+Phase D.1), now both produced by the live machine model. The Tao 2022 dynamics paper (the
+primary source) is now provided in-session.
 
-1. **Static-deviation run.** Drive the Phase-C `dynamic_system3dp` 6-joint spindle
-   (`ga_appl3dp_physics_test.hpp`, "Tao wheel-spindle (Phase C)") with a **constant infeed**
-   (prescribed axial translation — use the existing driven/prescribed-rate joint or a
-   constant feed term) and the **alignment tilt (alpha, beta) as STATIC offsets** of the
-   spindle's tilt-joint equilibria (shift `q_rest` / the grounded-spring anchors off ideal).
-   The spindle settles to a tilted equilibrium; sample the grain contact in the wafer frame
-   and confirm it reproduces the Zhou cone/dome — now from the dynamic equilibrium, not a
-   hand-set kinematic tilt. (Bridges Zhou-geometry <-> Tao-dynamics.)
-2. **Dynamic-vibration run.** Turn on the spindle dynamics (springs/dampers + unbalance,
-   Phase-B.1/C): the tilt and axial runout z_b become **time-varying**. The carved profile
-   then combines the flatness (mean/static tilt -> cone/dome) AND the waviness (time-varying
-   z_b -> wavelength v/f_b). Observe the combined surface from the live dynamics.
-3. (Optional) Visualize the dynamically-generated profile (extend `active_grinding_flatness`
-   or a new scene to show it building under the live dynamics).
+1. **Static-deviation run [DONE 2026-06-28, COMMITTED `ba5a520`].** App-test
+   `"pga3dp: Tao spindle - static tilt deviation -> Zhou flatness (Phase Dyn.1)"` in the
+   Phase C suite (`ga_appl3dp_physics_test.hpp`). `build_tao_spindle` gained a default-off
+   `tilt_rest` (radial **bearing-anchor offset** — the user-chosen injection mechanism, of
+   the two it listed) + `c_bearing` damping; Phase C stays byte-unchanged. The misalignment
+   (alpha,beta) is a static anchor offset, so the spindle SETTLES under its own
+   springs/dampers to `theta_eq=phi_eq=1.74533e-3` (= the 0.1 deg target, EXACT), radial/
+   axial DOFs undisturbed, equilibrium confirmed (|theta-ddot| ratio 2e-6 vs the restoring
+   scale). That dynamically-settled tilt — now an OUTPUT, not a hand-set input — feeds the
+   Zhou single-grain sampler and reproduces the cone (+-0.225 mm) / dome (+0.128) / bowl
+   (-0.128), `dome/cone = 0.57` ("beta ~ half alpha") emergent from the clipping. Axis
+   relabel: spindle theta->Zhou a (cone), phi->b (dome). Constant infeed omitted from the
+   SHAPE gate (it is a uniform z offset).
+2. **Dynamic-vibration run [DONE 2026-06-28, COMMITTED `4f80d91`].** App-test
+   `"...dynamic vibration: flatness + waviness (Phase Dyn.2)"`. On top of the Dyn.1 static
+   tilt (mean -> flatness), the spindle spins (driven Omega, unbalance e) and its
+   lightly-damped tilt rings, so `z_b = z - R_w*sin(phi)` (Eq.14) becomes time-varying. ONE
+   live run carries both: (1) MEAN phi == static beta (1.74518e-3 vs 1.74533e-3) -> flatness
+   survives; (2) z_b oscillation freq, measured by live zero-crossings, == the tilt natural
+   freq `f_b = 6701.8 Hz == Eq.22 f_th0` EXACTLY (f_b now an OUTPUT of the dynamics, not the
+   measured 6253 Hz); (3) waviness `lambda = v/f_b` (Phase D.1) with the live f_b: lambda_m =
+   7.03 mm (WMD), lambda_c = 124 um (WCD), both in Tao Table-3 range. Window 1.6 ms (80k RK4
+   steps, dt 2e-8), undamped so the tilt rings cleanly; constant infeed is a <1 nm ramp over
+   the window (negligible to the ripple — enters the depth/Step-3). appl3dp 54/9304 green.
+3. **(Optional, NOT done) Visualize** the dynamically-generated profile — extend
+   `active_grinding_flatness` or a new ga_view scene to show the combined surface (mean
+   cone/dome + z_b waviness) building under the live dynamics. **RESUME HERE.**
 
 **PAPERS NEEDED for a clean restart:**
 
