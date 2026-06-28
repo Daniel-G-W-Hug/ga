@@ -20,6 +20,75 @@ Status: **CLOSED 2026-06-20 — see the box above.** (Historical: planning + ini
 (`static_/kinematic_/dynamic_system{2,3}dp`, the closed-loop layer) was built as the
 runway for exactly this. Companion memory: `project_wafer_grinding`.
 
+---
+
+## REOPENED 2026-06-27/28 — visualization + a kinematic realism step, NEXT = dynamic model
+
+The project was reopened to finish the visualization and then make the surface model more
+realistic. **Done & committed since reopening:**
+
+- **Phase 0.c — `active_grinding_cs` ga_view scene (committed `e8c809c`).** The spindle's
+  radial / axial / tilting DOFs as a prescribed PGA3DP-motor wobble of the tool frame,
+  two stacked projected views (top down -e1, side along -e2) sharing the e3 axis, around
+  an imperfect (slightly inclined) equilibrium; C isolates the DOF group, T toggles the
+  inclination. Pure illustration (not the dynamics).
+- **Zhou Figs 5-7 — wafer-tilt flatness (drop the parallel-axis idealization).** Source:
+  **Zhou et al., Precision Eng. 27 (2003) 175** (the 3D infeed-grinding kinematics paper).
+  Our flat-surface assumption only holds for perfectly parallel wheel/wafer axes; a small
+  wafer-axis misalignment (alpha about X, beta about Y) sets the GLOBAL FLATNESS (distinct
+  from the Phase-D.1 waviness). Reproduced Zhou Eq.1 in PGA: one wheel grain (r1=R, offset
+  L=R) sampled in the tilted, spinning wafer frame (`kinematic_system3dp::get_pos_trafo`)
+  traces a cutting path whose height z is a CONE (alpha), CONVEX dome (+beta), CONCAVE bowl
+  (-beta), FLAT (alpha=beta=0); clipped to the wafer (r2<=R2). **app-test** committed
+  `2fdd9f6` (gates the shapes; emergent result: on-wafer dome amplitude = 0.57x the cone =
+  Zhou's "beta ~ half alpha", not put in by hand). **ga_view scene** `active_grinding_flatness`
+  committed `79143a6` (X-Y rosette + X-Z/Y-Z profiles, z ~233x exaggerated with a scale key,
+  C steps Fig.7's 3x3 grid). SCOPE was the cutting-PATH figures (5-7) only; the
+  removed-material envelope + density-driven centre concavity (Zhou Figs 8-16) is NOT done.
+
+### NEXT STEP (user-stated, to start in a fresh session): the DYNAMIC model
+
+Goal: a dynamic grinding model with a **constant feed**, with the position parameters set
+to **deviations from the ideal** — **STATIC first, then DYNAMIC (spindle vibration)** — and
+the resulting wafer profile observed. This unifies the two halves we have: the global
+**flatness** (from the tilt, Zhou) and the **waviness** (from the axial runout z_b, Tao
+Phase D.1), now both produced by the live machine model.
+
+1. **Static-deviation run.** Drive the Phase-C `dynamic_system3dp` 6-joint spindle
+   (`ga_appl3dp_physics_test.hpp`, "Tao wheel-spindle (Phase C)") with a **constant infeed**
+   (prescribed axial translation — use the existing driven/prescribed-rate joint or a
+   constant feed term) and the **alignment tilt (alpha, beta) as STATIC offsets** of the
+   spindle's tilt-joint equilibria (shift `q_rest` / the grounded-spring anchors off ideal).
+   The spindle settles to a tilted equilibrium; sample the grain contact in the wafer frame
+   and confirm it reproduces the Zhou cone/dome — now from the dynamic equilibrium, not a
+   hand-set kinematic tilt. (Bridges Zhou-geometry <-> Tao-dynamics.)
+2. **Dynamic-vibration run.** Turn on the spindle dynamics (springs/dampers + unbalance,
+   Phase-B.1/C): the tilt and axial runout z_b become **time-varying**. The carved profile
+   then combines the flatness (mean/static tilt -> cone/dome) AND the waviness (time-varying
+   z_b -> wavelength v/f_b). Observe the combined surface from the live dynamics.
+3. (Optional) Visualize the dynamically-generated profile (extend `active_grinding_flatness`
+   or a new scene to show it building under the live dynamics).
+
+**PAPERS NEEDED for a clean restart:**
+
+- **Tao et al. 2022, Int. J. Mech. Sci. 232:107620** (self-rotational grinding spindle
+  DYNAMICS) — the PRIMARY paper for this step (spindle DOFs, parameters, z_b, vibration).
+  **NOT yet provided this session** — the user has it; request Fig. 1 + the vibration-DOF /
+  parameter figures + Table 1. This is the paper the whole Phase A-D infrastructure was
+  built from.
+- **Zhou et al. 2003, Precision Eng. 27:175** (provided this session) — the tilt -> flatness
+  geometry, already implemented (the app-test + `active_grinding_flatness` scene); its Eq.1
+  alpha/beta mapping is what the static-deviation run reuses.
+
+**INFRASTRUCTURE to reuse (all landed & committed):** `dynamic_system3dp` 6-joint spindle
+(Phase C); the force elements (`set_joint_spring_damper`, `set_applied_wrench`,
+`set_driven_rate`, `add_grounded_spring`); the integrator selector (RK4 / ABM2); the Zhou
+tilt->profile kinematics (new app-test + scene); the surface-wavelength model (Phase D.1).
+
+**Build note:** `build/` is now configured **Release** (CMAKE_BUILD_TYPE=Release) — the
+appl3dp suite runs in ~8 s vs ~3 min in Debug. Switch back with `cmake -DCMAKE_BUILD_TYPE=Debug .`
+if Debug is needed.
+
 **DONE so far:** the two grinding mini-tests translated onto `static_/kinematic_system3dp`
 (pedagogical, in `ga_appl3dp_appl_test.hpp`, right after the originals); the
 `is_congruent` refinement (intermediate step below); the Fig. 1 **machine geometry &
