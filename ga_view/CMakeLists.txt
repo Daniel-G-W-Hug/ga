@@ -60,6 +60,7 @@ set(SOURCES src/main.cpp
             src/active_open_vs_closed.cpp
             src/active_planar_delta.cpp
             src/active_grinding_cs.cpp
+            src/active_grinding_flatness.cpp
             src/active_grinding_marks.cpp
             src/active_grinding_topo.cpp
             src/scenes.cpp

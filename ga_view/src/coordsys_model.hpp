@@ -469,6 +469,28 @@ struct agrinding_cs {
     grinding_cs_params params;
 };
 
+// Parameters of the wafer-grinding flatness demo (Zhou et al., Precision Eng. 27 (2003)
+// 175; Figs 5-7). A small wafer-axis misalignment (alpha about X, beta about Y) tilts the
+// ground surface into a cone / dome / bowl. The cutting path of one wheel grain (radius
+// r1, axis offset L), sampled in the tilted spinning wafer frame, is drawn in three
+// projected panels with the height z hugely exaggerated. The C key steps the 3x3
+// (alpha,beta) grid of Fig. 7 using +/- `tilt` degrees.
+struct grinding_flatness_params {
+    double R{150.0};   // wheel radius == wafer radius [mm]
+    double L{150.0};   // wheel-axis offset (half-overlap)
+    double r1{150.0};  // grain radius on the wheel [mm]
+    double n1{1500.0}; // wheel speed [rpm]
+    double n2{50.0};   // wafer speed [rpm]  (n2/n1 = 1/30)
+    double tilt{0.1};  // alignment-angle magnitude for the grid [deg]
+    int samples{6000}; // cutting-path samples over one wafer revolution
+    double dt{0.016};  // tick [s] (trace build-up only)
+};
+
+// Active item: wafer-grinding flatness (Zhou Figs 5-7) demo (no active points)
+struct agrinding_flatness {
+    grinding_flatness_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -592,6 +614,8 @@ class Coordsys_model {
 
     [[maybe_unused]] size_t add_grinding_cs(agrinding_cs const& agcs_in);
 
+    [[maybe_unused]] size_t add_grinding_flatness(agrinding_flatness const& agf_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -680,6 +704,9 @@ class Coordsys_model {
 
     // data for wafer-grinding coordinate-system / DOF demo items
     std::vector<agrinding_cs> agcs;
+
+    // data for wafer-grinding flatness (Zhou Figs 5-7) demo items
+    std::vector<agrinding_flatness> agf;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

@@ -224,6 +224,14 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return agcs.size() - 1;
 }
 
+[[maybe_unused]] size_t
+Coordsys_model::add_grinding_flatness(agrinding_flatness const& agf_in)
+{
+    agf.push_back(agf_in);
+
+    return agf.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -262,6 +270,7 @@ void Coordsys_model::clear()
     agm.clear();
     agto.clear();
     agcs.clear();
+    agf.clear();
     aft.clear();
 
     axis_cfg.reset();

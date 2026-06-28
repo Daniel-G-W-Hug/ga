@@ -19,6 +19,7 @@ using namespace hd::ga::pga;
 #include "active_four_bar.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_grinding_cs.hpp"
+#include "active_grinding_flatness.hpp"
 #include "active_grinding_marks.hpp"
 #include "active_grinding_topo.hpp"
 #include "active_kinematics2dp.hpp"
@@ -1730,6 +1731,21 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(gc);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // wafer-grinding flatness demo items (Zhou Figs 5-7; PGA3DP motors)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->agf.size(); ++idx) {
+        active_grinding_flatness* gf =
+            new active_grinding_flatness(cs, wcs, cm->agf[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, gf,
+                         &active_grinding_flatness::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, gf,
+                         &active_grinding_flatness::togglePause);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gf,
+                         &active_grinding_flatness::cycleTilt);
+        scene->addItem(gf);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2624,6 +2640,42 @@ std::vector<Coordsys_model> build_models()
             {"orange:", "grinding-wheel cup-face rim"},
             {"dark red:", "tool / spin axis (its tilt shows in the side view)"},
             {"grey dashed:", "ideal square (unperturbed) spindle placement"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.36;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the wafer-grinding FLATNESS scene (Zhou et al., Precision Eng. 27 (2003) 175;
+    // Figs 5-7): a small wafer-axis misalignment (alpha about X, beta about Y) tilts the
+    // ground surface into a cone / dome / bowl. One wheel grain's cutting path, computed in
+    // the tilted spinning wafer frame (PGA3DP motors), is drawn in three projected panels
+    // with the height hugely exaggerated. C steps the 3x3 (alpha,beta) grid of Fig. 7.
+    {
+        Coordsys_model cm;
+        cm.add_grinding_flatness(agrinding_flatness{});
+        cm.set_label("Wafer grinding: alignment-tilt flatness, Zhou Figs 5-7");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D kinematics (Zhou 2003): dropping the parallel-axis idealization. A small "
+            "wafer-axis misalignment -- alpha about X, beta about Y -- makes a single "
+            "wheel grain carve a non-flat profile. alpha alone -> a CONE; +beta -> a CONVEX "
+            "dome; -beta -> a CONCAVE bowl; alpha=beta=0 -> FLAT. The path is the grain "
+            "expressed in the tilted, spinning wafer frame, clipped to the wafer (r2<=R2); "
+            "the height z (~0.2 mm over the 300 mm diameter) is drawn hugely exaggerated. C "
+            "steps Fig. 7's 3x3 (alpha,beta) grid.";
+        leg.entries = {
+            {"SPACE:", "pause / resume the trace build-up"},
+            {"R:", "restart the trace"},
+            {"C:", "step the (alpha, beta) grid (cone / dome / bowl / ...)"},
+            {"─────", "──────────"},
+            {"dark red:", "the grain cutting path on the wafer"},
+            {"X-Y:", "the cutting-path rosette (wafer plane)"},
+            {"X-Z, Y-Z:", "the profile cross-sections (z exaggerated)"},
+            {"dashed:", "the z = 0 (flat) reference"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.36;
