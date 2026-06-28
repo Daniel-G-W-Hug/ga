@@ -484,6 +484,15 @@ struct grinding_flatness_params {
     double tilt{0.1};  // alignment-angle magnitude for the grid [deg]
     int samples{6000}; // cutting-path samples over one wafer revolution
     double dt{0.016};  // tick [s] (trace build-up only)
+
+    // DYNAMIC mode (Phase Dyn.2): the SAME alignment-tilt flatness (cone/dome from the
+    // mean tilt) PLUS the spindle-vibration WAVINESS -- the axial runout z_b = z -
+    // R_w*sin(phi) rippling at the tilt natural frequency f_b (Tao Eq.22), carving a
+    // waviness of wavelength lambda = (surface speed)/f_b. Off -> the static Zhou view.
+    bool dynamic{
+        false};         // false: static Zhou flatness; true: live Tao flatness + waviness
+    double f_b{6702.0}; // tilt resonance / z_b ripple frequency [Hz] (Dyn.2 live f_th0)
+    double A_b{0.1};    // z_b waviness amplitude [um]
 };
 
 // Active item: wafer-grinding flatness (Zhou Figs 5-7) demo (no active points)

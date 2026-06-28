@@ -34,6 +34,15 @@
 //
 // SPACE pause/resume the trace build-up; R restart it; C steps through the 3x3
 // (alpha,beta) grid of Fig. 7 (cone -> dome -> bowl and the combinations).
+//
+// DYNAMIC mode (params.dynamic, Phase Dyn.2): the difference to the static Zhou view is
+// the SECOND error source. The static view shows only the global FLATNESS (cone/dome from
+// the mean alignment tilt). The dynamic view keeps that flatness (X-Y rosette + X-Z
+// profile) but ADDS the spindle-vibration WAVINESS: the live axial runout z_b = z -
+// R_w*sin(phi) ripples at the tilt natural frequency f_b (Tao Eq.22, an OUTPUT of the
+// Phase-Dyn.2 spindle dynamics), carving a waviness of wavelength lambda = (surface
+// speed)/f_b. That ripple is shown in a dedicated bottom panel at its own large
+// exaggeration (the ~0.1 um waviness is ~2000x smaller than the ~0.2 mm flatness).
 
 class active_grinding_flatness : public QObject, public QGraphicsItem {
 
@@ -82,6 +91,11 @@ class active_grinding_flatness : public QObject, public QGraphicsItem {
                   QPointF (active_grinding_flatness::*proj)(path_pt const&) const) const;
     void drawPanel(QPainter* qp, double cx, double cy, double hw, double hh,
                    char const* title) const;
+
+    // dynamic mode: draw the spindle-vibration waviness profile z_b(s) along the mark
+    // direction in the bottom panel, and the difference-to-static legend text.
+    void drawWaviness(QPainter* qp, double cy, double hh) const;
+    double lambda_m() const; // waviness wavelength [mm] = wheel surface speed / f_b
 
     grinding_flatness_params m_params;
     Coordsys* cs;

@@ -153,6 +153,83 @@ QPointF active_grinding_flatness::toYZ(path_pt const& p) const
     return QPointF(cs->x.au_to_w(CX + p.y * S_XY), cs->y.au_to_w(CY_YZ + p.z * S_Z));
 }
 
+double active_grinding_flatness::lambda_m() const
+{
+    // waviness wavelength along the mark direction = wheel surface speed / f_b [mm].
+    // v_w = omega_w * R [mm/s] (the relative grinding speed that sweeps the ripple).
+    double const v_w = rpm2radps(m_params.n1) * m_params.R; // [mm/s]
+    return v_w / m_params.f_b;                              // [mm]
+}
+
+// The dynamic-mode bottom panel: the spindle-vibration waviness z_b(s) = A_b sin(2 pi s /
+// lambda_m) along the mark direction. The waviness is ~0.1 um against a ~0.2 mm flatness,
+// so it gets its OWN large exaggeration here (it would be invisible in the flatness
+// panels). About four wavelengths are shown, with the amplitude A_b and the wavelength
+// lambda_m each quantified by a labelled dimension bar so both are readable off the
+// panel.
+void active_grinding_flatness::drawWaviness(QPainter* qp, double cy, double hh) const
+{
+    double const lam = lambda_m();              // [mm]
+    double const nwave = 4.0;                   // wavelengths shown across the panel
+    double const span = nwave * lam;            // mark-direction extent shown [mm]
+    double const Ab_mm = m_params.A_b * 1.0e-3; // waviness amplitude [mm]
+    double const sx = 2.0 * HW / span;          // au per mm along the mark
+    double const amp = 0.40 * hh;               // curve half-height in the panel [au]
+    double const sz = amp / std::max(Ab_mm, 1.0e-9); // au per mm of z_b (own exag.)
+    double const xL = CX - HW;                       // panel left edge [au]
+
+    auto X = [&](double mm) { return cs->x.au_to_w(xL + mm * sx); };
+    auto Z = [&](double zmm) { return cs->y.au_to_w(cy + zmm * sz); };
+
+    // dashed z_b = 0 midline (the cutting-depth reference the ripple modulates)
+    qp->setPen(QPen(QColor(205, 205, 205), 1.0, Qt::DashLine));
+    qp->drawLine(QPointF(X(0.0), cs->y.au_to_w(cy)), QPointF(X(span), cs->y.au_to_w(cy)));
+
+    // the waviness curve, growing with the trace build-up
+    size_t const n = std::min(m_shown, m_path.size());
+    double const frac = m_path.empty() ? 0.0 : double(n) / double(m_path.size());
+    qp->setPen(QPen(QColor(30, 90, 170), 1.5)); // waviness: blue (distinct from flatness)
+    QPointF prev;
+    bool have_prev = false;
+    int const NW = 600;
+    for (int i = 0; i <= NW; ++i) {
+        double const u = double(i) / double(NW); // 0..1 across the panel
+        if (u > frac) break;                     // grow with the trace build-up
+        double const s = u * span;               // arc length along the mark [mm]
+        QPointF const pt(X(s), Z(Ab_mm * std::sin(2.0 * pi * s / lam)));
+        if (have_prev) qp->drawLine(prev, pt);
+        prev = pt;
+        have_prev = true;
+    }
+
+    // --- amplitude callout: a vertical 0 -> A_b bar at the first crest, the value placed
+    // ABOVE the crest tip (in the clear strip between the crests and the panel top --
+    // well below the title row, and clear of the descending curve to either side).
+    double const xa = X(0.25 * lam);
+    double const ya0 = cs->y.au_to_w(cy), yaA = Z(Ab_mm);
+    qp->setPen(QPen(Qt::black, 1.3));
+    qp->drawLine(QPointF(xa, ya0), QPointF(xa, yaA));
+    qp->drawLine(QPointF(xa - 4.0, yaA), QPointF(xa + 4.0, yaA)); // crest tick
+    qp->drawLine(QPointF(xa - 4.0, ya0), QPointF(xa + 4.0, ya0)); // midline tick
+    qp->drawText(QPointF(xa - 26.0, yaA - 7.0),
+                 QString::asprintf("A_b = %.2f um", m_params.A_b));
+
+    // --- wavelength callout: a horizontal one-period bar between the two MIDDLE crests
+    // (centred in the panel), below the troughs, with the lambda_m label centred under it
+    // over the FULL panel width so the text never clips (the lambda = v_w / f_b relation
+    // is spelled out in the legend).
+    double const yw = cs->y.au_to_w(cy - 0.70 * hh);
+    double const xw0 = X(1.25 * lam),
+                 xw1 = X(2.25 * lam); // middle crest-to-crest = one lam
+    qp->setPen(QPen(Qt::black, 1.3));
+    qp->drawLine(QPointF(xw0, yw), QPointF(xw1, yw));
+    qp->drawLine(QPointF(xw0, yw - 4.0), QPointF(xw0, yw + 4.0));
+    qp->drawLine(QPointF(xw1, yw - 4.0), QPointF(xw1, yw + 4.0));
+    qp->drawText(QRectF(QPointF(X(0.0), yw + 6.0), QPointF(X(span), yw + 24.0)),
+                 Qt::AlignHCenter | Qt::AlignTop,
+                 QString::asprintf("lambda_m = %.2f mm", lam));
+}
+
 void active_grinding_flatness::drawPath(
     QPainter* qp, QPointF (active_grinding_flatness::*proj)(path_pt const&) const) const
 {
@@ -187,13 +264,29 @@ void active_grinding_flatness::paint(QPainter* qp, QStyleOptionGraphicsItem cons
     qp->setRenderHint(QPainter::Antialiasing, true);
     qp->setBrush(Qt::NoBrush);
 
-    drawPanel(qp, CX, CY_XY, HW, HH_XY, "X-Y cutting path (rosette)");
-    drawPanel(qp, CX, CY_XZ, HW, HH_PROF, "X-Z profile (height exaggerated)");
-    drawPanel(qp, CX, CY_YZ, HW, HH_PROF, "Y-Z profile (height exaggerated)");
+    bool const dyn = m_params.dynamic;
 
+    drawPanel(qp, CX, CY_XY, HW, HH_XY, "X-Y cutting path (rosette)");
+    drawPanel(qp, CX, CY_XZ, HW, HH_PROF,
+              dyn ? "X-Z flatness profile (mean tilt; exaggerated)"
+                  : "X-Z profile (height exaggerated)");
     drawPath(qp, &active_grinding_flatness::toXY);
     drawPath(qp, &active_grinding_flatness::toXZ);
-    drawPath(qp, &active_grinding_flatness::toYZ);
+
+    if (dyn) {
+        // dynamic view: the bottom panel is the spindle-vibration WAVINESS (z_b ripple),
+        // not the Y-Z flatness cross-section -- the new, second error source. f_b rides
+        // in the title (keeps the in-panel callouts short enough not to clip).
+        QByteArray const wtitle =
+            QString::asprintf("z_b waviness, f_b = %.0f Hz (Tao Dyn.2)", m_params.f_b)
+                .toLatin1();
+        drawPanel(qp, CX, CY_YZ, HW, HH_PROF, wtitle.constData());
+        drawWaviness(qp, CY_YZ, HH_PROF);
+    }
+    else {
+        drawPanel(qp, CX, CY_YZ, HW, HH_PROF, "Y-Z profile (height exaggerated)");
+        drawPath(qp, &active_grinding_flatness::toYZ);
+    }
 
     // --- scale key (lower-left): the radial dimension vs the (exaggerated) height, so
     // the two very different scales are legible. The 150 mm radial bar drawn next to the

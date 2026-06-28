@@ -176,7 +176,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -235,7 +235,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -262,7 +262,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -290,7 +290,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -337,7 +337,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -363,7 +363,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -390,7 +390,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -418,7 +418,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -799,7 +799,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.36; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -1213,12 +1213,14 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         diagram_legend leg;
         leg.heading = "Sequence of rotation and translation matters:";
         leg.entries = {{"blue lines:", "rotate 1st, then translate"},
-                       {"red lines:", "translate 1st, then rotate"}};
-        leg.x_pct = 0.68;
+                       {"red lines:", "translate 1st, then rotate"},
+                       {"─────────", "──────────────────────────"},
+                       {"Key insight:", "Rotations and translations do NOT commute."}};
+        leg.x_pct = 0.48;
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.50; // box width = 40 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -1325,7 +1327,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
-        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        leg.size_pct = 0.5; // box width = 36 % of drawing area width
         // Example overrides to move / resize the legend:
         //   leg.x_pct    = 0.75;  // near right edge
         //   leg.y_pct    = 0.80;  // near bottom edge
@@ -1718,8 +1720,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // wafer-grinding coordinate-system / DOF demo items (PGA3DP motors)
     ///////////////////////////////////////////////////////////////////////////
     for (size_t idx = 0; idx < cm->agcs.size(); ++idx) {
-        active_grinding_cs* gc =
-            new active_grinding_cs(cs, wcs, cm->agcs[idx].params);
+        active_grinding_cs* gc = new active_grinding_cs(cs, wcs, cm->agcs[idx].params);
         QObject::connect(wcs, &w_Coordsys::resetRequested, gc,
                          &active_grinding_cs::resetAnimation);
         QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, gc,
@@ -2375,7 +2376,7 @@ std::vector<Coordsys_model> build_models()
                        {"magenta arrow:", "marked-point velocity v"},
                        {"black arrow:", "marked-point acceleration a"},
                        {"thin circles:", "momentary |v| / |a| magnitude"}};
-        leg.size_pct = 0.34;
+        leg.size_pct = 0.32;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2394,7 +2395,7 @@ std::vector<Coordsys_model> build_models()
 
         diagram_legend leg;
         leg.heading = "PGA2D kinematics: marked-point magnitudes over one platform "
-                      "revolution (theta = 0..2 pi; newest sample on the right).";
+                      "revolution\n(theta = 0..2 pi; newest sample on the right).";
         leg.entries = {{"SPACE:", "pause / resume animation"},
                        {"R:", "reset animation to t=0"},
                        {"C:", "show / hide magnitude circles"},
@@ -2403,9 +2404,9 @@ std::vector<Coordsys_model> build_models()
                        {"blue:", "|r|  orbit radius about platform centre"},
                        {"magenta:", "|v|  speed"},
                        {"black:", "|a|  acceleration"}};
-        leg.x_pct = 0.02;
-        leg.y_pct = 0.02;
-        leg.size_pct = 0.32;
+        leg.x_pct = 0.015;
+        leg.y_pct = 0.005;
+        leg.size_pct = 0.7;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2437,9 +2438,9 @@ std::vector<Coordsys_model> build_models()
                        {"orange arrows:", "gravity m g at each cm (F)"},
                        {"purple arrows:", "hinge reaction forces R1 / R2 (F)"},
                        {"top-left:", "live KE / PE / E (energy check)"}};
-        leg.x_pct = 0.62;
+        leg.x_pct = 0.76;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.36;
+        leg.size_pct = 0.23;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2624,11 +2625,12 @@ std::vector<Coordsys_model> build_models()
         diagram_legend leg;
         leg.heading =
             "PGA3D motors (Tao 2022): the wheel-spindle's vibration DOFs as a prescribed "
-            "wobble of the tool coordinate frame, around an imperfect (slightly inclined) "
-            "equilibrium. The two views are stacked and share the horizontal axis e3 "
+            "wobble of the tool coordinate frame, around an imperfect (slightly "
+            "inclined) "
+            "equilibrium.\nThe two views are stacked and share the horizontal axis e3 "
             "(engineering-drawing style): TOP view looks down the chuck axis -e1, the "
             "SIDE view below looks along -e2 -- so the wheel sits to the RIGHT of the "
-            "chuck in both. C steps radial -> axial -> tilt -> all (combined last); T "
+            "chuck in both. C steps radial -> axial -> tilt -> all (combined last).\nT "
             "toggles the static inclination vs the ideal square placement (grey ghost).";
         leg.entries = {
             {"SPACE:", "pause / resume animation"},
@@ -2642,17 +2644,18 @@ std::vector<Coordsys_model> build_models()
             {"grey dashed:", "ideal square (unperturbed) spindle placement"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.36;
+        leg.size_pct = 0.46;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
     }
 
-    // Append the wafer-grinding FLATNESS scene (Zhou et al., Precision Eng. 27 (2003) 175;
-    // Figs 5-7): a small wafer-axis misalignment (alpha about X, beta about Y) tilts the
-    // ground surface into a cone / dome / bowl. One wheel grain's cutting path, computed in
-    // the tilted spinning wafer frame (PGA3DP motors), is drawn in three projected panels
-    // with the height hugely exaggerated. C steps the 3x3 (alpha,beta) grid of Fig. 7.
+    // Append the wafer-grinding FLATNESS scene (Zhou et al., Precision Eng. 27 (2003)
+    // 175; Figs 5-7): a small wafer-axis misalignment (alpha about X, beta about Y) tilts
+    // the ground surface into a cone / dome / bowl. One wheel grain's cutting path,
+    // computed in the tilted spinning wafer frame (PGA3DP motors), is drawn in three
+    // projected panels with the height hugely exaggerated. C steps the 3x3 (alpha,beta)
+    // grid of Fig. 7.
     {
         Coordsys_model cm;
         cm.add_grinding_flatness(agrinding_flatness{});
@@ -2660,25 +2663,28 @@ std::vector<Coordsys_model> build_models()
 
         diagram_legend leg;
         leg.heading =
-            "PGA3D kinematics (Zhou 2003): dropping the parallel-axis idealization. A small "
+            "PGA3D kinematics (Zhou 2003): dropping the parallel-axis idealization.\nA "
+            "small "
             "wafer-axis misalignment -- alpha about X, beta about Y -- makes a single "
-            "wheel grain carve a non-flat profile. alpha alone -> a CONE; +beta -> a CONVEX "
-            "dome; -beta -> a CONCAVE bowl; alpha=beta=0 -> FLAT. The path is the grain "
-            "expressed in the tilted, spinning wafer frame, clipped to the wafer (r2<=R2); "
-            "the height z (~0.2 mm over the 300 mm diameter) is drawn hugely exaggerated. C "
-            "steps Fig. 7's 3x3 (alpha,beta) grid.";
-        leg.entries = {
-            {"SPACE:", "pause / resume the trace build-up"},
-            {"R:", "restart the trace"},
-            {"C:", "step the (alpha, beta) grid (cone / dome / bowl / ...)"},
-            {"─────", "──────────"},
-            {"dark red:", "the grain cutting path on the wafer"},
-            {"X-Y:", "the cutting-path rosette (wafer plane)"},
-            {"X-Z, Y-Z:", "the profile cross-sections (z exaggerated)"},
-            {"dashed:", "the z = 0 (flat) reference"}};
+            "wheel grain carve a non-flat profile. alpha alone -> a CONE;\n\n+beta -> a "
+            "CONVEX "
+            "dome;\n-beta -> a CONCAVE bowl; alpha=beta=0 -> FLAT.\n\nThe path is the "
+            "grain"
+            " expressed in the tilted, spinning wafer frame, clipped to the wafer "
+            "(r2<=R2); "
+            "the height z (~0.2 mm over the 300 mm diameter) is drawn hugely "
+            "exaggerated.\n\nC steps Fig. 7's 3x3 (alpha,beta) grid.";
+        leg.entries = {{"SPACE:", "pause / resume the trace build-up"},
+                       {"R:", "restart the trace"},
+                       {"C:", "step the (alpha, beta) grid (cone / dome / bowl / ...)"},
+                       {"─────", "──────────"},
+                       {"dark red:", "the grain cutting path on the wafer"},
+                       {"X-Y:", "the cutting-path rosette (wafer plane)"},
+                       {"X-Z, Y-Z:", "the profile cross-sections (z exaggerated)"},
+                       {"dashed:", "the z = 0 (flat) reference"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.36;
+        leg.size_pct = 0.46; // wider box -> heading wraps to fewer lines (shorter box)
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2696,13 +2702,12 @@ std::vector<Coordsys_model> build_models()
 
         diagram_legend leg;
         leg.heading =
-            "PGA3D surface topography (Tao 2022, Figs. 9/10): the wheel-spindle "
-            "vibration "
-            "at f_b modulates the grain cut depth, carving a waviness of wavelength "
-            "lambda = (surface speed)/f_b. The wheel speed v_w and wafer speed v_s are "
-            "read "
-            "from kinematic_system3dp::point_velocity, so lambda_m / lambda_c (shown "
-            "bottom-left) are built straight from the GA kinematics and match the paper.";
+            "PGA3D surface topography (Tao 2022, Figs. 9/10):\n\nthe wheel-spindle "
+            "vibration at f_b modulates the grain cut depth, carving a waviness of "
+            "wavelength lambda = (surface speed)/f_b.\n\nThe wheel speed v_w and wafer "
+            "speed v_s are kinematic_system3dp::point_velocity, so lambda_m / "
+            "lambda_c (shown bottom-left) are built straight from the GA kinematics and "
+            "match the paper.";
         leg.entries = {{"SPACE:", "pause / resume the feed-scroll"},
                        {"R:", "reset"},
                        {"C:", "toggle WCD (Fig. 9) / WMD (Fig. 10)"},
@@ -2714,7 +2719,7 @@ std::vector<Coordsys_model> build_models()
                        {"vertical:", "circumferential direction"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.22;
+        leg.size_pct = 0.4;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
@@ -2726,6 +2731,54 @@ std::vector<Coordsys_model> build_models()
         auto gw_panels = get_grinding_wavelength_panels();
         for (auto& p : gw_panels)
             models.push_back(std::move(p));
+    }
+
+    // Append the DYNAMIC wafer-grinding view LAST (Phase Dyn.2 of TODO/grinding.md; Tao
+    // 2022) -- the culmination of the grinding-scene sequence. The cluster builds up the
+    // pieces in the order the model evolved (kinematic grain marks -> spindle vibration
+    // DOFs -> static alignment FLATNESS -> vibration WAVINESS surface + wavelength laws),
+    // and this scene UNIFIES them: ONE live spindle run carries BOTH error sources. It
+    // shows the SAME alignment-tilt flatness as the static Zhou view, now produced from
+    // the live spindle dynamics, PLUS the spindle-vibration waviness -- the axial runout
+    // z_b = z - R_w*sin(phi) ripples at the tilt natural frequency f_b (Eq.22, an OUTPUT
+    // of the spindle run), carving a waviness of wavelength lambda_m = (wheel surface
+    // speed)/f_b, drawn in the bottom panel at its own large exaggeration (the ~0.1 um
+    // waviness is ~2000x smaller than the ~0.2 mm flatness, so the two cannot share a
+    // scale).
+    {
+        Coordsys_model cm;
+        grinding_flatness_params dyn;
+        dyn.dynamic = true; // flatness + waviness (vs the static-flatness view above)
+        cm.add_grinding_flatness(agrinding_flatness{dyn});
+        cm.set_label("Wafer grinding: dynamic flatness + waviness, Tao Dyn.2");
+
+        diagram_legend leg;
+        leg.heading =
+            "Live spindle dynamics (Tao 2022, Phase Dyn.2):\nONE machine model carries "
+            "BOTH wafer-error sources -- the culmination of the grinding sequence. "
+            "DIFFERENCE to the static Zhou flatness view -- that view shows only the "
+            "global FLATNESS (cone/dome from the mean alignment tilt); this view keeps "
+            "it (X-Y rosette + X-Z profile) and ADDS the spindle-vibration WAVINESS: the "
+            "live axial runout z_b = z - R_w*sin(phi) ripples at the tilt natural "
+            "frequency f_b (Eq.22, an output of the spindle run, not a fitted number), "
+            "carving a waviness of wavelength lambda_m = v_w / f_b.\nThe ~0.1 um "
+            "waviness is ~2000x smaller than the ~0.2 mm flatness, so it gets its own "
+            "exaggerated bottom panel. C steps the (alpha,beta) tilt grid as in the "
+            "static view.";
+        leg.entries = {{"SPACE:", "pause / resume the trace build-up"},
+                       {"R:", "restart the trace"},
+                       {"C:", "step the (alpha, beta) grid (cone / dome / bowl / ...)"},
+                       {"─────", "──────────"},
+                       {"dark red:", "the grain cutting path (FLATNESS, mean tilt)"},
+                       {"blue:", "the z_b vibration WAVINESS along the mark"},
+                       {"X-Y, X-Z:", "the flatness rosette + profile (z exaggerated)"},
+                       {"bottom:", "the z_b waviness, lambda_m = v_w / f_b (own scale)"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.46; // wider box -> heading wraps to fewer lines (shorter box)
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
     }
 
     return models;
