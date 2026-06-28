@@ -114,6 +114,7 @@ void w_Statusbar::draw(QPainter* qp)
             }
             break;
     }
+    int mode_len = fm.horizontalAdvance(m);
     qp->drawText(border_dist + undo_len + 15, nypos, m);
 
     // print pixel position of mouse cursor
@@ -147,12 +148,14 @@ void w_Statusbar::draw(QPainter* qp)
 
         s = s1 + s2;
     }
-    qp->drawText(w_width / 2 - fm.horizontalAdvance(s) / 2, nypos, s);
+    // qp->drawText(w_width / 2 - fm.horizontalAdvance(s) / 2, nypos, s);
+    qp->drawText(border_dist + undo_len + mode_len + 30, nypos, s);
 
     // print index and (if present) label of currently displayed model
     QString step;
     if (!m_label.empty()) {
-        step += QString("   Label: ") + m_label.c_str() + QString("     ");
+        // step += QString("   Label: ") + m_label.c_str() + QString("     ");
+        step += m_label.c_str() + QString("     ");
     }
     step += QString("M-Index: ") + QString::number(m_currentModel) + QString("/") +
             QString::number(m_maximumModel) + QString(" ");

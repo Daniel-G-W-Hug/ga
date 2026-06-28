@@ -93,5 +93,5 @@ class active_grinding_cs : public QObject, public QGraphicsItem {
     double m_t{0.0};
     bool m_paused{false};
     dof_group m_dof{dof_group::radial}; // start with the easy single-DOF case
-    bool m_incl_on{true};               // start from the imperfect (inclined) equilibrium
+    bool m_incl_on{false};              // start from perfect (uninclined) equilibrium
 };

@@ -2483,7 +2483,7 @@ std::vector<Coordsys_model> build_models()
     {
         Coordsys_model cm;
         cm.add_open_vs_closed(aopen_vs_closed{});
-        cm.set_label("Open chain vs. closed loop (same arm, one shoulder drive)");
+        cm.set_label("Open chain vs. closed loop (one shoulder drive)");
 
         diagram_legend leg;
         leg.heading =

@@ -8,6 +8,7 @@
 
 #include <algorithm> // std::max
 #include <array>
+#include <cmath> // std::hypot
 
 active_reflectionp::active_reflectionp(Coordsys* cs, w_Coordsys* wcs, active_pt2d* p1,
                                        active_pt2d* p2, active_pt2d* p3, active_pt2d* p4,
@@ -397,51 +398,98 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
                 case move_mode::rotate_both_lines: {
 
-                    // get current turning angle
+                    // current and previous cursor position in coordsys (au) units
                     auto scnPos = vec2d(cs->x.w_to_au(event->scenePos().x()),
                                         cs->y.w_to_au(event->scenePos().y()));
                     auto lscnPos = vec2d(cs->x.w_to_au(event->lastScenePos().x()),
                                          cs->y.w_to_au(event->lastScenePos().y()));
-                    auto cur_ang = angle(scnPos, lscnPos);
-                    // fmt::println("ang = {}", rad2deg(cur_ang));
-
 
                     auto cur_p1p = vec2dp(m_p1->scenePos().x, m_p1->scenePos().y, 1.0);
                     auto cur_p2p = vec2dp(m_p2->scenePos().x, m_p2->scenePos().y, 1.0);
                     auto cur_p3p = vec2dp(m_p3->scenePos().x, m_p3->scenePos().y, 1.0);
                     auto cur_p4p = vec2dp(m_p4->scenePos().x, m_p4->scenePos().y, 1.0);
 
-                    // move all 4 projective points around the turning point pt
-                    // auto mot = get_motor(cur_p1p, cur_ang);
-                    // fmt::println("tp = {}", tp);
-                    // fmt::println("cur_ang = {}", cur_ang);
-                    auto mot = get_motor(tp, cur_ang);
-                    // TODO: if tp.z == 0.0, translate instead of rotate
-                    //       (basically avoid throwing in get_motor for that case)
+                    // The turning point tp is the intersection of the two lines. Two
+                    // failure modes have to be handled:
+                    //  - exactly parallel: tp is an ideal point (weight -> 0), for which
+                    //    get_motor() throws and a rotation is undefined;
+                    //  - near-parallel: tp is finite but extremely far away, and rotating
+                    //    about a far-off pivot by the small per-frame angle looks like a
+                    //    translation (a parallel shift), not a rotation.
+                    // In both cases rotate about the configuration centroid instead, so
+                    // the (near-)parallel pair visibly rotates in place. The true
+                    // intersection is used only when it is finite AND within a few
+                    // viewport diagonals, where rotation about it actually reads as one.
+                    // tp comes from unitized lines, so weight_nrm_sq(tp) ~ sin^2 of the
+                    // angle between them; eps_turn guards the unitize() against ~0
+                    // weight.
+                    constexpr double eps_turn = 1.0e-6;
+                    auto centroid = 0.25 * (cur_p1p + cur_p2p + cur_p3p + cur_p4p);
 
-                    // fmt::println("mot = {}", mot);
+                    vec2dp turn_pt = centroid; // default: rotate in place about centroid
+                    if (weight_nrm_sq(tp) > eps_turn) {
+                        auto isect = unitize(tp);
+                        double const max_dist =
+                            2.0 * std::hypot(cs->x.max() - cs->x.min(),
+                                             cs->y.max() - cs->y.min());
+                        if (nrm(vec2d(isect.x - centroid.x, isect.y - centroid.y)) <=
+                            max_dist) {
+                            turn_pt =
+                                isect; // intersection is close enough to rotate about
+                        }
+                    }
+                    auto center = vec2d(turn_pt.x, turn_pt.y);
 
-                    auto new_p1p = unitize(move2dp(cur_p1p, mot));
-                    auto new_p2p = unitize(move2dp(cur_p2p, mot));
-                    auto new_p3p = unitize(move2dp(cur_p3p, mot));
-                    auto new_p4p = unitize(move2dp(cur_p4p, mot));
+                    // rotation increment = signed angle the cursor sweeps about the
+                    // turning point, from its previous to its current position. The
+                    // angle MUST be measured about the turning point (not the origin)
+                    // and ordered last -> current: angle(a, b) returns the CCW angle
+                    // theta(b) - theta(a), and get_motor() rotates CCW for a positive
+                    // angle, so this makes the on-screen drag direction and the
+                    // resulting rotation agree.
+                    auto r_last = lscnPos - center;
+                    auto r_cur = scnPos - center;
+                    if (nrm(r_last) <= eps || nrm(r_cur) <= eps) {
+                        break; // cursor on the turning point: angle undefined
+                    }
+                    auto cur_ang = angle(r_last, r_cur);
 
-                    // Block all signals during update (avoid recursive updates)
-                    m_p1->blockSignals(true);
-                    m_p2->blockSignals(true);
-                    m_p3->blockSignals(true);
-                    m_p4->blockSignals(true);
+                    // move all 4 projective points around the turning point.
+                    // Guard against any GA exception so it can never unwind across the
+                    // Qt event loop (which would be undefined behaviour / a crash).
+                    try {
+                        auto mot = get_motor(turn_pt, cur_ang);
 
-                    setScenePos_p1(vec2d(new_p1p.x, new_p1p.y));
-                    setScenePos_p2(vec2d(new_p2p.x, new_p2p.y));
-                    setScenePos_p3(vec2d(new_p3p.x, new_p3p.y));
-                    setScenePos_p4(vec2d(new_p4p.x, new_p4p.y));
+                        auto new_p1p = unitize(move2dp(cur_p1p, mot));
+                        auto new_p2p = unitize(move2dp(cur_p2p, mot));
+                        auto new_p3p = unitize(move2dp(cur_p3p, mot));
+                        auto new_p4p = unitize(move2dp(cur_p4p, mot));
 
-                    // Re-enable signals - Qt will update automatically
-                    m_p1->blockSignals(false);
-                    m_p2->blockSignals(false);
-                    m_p3->blockSignals(false);
-                    m_p4->blockSignals(false);
+                        // Block all signals during update (avoid recursive updates)
+                        m_p1->blockSignals(true);
+                        m_p2->blockSignals(true);
+                        m_p3->blockSignals(true);
+                        m_p4->blockSignals(true);
+
+                        setScenePos_p1(vec2d(new_p1p.x, new_p1p.y));
+                        setScenePos_p2(vec2d(new_p2p.x, new_p2p.y));
+                        setScenePos_p3(vec2d(new_p3p.x, new_p3p.y));
+                        setScenePos_p4(vec2d(new_p4p.x, new_p4p.y));
+
+                        // Re-enable signals - Qt will update automatically
+                        m_p1->blockSignals(false);
+                        m_p2->blockSignals(false);
+                        m_p3->blockSignals(false);
+                        m_p4->blockSignals(false);
+                    }
+                    catch (std::exception const& e) {
+                        // re-enable signals in case the throw happened mid-update
+                        m_p1->blockSignals(false);
+                        m_p2->blockSignals(false);
+                        m_p3->blockSignals(false);
+                        m_p4->blockSignals(false);
+                        qDebug() << "rotate_both_lines skipped:" << e.what();
+                    }
                 } break;
                 default:
                     std::unreachable();
