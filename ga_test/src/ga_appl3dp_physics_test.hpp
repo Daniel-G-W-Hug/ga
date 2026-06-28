@@ -2101,6 +2101,118 @@ TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
         fmt::println("");
     }
 
+    // -------------------------------------------------------------------------------------
+    // Phase Dyn.2 -- the dynamic-vibration run: ONE live spindle run yields BOTH error
+    // sources at once. On top of the Phase-Dyn.1 static misalignment (the MEAN tilt ->
+    // global flatness), the spindle now spins (driven Omega, mass unbalance e) and its
+    // lightly-damped tilt DOFs RING at their natural frequency, so the axial runout
+    //
+    //     z_b = z - R_w * sin(phi)      (Eq.14)
+    //
+    // becomes time-varying. The live z_b then carries both signatures of Tao's model: its
+    // MEAN is the static tilt (flatness, Zhou cone/dome of Dyn.1), and its OSCILLATION at
+    // the tilt natural frequency f_b (Tao Eq.22 = f_th0) carves the WAVINESS whose
+    // spatial wavelength is (surface speed)/f_b (Phase D.1). The headline: f_b is now an
+    // OUTPUT of the live dynamics, not the measured 6253 Hz fed into the Phase-D.1
+    // surface model.
+    //
+    // The constant grinding infeed (feed ~ 30 um/min) is a UNIFORM slow z-ramp -- over
+    // the ~1.6 ms vibration window it advances < 1 nm, i.e. a constant offset of the mean
+    // cutting depth, invisible to the ripple. It sets the engagement depth (and combines
+    // with z_b for the carve), not the waviness frequency, so the axial DOF is left free
+    // here (z ~ 0) and the feed enters the depth in the Step-3 visualization.
+    TEST_CASE(
+        "pga3dp: Tao spindle - dynamic vibration: flatness + waviness (Phase Dyn.2)")
+    {
+        fmt::println("pga3dp: Tao spindle - dynamic vibration: flatness + waviness "
+                     "(Phase Dyn.2)");
+
+        tao_spindle_params const p;
+        value_t const deg = pi / 180.0;
+        value_t const beta = 0.1 * deg; // static mean tilt -> global flatness
+        value_t const delta = 1.0e-5;   // tilt perturbation -> z_b ripple [rad]
+        value_t const f_s = 50.0;       // 3000 r/min driven spin
+        value_t const Omega = 2.0 * pi * f_s;
+        value_t const dt = 2.0e-8;
+        int const nsteps = 80000; // 1.6 ms ~ 11 tilt periods -> ~10 z_b crossings
+
+        // Static misalignment via the anchor offset (mean flatness); UNDAMPED so the tilt
+        // rings cleanly at its natural freq over the window (the table damping ratio
+        // ~5e-5 is negligible here); driven spin + unbalance on; phi released `delta`
+        // above its tilted equilibrium so z_b ripples about the mean tilt.
+        dynamic_system3dp sys;
+        auto const ix = build_tao_spindle(sys, p, {0, 0, 0, 0.0, beta + delta}, Omega, {},
+                                          {0.0, beta}, 0.0);
+
+        std::vector<value_t> zb, ts;
+        zb.reserve(nsteps + 1);
+        ts.reserve(nsteps + 1);
+        value_t phi_sum = 0.0, t = 0.0;
+        for (int n = 0; n <= nsteps; ++n) {
+            value_t const z = sys.joint_phi(ix.jz);
+            value_t const phi = sys.joint_phi(ix.jph);
+            zb.push_back(z - p.Rw * std::sin(phi));
+            ts.push_back(t);
+            phi_sum += phi;
+            if (n < nsteps) {
+                sys.step(dt);
+                t += dt;
+            }
+        }
+        value_t const phi_mean = phi_sum / value_t(nsteps + 1);
+
+        // (1) MEAN tilt == the static beta -> the GLOBAL FLATNESS survives the vibration:
+        // averaging the live phi recovers the prescribed alignment tilt (Dyn.1
+        // cone/dome).
+        fmt::println("  mean tilt phi = {:.5e} rad (static beta = {:.5e}) -> flatness",
+                     phi_mean, beta);
+        CHECK(phi_mean == doctest::Approx(beta).epsilon(2e-2));
+
+        // (2) z_b OSCILLATION frequency == the tilt natural freq f_b (Tao Eq.22 = f_th0),
+        // measured from the live run by downward zero-crossings of (z_b - mean), linearly
+        // interpolated.
+        value_t zb_mean = 0.0;
+        for (auto v : zb)
+            zb_mean += v;
+        zb_mean /= value_t(zb.size());
+        std::vector<value_t> cross;
+        for (size_t i = 1; i < zb.size(); ++i) {
+            value_t const a = zb[i - 1] - zb_mean, b = zb[i] - zb_mean;
+            if (a > 0.0 && b <= 0.0) cross.push_back(ts[i - 1] + dt * a / (a - b));
+        }
+        value_t Tsum = 0.0;
+        for (size_t i = 1; i < cross.size(); ++i)
+            Tsum += cross[i] - cross[i - 1];
+        value_t const f_b = (cross.size() - 1.0) / Tsum;
+        value_t const A_b = 0.5 * (*std::max_element(zb.begin(), zb.end()) -
+                                   *std::min_element(zb.begin(), zb.end())); // [m]
+        fmt::println(
+            "  z_b ripple: f_b = {:.1f} Hz (Eq.22 f_th0 = {:.1f}), A_b = {:.3f} um", f_b,
+            p.f_th0(), A_b * 1e6);
+        CHECK(f_b == doctest::Approx(p.f_th0()).epsilon(5e-3));
+
+        // (3) WAVINESS wavelength lambda = (surface speed)/f_b (Phase D.1), now with f_b
+        // from the LIVE dynamics. WMD lambda_m uses the wheel surface speed v_w =
+        // n_w*R_w; WCD lambda_c uses the wafer surface speed v_s = n_s*r at a
+        // representative radius.
+        value_t const v_w = rpm2radps(3000.0) * p.Rw; // wheel surface speed [m/s]
+        value_t const v_s = rpm2radps(265.0) * 0.030; // wafer @ r=30 mm [m/s]
+        value_t const lambda_m = v_w / f_b * 1e3;     // WMD wavelength [mm]
+        value_t const lambda_c = v_s / f_b * 1e3;     // WCD wavelength [mm]
+        fmt::println("  waviness from live f_b: lambda_m = {:.3f} mm (WMD), lambda_c = "
+                     "{:.1f} um (WCD)",
+                     lambda_m, lambda_c * 1e3);
+        CHECK(lambda_m > 5.0); // WMD ~ mm scale (Tao Table 3: 5-7 mm)
+        CHECK(lambda_m < 10.0);
+        CHECK(lambda_c * 1e3 > 50.0); // WCD ~ 100 um scale (Tao Table 3: 127-163 um)
+        CHECK(lambda_c * 1e3 < 300.0);
+
+        fmt::println(
+            "  -> one live run: MEAN tilt = flatness (Zhou cone/dome), z_b ripple "
+            "at f_b = waviness (lambda = v/f_b)");
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
 
 // =================================================================================
