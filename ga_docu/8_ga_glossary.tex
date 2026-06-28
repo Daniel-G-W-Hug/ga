@@ -9,7 +9,7 @@
 
     \item It is a point of the rigid-motion group, carried by a unit motor $M$; the
     origin/orientation form and the motor interconvert exactly
-    (see Sec.~\ref{subsubsection:pose_frame_tree}).
+    (see~\ref{subsubsection:pose_frame_tree}).
 
     \item A pose is a finite placement (where a frame is), as opposed to a twist (how it
     is moving).
@@ -47,7 +47,7 @@
     infinite pitch.
 \end{itemize}
 
-\newpage
+%\newpage
 
 \textbf{Twist}
 \begin{itemize}
@@ -77,8 +77,8 @@
     \exp_\veedot(\frac{1}{2} \int \Omega\,dt)$ and conversely $\Omega = 2\,\dot{M} \veedot
     \rrev{M}$.
 
-    \item Pose lives in the Lie group, twist in the Lie algebra (see
-    Sec.~\ref{subsubsection_lie_algebra_vs_lie_group}); cf.\ the entry on infinitesimal
+    \item Pose lives in the Lie group, twist in the Lie algebra
+    (see~\ref{subsubsection_lie_algebra_vs_lie_group}); cf.\ the entry on infinitesimal
     vs.\ finite movements.
 \end{itemize}
 
@@ -104,8 +104,8 @@
     they generate do not commute and must be multiplied in order.
 
     \item This is why a parent-to-child pose is built by composing a rotation and a
-    translation motor, not by exponentiating their summed generators (see
-    Sec.~\ref{subsubsection_lie_algebra_vs_lie_group}).
+    translation motor, not by exponentiating their summed generators
+    (see~\ref{subsubsection_lie_algebra_vs_lie_group}).
 \end{itemize}
 
 \textbf{Adjoint}
@@ -116,7 +116,7 @@
     \veedot B \veedot \rrev{M}$ (see eqn.~(\ref{eq:adjoint_is_sandwich})).
 
     \item Point action and twist transport are thus one operation; no separate $6\times6$
-    adjoint matrix is needed (see Sec.~\ref{subsubsection:transport_along_chain}).
+    adjoint matrix is needed (see~\ref{subsubsection:transport_along_chain}).
 \end{itemize}
 
 \textbf{Commutator (Lie bracket)}
@@ -128,70 +128,67 @@
     $\mathfrak{se}(2)/\mathfrak{se}(3)$ twist bracket.
 
     \item It supplies the Coriolis/centrifugal coupling in the Newton-Euler recursion (see
-    eqn.~(\ref{eq:newton_euler_recursion})) and the gyroscopic term $\mathrm{rcmt}(\Omega,
+    eqn.~(\ref{eq:newton_euler_recursion})) and the bias term $\mathrm{rcmt}(\Omega,
     I[\Omega])$ in the body-frame Euler equation.
 \end{itemize}
 
-\textbf{Moment and torque} (source Wikipedia):
+\textbf{Moment and torque}
 \begin{itemize}
-    \item A moment is a mathematical expression involving the product of a distance and a
-    physical quantity such as a force or electric charge. Moments are usually defined with
-    respect to a fixed reference point and refer to physical quantities located some
-    distance from the reference point. The moment of force, often called torque, is the
-    product of a force on an object and the distance from the reference point to the
-    object.
+    \item Torque is the rotational counterpart of linear force: a force applied at a
+    distance from a reference point generates a moment (torque) about that point equal
+    to the force times the perpendicular distance.
 
-    \item In physics and mechanics, torque is the rotational correspondent of linear
-    force. It is referred to as the moment of force, or simply the moment. Just as a
-    linear force is a push or a pull applied to a body, a torque can be thought of as a
-    twist applied to an object with respect to a chosen point.
+    \item The terms are often used interchangeably; in mechanics, \emph{torque} usually
+    refers to the turning effect in a dynamic system, \emph{moment} in a static one.
+    Both are calculated as force times perpendicular distance from the pivot.
 
-    \item Torque is referred to using different vocabulary depending on geographical
-    location and field of study. Torque and moment are often used interchangeably for the
-    rotational effect of a force, but in mechanics, the main difference is application:
-    torque refers to a force causing rotation in a dynamic system, while moment is often
-    used for the turning effect in a static, or non-moving, system. Both are calculated as
-    the force multiplied by the perpendicular distance from the pivot point.
-
-    \item When modelling physics in $PGA$ forces and moments, describing the translational
-    and rotational physical aspects, do not need to be considered separately, but can be
-    modelled within one object containing all information. For example, by modelling the
-    line of action $F$ of a force $f$ acting at a point $P$ as $F = P \wedge f$ as in
-    equation~(\ref{eq:line_of_action}) both effects are covered, the force $f$ itself and
-    the torque generated at any point are covered by the mathematical object $F$. The
-    torque generated at the origin $M_{O} = bulk(F)$ can be as easily recovered from $F$
-    as the resulting free moment at any other point.
+    \item When modelling mechanics in $PGA$, force and torque do not need to be tracked
+    separately. The line of action $F = P \wedge f$
+    (eqn.~(\ref{eq:line_of_action})) carries both: the force $f$ itself and the torque
+    it generates about any reference point. The torque at the origin is $bulk(F)$; the
+    free moment at any other point follows from the same object $F$.
 \end{itemize}
 
 \textbf{Wrench}
 \begin{itemize}
-    \item A wrench is the force/torque screw dual to a twist: the bivector line of action
-    carrying a force together with the moment it generates (the ``forque'' of
-    Sec.~\ref{subsubsection:modelling_force_and_torque}).
+    \item A wrench is a force screw --- the bivector encoding a resultant force and
+    the torque it induces, bound to a line of action (the ``forque''
+    of~\ref{subsubsection:modelling_force_and_torque}). It is the force-space
+    counterpart of the velocity twist: the two pair through the spatial product
+    $\langle \xi, P \rangle = -\,\mathrm{rwdg}(\xi, P)$ to give power.
 
     \item The momentum line of Sec.~\ref{subsubsection:modelling_momentum} is likewise the
     wrench dual to the velocity twist.
 
-    \item A twist $\xi$ pairs with a wrench $P$ through the reciprocal (spatial) product
-    $\langle \xi, P \rangle = -\,\mathrm{rwdg}(\xi, P)$, giving power / generalised force;
-    with $P = I[\xi]$ it gives twice the kinetic energy (see
-    eqn.~(\ref{eq:spatial_pairing})).
+    \item A twist $\xi$ pairs with a wrench $P = I[\xi]$ through the spatial product to
+    give twice the kinetic energy (see eqn.~(\ref{eq:spatial_pairing})).
 \end{itemize}
 
 \textbf{Momentum}
 \begin{itemize}
-    \item Momentum (German: Impuls, Bewegungsgröße) characterizes the movement of an
-    object. It has a direction (the direction of the speed vector) and a magnitude (the
-    product of the mass and the magnitude of the speed vector). A heavier object moving at
-    the same speed has more momentum compared to an object of less mass. Momentum can
-    change in direction and/or magnitude.
+    \item Momentum\footnote{German: \emph{Impuls}, \emph{Bewegungsgröße} --- not to be
+    confused with \emph{Moment} (torque), the entry above.} characterizes the movement
+    of an object: it has a direction (that of the velocity) and a magnitude (mass times
+    speed). A heavier object moving at the same speed has more momentum; momentum changes
+    when either speed or direction changes.
+
+    \item In $PGA$ the momentum of a body is a bivector (a momentum wrench): the image
+    $P = I[\Omega]$ of the velocity twist $\Omega$ under the inertia map.
+
+    \item It combines linear and angular momentum in one object, just as a wrench
+    combines force and torque; the two are recovered as bulk and weight parts of $P$
+    (see~\ref{subsubsection:modelling_momentum}).
+
+    \item Newton's second law takes the form $\dot{P} = W$ (net wrench equals rate of
+    change of momentum wrench), from which the Euler equation follows on inverting the
+    inertia map.
 \end{itemize}
 
 \textbf{Inertia map}
 \begin{itemize}
     \item The inertia map $I[\cdot]$ is the linear operator mapping a body's velocity
-    twist $\Omega$ to its momentum wrench, $P = I[\Omega]$ (see
-    Sec.~\ref{subsubsection:structure_inertia_maps}).
+    twist $\Omega$ to its momentum wrench, $P = I[\Omega]$
+    (see~\ref{subsubsection:structure_inertia_maps}).
 
     \item It is a $3\times3$ map (vector to bivector) in $2D$ and a $6\times6$ map
     (bivector to bivector) in $3D$, encoding mass, scalar moment of inertia and the full
@@ -203,3 +200,4 @@
 \end{itemize}
 
 \newpage
+~
