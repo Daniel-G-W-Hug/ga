@@ -397,6 +397,8 @@ TEST_SUITE("PGA 2DP Tests")
         //     rinv(u) = cmpl(inv(cmpl(u)))   (pga2dp is odd-dim: single complement)
 
         vec2dp v1{2.0, 1.0, 2.0};
+        vec2dp v2{2.0, 1.0, 1.0};
+        vec2dp v3{2.0, 1.0, 2.0};
         bivec2dp b1{-2.3, 1.2, 4.5};
         pscalar2dp ps1{-4.7};
         mvec2dp_e mve1{scalar2dp{3.2}, b1};
@@ -422,6 +424,34 @@ TEST_SUITE("PGA 2DP Tests")
         // vector
         CHECK(dist_to_I(rgpr(v1, rinv(v1))) < tol);
         CHECK(dist_to_I(rgpr(rinv(v1), v1)) < tol);
+
+        fmt::println("");
+        fmt::println("v2       = {}, bulk(v2) = {}, weight(v2) = {}", v2, bulk(v2),
+                     weight(v2));
+        fmt::println("bulk_nrm(v2) = {}, weight_nrm(v2) = {}", bulk_nrm(v2),
+                     weight_nrm(v2));
+        fmt::println("bulk_nrm_sq(v2) = {}, weight_nrm_sq(v2) = {}", bulk_nrm_sq(v2),
+                     weight_nrm_sq(v2));
+        fmt::println("geom_nrm(v2) = {}, geom_nrm_sq(v2) = {}", geom_nrm(v2),
+                     geom_nrm_sq(v2));
+        fmt::println("bulk_normalize(v2) = {}, unitize(v2) = {}", bulk_normalize(v2),
+                     unitize(v2));
+        fmt::println("inv(v2)  = {}, v2 ⟑ inv(v2)  = {}", inv(v2), v2 * inv(v2));
+        fmt::println("rinv(v2) = {}, v2 ⟇ rinv(v2) = {}", rinv(v2), rgpr(v2, rinv(v2)));
+        fmt::println("");
+        fmt::println("v3       = {}, bulk(v3) = {}, weight(v3) = {}", v3, bulk(v3),
+                     weight(v3));
+        fmt::println("bulk_nrm(v3) = {}, weight_nrm(v3) = {}", bulk_nrm(v3),
+                     weight_nrm(v3));
+        fmt::println("bulk_nrm_sq(v3) = {}, weight_nrm_sq(v3) = {}", bulk_nrm_sq(v3),
+                     weight_nrm_sq(v3));
+        fmt::println("geom_nrm(v3) = {}, geom_nrm_sq(v3) = {}", geom_nrm(v3),
+                     geom_nrm_sq(v3));
+        fmt::println("bulk_normalize(v3) = {}, unitize(v3) = {}", bulk_normalize(v3),
+                     unitize(v3));
+        fmt::println("inv(v3)  = {}, v3 ⟑ inv(v3)  = {}", inv(v3), v3 * inv(v3));
+        fmt::println("rinv(v3) = {}, v3 ⟇ rinv(v3) = {}", rinv(v3), rgpr(v3, rinv(v3)));
+        fmt::println("");
 
         // bivector
         CHECK(dist_to_I(rgpr(b1, rinv(b1))) < tol);
