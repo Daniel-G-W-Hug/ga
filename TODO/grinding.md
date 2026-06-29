@@ -78,6 +78,30 @@ sibling to the Tao Fig.1 tree (same wafer self-rotational class, different machi
   `E_x,E_y,E_z` closed form from GA composition.
 - **F.3 — Abbe/Bryan correction (Eq.5–8).** L-offset transfer = error-twist velocity field
   at the offset point. GATE: reproduce Eq.(8)'s `E′_x,E′_y,E′_z`.
+  **RESUMABLE DETAIL (read the reprovided paper Eqs.4–8 alongside this):**
+  - *Physical idea.* Each axis's geometric errors are MEASURED at a point (A for positioning,
+    B for straightness) that is OFFSET from the functional point Pt by `L(j)` (`j = z,x,c1,c2`
+    and the PIGE-derived `xoz,zoc1,zoc2`). The traditional model (F.2) applied each error as
+    if measured AT Pt; the Abbe/Bryan correction adds the error that the offset introduces.
+  - *Paper form.* `E(j) = Tc2 × EM(j) × L(j)` (Eq.5–7), where `Tc2 = Rz(βw)` (wafer rotation,
+    common front factor), `EM(j)` is the axis-j error matrix as a SKEW (DIFFERENTIAL) matrix —
+    zero diagonal, the ε's skew + the δ column (NOT the 1-diagonal rigid form of F.2) — and
+    `L(j) = [Rt·c(θ+βw)+Lxj, Rt·s(θ+βw)+Lyj, Lzj, 1]` is the measurement-point position (Pt's
+    nominal position plus the offset `L`). `E′ = E(F.2) + Σ_j E(j)` (Eq.8).
+  - *GA reading (the showcase).* `EM(j)·P` is the first-order (linearised) action of axis j's
+    error motor on a point, i.e. the error twist's VELOCITY FIELD at `P`. In PGA that field is
+    `rcmt(twist_j, P)` (rate of change of a point under a twist; see the CLAUDE.md
+    "velocity twists are dimension-dependent" / moving-frame-kinematics note — `Xdot =
+    rcmt(Omega, X)`). So `E(j) = move3dp(rcmt(twist_j, L(j)), Rz(βw)-motor)` — evaluate the
+    error twist at the OFFSET point and rotate into the wafer frame. The Abbe/Bryan terms in
+    Eq.(8) that F.2's Eq.(3) lacks (products like `εyz·Lzz`, `−εzz·Lyz`, `εyc1·Lzc1`) are
+    exactly the lever-arm `ε × L` cross terms of that field — one operation, no per-axis
+    bespoke equation. `twist_j = log(M_e_j)` from the F.1 error motors already built.
+  - *GATE.* (1) GA `E′` == independent HTM of Eq.(5–8) to O(ε²) over a θ sweep (full set);
+    (2) isolated-offset spot check: turn on ONE angular error + its offset `L` and verify the
+    new cross term matches Eq.(8) (e.g. `εyz` with `Lzz` → the `εyz·Lzz` term in `E′_x`).
+  - *PAPER-ERROR WATCH (from the watchlist):* Eq.(8) `δxc1+δxx−δxz` vs Eq.(3) `δxc1+δxz−δxx`
+    in the `E_x`/`E′_x` cβw brace — flag, do not silently fix; the GA result is the tie-break.
 - **F.4 — topography + TTV.** Perturb grain trajectory (Eq.12 `xp1 = xp0 + E′`), Z-map
   (Eq.17/18), `TTV = max(t) − min(t)` (Eq.16, t per Eq.14). Reuse Phase-D.1 surface infra +
   the grain-trajectory sampler. NOTE the surface REDUCTION differs: Cai's `Z = z_p1-min`
@@ -149,7 +173,45 @@ closed forms (low risk, the established pattern). F.4 inherits D.1's machinery. 
 primitive is F.1's error-motor helper (just `exp`/`log`). No `dynamic_system` involvement →
 no ga_py regen unless we choose to bind the helper.
 
-**RESUME HERE → F.0.**
+### Progress (Phase F)
+
+- **F.0 DONE & COMMITTED `90c1d88`** — `"pga3dp: Cai volumetric-error machine, ideal
+  transform Eq.1 (Phase F.0)"` in `ga_test/src/ga_appl3dp_appl_test.hpp` (end of the suite).
+  Two-branch GA frame tree (bed→x_axis→c2_wafer ; bed→z_axis→c1_wheel→tilt_x→tilt_y)
+  reproduces Cai Eq.(1) vs an independent 4×4 HTM product to 1e-9 (42 assertions) + a
+  trivial-machine identity smoke check. Axis map X→e1, Y→e2, Z→e3; C1/C2 rot about e3; wheel
+  tilt = Rx(αx)·Ry(αy) (Eq.10). `<array>` include added.
+- **F.1 DONE & COMMITTED `90c1d88`** — `"pga3dp: Cai geometric error as a motor (Phase F.1)"`
+  (30 assertions). Error-motor primitive = `motor_from_pose3dp(pose3dp{origin=δ, rot=ε})`,
+  NO new library symbol. Shows: (a) == paper's linearised 4×4 to O(ε²) = 2e-8 mm; (b) motor
+  EXACTLY rigid (2.8e-14) vs linearised matrix not (2.7e-8) = the GA win; (c) `M_err =
+  rgpr(M_actual, rrev(M_ideal))` + `pose3dp_from_motor`/`log` recover the full screw (ε AND
+  δ). GOTCHA: exact `==` on motors fails by ULPs after the rgpr round-trip → compare
+  components `< 1e-12`.
+- **F.2 DONE & COMMITTED `90c1d88`** — `"pga3dp: Cai volumetric error map Eq.2/Eq.3 (Phase
+  F.2)"` (79 assertions). Full 24 PDGE + 5 PIGE budget as error frames; chains exactly as in
+  the F.2 plan entry above. Gates: GA chain == independent 4×4 HTM Eq.(2) to 3e-8 (O(ε²));
+  E=Pe−Pi ~6.7 µm; Eq.(3) leading terms (yaw εzz/εzx; axial PDGEs). **KEY MODELLING FIX:**
+  C2 errors entered in NATURAL (non-negated) form — `get_pos_trafo` inverts the wafer branch
+  automatically and reproduces Eq.(3)'s wafer-side signs; Eq.(2) PRINTS them pre-negated
+  (paper distributed the inverse by hand) → do NOT double-apply. The test carries local
+  `mat4` helpers (`ident/mul/transl/Rz/Rx/Ry/emat/rigid_inv`) for the HTM reference.
+
+Full appl3dp suite after F.2: **57 cases / 9455 assertions, 0 failed.** No library/ga_py
+change. Build is configured **Release** (`build/`).
+
+### RESUME HERE → F.3 (Abbe/Bryan, Eq.5–8)
+
+**On restart, FIRST request the paper from the user** — *Yindi Cai et al., "Model for surface
+topography prediction in the ultra-precision grinding of silicon wafers considering volumetric
+errors," Measurement 234 (2024) 114825* — and read **Eqs.(4)–(8) + Fig.4** before coding
+F.3, and **Eqs.(9)–(18) + Fig.6 + Fig.8 + Table 2** before F.4. (The PDF is NOT in the repo;
+the user reprovides it per session.) The detailed, GA-ready F.3 recipe is in the **F.3 plan
+entry above** (`E(j) = rcmt(twist_j, L(j))` rotated by `Rz(βw)`, summed onto F.2's E; the
+Abbe/Bryan cross terms = the `ε × L` lever arm). Then F.4 (topography + TTV, reuse Phase-D.1
++ the chuck `z_c(r)` height-field per the DESIGN PRINCIPLE), F.5 (ga_view), F.6 (docs incl.
+the design principle), F.7 (outlook). Companion memory: `project_wafer_grinding` (its
+description + the Phase F section at the bottom hold the same state).
 
 ---
 
