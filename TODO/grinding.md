@@ -22,6 +22,137 @@ runway for exactly this. Companion memory: `project_wafer_grinding`.
 
 ---
 
+## REOPENED 2026-06-29 — Phase F: machine geometric / volumetric error model (Cai 2024)
+
+Source: **Yindi Cai et al., *Measurement* 234 (2024) 114825** — "Model for surface
+topography prediction in the ultra-precision grinding of silicon wafers considering
+volumetric errors." A THIRD, distinct error source from the two already modelled
+(Tao spindle DYNAMICS; Zhou axis-tilt KINEMATICS): the **deterministic machine-tool
+geometric error budget** and the resulting **volumetric error** at the functional point,
+its propagation into wafer topography, and **TTV** (total thickness variation).
+
+**Why it justifies reopening (analysis 2026-06-29):** the repo has ZERO coverage of
+deterministic machine geometric errors (grepped `ga/`/`ga_test/`/`ga_docu/`/`TODO/` for
+volumetric/PDGE/PIGE/Abbe/Bryan/squareness/TTV/HTM → nothing). It is complementary, not
+redundant, and is the **strongest pure-GA showcase** of the three papers: the paper's
+page-long 4x4 HTM products and the Eq.(3)/(8) matrix subtractions collapse to **motor
+composition + a log**. User approved FULL scope (volumetric + Abbe/Bryan + TTV) across all
+three deliverables (app-test + ga_view + ga_docu) on 2026-06-29.
+
+### The Cai machine (NOTE: different axis layout from Tao's spindle)
+
+Two translational axes **X, Z** + two rotational axes **C1 (wheel, angle βt), C2 (wafer,
+angle βw)**; grinding wheel on C1 on Z, wafer on C2 on X; an angle-adjustment device tilts
+the wheel by **αx, αy**. Functional point on the wheel rim:
+`Pt = [Rt cosθ, Rt sinθ, 0]`, θ = phase angle 0..2π. Two-branch kinematic chain (Fig.2):
+wheel chain `bed→Z→C1→wheel→Pt`, wafer chain `bed→X→C2→wafer`. This is a NEW frame tree,
+sibling to the Tao Fig.1 tree (same wafer self-rotational class, different machine model).
+
+### The GA reformulation (the showcase)
+
+- Each geometric error (small δ-translation + ε-rotation, or a squareness/parallelism skew)
+  = a small rigid perturbation = a **PGA motor**, exact via `exp(½·twist)`.
+- Ideal vs actual functional-point transforms `Pi_t` (Eq.1) / `Pe_t` (Eq.2) = composing the
+  nominal + error motors along the two-branch chain — exactly `kinematic_system3dp` +
+  `get_pos_trafo` (LCA walk between the wheel leaf and the wafer leaf).
+- Paper's `E = Pe_t − Pi_t` is a POSITION-ONLY error vector. GA's
+  `M_err = M_actual ⟇ rrev(M_ideal)`; `log(M_err)` is an error **twist** carrying position
+  AND orientation error as one screw.
+- Abbe/Bryan offset machinery (Eq.5–7, separate per-axis E(z)/E(x)/E(c1)/E(c2) with the L
+  offsets) = **evaluating the error twist's velocity field at an offset point** — one
+  operation, no per-axis bespoke equations.
+
+### Phased plan (mirrors the paper; reuses frame-tree + Phase-D.1 surface infra)
+
+- **F.0 — Cai Fig.2 two-branch frame tree + Eq.(1) gate.** Build the chain as a
+  `kinematic_system3dp`; ideal transform via `get_pos_trafo(wheel_rim, wafer)`. GATE:
+  reproduce Eq.(1) `Pi_t` numerically for sample (θ, βt, βw, X, Z). App-test in
+  `ga_appl3dp_appl_test.hpp` (near the Phase-0 grain-trajectory case). Pure kinematics, no
+  library change, no ga_py impact.
+- **F.1 — error-motor primitive.** Helper building a small motor from
+  `(δx,δy,δz, εx,εy,εz)` via `exp(½·twist)`; define `M_err = M_actual ⟇ rrev(M_ideal)`,
+  `log → error twist`. GATE: motor action == the paper's linearized error matrix to first
+  order (exact-rigid beyond).
+- **F.2 — volumetric error map (Eq.3).** Compose all 24 PDGE + 5 PIGE error motors into the
+  chain → `Pe_t`; `E = move3dp(Pt, Pe_t) − move3dp(Pt, Pi_t)`. GATE: reproduce Eq.(3)'s
+  `E_x,E_y,E_z` closed form from GA composition.
+- **F.3 — Abbe/Bryan correction (Eq.5–8).** L-offset transfer = error-twist velocity field
+  at the offset point. GATE: reproduce Eq.(8)'s `E′_x,E′_y,E′_z`.
+- **F.4 — topography + TTV.** Perturb grain trajectory (Eq.12 `xp1 = xp0 + E′`), Z-map
+  (Eq.17/18), `TTV = max(t) − min(t)` (Eq.16, t per Eq.14). Reuse Phase-D.1 surface infra +
+  the grain-trajectory sampler. NOTE the surface REDUCTION differs: Cai's `Z = z_p1-min`
+  (Eq.11/13) is the rotationally-symmetric min-envelope per radius — simpler than Tao's
+  grain-ensemble carve; reuse the Z-map grid + sampler, not the ensemble. Table-2 params
+  (Rt=72.5mm, ωt=2400rpm, f=0.02mm/min, Rw=150mm, ωw=80rpm, αx=αy=0.01°).
+  GATE: Fig.8 shapes — (a) εxz=εyz=0 flat; (b) εxz=5″ convex cone; (c) εyz=5″ concave cone;
+  (d) both → cone + warped edge; + TTV magnitudes.
+  **ZHOU↔CAI CROSS-CHECK (mechanistic overlap, fold into F.4):** a pure Cai *Z-axis angular
+  error* εxz/εyz is geometrically a wheel-chain tilt → must reproduce a Zhou-type cone (the
+  `active_grinding_flatness` cone/dome). Gate the two independently-built models against each
+  other. This ties Cai's volumetric cone back to the already-validated Zhou tilt model.
+
+  **CHUCK PROFILE (Fig.6 — the chuck is NOT a plane).** The chuck dressing surface has its
+  own profile; the vacuum-adsorbed wafer's LOWER surface conforms to it
+  (`z_wafer_lower = z_c`), so thickness `t = z_p_upper + t0 − z_c` (Eq.14) and TTV (Eq.16) are
+  the pointwise difference of two height fields. Model the chuck with the GENERIC
+  decomposition below: a RIGID CARRIER (its C2-frame pose + tilt/squareness error = a motor in
+  the frame tree) PLUS a RESIDUAL SCALAR HEIGHT FIELD `z_c(r)` (the profile, referenced to the
+  carrier's nominal plane). Rotational symmetry collapses it to a 1D radial profile. `z_c(r)`
+  is SUPPLIED as input for F.4 (parametric/measured, isolates the volumetric-error effect
+  against a controlled baseline); optionally GENERATED later from the same grain-trajectory →
+  Z-map sampler with the chuck-dressing kinematics (Eq.15). Do NOT encode the profile as a
+  motor — motors carry only rigid placement; the non-rigid profile is a scalar function.
+
+  **DESIGN PRINCIPLE (separation of concerns — applies project-wide, not just the chuck).**
+  Separate IDEAL geometry from REAL geometry, and drive all TRANSFORMATIONS from the ideal:
+  - **IDEAL = rigid, exact** — the nominal frame tree (poses/motors). All `get_pos_trafo`
+    composition, contact points, normals, surface speeds run on this. It is the only thing
+    motors act on.
+  - **REAL = ideal + deviations**, where deviations split by KIND:
+    - *rigid deviations* → small error MOTORS (the F.1 error-motor / F.2-F.3 volumetric
+      twist) composed into the chain;
+    - *non-rigid deviations* → residual SCALAR HEIGHT FIELDS layered on the ideal surface
+      (the chuck profile `z_c`; the wafer waviness `z_b`; the ground topography `z_p`).
+  Every surface = a rigid carrier (motor, in the tree) + a residual height field. This is
+  already how the wafer is handled (Zhou tilt = motor; `z_b` waviness = field); the chuck is a
+  second instance. Keeping the ideal/rigid layer pure (motors only) and the real/profile layer
+  additive (scalar fields) is what keeps the implementation modular and extensible — new error
+  sources slot into one layer or the other without touching the transformation core.
+- **F.5 — ga_view scene.** Fig.8 jet-heatmap topographies, reuse the `active_grinding_topo`
+  pattern; C cycles the four error cases. (5-place ga_view hand-sync surface.)
+- **F.6 — ga_docu passage.** Error-motor / error-twist vs HTM-subtraction; Abbe/Bryan as a
+  velocity-field evaluation. In the existing grinding capstone (`6_ga_applications_pga.tex`),
+  matching the docs voice. **MUST also document the generic DESIGN PRINCIPLE above** — the
+  separation of IDEAL (rigid, exact; drives all transformations) vs REAL geometry (= ideal +
+  rigid error motors + non-rigid residual height fields), and the "every surface = rigid
+  carrier motor + residual height field" decomposition. Present it as the architectural idea
+  that makes the model modular/extensible, with the chuck profile + wafer waviness as the two
+  worked instances. This is a transferable GA-modelling pattern, not grinding-specific — frame
+  it generically (a candidate for a more general section than the grinding capstone).
+- **F.7 (outlook) — unified error superposition.** All THREE error sources now live on ONE
+  GA frame tree of the same self-rotational machine: **Tao** (dynamic axial runout `z_b` →
+  waviness), **Zhou** (axis-tilt → flatness), **Cai** (deterministic machine geometric
+  errors → volumetric error + TTV). They SUPERPOSE — Cai's error twist `E′` (Eq.12) adds
+  onto the same grain trajectory that already carries the Tao/Zhou contributions. The
+  punchline (for F.6's close): three independent error mechanisms from three papers, one
+  frame tree, composed by motor multiplication. Scope TBD after F.0–F.6.
+
+**Axis correspondence (same physical machine, different modelling level):** Cai C1 (wheel
+βt) ≈ Tao n_w (wheel spin); Cai C2 (wafer βw) ≈ Tao n_s (chuck spin); Cai wheel-tilt αx,αy ≈
+the Zhou/setup angle adjustment. Cai models at the MACHINE-AXIS level (X,Z,C1,C2); Tao at
+the spindle-DOF level. **Paper-error vigilance (Eq.13/Fig.12 precedent):** suspect spots to
+flag, not silently fix — Eq.8 `δxc1+δxx−δxz` vs Eq.3 `δxc1+δxz−δxx`; the RMt matrix in
+Eq.10 looks malformed; Table 1 lists `βzoc1` twice in the C2 column.
+
+**Risk:** F.0–F.3 are pure kinematics with hard analytic gates against the paper's own
+closed forms (low risk, the established pattern). F.4 inherits D.1's machinery. The only new
+primitive is F.1's error-motor helper (just `exp`/`log`). No `dynamic_system` involvement →
+no ga_py regen unless we choose to bind the helper.
+
+**RESUME HERE → F.0.**
+
+---
+
 ## REOPENED 2026-06-27/28 — visualization + a kinematic realism step, NEXT = dynamic model
 
 The project was reopened to finish the visualization and then make the surface model more

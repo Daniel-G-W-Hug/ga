@@ -4,6 +4,7 @@
 #include "doctest/doctest.h"
 
 #include <algorithm> // std::min, std::max, std::clamp
+#include <array>     // std::array (Cai HTM 4x4 reference matrices, Phase F)
 #include <cmath>     // std::sin, std::cos, std::atan
 #include <limits>    // std::numeric_limits
 #include <random>    // std::mt19937, distributions (grain-size randomness)
@@ -1474,6 +1475,594 @@ TEST_SUITE("PGA3DP: application tests")
         CHECK(bulk_nrm(rcmt(omega_rot_3dp, X3_3dp)) ==
               bulk_nrm(omeg3dp) * bulk_nrm(ortho_proj3dp(X3_3dp, L) - X3_3dp));
 
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Phase F of the wafer-grinding plan (TODO/grinding.md): the machine geometric /
+    // VOLUMETRIC error model of Cai et al., Measurement 234 (2024) 114825 -- a third,
+    // distinct error source from Tao (spindle dynamics) and Zhou (axis-tilt kinematics):
+    // the deterministic machine-tool geometric error budget and the resulting volumetric
+    // error at the functional point.
+    //
+    // F.0 -- the geometric on-ramp: the Cai two-branch kinematic chain (Fig. 2). The Cai
+    // machine has two TRANSLATIONAL axes (X, Z) and two ROTATIONAL axes (C1 = grinding
+    // wheel, angle bt; C2 = wafer, angle bw). Mapping machine axes to the GA basis:
+    // machine X -> e1, Y -> e2, Z -> e3. The C1/C2 rotations are about e3; the wheel-tilt
+    // angles ax, ay are rotations about e1 and e2 (Cai Eq.10, Tx and Ty). The functional
+    // point is a grain on the wheel rim, Pt = (Rt cos(th), Rt sin(th), 0) in the tilted
+    // wheel frame.
+    //
+    // The IDEAL transform from the wheel rim to the wafer frame is Cai Eq.(1):
+    //
+    //     Pi_t = Rz(-bw) . T(-X,0,0) . T(0,0,Z) . Rz(bt) . [Tx(ax).Ty(ay)] . Pt
+    //
+    // i.e. (wafer chain)^-1 . (wheel chain) . Pt, where the wafer chain is
+    // bed -> X-translation -> C2-rotation and the wheel chain is
+    // bed -> Z-translation -> C1-rotation -> wheel-tilt. This is exactly the LCA walk
+    // get_pos_trafo(wheel_rim, wafer) on the frame tree below. The point of F.0: the GA
+    // motor chain reproduces the paper's HTM matrix chain. The GATE computes Eq.(1) as an
+    // INDEPENDENT 4x4 HTM product (the paper's own method) and checks it against the GA
+    // result component-wise. (Cai Eq.1 linearises the tilt; we use the EXACT Tx.Ty of
+    // Eq.10 on BOTH sides, so the gate is exact -- the small-angle tilt linearisation is
+    // a Phase-F.1/F.2 concern, not here.)
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: Cai volumetric-error machine, ideal transform Eq.1 (Phase F.0)")
+    {
+        fmt::println("");
+        fmt::println(
+            "pga3dp: Cai volumetric-error machine, ideal transform Eq.1 (Phase F.0)");
+        fmt::println("");
+
+        // ---- independent 4x4 HTM reference (Cai's own method) -------------------------
+        using mat4 = std::array<std::array<double, 4>, 4>;
+
+        auto ident = []() {
+            mat4 M{};
+            for (int i = 0; i < 4; ++i)
+                M[i][i] = 1.0;
+            return M;
+        };
+        auto matmul = [](mat4 const& A, mat4 const& B) {
+            mat4 C{};
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j) {
+                    double s = 0.0;
+                    for (int k = 0; k < 4; ++k)
+                        s += A[i][k] * B[k][j];
+                    C[i][j] = s;
+                }
+            return C;
+        };
+        auto transl = [&](double dx, double dy, double dz) {
+            mat4 M = ident();
+            M[0][3] = dx;
+            M[1][3] = dy;
+            M[2][3] = dz;
+            return M;
+        };
+        auto Rz = [&](double a) { // rotation about e3 (machine Z; C1/C2 axes)
+            mat4 M = ident();
+            M[0][0] = std::cos(a);
+            M[0][1] = -std::sin(a);
+            M[1][0] = std::sin(a);
+            M[1][1] = std::cos(a);
+            return M;
+        };
+        auto Rx = [&](double a) { // Cai Eq.10 Tx: rotation about e1 (machine X)
+            mat4 M = ident();
+            M[1][1] = std::cos(a);
+            M[1][2] = -std::sin(a);
+            M[2][1] = std::sin(a);
+            M[2][2] = std::cos(a);
+            return M;
+        };
+        auto Ry = [&](double a) { // Cai Eq.10 Ty: rotation about e2 (machine Y)
+            mat4 M = ident();
+            M[0][0] = std::cos(a);
+            M[0][2] = std::sin(a);
+            M[2][0] = -std::sin(a);
+            M[2][2] = std::cos(a);
+            return M;
+        };
+
+        // ---- machine parameters (non-trivial sample; Rt from Table 2) -----------------
+        double const Rt = 72.5;            // grinding-wheel radius [mm]
+        double const X = 100.0;            // X-axis position [mm]
+        double const Z = 50.0;             // Z-axis position [mm]
+        double const bt = 0.30;            // C1 (wheel) angle [rad]
+        double const bw = 0.70;            // C2 (wafer) angle [rad]
+        double const ax = 0.01 * pi / 180; // wheel tilt about e1 (Table 2: 0.01 deg)
+        double const ay = 0.01 * pi / 180; // wheel tilt about e2 (Table 2: 0.01 deg)
+
+        // ---- GA frame tree: two branches off the machine bed --------------------------
+        kinematic_system3dp sys;
+        sys.add_frame(static_frame3dp("bed")); // inertial root (machine bed P)
+
+        // wafer chain: bed -> X-axis translation -> C2 (wafer) rotation about e3
+        sys.add_frame(static_frame3dp("x_axis", vec3dp{X, 0.0, 0.0, 1.0}),
+                      sys.index_of("bed"));
+        sys.add_frame(static_frame3dp("c2_wafer", O_3dp, vec3dp{0.0, 0.0, bw, 0.0}),
+                      sys.index_of("x_axis"));
+
+        // wheel chain: bed -> Z-axis translation -> C1 (wheel) rotation about e3 ->
+        // wheel tilt Tx(ax) then Ty(ay) (two frames so each is a single axis*angle)
+        sys.add_frame(static_frame3dp("z_axis", vec3dp{0.0, 0.0, Z, 1.0}),
+                      sys.index_of("bed"));
+        sys.add_frame(static_frame3dp("c1_wheel", O_3dp, vec3dp{0.0, 0.0, bt, 0.0}),
+                      sys.index_of("z_axis"));
+        sys.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0.0, 0.0, 0.0}),
+                      sys.index_of("c1_wheel"));
+        sys.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0.0, ay, 0.0, 0.0}),
+                      sys.index_of("tilt_x"));
+
+        // tilt = Tx(ax) . Ty(ay) (Cai Eq.10), shared by the HTM reference
+        mat4 const tilt = matmul(Rx(ax), Ry(ay));
+
+        // sweep the phase angle th of the rim grain over one wheel revolution
+        int const nth = 12;
+        for (int k = 0; k <= nth; ++k) {
+            double const th = 2.0 * pi * double(k) / double(nth);
+
+            // GA: the rim grain (in the tilted wheel frame) expressed in the wafer frame
+            auto const Pt_local = vec3dp{Rt * std::cos(th), Rt * std::sin(th), 0.0, 1.0};
+            auto const Pi_ga =
+                unitize(move3dp(Pt_local, sys.get_pos_trafo("tilt_y", "c2_wafer")));
+
+            // HTM reference (Cai Eq.1): Rz(-bw) T(-X) T(Z) Rz(bt) tilt Pt
+            mat4 const chain = matmul(
+                Rz(-bw), matmul(transl(-X, 0.0, 0.0),
+                                matmul(transl(0.0, 0.0, Z), matmul(Rz(bt), tilt))));
+            double const px = Rt * std::cos(th), py = Rt * std::sin(th), pz = 0.0;
+            double const rx =
+                chain[0][0] * px + chain[0][1] * py + chain[0][2] * pz + chain[0][3];
+            double const ry =
+                chain[1][0] * px + chain[1][1] * py + chain[1][2] * pz + chain[1][3];
+            double const rz =
+                chain[2][0] * px + chain[2][1] * py + chain[2][2] * pz + chain[2][3];
+
+            CHECK(Pi_ga.x == doctest::Approx(rx).epsilon(1e-9));
+            CHECK(Pi_ga.y == doctest::Approx(ry).epsilon(1e-9));
+            CHECK(Pi_ga.z == doctest::Approx(rz).epsilon(1e-9));
+
+            if (k % (nth / 6) == 0)
+                fmt::println("th = {:>5.2f}: Pi_ga = ({:>9.4f},{:>9.4f},{:>9.4f}) | "
+                             "HTM = ({:>9.4f},{:>9.4f},{:>9.4f})",
+                             th, Pi_ga.x, Pi_ga.y, Pi_ga.z, rx, ry, rz);
+        }
+
+        // ---- smoke check: trivial machine (no offsets, no tilt, bt == bw) is identity -
+        {
+            kinematic_system3dp s0;
+            s0.add_frame(static_frame3dp("bed"));
+            s0.add_frame(static_frame3dp("x0", O_3dp), s0.index_of("bed"));
+            s0.add_frame(static_frame3dp("c2_0", O_3dp, vec3dp{0.0, 0.0, 0.4, 0.0}),
+                         s0.index_of("x0"));
+            s0.add_frame(static_frame3dp("z0", O_3dp), s0.index_of("bed"));
+            s0.add_frame(static_frame3dp("c1_0", O_3dp, vec3dp{0.0, 0.0, 0.4, 0.0}),
+                         s0.index_of("z0"));
+            auto const Pt0 = vec3dp{Rt, 0.0, 0.0, 1.0};
+            auto const P0 = unitize(move3dp(Pt0, s0.get_pos_trafo("c1_0", "c2_0")));
+            CHECK(P0.x == doctest::Approx(Rt)); // bt == bw, no offset -> Pt unchanged
+            CHECK(P0.y == doctest::Approx(0.0));
+            CHECK(P0.z == doctest::Approx(0.0));
+        }
+
+        fmt::println("");
+        fmt::println(
+            "Eq.(1) ideal transform: GA motor chain == HTM 4x4 product (Phase F.0)");
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // F.1 -- the error-motor primitive (the one genuinely new piece of Phase F). Each
+    // geometric error of the Cai budget (Table 1) is a small rigid perturbation, given in
+    // the paper as a LINEARISED 4x4 matrix -- a small rotation eps = (ex, ey, ez) plus a
+    // translation del = (dx, dy, dz):
+    //
+    //     M_lin = [ 1   -ez   ey   dx ]
+    //             [ ez   1   -ex   dy ]
+    //             [-ey   ex   1    dz ]
+    //             [ 0    0    0    1  ]
+    //
+    // In GA this is just a MOTOR: rotation about the local origin by eps, then
+    // translation by del -- exactly motor_from_pose3dp(pose3dp{origin = del, rot = eps})
+    // (no new library symbol needed; it reuses the pose<->motor converters). Three things
+    // are shown:
+    //
+    //   (a) the error motor reproduces the paper's linearised error matrix (to O(eps^2),
+    //       the regime where the linearisation is valid);
+    //   (b) the error motor is the EXACT rigid map -- it preserves distances to machine
+    //   eps,
+    //       whereas the paper's linearised matrix does not (a GA advantage, for free);
+    //   (c) the relative error motor M_err = M_actual (rgpr) rrev(M_ideal) isolates the
+    //       inserted error, and pose3dp_from_motor / log() recover it as a SCREW carrying
+    //       BOTH the orientation error eps AND the position error del in one object --
+    //       where the paper's E = Pe - Pi is position-only.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: Cai geometric error as a motor (Phase F.1)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: Cai geometric error as a motor (Phase F.1)");
+        fmt::println("");
+
+        double const as = pi / 180.0 / 3600.0; // 1 arcsec in radians
+
+        // a representative PDGE (Z-axis-scale: del ~ um in mm, eps ~ arcsec)
+        auto const del = vec3dp{-3.6e-3, -2.5e-3, 1.0e-3, 1.0};    // (dx, dy, dz) [mm]
+        double const ex = 4.0 * as, ey = -3.0 * as, ez = 2.0 * as; // (ex, ey, ez) [rad]
+        auto const eps_rot = vec3dp{ex, ey, ez, 0.0};
+
+        // the error motor: rotate about the origin by eps, then translate by del
+        auto const M_e = motor_from_pose3dp(pose3dp{del, eps_rot});
+
+        // paper's linearised 4x4 error applied to a point (M_lin . p)
+        auto lin_apply = [&](vec3dp const& p) {
+            return vec3dp{p.x - ez * p.y + ey * p.z + del.x,
+                          ez * p.x + p.y - ex * p.z + del.y,
+                          -ey * p.x + ex * p.y + p.z + del.z, 1.0};
+        };
+
+        // test points: a few rim points plus off-axis points
+        std::vector<vec3dp> const pts = {
+            vec3dp{72.5, 0.0, 0.0, 1.0}, vec3dp{0.0, 72.5, 0.0, 1.0},
+            vec3dp{50.0, -30.0, 20.0, 1.0}, vec3dp{-100.0, 40.0, 10.0, 1.0}};
+
+        // (a) error motor == paper linearised matrix, to O(eps^2). With eps ~ arcsec the
+        // gap is ~1e-9 mm over a ~150 mm part -- far below any geometric signal.
+        double max_lin_gap = 0.0;
+        for (auto const& p : pts) {
+            auto const q_ga = unitize(move3dp(p, M_e));
+            auto const q_lin = lin_apply(p);
+            double const g = std::sqrt((q_ga.x - q_lin.x) * (q_ga.x - q_lin.x) +
+                                       (q_ga.y - q_lin.y) * (q_ga.y - q_lin.y) +
+                                       (q_ga.z - q_lin.z) * (q_ga.z - q_lin.z));
+            max_lin_gap = std::max(max_lin_gap, g);
+            CHECK(q_ga.x == doctest::Approx(q_lin.x).epsilon(1e-6));
+            CHECK(q_ga.y == doctest::Approx(q_lin.y).epsilon(1e-6));
+            CHECK(q_ga.z == doctest::Approx(q_lin.z).epsilon(1e-6));
+        }
+        fmt::println(
+            "(a) max |motor - linearised| over test points = {:.3e} mm  (O(eps^2))",
+            max_lin_gap);
+
+        // (b) the motor is EXACTLY rigid (preserves distances); the linearised matrix is
+        // not
+        double motor_dist_err = 0.0, lin_dist_err = 0.0;
+        for (size_t i = 0; i < pts.size(); ++i)
+            for (size_t j = i + 1; j < pts.size(); ++j) {
+                auto const d0 = bulk_nrm(pts[i] - pts[j]);
+                auto const dm = bulk_nrm(unitize(move3dp(pts[i], M_e)) -
+                                         unitize(move3dp(pts[j], M_e)));
+                auto const dl = bulk_nrm(lin_apply(pts[i]) - lin_apply(pts[j]));
+                motor_dist_err = std::max(motor_dist_err, std::abs(to_val(dm - d0)));
+                lin_dist_err = std::max(lin_dist_err, std::abs(to_val(dl - d0)));
+            }
+        CHECK(motor_dist_err < 1e-9); // rigid to machine eps
+        fmt::println("(b) max distance error: motor = {:.3e} mm (rigid), linearised = "
+                     "{:.3e} mm (not)",
+                     motor_dist_err, lin_dist_err);
+
+        // (c) isolate + recover the error from a chain: M_err = M_actual (rgpr)
+        // rrev(M_ideal)
+        auto const M_ideal = motor_from_pose3dp(
+            pose3dp{vec3dp{30.0, -10.0, 5.0, 1.0}, vec3dp{0.0, 0.0, 0.5, 0.0}});
+        auto const M_actual =
+            rgpr(M_e, M_ideal); // error applied in the ideal parent frame
+        auto const M_err = rgpr(M_actual, rrev(M_ideal));
+
+        // M_err recovers the inserted error motor (equal up to rgpr round-trip rounding)
+        CHECK(std::abs(M_err.c0 - M_e.c0) < 1e-12);
+        CHECK(std::abs(M_err.c1 - M_e.c1) < 1e-12);
+        CHECK(std::abs(M_err.c2 - M_e.c2) < 1e-12);
+        CHECK(std::abs(M_err.c3 - M_e.c3) < 1e-12);
+        CHECK(std::abs(M_err.c4 - M_e.c4) < 1e-12);
+        CHECK(std::abs(M_err.c5 - M_e.c5) < 1e-12);
+        CHECK(std::abs(M_err.c6 - M_e.c6) < 1e-12);
+        CHECK(std::abs(M_err.c7 - M_e.c7) < 1e-12);
+
+        // decode the screw: pose3dp_from_motor gives (origin = del, rot = eps); log()
+        // gives the full screw generator whose weight (rotation) part is eps -- ONE
+        // object carrying BOTH position and orientation error
+        auto const rec = pose3dp_from_motor(M_err);
+        CHECK(rec.origin.x == doctest::Approx(del.x).epsilon(1e-6));
+        CHECK(rec.origin.y == doctest::Approx(del.y).epsilon(1e-6));
+        CHECK(rec.origin.z == doctest::Approx(del.z).epsilon(1e-6));
+        CHECK(rec.rot.x == doctest::Approx(ex).epsilon(1e-6));
+        CHECK(rec.rot.y == doctest::Approx(ey).epsilon(1e-6));
+        CHECK(rec.rot.z == doctest::Approx(ez).epsilon(1e-6));
+
+        auto const B = log(M_err); // screw generator; weight slots carry the rotation eps
+        CHECK(B.vx == doctest::Approx(ex).epsilon(1e-5));
+        CHECK(B.vy == doctest::Approx(ey).epsilon(1e-5));
+        CHECK(B.vz == doctest::Approx(ez).epsilon(1e-5));
+        fmt::println("(c) recovered error screw: rot = ({:.3e},{:.3e},{:.3e}) rad, "
+                     "origin = ({:.3e},{:.3e},{:.3e}) mm",
+                     rec.rot.x, rec.rot.y, rec.rot.z, rec.origin.x, rec.origin.y,
+                     rec.origin.z);
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // F.2 -- the volumetric error map (Cai Eq.2/Eq.3). The full geometric-error budget
+    // (Table 1: 24 PDGEs + 5 PIGEs) is composed into the two-branch chain. Cai Eq.(2)
+    // inserts, per axis, a PIGE matrix (position-INdependent: squareness / parallelism)
+    // and a PDGE matrix (position-dependent: per-axis translation + angular errors) into
+    // the ideal chain of F.0:
+    //
+    //   wheel chain  M(bed<-wheel) = eta . T(Z) . PDGE_Z . PIGE_C1 . PDGE_C1 . Rz(bt) .
+    //   tilt wafer chain  M(bed<-wafer) = T(X) . PDGE_X . PIGE_C2 . PDGE_C2 . Rz(bw)
+    //   actual point Pe = M(bed<-wafer)^-1 . M(bed<-wheel) . Pt   (= get_pos_trafo walk)
+    //
+    // In GA each error is the F.1 error motor (motor_from_pose3dp{origin = del, rot =
+    // eps}); the chain is just extra frames in the tree. The volumetric error is then E =
+    // Pe - Pi (Cai Eq.3) -- which the paper hand-expands into a page-long closed form
+    // that GA makes unnecessary: we compose motors and subtract the points.
+    //
+    // GATES: (1) the GA error chain reproduces an INDEPENDENT 4x4 HTM product of Eq.(2)
+    // to O(eps^2) over a th sweep (full error set); (2) isolated-error spot checks
+    // against the clean leading terms of Eq.(3): the relative yaw eps_zz/eps_zx gives the
+    // in-plane E ~ Rt(eps_zz - eps_zx) term, an axial PDGE delta_zc1 gives E_z =
+    // delta_zc1, etc. (The full Eq.3 closed form is the hand-expansion GA replaces; its
+    // known Eq.3<->Eq.8 sign discrepancies are exactly why hand-expansion is
+    // error-prone.)
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: Cai volumetric error map Eq.2/Eq.3 (Phase F.2)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: Cai volumetric error map Eq.2/Eq.3 (Phase F.2)");
+        fmt::println("");
+
+        // machine parameters (as in F.0)
+        double const Rt = 72.5, X = 100.0, Z = 50.0, bt = 0.30, bw = 0.70;
+        double const ax = 0.01 * pi / 180, ay = 0.01 * pi / 180;
+        double const as = pi / 180.0 / 3600.0; // 1 arcsec [rad]
+
+        // the full Cai error budget (Table 1). Angles in arcsec, translations in um (mm).
+        struct cai_err {
+            // X-axis PDGE
+            double dxx = 0, dyx = 0, dzx = 0, exx = 0, eyx = 0, ezx = 0;
+            // Z-axis PDGE
+            double dxz = 0, dyz = 0, dzz = 0, exz = 0, eyz = 0, ezz = 0;
+            // C1-axis PDGE (ezc1 absorbed into bt)
+            double dxc1 = 0, dyc1 = 0, dzc1 = 0, exc1 = 0, eyc1 = 0;
+            // C2-axis PDGE (ezc2 absorbed into bw)
+            double dxc2 = 0, dyc2 = 0, dzc2 = 0, exc2 = 0, eyc2 = 0;
+            // PIGE: squareness X-Z, parallelism C1, parallelism C2
+            double eta = 0, azoc1 = 0, bzoc1 = 0, azoc2 = 0, bzoc2 = 0;
+        };
+
+        // --- GA functional point Pe for a given error set + phase angle th
+        // --------------
+        auto Pe_ga = [&](cai_err const& e, double th) {
+            kinematic_system3dp s;
+            s.add_frame(static_frame3dp("bed"));
+            // wheel chain: eta . T(Z) . PDGE_Z . PIGE_C1 . PDGE_C1 . Rz(bt) . tilt
+            s.add_frame(static_frame3dp("z_pige", O_3dp, vec3dp{0, e.eta, 0, 0}),
+                        s.index_of("bed"));
+            s.add_frame(static_frame3dp("z_axis", vec3dp{0, 0, Z, 1}),
+                        s.index_of("z_pige"));
+            s.add_frame(static_frame3dp("z_pdge", vec3dp{e.dxz, e.dyz, e.dzz, 1},
+                                        vec3dp{e.exz, e.eyz, e.ezz, 0}),
+                        s.index_of("z_axis"));
+            s.add_frame(static_frame3dp("c1_pige", O_3dp, vec3dp{e.azoc1, e.bzoc1, 0, 0}),
+                        s.index_of("z_pdge"));
+            s.add_frame(static_frame3dp("c1_pdge", vec3dp{e.dxc1, e.dyc1, e.dzc1, 1},
+                                        vec3dp{e.exc1, e.eyc1, 0, 0}),
+                        s.index_of("c1_pige"));
+            s.add_frame(static_frame3dp("c1_rot", O_3dp, vec3dp{0, 0, bt, 0}),
+                        s.index_of("c1_pdge"));
+            s.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0, 0, 0}),
+                        s.index_of("c1_rot"));
+            s.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0, ay, 0, 0}),
+                        s.index_of("tilt_x"));
+            // wafer chain: T(X) . PDGE_X . PIGE_C2 . PDGE_C2 . Rz(bw). The C2 errors are
+            // entered in NATURAL (non-negated) form: get_pos_trafo inverts the whole
+            // wafer branch automatically, which reproduces Eq.(3)'s wafer-side signs
+            // (e.g. -delta_zc2, -delta_zx). (Eq.2 prints the C2 matrices pre-negated
+            // because the paper distributed the inverse by hand; we must not double-apply
+            // it.)
+            s.add_frame(static_frame3dp("x_axis", vec3dp{X, 0, 0, 1}), s.index_of("bed"));
+            s.add_frame(static_frame3dp("x_pdge", vec3dp{e.dxx, e.dyx, e.dzx, 1},
+                                        vec3dp{e.exx, e.eyx, e.ezx, 0}),
+                        s.index_of("x_axis"));
+            s.add_frame(static_frame3dp("c2_pige", O_3dp, vec3dp{e.azoc2, e.bzoc2, 0, 0}),
+                        s.index_of("x_pdge"));
+            s.add_frame(static_frame3dp("c2_pdge", vec3dp{e.dxc2, e.dyc2, e.dzc2, 1},
+                                        vec3dp{e.exc2, e.eyc2, 0, 0}),
+                        s.index_of("c2_pige"));
+            s.add_frame(static_frame3dp("c2_rot", O_3dp, vec3dp{0, 0, bw, 0}),
+                        s.index_of("c2_pdge"));
+            auto const Pt = vec3dp{Rt * std::cos(th), Rt * std::sin(th), 0.0, 1.0};
+            return unitize(move3dp(Pt, s.get_pos_trafo("tilt_y", "c2_rot")));
+        };
+
+        // --- independent 4x4 HTM reference (Cai's own method)
+        // ---------------------------
+        using mat4 = std::array<std::array<double, 4>, 4>;
+        auto ident = []() {
+            mat4 M{};
+            for (int i = 0; i < 4; ++i)
+                M[i][i] = 1.0;
+            return M;
+        };
+        auto mul = [](mat4 const& A, mat4 const& B) {
+            mat4 C{};
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j) {
+                    double s = 0.0;
+                    for (int k = 0; k < 4; ++k)
+                        s += A[i][k] * B[k][j];
+                    C[i][j] = s;
+                }
+            return C;
+        };
+        auto transl = [&](double dx, double dy, double dz) {
+            mat4 M = ident();
+            M[0][3] = dx, M[1][3] = dy, M[2][3] = dz;
+            return M;
+        };
+        auto Rz = [&](double a) {
+            mat4 M = ident();
+            M[0][0] = std::cos(a), M[0][1] = -std::sin(a), M[1][0] = std::sin(a),
+            M[1][1] = std::cos(a);
+            return M;
+        };
+        auto Rx = [&](double a) {
+            mat4 M = ident();
+            M[1][1] = std::cos(a), M[1][2] = -std::sin(a), M[2][1] = std::sin(a),
+            M[2][2] = std::cos(a);
+            return M;
+        };
+        auto Ry = [&](double a) {
+            mat4 M = ident();
+            M[0][0] = std::cos(a), M[0][2] = std::sin(a), M[2][0] = -std::sin(a),
+            M[2][2] = std::cos(a);
+            return M;
+        };
+        // linearised geometric-error matrix (eps = rotation, del = translation)
+        auto emat = [&](double dx, double dy, double dz, double ex, double ey,
+                        double ez) {
+            mat4 M = ident();
+            M[0][1] = -ez, M[0][2] = ey, M[1][0] = ez, M[1][2] = -ex, M[2][0] = -ey,
+            M[2][1] = ex;
+            M[0][3] = dx, M[1][3] = dy, M[2][3] = dz;
+            return M;
+        };
+        auto rigid_inv = [&](mat4 const& M) { // [R|t]^-1 = [R^T | -R^T t]
+            mat4 I = ident();
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                    I[i][j] = M[j][i];
+            for (int i = 0; i < 3; ++i)
+                I[i][3] = -(I[i][0] * M[0][3] + I[i][1] * M[1][3] + I[i][2] * M[2][3]);
+            return I;
+        };
+        auto Pe_htm = [&](cai_err const& e, double th) {
+            mat4 const tilt = mul(Rx(ax), Ry(ay));
+            mat4 K = mul(emat(0, 0, 0, 0, e.eta, 0),
+                         mul(transl(0, 0, Z),
+                             mul(emat(e.dxz, e.dyz, e.dzz, e.exz, e.eyz, e.ezz),
+                                 mul(emat(0, 0, 0, e.azoc1, e.bzoc1, 0),
+                                     mul(emat(e.dxc1, e.dyc1, e.dzc1, e.exc1, e.eyc1, 0),
+                                         mul(Rz(bt), tilt))))));
+            mat4 W = mul(
+                transl(X, 0, 0),
+                mul(emat(e.dxx, e.dyx, e.dzx, e.exx, e.eyx, e.ezx),
+                    mul(emat(0, 0, 0, e.azoc2, e.bzoc2, 0),
+                        mul(emat(e.dxc2, e.dyc2, e.dzc2, e.exc2, e.eyc2, 0), Rz(bw)))));
+            mat4 const T = mul(rigid_inv(W), K);
+            double const px = Rt * std::cos(th), py = Rt * std::sin(th);
+            return std::array<double, 3>{T[0][0] * px + T[0][1] * py + T[0][3],
+                                         T[1][0] * px + T[1][1] * py + T[1][3],
+                                         T[2][0] * px + T[2][1] * py + T[2][3]};
+        };
+
+        // representative full error set
+        cai_err full{.dxx = 2e-3,
+                     .dyx = 1e-3,
+                     .dzx = 1.5e-3,
+                     .exx = 3 * as,
+                     .eyx = 2 * as,
+                     .ezx = 1 * as,
+                     .dxz = -3.6e-3,
+                     .dyz = -2.5e-3,
+                     .dzz = 1e-3,
+                     .exz = 2 * as,
+                     .eyz = -1.5 * as,
+                     .ezz = 1.5 * as,
+                     .dxc1 = 1e-3,
+                     .dyc1 = -1e-3,
+                     .dzc1 = 2e-3,
+                     .exc1 = 1 * as,
+                     .eyc1 = 1.5 * as,
+                     .dxc2 = -1e-3,
+                     .dyc2 = 2e-3,
+                     .dzc2 = -1.5e-3,
+                     .exc2 = 2 * as,
+                     .eyc2 = -1 * as,
+                     .eta = 2 * as,
+                     .azoc1 = 1.5 * as,
+                     .bzoc1 = 1 * as,
+                     .azoc2 = -1 * as,
+                     .bzoc2 = 2 * as};
+
+        // (1) GA error chain == independent HTM product of Eq.(2), to O(eps^2)
+        double max_gap = 0.0;
+        int const nth = 12;
+        for (int k = 0; k <= nth; ++k) {
+            double const th = 2.0 * pi * double(k) / double(nth);
+            auto const g = Pe_ga(full, th);
+            auto const h = Pe_htm(full, th);
+            max_gap = std::max({max_gap, std::abs(g.x - h[0]), std::abs(g.y - h[1]),
+                                std::abs(g.z - h[2])});
+            CHECK(g.x == doctest::Approx(h[0]).epsilon(1e-6));
+            CHECK(g.y == doctest::Approx(h[1]).epsilon(1e-6));
+            CHECK(g.z == doctest::Approx(h[2]).epsilon(1e-6));
+        }
+        fmt::println("(1) GA chain vs HTM Eq.(2): max gap = {:.3e} mm  (O(eps^2))",
+                     max_gap);
+
+        // the volumetric error E = Pe - Pi (Cai Eq.3); print its magnitude over th
+        cai_err const none{};
+        double e_max = 0.0;
+        for (int k = 0; k <= nth; ++k) {
+            double const th = 2.0 * pi * double(k) / double(nth);
+            auto const pe = Pe_ga(full, th);
+            auto const pi_ = Pe_ga(none, th);
+            double const ex = pe.x - pi_.x, ey = pe.y - pi_.y, ez = pe.z - pi_.z;
+            e_max = std::max(e_max, std::sqrt(ex * ex + ey * ey + ez * ez));
+            if (k % (nth / 4) == 0)
+                fmt::println("th={:>5.2f}: E = ({:>9.4f}, {:>9.4f}, {:>9.4f}) um", th,
+                             1e3 * ex, 1e3 * ey, 1e3 * ez);
+        }
+        CHECK(e_max < 0.05); // volumetric error stays sub-50-um for arcsec/um inputs
+        fmt::println("    |E|_max = {:.4f} um", 1e3 * e_max);
+
+        // (2a) Eq.(3) leading term: isolated yaw eps_zz (Z-axis) & eps_zx (X-axis) give
+        // the in-plane E ~ -Rt(eps_zz - eps_zx) sin(th+bt-bw), +Rt(...) cos(th+bt-bw)
+        {
+            cai_err iso{};
+            iso.ezz = 5 * as;
+            iso.ezx = 2 * as;
+            double const drel = (iso.ezz - iso.ezx);
+            for (int k = 0; k <= nth; ++k) {
+                double const th = 2.0 * pi * double(k) / double(nth);
+                auto const pe = Pe_ga(iso, th);
+                auto const pi_ = Pe_ga(none, th);
+                double const ex = pe.x - pi_.x, ey = pe.y - pi_.y;
+                CHECK(ex ==
+                      doctest::Approx(-Rt * drel * std::sin(th + bt - bw)).epsilon(2e-3));
+                CHECK(ey ==
+                      doctest::Approx(Rt * drel * std::cos(th + bt - bw)).epsilon(2e-3));
+            }
+            fmt::println(
+                "(2a) isolated yaw eps_zz/eps_zx: E_xy == Rt(eps_zz-eps_zx) term "
+                "of Eq.(3)  [OK]");
+        }
+
+        // (2b) Eq.(3): isolated axial PDGEs give constant E_z = dzc1 + dzz - dzx - dzc2
+        {
+            cai_err iso{};
+            iso.dzc1 = 2e-3, iso.dzz = 1e-3, iso.dzx = 1.5e-3, iso.dzc2 = -1e-3;
+            double const ez_pred = iso.dzc1 + iso.dzz - iso.dzx - iso.dzc2;
+            for (int k = 0; k <= nth; ++k) {
+                double const th = 2.0 * pi * double(k) / double(nth);
+                double const ez = Pe_ga(iso, th).z - Pe_ga(none, th).z;
+                CHECK(ez == doctest::Approx(ez_pred).epsilon(1e-3));
+            }
+            fmt::println(
+                "(2b) isolated axial PDGEs: E_z == dzc1+dzz-dzx-dzc2 = {:.4f} um "
+                "(const) [OK]",
+                1e3 * ez_pred);
+        }
+
+        fmt::println("");
+        fmt::println("Volumetric map: GA motor composition reproduces Cai Eq.(2)/Eq.(3) "
+                     "(Phase F.2)");
         fmt::println("");
     }
 }
