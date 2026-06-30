@@ -2559,6 +2559,11 @@ TEST_SUITE("PGA3DP: application tests")
                 double const r = std::sqrt(g.x * g.x + g.y * g.y); // wafer radius (e1-e2)
                 if (r > Rw) continue;
                 int const b = std::min(NR - 1, int(r / dr));
+                // *** GROUND-SURFACE HEIGHT PROFILE Z(r) (Cai Eq.13) ***: the wafer upper
+                // surface at radius r is the LOWEST grain pass there (the deepest cut
+                // wins, Z = zp1-min). zmin[b] accumulates that per-radius minimum over
+                // the whole grain trajectory -> the raw height profile that the cone is
+                // read from.
                 if (g.z < zmin[b]) zmin[b] = g.z;
                 ++hit[b];
             }
@@ -2573,6 +2578,11 @@ TEST_SUITE("PGA3DP: application tests")
             double lo = 1e9, hi = -1e9, ctr = 0.0;
             for (int i = 0; i < NR; ++i) {
                 if (topo_e.second[i] == 0 || ideal.second[i] == 0) continue;
+                // *** THE WAFER HEIGHT PROFILE (the Fig.8 cone) ***: the deviation of the
+                // error topography from the IDEAL (no-error, flat) min-envelope at radius
+                // r. Subtracting the ideal cancels the feed / nominal-tilt baseline, so d
+                // is purely the volumetric-error contribution -- the
+                // convex/concave/warped cone the gates (b)/(c)/(d) below report.
                 double const d = topo_e.first[i] - ideal.first[i];
                 lo = std::min(lo, d);
                 hi = std::max(hi, d);
@@ -2686,13 +2696,20 @@ TEST_SUITE("PGA3DP: application tests")
                 for (int i = 0; i < NR; ++i) {
                     if (topo_e.second[i] == 0) continue;
                     double const r = (i + 0.5) * dr;
+                    // *** WAFER THICKNESS vs THE CHUCK (Cai Eq.14) ***: t =
+                    // (upper-surface height profile zp1-min) + (commanded thickness t0) -
+                    // (chuck profile zc(r)). zc IS the chuck height field; for a FLAT
+                    // chuck zc==0 (below), so the thickness profile == the height profile
+                    // -- the wafer's deviation referenced to the flat chuck.
                     double const t = topo_e.first[i] + t0 - zc(r); // Eq.14
                     lo = std::min(lo, t);
                     hi = std::max(hi, t);
                 }
-                return hi - lo; // Eq.16
+                return hi - lo; // Eq.16 TTV = max(t) - min(t)
             };
-            double const ttv_flat = ttv([](double) { return 0.0; }); // flat chuck
+            // flat chuck (zc == 0): the lower surface is planar, so the thickness profile
+            // reduces to the upper-surface height profile -> TTV == the topography spread
+            double const ttv_flat = ttv([](double) { return 0.0; });
             CHECK(ttv_flat == doctest::Approx(dc[3]).epsilon(0.02)); // == topography TTV
             // a chuck dressed to the SAME error cone (zc = zp1-min) makes t = t0 + const
             double const ttv_conform = ttv(
