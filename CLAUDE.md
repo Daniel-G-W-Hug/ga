@@ -288,6 +288,26 @@ Critical usage requirements:
    to operator precedence**
 4. The base scalar type (float/double) is configured globally in `ga/ga_value_t.hpp`
 
+### Header layering — where to find a `ga/` operation
+
+Each algebra's operations are split across a fixed set of `ga/ga_<alg>_ops*.hpp` headers
+(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds`), layered by what they build on. **Every
+file lists the functions it provides in a `// provides ... operations:` comment right after
+the `namespace hd::ga{,::pga}` declaration** — read that block first when hunting for a
+function; it is the authoritative per-file index. The split:
+
+| File | Provides (operations defined there) |
+| ---- | ----------------------------------- |
+| `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
+| `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
+| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent` |
+| `ga_<alg>_ops_physics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`, `grinding_controller`) |
+| `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
+
+So e.g. `exp`/`log` live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
+`rcmt`-velocity-field helpers used together with them are in `ops_physics.hpp` (PGA) and
+`ops_products.hpp` (`rcmt`). EGA/STA have no `physics`/`constraints` headers.
+
 ### Type System Architecture
 
 - Template types: `Scalar2d<T>`, `Vec2d<T>`, `BiVec2d<T>`, `MVec2d_E<T>`, etc.
