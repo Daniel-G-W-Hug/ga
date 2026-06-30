@@ -147,14 +147,21 @@ sibling to the Tao Fig.1 tree (same wafer self-rotational class, different machi
 - **F.6 — ga_docu passage.** Error-motor / error-twist vs HTM-subtraction; Abbe/Bryan as a
   velocity-field evaluation (the `ε×L` cross terms = the error twist's lever arm at the offset
   point, one `rcmt`). In the existing grinding capstone (`6_ga_applications_pga.tex`), matching
-  the docs voice. **DOC-WORTHY FROM F.3 (record once, write at F.6): GA structural consistency
-  as a transcription-error arbiter** — Cai Eq.(8) prints the straightness brace with opposite
+  the docs voice. **DOC-WORTHY (record once, write at F.6): GA structural consistency as a
+  transcription-error arbiter — TWO independent instances, present them together as one
+  finding.** (i) *F.3, Eq.(8) brace sign:* Cai prints the straightness brace with opposite
   signs in its two rows (`δxz−δxx` vs `δxx−δxz`); in the GA both rows are ONE displacement
   vector rotated by ONE `Rz(βw)`, so they must share the brace — the formulation makes the typo
-  unrepresentable, and the GA value is the tie-break (confirms Eq.(3)). A concrete instance of
-  "GA reduces hand-transcription error," worth a sentence. (NOT doc-worthy: the `log` half-angle
-  / factor-2 twist detail — the docs already use the `Ω = 2·Ṁ⟇rrev(M)` convention; it stays a
-  code/memory gotcha.) **MUST also document the generic DESIGN PRINCIPLE above** — the
+  unrepresentable, GA confirms Eq.(3). (ii) *F.4, Eq.(10) RMt + Fig.8 labels:* the printed RMt
+  rotation matrix is malformed (2nd column `[1,0,0]ᵀ` is not a rotation), and the GA gives `εxz`
+  the SMALLER cone / `εyz` the LARGER — swapped vs Fig.8's (b)/(c) colorbar labels (1.4/3.4 µm);
+  GA's proper rotation is the tie-break. Both = the same point: *a GA formulation can't
+  represent the inconsistency a hand-transcribed HTM can*, so it reduces transcription error —
+  worth a sentence or two with these as the worked instances. (NOT doc-worthy: the `log`
+  half-angle / factor-2 twist detail — the docs already use the `Ω = 2·Ṁ⟇rrev(M)` convention; it
+  stays a code/memory gotcha. Also the F.4 "chain-position-IS-the-physics" insight — error
+  before vs after the wheel spin = cone vs flat — IS doc-worthy as the topography mechanism.)
+  **MUST also document the generic DESIGN PRINCIPLE above** — the
   separation of IDEAL (rigid, exact; drives all transformations) vs REAL geometry (= ideal +
   rigid error motors + non-rigid residual height fields), and the "every surface = rigid
   carrier motor + residual height field" decomposition. Present it as the architectural idea
