@@ -368,6 +368,7 @@ void active_grinding_flatness::paint(QPainter* qp, QStyleOptionGraphicsItem cons
     // --- scale key (lower-left): the radial dimension vs the (exaggerated) height, so
     // the two very different scales are legible. The 150 mm radial bar drawn next to the
     // 0.2 mm height bar makes the exaggeration self-evident.
+    double const sz = m_params.cai ? S_Z_CAI : S_Z; // mode-dependent height scale
     auto hbar = [&](double x, double y, double mm, char const* lbl) {
         double const x0 = cs->x.au_to_w(x), x1 = cs->x.au_to_w(x + mm * S_XY);
         double const yw = cs->y.au_to_w(y);
@@ -379,14 +380,13 @@ void active_grinding_flatness::paint(QPainter* qp, QStyleOptionGraphicsItem cons
     };
     auto vbar = [&](double x, double y, double mm, char const* lbl) {
         double const xw = cs->x.au_to_w(x);
-        double const y0 = cs->y.au_to_w(y), y1 = cs->y.au_to_w(y + mm * S_Z);
+        double const y0 = cs->y.au_to_w(y), y1 = cs->y.au_to_w(y + mm * sz);
         qp->setPen(QPen(Qt::black, 1.4));
         qp->drawLine(QPointF(xw, y0), QPointF(xw, y1));
         qp->drawLine(QPointF(xw - 4.0, y0), QPointF(xw + 4.0, y0));
         qp->drawLine(QPointF(xw - 4.0, y1), QPointF(xw + 4.0, y1));
         qp->drawText(QPointF(xw + 8.0, 0.5 * (y0 + y1) + 4.0), lbl);
     };
-    double const sz = m_params.cai ? S_Z_CAI : S_Z;
     qp->setPen(QPen(Qt::black, 1.0));
     qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-1.3)), "Scale:");
     hbar(-3.2, -1.4, 150.0, "150 mm  (radial X / Y)");

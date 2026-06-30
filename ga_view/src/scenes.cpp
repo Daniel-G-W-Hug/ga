@@ -2805,16 +2805,18 @@ std::vector<Coordsys_model> build_models()
 
         diagram_legend leg;
         leg.heading =
-            "PGA3D volumetric error (Cai 2024, Fig. 8): a Z-axis ANGULAR error of the\n"
+            "PGA3D volumetric error (Cai 2024, Fig. 8): a Z-axis ANGULAR error of the "
             "grinding machine carves a cone into the ground wafer. eps_xz / eps_yz are "
-            "injected BEFORE the wheel spin (a fixed wheel-axis tilt) -> a radial CONE;\n"
-            "the nominal adjustment tilt sits AFTER the spin (rotates with the wheel) -> "
-            "it averages FLAT. That is why no error -> flat despite the 0.01 deg "
-            "adjustment.\n\neps_xz -> a sin-cone; eps_yz -> a cos-cone; both -> a warped "
-            "cone; the height (~Rt*eps = 1.8 um) is drawn hugely exaggerated.\n\nSame "
-            "renderer + same lever*tilt cone law as the Zhou view -- here from the "
-            "machine-error budget, not a wafer misalignment.\n\nC steps Fig. 8's 4 "
-            "cases.";
+            "injected BEFORE the wheel spin (a fixed wheel-axis tilt) -> a radial CONE; "
+            "the "
+            "nominal adjustment tilt sits AFTER the spin (rotates with the wheel) -> it "
+            "averages FLAT (so no error -> flat despite the 0.01 deg adjustment). eps_xz "
+            "-> "
+            "a sin-cone; eps_yz -> a cos-cone; both -> a warped cone; the height "
+            "(~Rt*eps = 1.8 um) is drawn hugely exaggerated. Same renderer + same "
+            "lever*tilt cone law as the Zhou view, here from the machine-error budget "
+            "not a "
+            "wafer misalignment. C steps Fig. 8's 4 cases.";
         leg.entries = {{"SPACE:", "pause / resume the trace build-up"},
                        {"R:", "restart the trace"},
                        {"C:", "step the Fig.8 cases (flat / eps_xz / eps_yz / both)"},
@@ -2825,7 +2827,7 @@ std::vector<Coordsys_model> build_models()
                        {"dashed:", "the z = 0 (flat) reference"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.46;
+        leg.size_pct = 0.49; // wider box -> heading wraps to fewer lines (shorter box)
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
