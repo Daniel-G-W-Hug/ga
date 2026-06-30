@@ -308,6 +308,28 @@ So e.g. `exp`/`log` live in `ga_<alg>_ops.hpp` (not basics/products); the pose�
 `rcmt`-velocity-field helpers used together with them are in `ops_physics.hpp` (PGA) and
 `ops_products.hpp` (`rcmt`). EGA/STA have no `physics`/`constraints` headers.
 
+#### Constants, user types, utilities, the solver (the non-`ops` headers)
+
+The per-algebra `ops*.hpp` above are the operations. The cross-cutting building blocks
+people reach for repeatedly live in a fixed set of headers — check here before grepping
+the whole tree or hand-rolling a helper:
+
+| File | Provides |
+| ---- | -------- |
+| `ga/ga_value_t.hpp` | the scalar type `value_t` (float/double switch); `eps` (equality) and `eps_congruent`; `is_congruent` + `detail::coeffs_congruent` |
+| `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
+| `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
+| `ga/ga_usr_types_physics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
+| `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form) |
+| `ga/detail/ga_solver.hpp` | the small dense linear solver — `lu_solve`, `lstsq_solve` (least-squares / minimum-norm via normal equations), `kkt_solve` (constrained KKT); used by the physics assembly and the closed-loop layer |
+
+`ga/detail/` also holds the foundation the user types are built on (`ga_core_types`,
+`ga_ega_types`, `ga_pga_types`, `ga_sta_types`, `ga_error_handling`, `ga_fmt_support`).
+The two umbrella headers `ga/ga_ega.hpp` and `ga/ga_pga.hpp` include the whole stack in
+the right order, so user code includes only those (see "Library Usage Patterns"). When a
+numeric helper seems missing, the solver and `rk4_step` above are the usual answer —
+don't re-derive them.
+
 ### Type System Architecture
 
 - Template types: `Scalar2d<T>`, `Vec2d<T>`, `BiVec2d<T>`, `MVec2d_E<T>`, etc.

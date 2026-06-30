@@ -294,19 +294,20 @@ change. Build is configured **Release** (`build/`).
   from the capstone; neutralized one "Phase Dyn" footnote. Compiles clean (latexmk), all
   cross-refs resolve, all added lines ≤90 cols. PDF rebuilt + committed.
 
-### RESUME HERE → F.7 (optional outlook) — or Phase F is COMPLETE
+### PHASE F COMPLETE 2026-06-30 (F.7 skipped by user decision)
 
-F.0–F.6 DONE = the whole Cai arc (model + viewer + docs). **F.7 is the only remaining Phase-F
-item and it is OPTIONAL** (scope was TBD): a short closing note that the THREE error sources
-(Tao spindle vibration, Zhou axis-tilt flatness, Cai machine geometric / volumetric error) live
-on ONE GA frame tree and SUPERPOSE — "three error mechanisms from three papers, one frame tree,
-composed by motor multiplication." NOTE F.6's Step 4 ("Ideal geometry and residual height
-fields") already opens with "The three error sources fit one pattern," so it partly serves this;
-F.7 would only add an explicit superposition sentence/short paragraph. Decide with the user
-whether to add it or treat Phase F as complete. Beyond Phase F, the grinding project's
-optimization tier (E = feed/speed optimization, chip-thickness force law) was PARKED/abandoned
-earlier — reopen only on user request. Companion memory: `project_wafer_grinding` (Phase F
-section).
+F.0–F.6 DONE = the whole Cai arc (model F.0–F.4 + viewer F.5 + docs F.6), all committed.
+Final doc tweaks (overfull-box wording fixes) committed `7e76d0c`. **The user chose to STOP
+here and skip F.7** (the optional outlook — a one-sentence "three error mechanisms from three
+papers, one frame tree, composed by motor multiplication"; F.6's Step 4 "The three error
+sources fit one pattern" already serves it). So Phase F — the Cai machine geometric / volumetric
+error model, the THIRD error source after Tao (spindle vibration) and Zhou (axis-tilt flatness)
+— is closed, with nothing mandated remaining.
+
+Beyond Phase F, the grinding project's optimization tier (E = feed/speed optimization,
+chip-thickness force law) remains PARKED/abandoned — the force-element + swappable-grinding-law
++ integrator-selector + feed-controller infra to support it is in place; reopen only on explicit
+user request. Companion memory: `project_wafer_grinding` (Phase F section).
 
 ---
 
