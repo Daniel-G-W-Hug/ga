@@ -145,8 +145,16 @@ sibling to the Tao Fig.1 tree (same wafer self-rotational class, different machi
 - **F.5 — ga_view scene.** Fig.8 jet-heatmap topographies, reuse the `active_grinding_topo`
   pattern; C cycles the four error cases. (5-place ga_view hand-sync surface.)
 - **F.6 — ga_docu passage.** Error-motor / error-twist vs HTM-subtraction; Abbe/Bryan as a
-  velocity-field evaluation. In the existing grinding capstone (`6_ga_applications_pga.tex`),
-  matching the docs voice. **MUST also document the generic DESIGN PRINCIPLE above** — the
+  velocity-field evaluation (the `ε×L` cross terms = the error twist's lever arm at the offset
+  point, one `rcmt`). In the existing grinding capstone (`6_ga_applications_pga.tex`), matching
+  the docs voice. **DOC-WORTHY FROM F.3 (record once, write at F.6): GA structural consistency
+  as a transcription-error arbiter** — Cai Eq.(8) prints the straightness brace with opposite
+  signs in its two rows (`δxz−δxx` vs `δxx−δxz`); in the GA both rows are ONE displacement
+  vector rotated by ONE `Rz(βw)`, so they must share the brace — the formulation makes the typo
+  unrepresentable, and the GA value is the tie-break (confirms Eq.(3)). A concrete instance of
+  "GA reduces hand-transcription error," worth a sentence. (NOT doc-worthy: the `log` half-angle
+  / factor-2 twist detail — the docs already use the `Ω = 2·Ṁ⟇rrev(M)` convention; it stays a
+  code/memory gotcha.) **MUST also document the generic DESIGN PRINCIPLE above** — the
   separation of IDEAL (rigid, exact; drives all transformations) vs REAL geometry (= ideal +
   rigid error motors + non-rigid residual height fields), and the "every surface = rigid
   carrier motor + residual height field" decomposition. Present it as the architectural idea
