@@ -493,6 +493,17 @@ struct grinding_flatness_params {
         false};         // false: static Zhou flatness; true: live Tao flatness + waviness
     double f_b{6702.0}; // tilt resonance / z_b ripple frequency [Hz] (Dyn.2 live f_th0)
     double A_b{0.1};    // z_b waviness amplitude [um]
+
+    // CAI mode (Phase F.5): the volumetric-error cone of Cai 2024 (vs the Zhou wafer-tilt
+    // above). The cone is sourced from a Z-axis ANGULAR error (eps_xz, eps_yz) injected
+    // BEFORE the wheel spin in the Cai 2-branch machine -- a fixed wheel-axis tilt (the
+    // nominal adjustment tilt sits AFTER the spin and averages flat). C cycles the 4
+    // Fig.8 cases (flat / eps_xz cone / eps_yz cone / both warped). The cone height is
+    // ~um (vs Zhou's ~0.2 mm), so it draws on its own larger height exaggeration.
+    bool cai{false};     // Cai volumetric-error mode
+    double Rt{72.5};     // wheel radius [mm] (cai)
+    double Xoff{72.5};   // wheel-wafer centre offset [mm] (cai)
+    double cai_eps{5.0}; // Z-axis angular error magnitude for the grid [arcsec] (cai)
 };
 
 // Active item: wafer-grinding flatness (Zhou Figs 5-7) demo (no active points)

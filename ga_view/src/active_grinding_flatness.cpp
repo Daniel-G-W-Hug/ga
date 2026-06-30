@@ -31,10 +31,19 @@ constexpr double S_XY =
     0.9 / 150.0;            // au per mm in the wafer plane (R = 150 mm -> 0.9 au)
 constexpr double S_Z = 1.4; // au per mm of height (exaggerated)
 
+// CAI mode: the volumetric-error cone is ~um (Rt * 5" = 1.76 um), ~100x smaller than the
+// Zhou ~0.2 mm flatness, so it needs its own much larger height exaggeration.
+constexpr double S_Z_CAI = 120.0; // au per mm of height (cai mode)
+
 // Fig. 7's 3x3 grid of (alpha, beta) in units of the tilt magnitude, row-major from the
 // top-left: alpha = +,+,+, 0,0,0, -,-,- ; beta = -,0,+ repeating. Index 4 = (0,0) flat.
 constexpr std::array<std::pair<int, int>, 9> GRID = {
     {{+1, -1}, {+1, 0}, {+1, +1}, {0, -1}, {0, 0}, {0, +1}, {-1, -1}, {-1, 0}, {-1, +1}}};
+
+// CAI mode: the 4 Cai Fig.8 cases as (eps_xz, eps_yz) in units of the error magnitude:
+// (a) flat, (b) eps_xz cone, (c) eps_yz cone, (d) both -> warped. Index 0 = flat.
+constexpr std::array<std::pair<int, int>, 4> CAI_GRID = {
+    {{0, 0}, {1, 0}, {0, 1}, {1, 1}}};
 
 } // namespace
 
@@ -46,6 +55,8 @@ active_grinding_flatness::active_grinding_flatness(Coordsys* cs, w_Coordsys* wcs
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges |
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(false);
+
+    if (m_params.cai) m_tilt = 0; // cai grid starts at the flat case (Zhou starts at 4)
 
     recompute();
 
@@ -61,6 +72,58 @@ active_grinding_flatness::active_grinding_flatness(Coordsys* cs, w_Coordsys* wcs
 
 void active_grinding_flatness::recompute()
 {
+    if (m_params.cai) {
+        // CAI mode (Phase F.5): the wheel-rim grain traced through the Cai 2-branch
+        // machine with a Z-axis angular error (eps_xz, eps_yz) injected BEFORE the wheel
+        // spin (a fixed wheel-axis tilt -> a radial cone); the nominal adjustment tilt
+        // ax,ay sits AFTER the spin (rotates with the wheel -> averages flat). The
+        // grain's cutting-path height (e3) carries the cone, exactly as the F.4 app-test
+        // traces it.
+        double const as = pi / 180.0 / 3600.0; // 1 arcsec [rad]
+        double const exz = double(CAI_GRID[m_tilt].first) * m_params.cai_eps * as;
+        double const eyz = double(CAI_GRID[m_tilt].second) * m_params.cai_eps * as;
+        double const Rt = m_params.Rt, Xoff = m_params.Xoff, Rw = m_params.R;
+        double const ax = 0.01 * pi / 180.0, ay = 0.01 * pi / 180.0; // nominal tilt [rad]
+        double const w1 = rpm2radps(m_params.n1), w2 = rpm2radps(m_params.n2);
+
+        kinematic_system3dp sys;
+        sys.add_frame(static_frame3dp("bed"));
+        sys.add_frame(static_frame3dp("z_axis", vec3dp{0.0, 0.0, 50.0, 1.0}),
+                      sys.index_of("bed"));
+        sys.add_frame(static_frame3dp("z_err", O_3dp, vec3dp{exz, eyz, 0.0, 0.0}),
+                      sys.index_of("z_axis")); // fixed wheel-axis tilt (before the spin)
+        sys.add_frame(static_frame3dp("c1_rot", O_3dp, vec3dp{0.0, 0.0, 0.0, 0.0}),
+                      sys.index_of("z_err"));
+        sys.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0.0, 0.0, 0.0}),
+                      sys.index_of("c1_rot")); // nominal tilt (after the spin)
+        sys.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0.0, ay, 0.0, 0.0}),
+                      sys.index_of("tilt_x"));
+        sys.add_frame(static_frame3dp("x_axis", vec3dp{Xoff, 0.0, 0.0, 1.0}),
+                      sys.index_of("bed"));
+        sys.add_frame(static_frame3dp("c2_rot", O_3dp, vec3dp{0.0, 0.0, 0.0, 0.0}),
+                      sys.index_of("x_axis"));
+        size_t const c1 = sys.index_of("c1_rot"), c2 = sys.index_of("c2_rot");
+        double const T = 2.0 * pi / w2; // one wafer revolution
+        int const N = m_params.samples;
+        auto const Pt = vec3dp{Rt, 0.0, 0.0, 1.0};
+
+        m_path.clear();
+        m_path.reserve(N + 1);
+        bool prev_on = false;
+        for (int k = 0; k <= N; ++k) {
+            double const t = T * double(k) / double(N);
+            sys.set_pose(c1, pose3dp{O_3dp, vec3dp{0.0, 0.0, w1 * t, 0.0}});
+            sys.set_pose(c2, pose3dp{O_3dp, vec3dp{0.0, 0.0, w2 * t, 0.0}});
+            auto const g = unitize(move3dp(Pt, sys.get_pos_trafo("tilt_y", "c2_rot")));
+            double const r = std::sqrt(g.x * g.x + g.y * g.y); // wafer plane = (e1, e2)
+            bool const on = r <= Rw + 1e-6;
+            if (on) m_path.push_back({g.x, g.y, g.z, /*pen=*/prev_on}); // height = e3
+            prev_on = on;
+        }
+        m_shown = 0;
+        return;
+    }
+
     double const R = m_params.R, L = m_params.L, r1 = m_params.r1;
     double const w1 = rpm2radps(m_params.n1), w2 = rpm2radps(m_params.n2);
     double const a = double(GRID[m_tilt].first) * m_params.tilt * pi / 180.0;  // alpha
@@ -129,7 +192,7 @@ void active_grinding_flatness::resetAnimation()
 
 void active_grinding_flatness::cycleTilt()
 {
-    m_tilt = (m_tilt + 1) % 9;
+    m_tilt = (m_tilt + 1) % (m_params.cai ? 4 : 9); // 4 Cai Fig.8 cases / 9 Zhou grid
     recompute();
     update();
 }
@@ -146,11 +209,13 @@ QPointF active_grinding_flatness::toXY(path_pt const& p) const
 }
 QPointF active_grinding_flatness::toXZ(path_pt const& p) const
 {
-    return QPointF(cs->x.au_to_w(CX + p.x * S_XY), cs->y.au_to_w(CY_XZ + p.z * S_Z));
+    double const sz = m_params.cai ? S_Z_CAI : S_Z;
+    return QPointF(cs->x.au_to_w(CX + p.x * S_XY), cs->y.au_to_w(CY_XZ + p.z * sz));
 }
 QPointF active_grinding_flatness::toYZ(path_pt const& p) const
 {
-    return QPointF(cs->x.au_to_w(CX + p.y * S_XY), cs->y.au_to_w(CY_YZ + p.z * S_Z));
+    double const sz = m_params.cai ? S_Z_CAI : S_Z;
+    return QPointF(cs->x.au_to_w(CX + p.y * S_XY), cs->y.au_to_w(CY_YZ + p.z * sz));
 }
 
 double active_grinding_flatness::lambda_m() const
@@ -309,27 +374,50 @@ void active_grinding_flatness::paint(QPainter* qp, QStyleOptionGraphicsItem cons
         qp->drawLine(QPointF(xw - 4.0, y1), QPointF(xw + 4.0, y1));
         qp->drawText(QPointF(xw + 8.0, 0.5 * (y0 + y1) + 4.0), lbl);
     };
+    double const sz = m_params.cai ? S_Z_CAI : S_Z;
     qp->setPen(QPen(Qt::black, 1.0));
     qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-1.3)), "Scale:");
     hbar(-3.2, -1.4, 150.0, "150 mm  (radial X / Y)");
-    vbar(-3.2, -1.85, 0.2, "0.2 mm  (height z)");
+    if (m_params.cai) {
+        vbar(-3.2, -1.85, 0.002, "2 um  (height z)");
+    }
+    else {
+        vbar(-3.2, -1.85, 0.2, "0.2 mm  (height z)");
+    }
     qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.0)),
-                 QString::asprintf("height drawn ~%.0fx exaggerated", S_Z / S_XY));
+                 QString::asprintf("height drawn ~%.0fx exaggerated", sz / S_XY));
 
-    // (alpha, beta) + shape readout
-    double const a = double(GRID[m_tilt].first) * m_params.tilt;
-    double const b = double(GRID[m_tilt].second) * m_params.tilt;
-    char const* shape = (a == 0.0 && b == 0.0) ? "flat"
-                        : (b == 0.0)           ? "cone"
-                        : (a == 0.0 && b > 0)  ? "convex (dome)"
-                        : (a == 0.0 && b < 0)  ? "concave (bowl)"
-                                               : "combined";
-    qp->setPen(QPen(Qt::black, 1.0));
-    qp->drawText(
-        QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.25)),
-        QString::asprintf("alpha = %+.1f deg, beta = %+.1f deg  ->  %s", a, b, shape));
-    qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.45)),
-                 "C: step the (alpha, beta) grid (Fig. 7)");
+    if (m_params.cai) {
+        // eps_xz / eps_yz + shape readout (Cai Fig.8 cases)
+        double const ex = double(CAI_GRID[m_tilt].first) * m_params.cai_eps;
+        double const ey = double(CAI_GRID[m_tilt].second) * m_params.cai_eps;
+        char const* shape = (ex == 0.0 && ey == 0.0) ? "flat (Fig.8a)"
+                            : (ey == 0.0)            ? "sin-cone (Fig.8b)"
+                            : (ex == 0.0)            ? "cos-cone (Fig.8c)"
+                                                     : "warped (Fig.8d)";
+        qp->setPen(QPen(Qt::black, 1.0));
+        qp->drawText(
+            QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.25)),
+            QString::asprintf("eps_xz = %.1f\", eps_yz = %.1f\"  ->  %s", ex, ey, shape));
+        qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.45)),
+                     "C: step the Fig.8 cases (a / b / c / d)");
+    }
+    else {
+        // (alpha, beta) + shape readout
+        double const a = double(GRID[m_tilt].first) * m_params.tilt;
+        double const b = double(GRID[m_tilt].second) * m_params.tilt;
+        char const* shape = (a == 0.0 && b == 0.0) ? "flat"
+                            : (b == 0.0)           ? "cone"
+                            : (a == 0.0 && b > 0)  ? "convex (dome)"
+                            : (a == 0.0 && b < 0)  ? "concave (bowl)"
+                                                   : "combined";
+        qp->setPen(QPen(Qt::black, 1.0));
+        qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.25)),
+                     QString::asprintf("alpha = %+.1f deg, beta = %+.1f deg  ->  %s", a,
+                                       b, shape));
+        qp->drawText(QPointF(cs->x.au_to_w(-3.3), cs->y.au_to_w(-2.45)),
+                     "C: step the (alpha, beta) grid (Fig. 7)");
+    }
 }
 
 QRectF active_grinding_flatness::boundingRect() const
