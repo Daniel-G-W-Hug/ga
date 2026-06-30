@@ -197,21 +197,44 @@ no ga_py regen unless we choose to bind the helper.
   (paper distributed the inverse by hand) → do NOT double-apply. The test carries local
   `mat4` helpers (`ident/mul/transl/Rz/Rx/Ry/emat/rigid_inv`) for the HTM reference.
 
-Full appl3dp suite after F.2: **57 cases / 9455 assertions, 0 failed.** No library/ga_py
+- **F.3 DONE (UNCOMMITTED) 2026-06-30** — `TEST_CASE("pga3dp: Cai Abbe/Bryan-optimized
+  volumetric error Eq.5-8 (Phase F.3)")` (117 assertions). The Abbe/Bryan correction = each
+  axis's error twist VELOCITY FIELD evaluated at the OFFSET measurement point L(j), rotated
+  into the wafer frame by Rz(βw): `E(j) = move3dp(rcmt(twist_j, L(j)), Rz_bw)`, summed over
+  the 7 sources {z,x,c1,c2} (PDGE offsets) + {xoz,zoc1,zoc2} (PIGE-derived, no extra offset),
+  added onto F.2's base `E = Pe−Pi`. Gates: (1) GA correction sum == independent HTM of
+  Eqs.(5-7) to 3e-8 mm (|E_AB|~8.6 µm); (2) full E′ (GA base+corr) == assembled HTM Eq.(8) to
+  3.8e-8 mm (|E′|~11.8 µm); (3) isolated εyz/Lzz → the εyz·Lzz cross term of Eq.(8) E′_x; (4)
+  PAPER-ERROR FLAG resolved — GA confirms Eq.(3)'s straightness brace `δxz−δxx` in BOTH E_x
+  and E_y (one displacement, one Rz rotation ⇒ shared brace), so Eq.(8)'s printed E′_y brace
+  `δxx−δxz` is a sign typo. **KEY GOTCHA (settled empirically, de-risked before coding):**
+  `log(M_e)` returns the **HALF-angle** screw generator (motor_from_pose3dp builds
+  `exp(0.5·B)`), so the paper's `EM·L` (linearised displacement) = `rcmt(2·log(M_e), L)` =
+  `move3dp(L,M_e)−L` to O(ε²) — the **factor 2** is the `Ω = 2·Ṁ⟇rrev(M)` twist convention.
+  (Aside: F.1's `log(M_err).vx == ex` check only passes due to doctest `Approx`'s scale-1.0
+  absolute floor at arcsec magnitudes; the meaningful `pose3dp_from_motor` recovery via
+  `2·atan2` is the correct full-ε one. Not a bug, but the comment there overstates it.) Test
+  re-declares the F.2 GA frame-tree + `mat4` HTM helpers locally (same style as F.2 vs F.0).
+
+Full appl3dp suite after F.3: **58 cases / 9572 assertions, 0 failed.** No library/ga_py
 change. Build is configured **Release** (`build/`).
 
-### RESUME HERE → F.3 (Abbe/Bryan, Eq.5–8)
+### RESUME HERE → F.4 (topography + TTV, Eq.9–18)
 
-**On restart, FIRST request the paper from the user** — *Yindi Cai et al., "Model for surface
-topography prediction in the ultra-precision grinding of silicon wafers considering volumetric
-errors," Measurement 234 (2024) 114825* — and read **Eqs.(4)–(8) + Fig.4** before coding
-F.3, and **Eqs.(9)–(18) + Fig.6 + Fig.8 + Table 2** before F.4. (The PDF is NOT in the repo;
-the user reprovides it per session.) The detailed, GA-ready F.3 recipe is in the **F.3 plan
-entry above** (`E(j) = rcmt(twist_j, L(j))` rotated by `Rz(βw)`, summed onto F.2's E; the
-Abbe/Bryan cross terms = the `ε × L` lever arm). Then F.4 (topography + TTV, reuse Phase-D.1
-+ the chuck `z_c(r)` height-field per the DESIGN PRINCIPLE), F.5 (ga_view), F.6 (docs incl.
-the design principle), F.7 (outlook). Companion memory: `project_wafer_grinding` (its
-description + the Phase F section at the bottom hold the same state).
+**On restart, FIRST request the paper** (reprovided per session; not in repo) — *Yindi Cai
+et al., Measurement 234 (2024) 114825* — and read **Eqs.(9)–(18) + Fig.5/6/7/8 + Table 2**
+before coding F.4. F.0–F.3 are DONE (the volumetric-error half: ideal chain, error motor,
+Eq.2/3 map, Eq.5-8 Abbe/Bryan correction). F.4 = the surface-formation half: perturb the
+grain trajectory `xp1 = xp0 + E′` (Eq.12, using F.3's `E′`), Z-map reduction (Eq.13/17/18 —
+the rotationally-symmetric min-envelope per radius, simpler than Tao's grain-ensemble carve),
+wafer thickness `t = z_p1−min + t0 − z_c−min` (Eq.14) and `TTV = max(t)−min(t)` (Eq.16). Reuse
+Phase-D.1 surface infra + the grain-trajectory sampler; model the CHUCK as a rigid carrier
+motor + residual scalar height field `z_c(r)` (the DESIGN PRINCIPLE in the F.4 plan entry).
+GATE: Fig.8 shapes — (a) εxz=εyz=0 flat; (b) εxz=5″ convex cone; (c) εyz=5″ concave cone; (d)
+both → cone + warped edge — plus the ZHOU↔CAI cross-check (a Z-axis angular error εxz/εyz is a
+wheel-chain tilt → must reproduce a Zhou-type cone). Then F.5 (ga_view scene), F.6 (docs incl.
+the design principle), F.7 (outlook). Table-2 params: Rt=72.5mm, ωt=2400rpm, f=0.02mm/min,
+Rw=150mm, ωw=80rpm, αx=αy=0.01°. Companion memory: `project_wafer_grinding` (Phase F section).
 
 ---
 

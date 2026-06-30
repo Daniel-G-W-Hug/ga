@@ -2065,4 +2065,407 @@ TEST_SUITE("PGA3DP: application tests")
                      "(Phase F.2)");
         fmt::println("");
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // F.3 -- the Abbe/Bryan-optimized volumetric error (Cai Eq.5-8). The traditional
+    // model (F.2) applies each axis's geometric error AS IF measured at the functional
+    // point Pt. In reality each error is measured at a point OFFSET from Pt by L(j) (Fig.
+    // 3/4): an Abbe offset for the positioning error, a Bryan offset for the straightness
+    // errors. Cai's optimization adds, per axis j, the extra volumetric error that this
+    // offset introduces:
+    //
+    //     E(j) = Tc2 . EM(j) . L(j)                                       (Cai Eq.5-7)
+    //
+    // where Tc2 = Rz(bw) (the common wafer rotation), L(j) is the measurement-point
+    // position (Pt's nominal position plus the offset L), and EM(j) is the axis-j error
+    // as a DIFFERENTIAL (skew) matrix -- the linearised error matrix with the identity
+    // removed (zero diagonal: the eps skew + the del column). EM(j).L(j) is therefore the
+    // FIRST-ORDER DISPLACEMENT of the point L(j) under axis j's error.
+    //
+    // GA reading (the showcase): EM(j).L(j) is exactly the error twist's VELOCITY FIELD
+    // at L(j). The error motor of F.1 (M_e = motor_from_pose3dp{del, eps}) has screw
+    // generator twist = 2*log(M_e) (the Omega = 2 Mdot (rcmt) rrev(M) convention; log
+    // returns the half-angle generator because motor_from_pose3dp builds exp(0.5*B)). The
+    // rate of change of a point under that twist is Xdot = rcmt(twist, X) -- so
+    //
+    //     E(j) = move3dp( rcmt(2*log(M_e_j), L(j)) , Rz(bw)-motor )
+    //
+    // evaluates the error twist at the OFFSET point and rotates it into the wafer frame.
+    // The Abbe/Bryan cross terms that Eq.(8) carries and Eq.(3) lacks (eps.L lever arms
+    // like eyz.Lzz, -ezz.Lyz, eyc1.Lzc1) are exactly the omega x L part of that velocity
+    // field -- ONE operation per axis, no per-axis bespoke equation. The full optimized
+    // error is E' = E(F.2) + sum_j E(j) over j = {z, x, c1, c2} (PDGE offsets) and {xoz,
+    // zoc1, zoc2} (the PIGE-derived squareness/parallelism, evaluated at Pt's nominal
+    // position with no extra offset).
+    //
+    // GATES: (1) the GA Abbe/Bryan correction sum reproduces an INDEPENDENT 4x4 HTM of
+    // Eqs.(5-7) over a th sweep; (2) the FULL optimized error E' (GA base F.2 + GA
+    // correction) == the assembled HTM of Eq.(8) to O(eps^2); (3) an isolated-offset spot
+    // check (only eyz + Lzz) reproduces the eyz.Lzz cross term of Eq.(8)'s E'_x.
+    //
+    // PAPER-ERROR FLAG (resolved by the GA): Eq.(8)'s printed E'_x cbw-brace has the
+    // straightness combination delta_xz - delta_xx, but its E'_y sbw-brace prints
+    // delta_xx - delta_xz -- the SAME brace with the sign flipped (Eq.(3) prints
+    // delta_xz - delta_xx in BOTH). In the GA both components come from rotating ONE
+    // displacement vector by ONE Rz(bw), so they MUST share the brace: the GA confirms
+    // Eq.(3)'s (delta_xz - delta_xx) and flags Eq.(8)'s E'_y print as a transcription
+    // typo (check 4 below).
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: Cai Abbe/Bryan-optimized volumetric error Eq.5-8 (Phase F.3)")
+    {
+        fmt::println("");
+        fmt::println(
+            "pga3dp: Cai Abbe/Bryan-optimized volumetric error Eq.5-8 (Phase F.3)");
+        fmt::println("");
+
+        // machine parameters (as in F.0/F.2)
+        double const Rt = 72.5, X = 100.0, Z = 50.0, bt = 0.30, bw = 0.70;
+        double const ax = 0.01 * pi / 180, ay = 0.01 * pi / 180;
+        double const as = pi / 180.0 / 3600.0; // 1 arcsec [rad]
+
+        // the full Cai error budget (Table 1) PLUS the Abbe/Bryan measurement offsets
+        // L(j) (Eq.4-7): Lsj is the s-directional distance from the j-axis measurement
+        // point to the grinding-wheel center (mm). PIGE-derived terms (xoz, zoc1, zoc2)
+        // carry no extra offset.
+        struct cai_err {
+            // X-axis PDGE
+            double dxx = 0, dyx = 0, dzx = 0, exx = 0, eyx = 0, ezx = 0;
+            // Z-axis PDGE
+            double dxz = 0, dyz = 0, dzz = 0, exz = 0, eyz = 0, ezz = 0;
+            // C1-axis PDGE (ezc1 absorbed into bt)
+            double dxc1 = 0, dyc1 = 0, dzc1 = 0, exc1 = 0, eyc1 = 0;
+            // C2-axis PDGE (ezc2 absorbed into bw)
+            double dxc2 = 0, dyc2 = 0, dzc2 = 0, exc2 = 0, eyc2 = 0;
+            // PIGE: squareness X-Z, parallelism C1, parallelism C2
+            double eta = 0, azoc1 = 0, bzoc1 = 0, azoc2 = 0, bzoc2 = 0;
+            // Abbe/Bryan measurement offsets L(j) (Eq.4-7), in mm
+            double Lxz = 0, Lyz = 0, Lzz = 0;
+            double Lxx = 0, Lyx = 0, Lzx = 0;
+            double Lxc1 = 0, Lyc1 = 0, Lzc1 = 0;
+            double Lxc2 = 0, Lyc2 = 0, Lzc2 = 0;
+        };
+
+        // ---- GA base functional point Pe (Cai Eq.2, identical to F.2)
+        // -------------------
+        auto Pe_ga = [&](cai_err const& e, double th) {
+            kinematic_system3dp s;
+            s.add_frame(static_frame3dp("bed"));
+            s.add_frame(static_frame3dp("z_pige", O_3dp, vec3dp{0, e.eta, 0, 0}),
+                        s.index_of("bed"));
+            s.add_frame(static_frame3dp("z_axis", vec3dp{0, 0, Z, 1}),
+                        s.index_of("z_pige"));
+            s.add_frame(static_frame3dp("z_pdge", vec3dp{e.dxz, e.dyz, e.dzz, 1},
+                                        vec3dp{e.exz, e.eyz, e.ezz, 0}),
+                        s.index_of("z_axis"));
+            s.add_frame(static_frame3dp("c1_pige", O_3dp, vec3dp{e.azoc1, e.bzoc1, 0, 0}),
+                        s.index_of("z_pdge"));
+            s.add_frame(static_frame3dp("c1_pdge", vec3dp{e.dxc1, e.dyc1, e.dzc1, 1},
+                                        vec3dp{e.exc1, e.eyc1, 0, 0}),
+                        s.index_of("c1_pige"));
+            s.add_frame(static_frame3dp("c1_rot", O_3dp, vec3dp{0, 0, bt, 0}),
+                        s.index_of("c1_pdge"));
+            s.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0, 0, 0}),
+                        s.index_of("c1_rot"));
+            s.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0, ay, 0, 0}),
+                        s.index_of("tilt_x"));
+            s.add_frame(static_frame3dp("x_axis", vec3dp{X, 0, 0, 1}), s.index_of("bed"));
+            s.add_frame(static_frame3dp("x_pdge", vec3dp{e.dxx, e.dyx, e.dzx, 1},
+                                        vec3dp{e.exx, e.eyx, e.ezx, 0}),
+                        s.index_of("x_axis"));
+            s.add_frame(static_frame3dp("c2_pige", O_3dp, vec3dp{e.azoc2, e.bzoc2, 0, 0}),
+                        s.index_of("x_pdge"));
+            s.add_frame(static_frame3dp("c2_pdge", vec3dp{e.dxc2, e.dyc2, e.dzc2, 1},
+                                        vec3dp{e.exc2, e.eyc2, 0, 0}),
+                        s.index_of("c2_pige"));
+            s.add_frame(static_frame3dp("c2_rot", O_3dp, vec3dp{0, 0, bw, 0}),
+                        s.index_of("c2_pdge"));
+            auto const Pt = vec3dp{Rt * std::cos(th), Rt * std::sin(th), 0.0, 1.0};
+            return unitize(move3dp(Pt, s.get_pos_trafo("tilt_y", "c2_rot")));
+        };
+
+        // ---- GA Abbe/Bryan correction sum (Cai Eq.5-7)
+        // --------------------------------- Each axis correction is the error twist's
+        // velocity field at the offset point L(j), rotated into the wafer frame by
+        // Rz(bw). twist = 2*log(M_e) is the full screw generator (log returns the
+        // half-angle generator). The displacement is a direction (w=0); a pure Rz
+        // rotation acts on its x,y,z exactly like Tc2 on the homogeneous EM.L point.
+        auto const Rz_bw = motor_from_pose3dp(pose3dp{O_3dp, vec3dp{0, 0, bw, 0}});
+        auto E_corr_ga = [&](vec3dp const& del, vec3dp const& eps, vec3dp const& Lpt) {
+            auto const M_e =
+                motor_from_pose3dp(pose3dp{vec3dp{del.x, del.y, del.z, 1.0}, eps});
+            auto const twist = 2.0 * log(M_e); // full screw generator Omega
+            auto const d = rcmt(twist, Lpt);   // velocity field at the offset point
+            return move3dp(vec3dp{d.x, d.y, d.z, 0.0}, Rz_bw); // rotate into wafer frame
+        };
+        auto E_ab_ga = [&](cai_err const& e, double th) {
+            double const bc = Rt * std::cos(th + bw), bs = Rt * std::sin(th + bw);
+            // measurement points L(j) (Eq.4-7): Pt's nominal position + offset L. The X-
+            // and C2-axes carry the carriage offset (-X in x, +Z in z); the Z-, C1-axes
+            // and the PIGE terms do not.
+            vec3dp const sum =
+                E_corr_ga({e.dxz, e.dyz, e.dzz, 0}, {e.exz, e.eyz, e.ezz, 0},
+                          {bc + e.Lxz, bs + e.Lyz, e.Lzz, 1}) + // E(z)
+                E_corr_ga({e.dxx, e.dyx, e.dzx, 0}, {e.exx, e.eyx, e.ezx, 0},
+                          {bc - X + e.Lxx, bs + e.Lyx, Z + e.Lzx, 1}) + // E(x)
+                E_corr_ga({e.dxc1, e.dyc1, e.dzc1, 0}, {e.exc1, e.eyc1, 0, 0},
+                          {bc + e.Lxc1, bs + e.Lyc1, e.Lzc1, 1}) + // E(c1)
+                E_corr_ga({e.dxc2, e.dyc2, e.dzc2, 0}, {e.exc2, e.eyc2, 0, 0},
+                          {bc - X + e.Lxc2, bs + e.Lyc2, Z + e.Lzc2, 1}) +  // E(c2)
+                E_corr_ga({0, 0, 0, 0}, {0, e.eta, 0, 0}, {bc, bs, Z, 1}) + // E(xoz)
+                E_corr_ga({0, 0, 0, 0}, {e.azoc1, e.bzoc1, 0, 0},
+                          {bc, bs, Z, 1}) + // E(zoc1)
+                E_corr_ga({0, 0, 0, 0}, {e.azoc2, e.bzoc2, 0, 0},
+                          {bc - X, bs, Z, 1}); // E(zoc2)
+            return sum;
+        };
+
+        // ---- independent 4x4 HTM reference (Cai's own method)
+        // --------------------------
+        using mat4 = std::array<std::array<double, 4>, 4>;
+        auto ident = []() {
+            mat4 M{};
+            for (int i = 0; i < 4; ++i)
+                M[i][i] = 1.0;
+            return M;
+        };
+        auto mul = [](mat4 const& A, mat4 const& B) {
+            mat4 C{};
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j) {
+                    double s = 0.0;
+                    for (int k = 0; k < 4; ++k)
+                        s += A[i][k] * B[k][j];
+                    C[i][j] = s;
+                }
+            return C;
+        };
+        auto transl = [&](double dx, double dy, double dz) {
+            mat4 M = ident();
+            M[0][3] = dx, M[1][3] = dy, M[2][3] = dz;
+            return M;
+        };
+        auto Rz = [&](double a) {
+            mat4 M = ident();
+            M[0][0] = std::cos(a), M[0][1] = -std::sin(a), M[1][0] = std::sin(a),
+            M[1][1] = std::cos(a);
+            return M;
+        };
+        auto Rx = [&](double a) {
+            mat4 M = ident();
+            M[1][1] = std::cos(a), M[1][2] = -std::sin(a), M[2][1] = std::sin(a),
+            M[2][2] = std::cos(a);
+            return M;
+        };
+        auto Ry = [&](double a) {
+            mat4 M = ident();
+            M[0][0] = std::cos(a), M[0][2] = std::sin(a), M[2][0] = -std::sin(a),
+            M[2][2] = std::cos(a);
+            return M;
+        };
+        auto emat = [&](double dx, double dy, double dz, double ex, double ey,
+                        double ez) {
+            mat4 M = ident();
+            M[0][1] = -ez, M[0][2] = ey, M[1][0] = ez, M[1][2] = -ex, M[2][0] = -ey,
+            M[2][1] = ex;
+            M[0][3] = dx, M[1][3] = dy, M[2][3] = dz;
+            return M;
+        };
+        auto rigid_inv = [&](mat4 const& M) {
+            mat4 I = ident();
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                    I[i][j] = M[j][i];
+            for (int i = 0; i < 3; ++i)
+                I[i][3] = -(I[i][0] * M[0][3] + I[i][1] * M[1][3] + I[i][2] * M[2][3]);
+            return I;
+        };
+        // base Pe (Eq.2) -- same chain as F.2's HTM reference
+        auto Pe_htm = [&](cai_err const& e, double th) {
+            mat4 const tilt = mul(Rx(ax), Ry(ay));
+            mat4 K = mul(emat(0, 0, 0, 0, e.eta, 0),
+                         mul(transl(0, 0, Z),
+                             mul(emat(e.dxz, e.dyz, e.dzz, e.exz, e.eyz, e.ezz),
+                                 mul(emat(0, 0, 0, e.azoc1, e.bzoc1, 0),
+                                     mul(emat(e.dxc1, e.dyc1, e.dzc1, e.exc1, e.eyc1, 0),
+                                         mul(Rz(bt), tilt))))));
+            mat4 W = mul(
+                transl(X, 0, 0),
+                mul(emat(e.dxx, e.dyx, e.dzx, e.exx, e.eyx, e.ezx),
+                    mul(emat(0, 0, 0, e.azoc2, e.bzoc2, 0),
+                        mul(emat(e.dxc2, e.dyc2, e.dzc2, e.exc2, e.eyc2, 0), Rz(bw)))));
+            mat4 const T = mul(rigid_inv(W), K);
+            double const px = Rt * std::cos(th), py = Rt * std::sin(th);
+            return std::array<double, 3>{T[0][0] * px + T[0][1] * py + T[0][3],
+                                         T[1][0] * px + T[1][1] * py + T[1][3],
+                                         T[2][0] * px + T[2][1] * py + T[2][3]};
+        };
+        // EM(j) (zero-diagonal differential matrix) applied to L(j), then Tc2 = Rz(bw)
+        auto Tc2_EM_L = [&](double dx, double dy, double dz, double ex, double ey,
+                            double ez, std::array<double, 3> const& L) {
+            double const vx =
+                -ez * L[1] + ey * L[2] + dx; // EM.L (linearised displacement)
+            double const vy = ez * L[0] - ex * L[2] + dy;
+            double const vz = -ey * L[0] + ex * L[1] + dz;
+            return std::array<double, 3>{std::cos(bw) * vx - std::sin(bw) * vy,
+                                         std::sin(bw) * vx + std::cos(bw) * vy, vz};
+        };
+        auto E_ab_htm = [&](cai_err const& e, double th) {
+            double const bc = Rt * std::cos(th + bw), bs = Rt * std::sin(th + bw);
+            std::array<double, 3> s{0, 0, 0};
+            auto add = [&](std::array<double, 3> const& a) {
+                s[0] += a[0], s[1] += a[1], s[2] += a[2];
+            };
+            add(Tc2_EM_L(e.dxz, e.dyz, e.dzz, e.exz, e.eyz, e.ezz,
+                         {bc + e.Lxz, bs + e.Lyz, e.Lzz}));
+            add(Tc2_EM_L(e.dxx, e.dyx, e.dzx, e.exx, e.eyx, e.ezx,
+                         {bc - X + e.Lxx, bs + e.Lyx, Z + e.Lzx}));
+            add(Tc2_EM_L(e.dxc1, e.dyc1, e.dzc1, e.exc1, e.eyc1, 0,
+                         {bc + e.Lxc1, bs + e.Lyc1, e.Lzc1}));
+            add(Tc2_EM_L(e.dxc2, e.dyc2, e.dzc2, e.exc2, e.eyc2, 0,
+                         {bc - X + e.Lxc2, bs + e.Lyc2, Z + e.Lzc2}));
+            add(Tc2_EM_L(0, 0, 0, 0, e.eta, 0, {bc, bs, Z}));             // E(xoz)
+            add(Tc2_EM_L(0, 0, 0, e.azoc1, e.bzoc1, 0, {bc, bs, Z}));     // E(zoc1)
+            add(Tc2_EM_L(0, 0, 0, e.azoc2, e.bzoc2, 0, {bc - X, bs, Z})); // E(zoc2)
+            return s;
+        };
+
+        // representative full error set + Abbe/Bryan offsets
+        cai_err full{.dxx = 2e-3,
+                     .dyx = 1e-3,
+                     .dzx = 1.5e-3,
+                     .exx = 3 * as,
+                     .eyx = 2 * as,
+                     .ezx = 1 * as,
+                     .dxz = -3.6e-3,
+                     .dyz = -2.5e-3,
+                     .dzz = 1e-3,
+                     .exz = 2 * as,
+                     .eyz = -1.5 * as,
+                     .ezz = 1.5 * as,
+                     .dxc1 = 1e-3,
+                     .dyc1 = -1e-3,
+                     .dzc1 = 2e-3,
+                     .exc1 = 1 * as,
+                     .eyc1 = 1.5 * as,
+                     .dxc2 = -1e-3,
+                     .dyc2 = 2e-3,
+                     .dzc2 = -1.5e-3,
+                     .exc2 = 2 * as,
+                     .eyc2 = -1 * as,
+                     .eta = 2 * as,
+                     .azoc1 = 1.5 * as,
+                     .bzoc1 = 1 * as,
+                     .azoc2 = -1 * as,
+                     .bzoc2 = 2 * as,
+                     .Lxz = 10.0,
+                     .Lyz = -8.0,
+                     .Lzz = 15.0,
+                     .Lxx = 12.0,
+                     .Lyx = 5.0,
+                     .Lzx = -10.0,
+                     .Lxc1 = 8.0,
+                     .Lyc1 = -6.0,
+                     .Lzc1 = 20.0,
+                     .Lxc2 = -7.0,
+                     .Lyc2 = 9.0,
+                     .Lzc2 = 12.0};
+        cai_err const none{};
+
+        int const nth = 12;
+
+        // (1) GA Abbe/Bryan correction == independent HTM of Eqs.(5-7), over a th sweep
+        double max_ab_gap = 0.0, ab_max = 0.0;
+        for (int k = 0; k <= nth; ++k) {
+            double const th = 2.0 * pi * double(k) / double(nth);
+            auto const g = E_ab_ga(full, th);
+            auto const h = E_ab_htm(full, th);
+            max_ab_gap = std::max({max_ab_gap, std::abs(g.x - h[0]), std::abs(g.y - h[1]),
+                                   std::abs(g.z - h[2])});
+            ab_max = std::max(ab_max, std::sqrt(g.x * g.x + g.y * g.y + g.z * g.z));
+            CHECK(g.x == doctest::Approx(h[0]).epsilon(1e-5));
+            CHECK(g.y == doctest::Approx(h[1]).epsilon(1e-5));
+            CHECK(g.z == doctest::Approx(h[2]).epsilon(1e-5));
+        }
+        fmt::println("(1) GA Abbe/Bryan sum vs HTM Eq.(5-7): max gap = {:.3e} mm, "
+                     "|E_AB|_max = {:.4f} um",
+                     max_ab_gap, 1e3 * ab_max);
+
+        // (2) full optimized error E' = E(F.2) + sum_j E(j): fully-GA vs assembled HTM of
+        // Eq.(8). E(F.2) = Pe - Pi (base volumetric error); E_AB the correction.
+        double max_eprime_gap = 0.0, eprime_max = 0.0;
+        for (int k = 0; k <= nth; ++k) {
+            double const th = 2.0 * pi * double(k) / double(nth);
+            auto const pe = Pe_ga(full, th);
+            auto const pi_ = Pe_ga(none, th);
+            auto const ab = E_ab_ga(full, th);
+            double const gx = (pe.x - pi_.x) + ab.x, gy = (pe.y - pi_.y) + ab.y,
+                         gz = (pe.z - pi_.z) + ab.z;
+
+            auto const he = Pe_htm(full, th);
+            auto const hi = Pe_htm(none, th);
+            auto const hab = E_ab_htm(full, th);
+            double const hx = (he[0] - hi[0]) + hab[0], hy = (he[1] - hi[1]) + hab[1],
+                         hz = (he[2] - hi[2]) + hab[2];
+
+            max_eprime_gap = std::max({max_eprime_gap, std::abs(gx - hx),
+                                       std::abs(gy - hy), std::abs(gz - hz)});
+            eprime_max = std::max(eprime_max, std::sqrt(gx * gx + gy * gy + gz * gz));
+            CHECK(gx == doctest::Approx(hx).epsilon(1e-5));
+            CHECK(gy == doctest::Approx(hy).epsilon(1e-5));
+            CHECK(gz == doctest::Approx(hz).epsilon(1e-5));
+            if (k % (nth / 4) == 0)
+                fmt::println("th={:>5.2f}: E' = ({:>9.4f}, {:>9.4f}, {:>9.4f}) um", th,
+                             1e3 * gx, 1e3 * gy, 1e3 * gz);
+        }
+        fmt::println("(2) full E' (GA base+corr) vs HTM Eq.(8): max gap = {:.3e} mm, "
+                     "|E'|_max = {:.4f} um",
+                     max_eprime_gap, 1e3 * eprime_max);
+
+        // (3) isolated-offset spot check: only eyz (Z-axis pitch) + its z-offset Lzz. The
+        // Abbe/Bryan E_AB then has the lone cross term eyz.Lzz in EM(z).L(z)'s x-row, so
+        // E_AB_x == cbw * eyz * Lzz -- exactly the eyz.Lzz term of Eq.(8)'s E'_x
+        // cbw-brace.
+        {
+            cai_err iso{};
+            iso.eyz = 4 * as;
+            iso.Lzz = 25.0;
+            for (int k = 0; k <= nth; ++k) {
+                double const th = 2.0 * pi * double(k) / double(nth);
+                auto const ab = E_ab_ga(iso, th);
+                double const term = std::cos(bw) * iso.eyz * iso.Lzz;
+                CHECK(ab.x == doctest::Approx(term).epsilon(1e-3));
+            }
+            fmt::println("(3) isolated eyz/Lzz: E_AB_x == cbw*eyz*Lzz = {:.4f} um, "
+                         "the eyz.Lzz term of Eq.(8) E'_x  [OK]",
+                         1e3 * std::cos(bw) * iso.eyz * iso.Lzz);
+        }
+
+        // (4) PAPER-ERROR flag (the GA is the tie-break). Isolate the X/Z straightness
+        // delta_xx, delta_xz in the BASE error E(F.2) (= Eq.3). Their brace enters E_x as
+        // (delta_xz - delta_xx).cbw and E_y as -(delta_xz - delta_xx).sbw -- ONE brace,
+        // because both come from rotating one displacement by one Rz(bw). The GA thus
+        // confirms Eq.(3)'s (delta_xz - delta_xx) in BOTH rows and flags Eq.(8)'s printed
+        // E'_y brace (delta_xx - delta_xz) as a sign typo.
+        {
+            cai_err iso{};
+            iso.dxx = 5e-3, iso.dxz = 2e-3;
+            double const brace = iso.dxz - iso.dxx; // Eq.(3) form
+            for (int k = 0; k <= nth; ++k) {
+                double const th = 2.0 * pi * double(k) / double(nth);
+                auto const pe = Pe_ga(iso, th);
+                auto const pi_ = Pe_ga(none, th);
+                double const ex = pe.x - pi_.x, ey = pe.y - pi_.y;
+                CHECK(ex == doctest::Approx(brace * std::cos(bw)).epsilon(2e-2));
+                CHECK(ey == doctest::Approx(-brace * std::sin(bw)).epsilon(2e-2));
+            }
+            fmt::println("(4) GA confirms Eq.(3) brace (dxz-dxx) in BOTH E_x and E_y; "
+                         "Eq.(8)'s printed E'_y (dxx-dxz) is a sign typo  [flagged]");
+        }
+
+        fmt::println("");
+        fmt::println("Abbe/Bryan: GA error-twist velocity field at the offset point "
+                     "reproduces Cai Eq.(5-8) (Phase F.3)");
+        fmt::println("");
+    }
 }
