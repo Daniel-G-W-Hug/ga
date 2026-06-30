@@ -280,20 +280,33 @@ change. Build is configured **Release** (`build/`).
   fires; Tao/Zhou equal 150/150 offset 150 → reach [0,300] clipped. See
   `feedback_visual_review_before_commit` memory (user reviews ga_view changes before commit).
 
-### RESUME HERE → F.6 (ga_docu capstone passage)
+- **F.6 DONE & COMMITTED 2026-06-30 (`07b6a32`)** — Cai volumetric-error capstone passage in
+  `6_ga_applications_pga.tex`, house voice, user-proofread. Three new `\paragraph{}` blocks after
+  the Zhou "Global flatness" paragraph: *"Machine geometric errors as motors"* (motor-product
+  volumetric error vs the HTM page; chain-position cone mechanism; Abbe/Bryan = error-twist
+  velocity field `rcmt(Ω_e, L)`; + two explanatory footnotes — the three references' differing
+  COORDINATE conventions, and the wheel/wafer RADII difference = full rosette vs partial arc),
+  *"Structural consistency as a check"* (the two transcription discrepancies; SOFTENED from "the
+  same point" to "a related disagreement, there in the dynamics" after user review — the Tao
+  corrections are physics-derivation, the Cai ones transcription), *"Ideal geometry and residual
+  height fields"* (the DESIGN PRINCIPLE; `t = z_p + t0 − z_c`; TTV). New `Cai_wafer_grinding:2024`
+  bib entry; new TTV glossary entry (`8_ga_glossary.tex`, `TTV = max t − min t`) forward-ref'd
+  from the capstone; neutralized one "Phase Dyn" footnote. Compiles clean (latexmk), all
+  cross-refs resolve, all added lines ≤90 cols. PDF rebuilt + committed.
 
-F.0–F.5 DONE (the whole Cai arc + its viewer). **REPROVIDE the paper for F.6** if quoting
-equations. **F.6 = docs** in `6_ga_applications_pga.tex` (the existing grinding capstone),
-matching the docs voice. Cover (see the **F.6 plan entry above** for the full list): the
-error-motor / error-twist vs HTM-subtraction; Abbe/Bryan as a velocity-field evaluation (`ε×L`
-lever arm, one `rcmt`); the F.4 **chain-position-IS-the-physics** topography insight (error
-before vs after the wheel spin = cone vs flat); the **GA-as-transcription-error-arbiter** finding
-with BOTH worked instances (F.3 Eq.8 brace sign typo; F.4 Eq.10 malformed RMt / Fig.8 colorbar
-swap); and the generic **DESIGN PRINCIPLE** (IDEAL rigid motors + REAL = ideal + error motors +
-residual scalar height fields; every surface = rigid carrier motor + height field, chuck +
-waviness as the two instances). Then **F.7** (outlook = Tao+Zhou+Cai superposition on one frame
-tree). Companion memory: `project_wafer_grinding` (Phase F section). Table-2 params: Rt=72.5mm,
-ωt=2400rpm, f=0.02mm/min, Rw=150mm, ωw=80rpm, αx=αy=0.01°; cone scale `Rt·(5″)` = 1.757 µm.
+### RESUME HERE → F.7 (optional outlook) — or Phase F is COMPLETE
+
+F.0–F.6 DONE = the whole Cai arc (model + viewer + docs). **F.7 is the only remaining Phase-F
+item and it is OPTIONAL** (scope was TBD): a short closing note that the THREE error sources
+(Tao spindle vibration, Zhou axis-tilt flatness, Cai machine geometric / volumetric error) live
+on ONE GA frame tree and SUPERPOSE — "three error mechanisms from three papers, one frame tree,
+composed by motor multiplication." NOTE F.6's Step 4 ("Ideal geometry and residual height
+fields") already opens with "The three error sources fit one pattern," so it partly serves this;
+F.7 would only add an explicit superposition sentence/short paragraph. Decide with the user
+whether to add it or treat Phase F as complete. Beyond Phase F, the grinding project's
+optimization tier (E = feed/speed optimization, chip-thickness force law) was PARKED/abandoned
+earlier — reopen only on user request. Companion memory: `project_wafer_grinding` (Phase F
+section).
 
 ---
 
