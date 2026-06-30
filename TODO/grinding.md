@@ -224,25 +224,45 @@ no ga_py regen unless we choose to bind the helper.
   `2·atan2` is the correct full-ε one. Not a bug, but the comment there overstates it.) Test
   re-declares the F.2 GA frame-tree + `mat4` HTM helpers locally (same style as F.2 vs F.0).
 
-Full appl3dp suite after F.3: **58 cases / 9572 assertions, 0 failed.** No library/ga_py
+- **F.4 DONE & COMMITTED 2026-06-30 (`691d3ec`)** — `TEST_CASE("pga3dp: Cai wafer topography +
+  TTV from volumetric error Eq.9-18 (Phase F.4)")` (20 assertions). The surface-formation half:
+  a wheel-rim grain traces a path in the rotating wafer frame, a Z-axis angular error is
+  injected as a MOTOR into the kinematic chain, and the ground surface = the per-radius
+  MIN-envelope of the grain height (Eq.13). **KEY GA INSIGHT — Eq.12 (`xp1=xp0+E′`) done
+  EXACTLY** by tracing the actual point (no linearisation, no E′ assembly); the CHAIN POSITION
+  of the error IS the physics: `εxz/εyz` sit BEFORE the wheel spin (a fixed wheel-axis tilt →
+  radial cone), the nominal `αx,αy` sit AFTER the spin (rotate with the wheel → average flat
+  under the min-envelope) — exactly why Fig.8(a) is flat despite `αx=αy=0.01°`. Gates: (a) no
+  error → flat (0.0000 µm); (b) `εxz=5″` → sin-cone, amp == `Rt·εxz` = 1.757 µm; (c) `εyz=5″` →
+  cos-cone, TTV ~ `2·Rt·εyz` = 3.47 µm; (d) both → warped, TTV 3.79 µm; (e) exact `dZ` == Cai
+  Eq.8 `E′_z = Rt(εxz·s(bt)−εyz·c(bt))` to 7e-11 mm (**ties F.4→F.3**); (f) Eq.14/16
+  thickness+TTV with a chuck height field `zc(r)` (flat→topography TTV; chuck dressed to the
+  cone → cancels, the DESIGN PRINCIPLE); (g) ZHOU↔CAI cross-check (same lever·tilt cone law).
+  **PAPER-ERROR WATCH:** GA gives `εxz` the SMALLER cone and `εyz` the LARGER — swapped vs
+  Fig.8's (b)/(c) colorbar labels (1.4/3.4 µm); consistent with the malformed RMt in Eq.10
+  (2nd column `[1,0,0]ᵀ` is not a rotation); GA proper-rotation is the tie-break. The topo()
+  min-envelope lambda (Cai 2-branch tree, time-varying spins, NR=75 radial bins, N=20000
+  steps/wafer-rev) is reusable for F.5. Suite runtime +6 s (Release, 14.6 s total).
+
+Full appl3dp suite after F.4: **59 cases / 9592 assertions, 0 failed.** No library/ga_py
 change. Build is configured **Release** (`build/`).
 
-### RESUME HERE → F.4 (topography + TTV, Eq.9–18)
+### RESUME HERE → F.5 (ga_view scene, Fig.8 topography heatmap)
 
-**On restart, FIRST request the paper** (reprovided per session; not in repo) — *Yindi Cai
-et al., Measurement 234 (2024) 114825* — and read **Eqs.(9)–(18) + Fig.5/6/7/8 + Table 2**
-before coding F.4. F.0–F.3 are DONE (the volumetric-error half: ideal chain, error motor,
-Eq.2/3 map, Eq.5-8 Abbe/Bryan correction). F.4 = the surface-formation half: perturb the
-grain trajectory `xp1 = xp0 + E′` (Eq.12, using F.3's `E′`), Z-map reduction (Eq.13/17/18 —
-the rotationally-symmetric min-envelope per radius, simpler than Tao's grain-ensemble carve),
-wafer thickness `t = z_p1−min + t0 − z_c−min` (Eq.14) and `TTV = max(t)−min(t)` (Eq.16). Reuse
-Phase-D.1 surface infra + the grain-trajectory sampler; model the CHUCK as a rigid carrier
-motor + residual scalar height field `z_c(r)` (the DESIGN PRINCIPLE in the F.4 plan entry).
-GATE: Fig.8 shapes — (a) εxz=εyz=0 flat; (b) εxz=5″ convex cone; (c) εyz=5″ concave cone; (d)
-both → cone + warped edge — plus the ZHOU↔CAI cross-check (a Z-axis angular error εxz/εyz is a
-wheel-chain tilt → must reproduce a Zhou-type cone). Then F.5 (ga_view scene), F.6 (docs incl.
-the design principle), F.7 (outlook). Table-2 params: Rt=72.5mm, ωt=2400rpm, f=0.02mm/min,
-Rw=150mm, ωw=80rpm, αx=αy=0.01°. Companion memory: `project_wafer_grinding` (Phase F section).
+F.0–F.4 DONE (the whole modelling arc: volumetric error Eq.1-8 + topography/TTV Eq.9-18). The
+paper is no longer strictly needed for F.5 (it's a viewer of the F.4 result) but reprovide it
+for F.6 docs. **F.5 = ga_view scene** reproducing Cai Fig.8 (a flat / b εxz=5″ cone / c εyz=5″
+cone / d both → cone+warped) as a jet-heatmap topography; reuse the `active_grinding_topo`
+pattern + the **5-place ga_view hand-sync** (`active_<name>.{hpp,cpp}`, `coordsys_model.{hpp,cpp}`
+add_/vector/clear, w_mainwindow/scenes include+loop+registration, CMakeLists — see CLAUDE.md
+"Adding a ga_view scene"). Drive it from F.4's reusable `topo()` min-envelope lambda (Cai
+2-branch tree, NR radial bins); C cycles the four error cases. Hand off to the user for the
+visual-layout check (a scene's ctor only runs when its view is selected). Then **F.6** (docs in
+`6_ga_applications_pga.tex` incl. the DESIGN PRINCIPLE + the F.3 GA-as-arbiter point + the F.4
+chain-position-is-physics insight + the two paper-error flags as findings) and **F.7** (outlook
+= Tao+Zhou+Cai superposition on one frame tree). Companion memory: `project_wafer_grinding`
+(Phase F section). Table-2 params: Rt=72.5mm, ωt=2400rpm, f=0.02mm/min, Rw=150mm, ωw=80rpm,
+αx=αy=0.01°; cone scale `Rt·(5″)` = 1.757 µm.
 
 ---
 
