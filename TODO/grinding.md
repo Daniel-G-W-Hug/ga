@@ -266,8 +266,19 @@ change. Build is configured **Release** (`build/`).
   dynamic view); the `populate_scene` `agf` loop wires `C/SPACE/R` automatically → **no
   `w_mainwindow` / `CMakeLists` change** (reusing the class sidesteps most of the 5-place
   hand-sync). Builds clean; offscreen smoke OK. The Cai cone == Zhou cone (gated F.4 (g)), so the
-  same renderer is faithful. **VISUAL LAYOUT PENDING USER CHECK** (a scene ctor only runs when
-  its view is selected; page to "Wafer grinding: volumetric-error topography, Cai Fig. 8").
+  same renderer is faithful. **VISUAL CHECK DONE & USER-CONFIRMED 2026-06-30** (commits `87bc2db`
+  / `682e1ce`) after 4 review-driven fixes: (1) empty profiles — raw grain height carries a ~50 mm
+  baseline (Z-column + nominal-tilt lift), ×120 = ~6000 au off-panel → subtract the path mean to
+  centre the µm cone on z=0; (2) scene moved to the END of the model list; (3) the height scale
+  `vbar` used the hardcoded Zhou `S_Z`(1.4) not `S_Z_CAI`(120) → "2 µm" bar was a ~0.003 au
+  horizontal dash → move `sz` ahead of the lambda so vbar uses it (now a 0.24 au vertical bar like
+  Tao's); (4) legend heading blank lines covered the scale key → continuous paragraph + `size_pct`
+  0.49. NOTE the X-Z/Y-Z profiles show a symmetric BAND (cone = its lower envelope) since Cai's εxz
+  is a WHEEL-axis tilt (height = `Rt·εxz·sin(wheel phase)`, 2-valued per radius) vs Zhou's static
+  WAFER tilt (clean f(position)). GEOMETRY: Cai's full rosette (vs Tao's partial arc) is faithful —
+  small wheel Rt=72.5 on wafer Rw=150, offset 72.5 → grain reach [0,145] ⊂ wafer → clip never
+  fires; Tao/Zhou equal 150/150 offset 150 → reach [0,300] clipped. See
+  `feedback_visual_review_before_commit` memory (user reviews ga_view changes before commit).
 
 ### RESUME HERE → F.6 (ga_docu capstone passage)
 
