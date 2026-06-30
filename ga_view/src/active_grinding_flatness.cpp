@@ -120,6 +120,18 @@ void active_grinding_flatness::recompute()
             if (on) m_path.push_back({g.x, g.y, g.z, /*pen=*/prev_on}); // height = e3
             prev_on = on;
         }
+        // The raw grain height carries a large constant baseline -- the ~50 mm Z-column
+        // offset plus the constant nominal-tilt lift (the ax,ay tilt co-rotates with the
+        // spin, so it only shifts z, it does not vary it). Subtract the path mean so the
+        // ~um volumetric-error cone is centred on the z = 0 reference and on-panel (the
+        // F.4 app-test referenced the cone against the ideal min-envelope; a path mean is
+        // the viewer equivalent).
+        double zsum = 0.0;
+        for (auto const& p : m_path)
+            zsum += p.z;
+        double const zbar = m_path.empty() ? 0.0 : zsum / double(m_path.size());
+        for (auto& p : m_path)
+            p.z -= zbar;
         m_shown = 0;
         return;
     }

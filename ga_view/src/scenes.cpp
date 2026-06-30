@@ -2690,55 +2690,6 @@ std::vector<Coordsys_model> build_models()
         models.push_back(std::move(cm));
     }
 
-    // Append the Cai volumetric-error topography scene (Phase F.5 of TODO/grinding.md;
-    // Cai et al., Measurement 234 (2024) 114825, Fig. 8). The SAME flatness renderer as
-    // the Zhou view above, driven in CAI mode: the cone comes from a Z-axis ANGULAR error
-    // (eps_xz, eps_yz) injected BEFORE the wheel spin in the Cai 2-branch machine -- a
-    // fixed wheel-axis tilt (the nominal adjustment tilt sits AFTER the spin and averages
-    // flat). C cycles the 4 Fig.8 cases. The Cai eps cone is the SAME shape as the Zhou
-    // tilt cone (gated in the F.4 app-test: same lever*tilt law), here sourced from the
-    // machine-geometric error budget instead of a wafer-axis misalignment.
-    {
-        Coordsys_model cm;
-        grinding_flatness_params cai;
-        cai.cai = true;
-        cai.R = 150.0;     // wafer radius Rw [mm]
-        cai.Rt = 72.5;     // wheel radius [mm] (Cai Table 2)
-        cai.Xoff = 72.5;   // wheel-wafer centre offset: rim reaches the wafer centre
-        cai.n1 = 2400.0;   // wheel speed [rpm] (Cai Table 2)
-        cai.n2 = 80.0;     // wafer speed [rpm] (Cai Table 2)
-        cai.cai_eps = 5.0; // Z-axis angular error magnitude [arcsec] (Cai Fig. 8)
-        cm.add_grinding_flatness(agrinding_flatness{cai});
-        cm.set_label("Wafer grinding: volumetric-error topography, Cai Fig. 8");
-
-        diagram_legend leg;
-        leg.heading =
-            "PGA3D volumetric error (Cai 2024, Fig. 8): a Z-axis ANGULAR error of the\n"
-            "grinding machine carves a cone into the ground wafer. eps_xz / eps_yz are "
-            "injected BEFORE the wheel spin (a fixed wheel-axis tilt) -> a radial CONE;\n"
-            "the nominal adjustment tilt sits AFTER the spin (rotates with the wheel) -> "
-            "it averages FLAT. That is why no error -> flat despite the 0.01 deg "
-            "adjustment.\n\neps_xz -> a sin-cone; eps_yz -> a cos-cone; both -> a warped "
-            "cone; the height (~Rt*eps = 1.8 um) is drawn hugely exaggerated.\n\nSame "
-            "renderer + same lever*tilt cone law as the Zhou view -- here from the "
-            "machine-error budget, not a wafer misalignment.\n\nC steps Fig. 8's 4 "
-            "cases.";
-        leg.entries = {{"SPACE:", "pause / resume the trace build-up"},
-                       {"R:", "restart the trace"},
-                       {"C:", "step the Fig.8 cases (flat / eps_xz / eps_yz / both)"},
-                       {"─────", "──────────"},
-                       {"dark red:", "the grain cutting path on the wafer"},
-                       {"X-Y:", "the cutting-path rosette (wafer plane)"},
-                       {"X-Z, Y-Z:", "the profile cross-sections (z exaggerated)"},
-                       {"dashed:", "the z = 0 (flat) reference"}};
-        leg.x_pct = 0.02;
-        leg.y_pct = 0.02;
-        leg.size_pct = 0.46;
-        cm.set_legend(leg);
-
-        models.push_back(std::move(cm));
-    }
-
     // Append the wafer-grinding surface-topography scene (Phase D.1c of TODO/grinding.md;
     // Tao 2022, Figs. 9/10): a heatmap of the ground-wafer height field, whose waviness
     // wavelengths lambda_m / lambda_c are computed live from kinematic_system3dp::
@@ -2825,6 +2776,56 @@ std::vector<Coordsys_model> build_models()
         leg.x_pct = 0.01;
         leg.y_pct = 0.02;
         leg.size_pct = 0.49; // wider box -> heading wraps to fewer lines (shorter box)
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the Cai volumetric-error topography scene LAST (Phase F.5 of
+    // TODO/grinding.md; Cai et al., Measurement 234 (2024) 114825, Fig. 8). The SAME
+    // flatness renderer as the Zhou view, driven in CAI mode: the cone comes from a
+    // Z-axis ANGULAR error (eps_xz, eps_yz) injected BEFORE the wheel spin in the Cai
+    // 2-branch machine -- a fixed wheel-axis tilt (the nominal adjustment tilt sits AFTER
+    // the spin and averages flat). C cycles the 4 Fig.8 cases. The Cai eps cone is the
+    // SAME shape as the Zhou tilt cone (gated in the F.4 app-test: same lever*tilt law),
+    // here sourced from the machine-geometric error budget instead of a wafer-axis
+    // misalignment.
+    {
+        Coordsys_model cm;
+        grinding_flatness_params cai;
+        cai.cai = true;
+        cai.R = 150.0;     // wafer radius Rw [mm]
+        cai.Rt = 72.5;     // wheel radius [mm] (Cai Table 2)
+        cai.Xoff = 72.5;   // wheel-wafer centre offset: rim reaches the wafer centre
+        cai.n1 = 2400.0;   // wheel speed [rpm] (Cai Table 2)
+        cai.n2 = 80.0;     // wafer speed [rpm] (Cai Table 2)
+        cai.cai_eps = 5.0; // Z-axis angular error magnitude [arcsec] (Cai Fig. 8)
+        cm.add_grinding_flatness(agrinding_flatness{cai});
+        cm.set_label("Wafer grinding: volumetric-error topography, Cai Fig. 8");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D volumetric error (Cai 2024, Fig. 8): a Z-axis ANGULAR error of the\n"
+            "grinding machine carves a cone into the ground wafer. eps_xz / eps_yz are "
+            "injected BEFORE the wheel spin (a fixed wheel-axis tilt) -> a radial CONE;\n"
+            "the nominal adjustment tilt sits AFTER the spin (rotates with the wheel) -> "
+            "it averages FLAT. That is why no error -> flat despite the 0.01 deg "
+            "adjustment.\n\neps_xz -> a sin-cone; eps_yz -> a cos-cone; both -> a warped "
+            "cone; the height (~Rt*eps = 1.8 um) is drawn hugely exaggerated.\n\nSame "
+            "renderer + same lever*tilt cone law as the Zhou view -- here from the "
+            "machine-error budget, not a wafer misalignment.\n\nC steps Fig. 8's 4 "
+            "cases.";
+        leg.entries = {{"SPACE:", "pause / resume the trace build-up"},
+                       {"R:", "restart the trace"},
+                       {"C:", "step the Fig.8 cases (flat / eps_xz / eps_yz / both)"},
+                       {"─────", "──────────"},
+                       {"dark red:", "the grain cutting path on the wafer"},
+                       {"X-Y:", "the cutting-path rosette (wafer plane)"},
+                       {"X-Z, Y-Z:", "the profile cross-sections (z exaggerated)"},
+                       {"dashed:", "the z = 0 (flat) reference"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.46;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
