@@ -254,22 +254,35 @@ no ga_py regen unless we choose to bind the helper.
 Full appl3dp suite after F.4: **59 cases / 9592 assertions, 0 failed.** No library/ga_py
 change. Build is configured **Release** (`build/`).
 
-### RESUME HERE → F.5 (ga_view scene, Fig.8 topography heatmap)
+- **F.5 DONE & COMMITTED 2026-06-30 (`0cd4abb`)** — ga_view Cai Fig.8 scene. **NO new
+  QGraphicsItem class** (user steer = "just define a new scene"): the **Zhou flatness renderer
+  `active_grinding_flatness` is reused** via a new guarded `cai` mode (mirrors the existing
+  `dynamic` flag). In `cai` mode `recompute()` traces the wheel-rim grain through the Cai
+  2-branch machine with `εxz/εyz` injected BEFORE the wheel spin (the F.4 chain) → the cutting
+  path's height carries the cone; the same X-Y rosette + X-Z/Y-Z profile panels render it; `C`
+  cycles the 4 Fig.8 cases (flat / εxz / εyz / both warped). Cone is ~µm so it gets its own
+  larger height exaggeration `S_Z_CAI`. Zhou + dynamic paths byte-identical (all changes guarded
+  by `m_params.cai`). New scene registered in `scenes.cpp` (params + label + legend, like the
+  dynamic view); the `populate_scene` `agf` loop wires `C/SPACE/R` automatically → **no
+  `w_mainwindow` / `CMakeLists` change** (reusing the class sidesteps most of the 5-place
+  hand-sync). Builds clean; offscreen smoke OK. The Cai cone == Zhou cone (gated F.4 (g)), so the
+  same renderer is faithful. **VISUAL LAYOUT PENDING USER CHECK** (a scene ctor only runs when
+  its view is selected; page to "Wafer grinding: volumetric-error topography, Cai Fig. 8").
 
-F.0–F.4 DONE (the whole modelling arc: volumetric error Eq.1-8 + topography/TTV Eq.9-18). The
-paper is no longer strictly needed for F.5 (it's a viewer of the F.4 result) but reprovide it
-for F.6 docs. **F.5 = ga_view scene** reproducing Cai Fig.8 (a flat / b εxz=5″ cone / c εyz=5″
-cone / d both → cone+warped) as a jet-heatmap topography; reuse the `active_grinding_topo`
-pattern + the **5-place ga_view hand-sync** (`active_<name>.{hpp,cpp}`, `coordsys_model.{hpp,cpp}`
-add_/vector/clear, w_mainwindow/scenes include+loop+registration, CMakeLists — see CLAUDE.md
-"Adding a ga_view scene"). Drive it from F.4's reusable `topo()` min-envelope lambda (Cai
-2-branch tree, NR radial bins); C cycles the four error cases. Hand off to the user for the
-visual-layout check (a scene's ctor only runs when its view is selected). Then **F.6** (docs in
-`6_ga_applications_pga.tex` incl. the DESIGN PRINCIPLE + the F.3 GA-as-arbiter point + the F.4
-chain-position-is-physics insight + the two paper-error flags as findings) and **F.7** (outlook
-= Tao+Zhou+Cai superposition on one frame tree). Companion memory: `project_wafer_grinding`
-(Phase F section). Table-2 params: Rt=72.5mm, ωt=2400rpm, f=0.02mm/min, Rw=150mm, ωw=80rpm,
-αx=αy=0.01°; cone scale `Rt·(5″)` = 1.757 µm.
+### RESUME HERE → F.6 (ga_docu capstone passage)
+
+F.0–F.5 DONE (the whole Cai arc + its viewer). **REPROVIDE the paper for F.6** if quoting
+equations. **F.6 = docs** in `6_ga_applications_pga.tex` (the existing grinding capstone),
+matching the docs voice. Cover (see the **F.6 plan entry above** for the full list): the
+error-motor / error-twist vs HTM-subtraction; Abbe/Bryan as a velocity-field evaluation (`ε×L`
+lever arm, one `rcmt`); the F.4 **chain-position-IS-the-physics** topography insight (error
+before vs after the wheel spin = cone vs flat); the **GA-as-transcription-error-arbiter** finding
+with BOTH worked instances (F.3 Eq.8 brace sign typo; F.4 Eq.10 malformed RMt / Fig.8 colorbar
+swap); and the generic **DESIGN PRINCIPLE** (IDEAL rigid motors + REAL = ideal + error motors +
+residual scalar height fields; every surface = rigid carrier motor + height field, chuck +
+waviness as the two instances). Then **F.7** (outlook = Tao+Zhou+Cai superposition on one frame
+tree). Companion memory: `project_wafer_grinding` (Phase F section). Table-2 params: Rt=72.5mm,
+ωt=2400rpm, f=0.02mm/min, Rw=150mm, ωw=80rpm, αx=αy=0.01°; cone scale `Rt·(5″)` = 1.757 µm.
 
 ---
 
