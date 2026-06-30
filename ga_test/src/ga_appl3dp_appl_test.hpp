@@ -2468,4 +2468,258 @@ TEST_SUITE("PGA3DP: application tests")
                      "reproduces Cai Eq.(5-8) (Phase F.3)");
         fmt::println("");
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // F.4 -- wafer surface topography + TTV from the volumetric error (Cai Eq.9-18). The
+    // surface-formation half: a wheel-rim grain (functional point Pt) traces a path in
+    // the rotating wafer frame (Eq.9), the volumetric error perturbs it (Eq.12 xp1 = xp0
+    // + E'), and the ground surface is the per-radius MIN-envelope of the grain height
+    // (Eq.13 Z = zp1-min | (X,Y)) -- rotationally symmetric, so it collapses to a 1D
+    // radial profile. Wafer thickness t = zp1-min + t0 - zc-min (Eq.14), TTV = max(t) -
+    // min(t) (Eq.16).
+    //
+    // GA reading (the showcase): the paper builds the ideal trajectory (Eq.9), then a
+    // page-long LINEARISED error map E' (Eq.8), then ADDS them (Eq.12). In GA we inject
+    // the error as a MOTOR into the kinematic chain and trace the ACTUAL rim point --
+    // Eq.12 done exactly, no linearisation, no E' assembly. The chain POSITION of the
+    // error is the physics: a Z-axis angular error (eps_xz, eps_yz) sits BEFORE the wheel
+    // spin (a fixed, non-rotating wheel-axis tilt) -> it breaks the radial symmetry -> a
+    // CONE; the nominal adjustment tilt (ax, ay) sits AFTER the spin (rotates WITH the
+    // wheel) -> it averages out under the min-envelope -> FLAT. This is exactly why Cai
+    // Fig.8(a) is flat despite ax = ay = 0.01 deg, and it falls out of where the frames
+    // sit in the tree.
+    //
+    // GATES: (a) eps_xz = eps_yz = 0 -> flat (Fig.8a); (b) eps_xz = 5" -> a single-signed
+    // sin-cone of amplitude Rt*eps_xz (the tilt lever arm); (c) eps_yz = 5" -> a
+    // symmetric cos-cone spanning center-to-rim, TTV ~ 2*Rt*eps_yz; (d) both -> warped,
+    // TTV ~ the larger; the TTV magnitudes (1.8 / 3.5 um) bracket Fig.8's colorbars (1.4
+    // / 3.4 um). Plus: the exact z-displacement == Cai Eq.8's E'_z term Rt(eps_xz s(bt) -
+    // eps_yz c(bt)) (ties F.4 to F.3); the Eq.14 thickness with a supplied chuck height
+    // field zc(r); and the ZHOU<->CAI cross-check (the cone obeys the same lever-arm*tilt
+    // law as the Zhou wafer-tilt cone above).
+    //
+    // PAPER-ERROR WATCH: Fig.8 labels (b) eps_xz with the LARGER (3.4 um) colorbar and
+    // (c) eps_yz with the smaller (1.4 um), but the GA gives eps_xz the SMALLER
+    // (sin-cone, ~1.8 um) and eps_yz the LARGER (cos-cone, ~3.5 um) -- i.e. the
+    // eps_xz<->eps_yz roles are swapped vs Fig.8's print. This is consistent with the
+    // malformed RMt in Cai Eq.10 (its second column [1,0,0]^T is not a rotation); the GA
+    // uses a proper rotation, so it is the tie-break. Flag, do not silently reconcile.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE(
+        "pga3dp: Cai wafer topography + TTV from volumetric error Eq.9-18 (Phase F.4)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: Cai wafer topography + TTV from volumetric error Eq.9-18 "
+                     "(Phase F.4)");
+        fmt::println("");
+
+        // Table-2 parameters
+        double const Rt = 72.5, Rw = 150.0; // wheel / wafer radius [mm]
+        double const X = Rt; // wheel-wafer centre offset: rim reaches the wafer centre
+        double const Z = 50.0;
+        double const ax = 0.01 * pi / 180,
+                     ay = 0.01 * pi / 180;     // nominal adjustment tilt
+        double const as = pi / 180.0 / 3600.0; // 1 arcsec [rad]
+        double const wt = rpm2radps(2400.0), ww = rpm2radps(80.0); // wheel / wafer spin
+
+        int const NR = 75; // radial Z-map bins over [0, Rw]
+        double const dr = Rw / NR;
+
+        // ---- min-envelope radial topography (Eq.13): trace the wheel-rim grain through
+        // the Cai machine with a Z-axis angular error (exz,eyz) injected BEFORE the wheel
+        // spin; take the lowest grain height per wafer-radius bin over one wafer
+        // revolution.
+        auto topo = [&](double exz, double eyz) {
+            std::vector<double> zmin(NR, 1e9);
+            std::vector<int> hit(NR, 0);
+            kinematic_system3dp s;
+            s.add_frame(static_frame3dp("bed"));
+            s.add_frame(static_frame3dp("z_axis", vec3dp{0, 0, Z, 1}), s.index_of("bed"));
+            s.add_frame(static_frame3dp("z_err", O_3dp, vec3dp{exz, eyz, 0, 0}),
+                        s.index_of("z_axis")); // fixed wheel-axis tilt (before the spin)
+            s.add_frame(static_frame3dp("c1_rot", O_3dp, vec3dp{0, 0, 0, 0}),
+                        s.index_of("z_err"));
+            s.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0, 0, 0}),
+                        s.index_of("c1_rot")); // nominal tilt (after the spin)
+            s.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0, ay, 0, 0}),
+                        s.index_of("tilt_x"));
+            s.add_frame(static_frame3dp("x_axis", vec3dp{X, 0, 0, 1}), s.index_of("bed"));
+            s.add_frame(static_frame3dp("c2_rot", O_3dp, vec3dp{0, 0, 0, 0}),
+                        s.index_of("x_axis"));
+            size_t const c1 = s.index_of("c1_rot"), c2 = s.index_of("c2_rot");
+            double const Tw = 2.0 * pi / ww; // one wafer revolution [s]
+            int const N = 20000;
+            auto const Pt = vec3dp{Rt, 0, 0, 1};
+            for (int k = 0; k <= N; ++k) {
+                double const t = Tw * double(k) / double(N);
+                s.set_pose(c1, pose3dp{O_3dp, vec3dp{0, 0, wt * t, 0}});
+                s.set_pose(c2, pose3dp{O_3dp, vec3dp{0, 0, ww * t, 0}});
+                auto const g = unitize(move3dp(Pt, s.get_pos_trafo("tilt_y", "c2_rot")));
+                double const r = std::sqrt(g.x * g.x + g.y * g.y); // wafer radius (e1-e2)
+                if (r > Rw) continue;
+                int const b = std::min(NR - 1, int(r / dr));
+                if (g.z < zmin[b]) zmin[b] = g.z;
+                ++hit[b];
+            }
+            return std::make_pair(zmin, hit);
+        };
+
+        // deviation of an error topography vs the ideal one -> the volumetric-error
+        // contribution (Fig.8), with the feed / nominal-tilt baseline cancelled. Returns
+        // {lo, hi, center, ttv} in mm over the hit radii.
+        auto const ideal = topo(0.0, 0.0);
+        auto dev = [&](std::pair<std::vector<double>, std::vector<int>> const& topo_e) {
+            double lo = 1e9, hi = -1e9, ctr = 0.0;
+            for (int i = 0; i < NR; ++i) {
+                if (topo_e.second[i] == 0 || ideal.second[i] == 0) continue;
+                double const d = topo_e.first[i] - ideal.first[i];
+                lo = std::min(lo, d);
+                hi = std::max(hi, d);
+                if (i == 0) ctr = d; // innermost bin ~ wafer centre
+            }
+            return std::array<double, 4>{lo, hi, ctr, hi - lo};
+        };
+
+        // (a) no Z-axis angular error -> FLAT (Fig.8a). The nominal ax,ay tilt averages
+        // out under the min-envelope because it rotates with the wheel spin.
+        {
+            double spread = 0.0, lo = 1e9, hi = -1e9;
+            for (int i = 0; i < NR; ++i) {
+                if (ideal.second[i] == 0) continue;
+                lo = std::min(lo, ideal.first[i]);
+                hi = std::max(hi, ideal.first[i]);
+            }
+            spread = hi - lo;
+            CHECK(spread < 1e-5); // flat to < 0.01 um despite ax = ay = 0.01 deg
+            fmt::println("(a) eps_xz=eps_yz=0: ideal surface spread = {:.4f} um -> FLAT "
+                         "(Fig.8a)",
+                         1e3 * spread);
+        }
+
+        double const lever =
+            Rt * 5.0 * as; // 72.5 mm * 5 arcsec = 1.7574 um tilt lever arm
+
+        // (b) eps_xz = 5" -> single-signed sin-cone of amplitude Rt*eps_xz
+        auto const db = dev(topo(5.0 * as, 0.0));
+        {
+            CHECK(db[1] < 0.05e-3); // single-signed (no positive lobe)
+            CHECK(std::abs(db[0]) ==
+                  doctest::Approx(lever).epsilon(0.03)); // amplitude == Rt*eps_xz
+            CHECK(std::abs(db[2]) < 0.1e-3);             // ~0 at the wafer centre
+            fmt::println("(b) eps_xz=5\": dev in [{:+.3f},{:+.3f}] um, TTV={:.3f} um  "
+                         "-> sin-cone (amp=Rt*eps_xz={:.3f})",
+                         1e3 * db[0], 1e3 * db[1], 1e3 * db[3], 1e3 * lever);
+        }
+
+        // (c) eps_yz = 5" -> symmetric cos-cone center-to-rim, TTV ~ 2*Rt*eps_yz
+        auto const dc = dev(topo(0.0, 5.0 * as));
+        {
+            CHECK(dc[0] < 0.0); // spans both signs
+            CHECK(dc[1] > 0.0);
+            CHECK(dc[3] == doctest::Approx(2.0 * lever).epsilon(0.05)); // TTV ~ 2*lever
+            fmt::println("(c) eps_yz=5\": dev in [{:+.3f},{:+.3f}] um, TTV={:.3f} um  "
+                         "-> cos-cone (TTV~2*Rt*eps_yz={:.3f})",
+                         1e3 * dc[0], 1e3 * dc[1], 1e3 * dc[3], 2e3 * lever);
+        }
+
+        // (d) both -> warped, TTV ~ the larger (cos + sin superpose)
+        auto const dd = dev(topo(5.0 * as, 5.0 * as));
+        {
+            CHECK(dd[3] > dc[3] * 0.9);   // at least as large as the eps_yz cone
+            CHECK(dd[3] < dc[3] + db[3]); // sub-additive (not a simple sum)
+            fmt::println("(d) both 5\": dev in [{:+.3f},{:+.3f}] um, TTV={:.3f} um  "
+                         "-> warped cone (Fig.8d)",
+                         1e3 * dd[0], 1e3 * dd[1], 1e3 * dd[3]);
+        }
+
+        // (e) tie to F.3: the EXACT grain z-displacement at the functional point equals
+        // Cai Eq.8's E'_z term Rt(eps_xz*s(bt) - eps_yz*c(bt)) over a wheel-phase sweep
+        // -- the same error-twist z-velocity field F.3 validated, now driving the
+        // surface.
+        {
+            double const exz = 5.0 * as, eyz = 3.0 * as;
+            auto zsingle = [&](double ex, double ey, double bt) {
+                kinematic_system3dp s;
+                s.add_frame(static_frame3dp("bed"));
+                s.add_frame(static_frame3dp("z_axis", vec3dp{0, 0, Z, 1}),
+                            s.index_of("bed"));
+                s.add_frame(static_frame3dp("z_err", O_3dp, vec3dp{ex, ey, 0, 0}),
+                            s.index_of("z_axis"));
+                s.add_frame(static_frame3dp("c1_rot", O_3dp, vec3dp{0, 0, bt, 0}),
+                            s.index_of("z_err"));
+                s.add_frame(static_frame3dp("tilt_x", O_3dp, vec3dp{ax, 0, 0, 0}),
+                            s.index_of("c1_rot"));
+                s.add_frame(static_frame3dp("tilt_y", O_3dp, vec3dp{0, ay, 0, 0}),
+                            s.index_of("tilt_x"));
+                s.add_frame(static_frame3dp("x_axis", vec3dp{X, 0, 0, 1}),
+                            s.index_of("bed"));
+                s.add_frame(static_frame3dp("c2_rot", O_3dp, vec3dp{0, 0, 0.3, 0}),
+                            s.index_of("x_axis"));
+                return double(unitize(move3dp(vec3dp{Rt, 0, 0, 1},
+                                              s.get_pos_trafo("tilt_y", "c2_rot")))
+                                  .z);
+            };
+            double max_gap = 0.0;
+            for (int k = 0; k < 8; ++k) {
+                double const bt = 2.0 * pi * double(k) / 8.0;
+                double const dz = zsingle(exz, eyz, bt) - zsingle(0, 0, bt);
+                double const eq8 = Rt * (exz * std::sin(bt) - eyz * std::cos(bt));
+                max_gap = std::max(max_gap, std::abs(dz - eq8));
+                CHECK(dz == doctest::Approx(eq8).epsilon(1e-4));
+            }
+            fmt::println("(e) exact dZ == Eq.8 E'_z = Rt(eps_xz s(bt)-eps_yz c(bt)) to "
+                         "{:.2e} mm  [ties F.4->F.3]",
+                         max_gap);
+        }
+
+        // (f) Eq.14 thickness + Eq.16 TTV with a supplied chuck height field zc(r) (the
+        // DESIGN PRINCIPLE: chuck = rigid carrier + residual scalar field; here the
+        // carrier is identity and zc(r) is the 1D radial dressing profile). Flat chuck ->
+        // TTV is the topography spread; a chuck cone matching the wafer cone cancels it
+        // (the wafer lower surface conforms to the chuck, t = zp1-min + t0 - zc).
+        {
+            auto const topo_e = topo(0.0, 5.0 * as);
+            double const t0 = 0.8; // commanded wafer thickness [mm]
+            auto ttv = [&](auto const& zc) {
+                double lo = 1e9, hi = -1e9;
+                for (int i = 0; i < NR; ++i) {
+                    if (topo_e.second[i] == 0) continue;
+                    double const r = (i + 0.5) * dr;
+                    double const t = topo_e.first[i] + t0 - zc(r); // Eq.14
+                    lo = std::min(lo, t);
+                    hi = std::max(hi, t);
+                }
+                return hi - lo; // Eq.16
+            };
+            double const ttv_flat = ttv([](double) { return 0.0; }); // flat chuck
+            CHECK(ttv_flat == doctest::Approx(dc[3]).epsilon(0.02)); // == topography TTV
+            // a chuck dressed to the SAME error cone (zc = zp1-min) makes t = t0 + const
+            double const ttv_conform = ttv(
+                [&](double r) { return topo_e.first[std::min(NR - 1, int(r / dr))]; });
+            CHECK(ttv_conform < 1e-9); // the chuck height field cancels the wafer cone
+            fmt::println("(f) Eq.14/16 TTV: flat chuck = {:.3f} um (= topography); chuck "
+                         "dressed to the cone -> TTV = {:.3e} um (cancels)",
+                         1e3 * ttv_flat, 1e3 * ttv_conform);
+        }
+
+        // (g) ZHOU<->CAI cross-check: the Cai eps_xz/eps_yz cone obeys the SAME
+        // lever-arm * tilt law as the Zhou wafer-tilt cone (R*tan(alpha), validated in
+        // the "wafer-tilt flatness profile" test above) -- a fixed axis tilt of magnitude
+        // eta gives a radial cone of amplitude (lever radius)*eta. Cai's lever is the
+        // wheel radius Rt; Zhou's is the wafer radius Rw. Same mechanism, two independent
+        // models.
+        {
+            CHECK(std::abs(db[0]) == doctest::Approx(Rt * 5.0 * as).epsilon(0.03));
+            fmt::println(
+                "(g) Zhou<->Cai: Cai cone amp = Rt*eps = {:.3f} um obeys the same "
+                "lever*tilt cone law as Zhou R*tan(alpha)",
+                1e3 * std::abs(db[0]));
+        }
+
+        fmt::println("");
+        fmt::println("Topography: GA trajectory + error-motor injection + min-envelope "
+                     "reproduces Cai Fig.8 / TTV (Phase F.4)");
+        fmt::println("");
+    }
 }
