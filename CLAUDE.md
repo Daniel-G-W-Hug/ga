@@ -1085,6 +1085,14 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   `transform_opt` is slower than `transform()` for one-offs (matrix build not amortised);
   only the batch overload wins (~3× at `-O3`). Bench: `ga_test/utilities/`.
 
+- **`get_rotor` and `get_boost` use OPPOSITE half-angle signs by design.** `get_rotor`
+  negates (`-theta/2`, matching ega3d); `get_boost` does not (`+phi/2`). Each sign is the
+  one that makes a positive parameter a positive-sense active transform (a `+theta`
+  right-handed rotation; a boost with `gamma = cosh(phi)`). This is NOT an inconsistency —
+  "unifying" the two silently reverses one transform. Called out at both function comments
+  and in `ga_docu` ("Motion in STA"). (`exp`/`log` are sign-consistent — the `+/-` split is
+  only in these two convenience builders.)
+
 ## Rigid-body dynamics (`dynamic_system{2,3}dp`, `ga_pga{2,3}dp_ops_physics.hpp`)
 
 **Three kinds of force element** feed the joint-space generalised force `tau` (all additive;

@@ -340,6 +340,12 @@ inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
 // (B a spatial bivector, B*B < 0; need not be normalized).
 // Apply via the sandwich transform(X, R) = R * X * rev(R): rotates by +theta.
 // Half-angle and sign convention match ega3d get_rotor().
+//
+// SIGN (do not "unify" with get_boost): this negates the half-angle (-theta/2), but
+// get_boost() does NOT (+phi/2). The opposite signs are deliberate -- each is the one
+// that makes a positive parameter a positive-sense active transform (a +theta
+// right-handed rotation here; a boost with gamma = cosh(phi) there). Forcing both to the
+// same sign silently reverses one of them. Documented in ga_docu ("Motion in STA").
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
@@ -358,6 +364,8 @@ inline MVec4ds_E<std::common_type_t<T, U>> get_rotor(BiVec4ds<T> const& B, U the
 // rapidity relates to velocity by  beta = tanh(phi),  gamma = cosh(phi).
 // Apply via the sandwich transform(X, R) = R * X * rev(R).
 // (The +phi/2 sign convention is validated against gamma = cosh(phi) in step 2.)
+// NOTE the +phi/2 here vs the -theta/2 in get_rotor() -- the opposite sign is BY DESIGN
+// (see the SIGN note there), not an inconsistency to be "fixed".
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
