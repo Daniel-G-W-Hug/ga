@@ -17,6 +17,7 @@ set(HEADERS
     detail/ga_pga_types.hpp
     detail/ga_sta_types.hpp
     detail/ga_solver.hpp
+    detail/ga_stencil.hpp
     #
     detail/type_t/ga_scalar_t.hpp
     detail/type_t/ga_vec2_t.hpp

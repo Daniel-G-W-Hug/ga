@@ -322,6 +322,7 @@ the whole tree or hand-rolling a helper:
 | `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
 | `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form) |
 | `ga/detail/ga_solver.hpp` | the small dense linear solver — `lu_solve`, `lstsq_solve` (least-squares / minimum-norm via normal equations), `kkt_solve` (constrained KKT); used by the physics assembly and the closed-loop layer |
+| `ga/detail/ga_stencil.hpp` | finite-difference stencil generator — `stencil_t` (Fornberg-style weights, order, truncation error via `lu_decomp`/`lu_backsubs`; explicit + compact schemes), `factorial`; infrastructure for discretized field derivatives (numerical nabla, planned STA electrodynamics) |
 
 `ga/detail/` also holds the foundation the user types are built on (`ga_core_types`,
 `ga_ega_types`, `ga_pga_types`, `ga_sta_types`, `ga_error_handling`, `ga_fmt_support`).
