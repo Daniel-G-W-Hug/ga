@@ -271,7 +271,7 @@ separates them. To keep a display block readable:
 // prose continuing after the formula ...
 ```
 
-The physics headers (`ga/ga_pga{2,3}dp_ops_physics.hpp`) follow this throughout.
+The mechanics headers (`ga/ga_pga{2,3}dp_ops_mechanics.hpp`) follow this throughout.
 
 ### Library Usage Patterns
 
@@ -301,12 +301,12 @@ function; it is the authoritative per-file index. The split:
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
 | `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent` |
-| `ga_<alg>_ops_physics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`, `grinding_controller`) |
+| `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`, `grinding_controller`) |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
 
 So e.g. `exp`/`log` live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
-`rcmt`-velocity-field helpers used together with them are in `ops_physics.hpp` (PGA) and
-`ops_products.hpp` (`rcmt`). EGA/STA have no `physics`/`constraints` headers.
+`rcmt`-velocity-field helpers used together with them are in `ops_mechanics.hpp` (PGA) and
+`ops_products.hpp` (`rcmt`). EGA/STA have no `mechanics`/`constraints` headers.
 
 #### Constants, user types, utilities, the solver (the non-`ops` headers)
 
@@ -319,7 +319,7 @@ the whole tree or hand-rolling a helper:
 | `ga/ga_value_t.hpp` | the scalar type `value_t` (float/double switch); `eps` (equality) and `eps_congruent`; `is_congruent` + `detail::coeffs_congruent` |
 | `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
 | `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
-| `ga/ga_usr_types_physics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
+| `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
 | `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form) |
 | `ga/detail/ga_solver.hpp` | the small dense linear solver — `lu_solve`, `lstsq_solve` (least-squares / minimum-norm via normal equations), `kkt_solve` (constrained KKT); used by the physics assembly and the closed-loop layer |
 
@@ -1093,7 +1093,7 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   and in `ga_docu` ("Motion in STA"). (`exp`/`log` are sign-consistent — the `+/-` split is
   only in these two convenience builders.)
 
-## Rigid-body dynamics (`dynamic_system{2,3}dp`, `ga_pga{2,3}dp_ops_physics.hpp`)
+## Rigid-body dynamics (`dynamic_system{2,3}dp`, `ga_pga{2,3}dp_ops_mechanics.hpp`)
 
 **Three kinds of force element** feed the joint-space generalised force `tau` (all additive;
 with none attached the gravity/bias path is byte-unchanged):
@@ -1148,7 +1148,7 @@ bivector (a common, wrong assumption carried over from 3D):
 The PGA rate-of-change of a point is `Xdot = rcmt(Omega, X)` — **argument order matters**:
 `rcmt(Omega, X) = -rcmt(X, Omega)` (twist first); the sign/order differs from EGA's
 `cmt(r, Omega_E)`. Moving-frame kinematic fields (see
-`ga_docu/5_ga_modelling_physics.tex`, "Moving coordinate systems"): velocity `rcmt(Omega,
+`ga_docu/5_ga_modelling_mechanics.tex`, "Moving coordinate systems"): velocity `rcmt(Omega,
 X)`, centripetal `rcmt(Omega, rcmt(Omega, r))`, Coriolis `2*rcmt(Omega, v_rel)`,
 frame/Euler `rcmt(Omega_dot, r)`. Full derivations in `ga_docu/3_ga_modelling_motion.tex`.
 

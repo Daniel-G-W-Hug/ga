@@ -37,7 +37,7 @@ class closed_loop_system2dp;
 // Used for rigid body dynamics in PGA2DP. The inertia map I[Omega] maps the
 // rate of change Omega (a Vec2dp) to the momentum (a BiVec2dp).
 //
-// From ga_docu/5_ga_physics_modelling.tex eq. 539-546:
+// From ga_docu/5_ga_modelling_mechanics.tex eq. 539-546:
 // I_2D = m * [  0        Xz^2      -Xy*Xz    ]
 //            [ -Xz^2      0         Xx*Xz    ]
 //            [ -Xx*Xz    -Xy*Xz    Xx^2+Xy^2 ]
@@ -719,7 +719,7 @@ class kinematic_system2dp : public static_system2dp {
     }
 
     // Acceleration field at point X of a rigid body with velocity twist V and
-    // acceleration twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    // acceleration twist A (5_ga_modelling_mechanics.tex, "Moving coordinate systems"):
     //
     //   a(X) = rcmt(A, X)              [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))     [centripetal:  rcmt(Omega, rcmt(Omega, r))]
@@ -1592,5 +1592,5 @@ class dynamic_system2dp : public kinematic_system2dp {
 
 } // namespace hd::ga::pga
 
-// value_t convenience aliases (inertia2dp, ...) live in ga_usr_types_physics.hpp, next to
-// the other physics convenience types.
+// value_t convenience aliases (inertia2dp, ...) live in ga_usr_types_mechanics.hpp, next to
+// the other mechanics convenience types.

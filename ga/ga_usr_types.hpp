@@ -118,8 +118,8 @@ using mvec4ds = MVec4ds<value_t>;     // fully populated 4ds multivector
 // dual number with s 1 + ps I_4ds (I_4ds = g0123, where g0123^2 = 0)
 using dualnum4ds = DualNum4ds<value_t>;
 
-// NOTE: physics convenience aliases (inertia2dp, inertia3dp, ...) live in
-// ga_usr_types_physics.hpp -- they alias templates defined by the physics ops headers,
+// NOTE: mechanics convenience aliases (inertia2dp, inertia3dp, ...) live in
+// ga_usr_types_mechanics.hpp -- they alias templates defined by the mechanics ops headers,
 // which are included after this file.
 
 } // namespace hd::ga

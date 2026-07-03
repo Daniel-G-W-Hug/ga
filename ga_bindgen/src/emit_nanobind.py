@@ -1095,7 +1095,7 @@ def emit_data_struct_binding(t: TypeAlias, type_map: dict[str, str]) -> str | No
     synthesised via placement-new brace-init: a default ctor that value-
     initialises (zeros) every field, and a by-field ctor. Fields are exposed
     read/write; __repr__ / __str__ / __format__ route through the type's
-    fmt::formatter (defined in ga_fmt_physics.hpp). No GA operators / array
+    fmt::formatter (defined in ga_fmt_mechanics.hpp). No GA operators / array
     protocol are emitted — these are plain records, not multivectors.
     """
     cls = t.name

@@ -64,7 +64,7 @@ set(HEADERS
     #
     ga_usr_consts.hpp
     ga_usr_types.hpp
-    ga_usr_types_physics.hpp
+    ga_usr_types_mechanics.hpp
     ga_usr_utilities.hpp
     ga_algebra.hpp
     ga_value_t.hpp
@@ -79,13 +79,13 @@ set(HEADERS
     ga_pga2dp_ops_basics.hpp
     ga_pga2dp_ops_products.hpp
     ga_pga2dp_ops.hpp
-    ga_pga2dp_ops_physics.hpp
+    ga_pga2dp_ops_mechanics.hpp
     ga_pga2dp_ops_constraints.hpp
     #
     ga_pga3dp_ops_basics.hpp
     ga_pga3dp_ops_products.hpp
     ga_pga3dp_ops.hpp
-    ga_pga3dp_ops_physics.hpp
+    ga_pga3dp_ops_mechanics.hpp
     ga_pga3dp_ops_constraints.hpp
     #
     ga_sta4ds_ops_basics.hpp

@@ -10,7 +10,7 @@
 // in alphabetical order to preserve the intended test execution sequence:
 //   ga_appl3dp_3d_cmp_test.hpp   ('3' < 'a') -> comparison tests first
 //   ga_appl3dp_appl_test.hpp     ('a' < 'p') -> application tests second
-//   ga_appl3dp_physics_test.hpp              -> physics tests last
+//   ga_appl3dp_mechanics_test.hpp              -> physics tests last
 #include "ga_appl3dp_3d_cmp_test.hpp"
 #include "ga_appl3dp_appl_test.hpp"
-#include "ga_appl3dp_physics_test.hpp"
+#include "ga_appl3dp_mechanics_test.hpp"

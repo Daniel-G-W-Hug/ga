@@ -898,7 +898,7 @@ actual points and their velocities then follow in a second step from the motor a
 sandwich transformation. \\
 
 Basic examples for translational and rotational motion are implemented as tests in
-\path{ga_test/src/ga_appl_physics_test.hpp} based on the Newton-Euler equations in both
+\path{ga_test/src/ga_appl_mechanics_test.hpp} based on the Newton-Euler equations in both
 approaches, the classical approach and the approach directly formulated in $PGA$, for very
 simple reference cases.
 
@@ -1715,8 +1715,8 @@ end-to-end in the visualization tool \path{ga_view}: the frame-transformation sc
 (\path{ga_view/src/active_frame_trafo}) drives a \path{static_system2dp} directly, and the
 merry-go-round scene (\path{ga_view/src/active_merry_go_round}) carries the tree one layer
 up as a rotating \path{kinematic_system2dp}. Assertion-checked usage is in the test cases
-\path{ga_test/src/ga_appl2dp_physics_test.hpp} and its $3D$ analogue
-\path{ga_appl3dp_physics_test.hpp}.}
+\path{ga_test/src/ga_appl2dp_mechanics_test.hpp} and its $3D$ analogue
+\path{ga_appl3dp_mechanics_test.hpp}.}
 
 \paragraph{Tree walk:} The transform from any frame to any other is composed along the
 tree path. Walking
@@ -1836,8 +1836,8 @@ example is the double pendulum -- two revolute-jointed plates swinging chaotical
 gravity while conserving energy. It is visualized in \path{ga_view}
 (\path{ga_view/src/active_double_pendulum}, a \path{dynamic_system2dp} advanced via
 \path{step(dt)}) and pinned by assertion-checked tests: the planar case in
-\path{ga_test/src/ga_appl2dp_physics_test.hpp} and the genuinely-$3D$, non-parallel-axes
-case in \path{ga_appl3dp_physics_test.hpp}. Both check energy conservation to RK4
+\path{ga_test/src/ga_appl2dp_mechanics_test.hpp} and the genuinely-$3D$, non-parallel-axes
+case in \path{ga_appl3dp_mechanics_test.hpp}. Both check energy conservation to RK4
 tolerance and the mass-matrix-versus-kinetic-energy identity.}
 
 \paragraph{Spatial pairing and energy:} Each body carries the inertia map $I$ of
@@ -1993,8 +1993,8 @@ coupler tip with the rocker tip: three revolute joints, two equations, one degre
 freedom.\footnote{It is visualized in \path{ga_view}
 (\path{ga_view/src/active_four_bar}, a motor-driven \path{closed_loop_system2dp} whose
 coupler point traces the classic coupler curve) and pinned by assertion-checked tests: the
-planar four-bar in \path{ga_test/src/ga_appl2dp_physics_test.hpp} and a spatial two-arm loop
-($3D$) in \path{ga_appl3dp_physics_test.hpp} -- assembly, velocity and acceleration ratios,
+planar four-bar in \path{ga_test/src/ga_appl2dp_mechanics_test.hpp} and a spatial two-arm loop
+($3D$) in \path{ga_appl3dp_mechanics_test.hpp} -- assembly, velocity and acceleration ratios,
 energy conservation across a long run, and a bounded closure error $\lVert g\rVert$.}
 Driving the
 crank, the assembly solves the coupler and rocker angles from
@@ -2016,7 +2016,7 @@ two-link arms rising from two driven shoulders, their tips pinned to a shared en
 by one coincidence (four revolute joints, two equations, two degrees of freedom). The two
 shoulders are driven by phase-shifted sinusoids; each frame re-solves the elbows from the
 loop closure (forward kinematics), so the effector traces a Lissajous curve. The same
-well-conditioning is pinned in \path{ga_test/src/ga_appl2dp_physics_test.hpp}; a true $3D$
+well-conditioning is pinned in \path{ga_test/src/ga_appl2dp_mechanics_test.hpp}; a true $3D$
 delta awaits $3D$ rendering in \path{ga_view}.} -- then assembles, distributes its
 velocities, and conserves energy under the same machinery (\path{closed_loop_system3dp}).
 

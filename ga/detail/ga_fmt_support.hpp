@@ -6,7 +6,7 @@
 #include "fmt/ga_fmt_core.hpp"    // Core infrastructure
 #include "fmt/ga_fmt_ega.hpp"     // EGA type formatters
 #include "fmt/ga_fmt_pga.hpp"     // PGA type formatters
-#include "fmt/ga_fmt_physics.hpp" // Physics type formatters (Inertia)
+#include "fmt/ga_fmt_mechanics.hpp" // Mechanics type formatters (Inertia)
 #include "fmt/ga_fmt_sta.hpp"     // STA type formatters
 
 /////////////////////////////////////////////////////////////////////////////////////////

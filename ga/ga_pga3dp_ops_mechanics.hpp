@@ -38,7 +38,7 @@ class closed_loop_system3dp;
 // Used for rigid body dynamics in PGA3DP. The inertia map I[Omega] maps the
 // rate of change Omega (a BiVec3dp) to momentum (also a BiVec3dp).
 //
-// From ga_docu/5_ga_physics_modelling.tex eq. 604-611:
+// From ga_docu/5_ga_modelling_mechanics.tex eq. 604-611:
 // I_3D = m * [  0              Xz*Xw       -Xy*Xw        Xw^2     0        0       ]
 //            [ -Xz*Xw          0            Xx*Xw        0        Xw^2     0       ]
 //            [  Xy*Xw         -Xx*Xw        0            0        0        Xw^2    ]
@@ -794,7 +794,7 @@ class kinematic_system3dp : public static_system3dp {
     }
 
     // Acceleration field at point X of a rigid body with velocity twist V and
-    // acceleration twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    // acceleration twist A (5_ga_modelling_mechanics.tex, "Moving coordinate systems"):
     //
     //   a(X) = rcmt(A, X)            [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))   [centripetal]
@@ -977,7 +977,7 @@ struct grounded_spring3dp {
 
 // NO 2D TWIN BY DESIGN. Unlike the other force elements (spring/damper, applied wrench,
 // driven joint, grounded spring), which are general mechanics primitives mirrored in
-// ga_pga2dp_ops_physics.hpp because 2D demos consume them, this contact / grinding-force
+// ga_pga2dp_ops_mechanics.hpp because 2D demos consume them, this contact / grinding-force
 // element is APPLICATION-SPECIFIC: wafer self-rotational grinding is inherently 3D (axial
 // runout z_b = z - R_w*phi, tilt, radial), and its vocabulary (wafer thickness, removal
 // rate, feed) is grinding-flavoured with no 2D consumer. The general kernel buried here
@@ -1874,5 +1874,5 @@ class dynamic_system3dp : public kinematic_system3dp {
 
 } // namespace hd::ga::pga
 
-// value_t convenience aliases (inertia3dp, ...) live in ga_usr_types_physics.hpp, next to
-// the other physics convenience types.
+// value_t convenience aliases (inertia3dp, ...) live in ga_usr_types_mechanics.hpp, next to
+// the other mechanics convenience types.

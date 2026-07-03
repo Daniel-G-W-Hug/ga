@@ -27,7 +27,7 @@
 //     projection (position + velocity).
 
 #include "detail/ga_solver.hpp"      // hd::ga::lstsq_solve / kkt_solve (shared solvers)
-#include "ga_pga3dp_ops_physics.hpp" // dynamic_system3dp (the reused spanning tree)
+#include "ga_pga3dp_ops_mechanics.hpp" // dynamic_system3dp (the reused spanning tree)
 #include "ga_usr_utilities.hpp"      // hd::ga::rk4_step (shared RK4 integrator)
 #include "ga_value_t.hpp"            // value_t
 

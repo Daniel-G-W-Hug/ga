@@ -123,7 +123,7 @@ project\_onto, reflect\_from, is\_congruent, and sandwich products for motion op
 provided as rotate ($EGA$), move2dp/3dp ($PGA$), transform ($STA$), as well as get\_rotor
 ($EGA$, $STA$), get\_motor ($PGA$), and get\_boost ($STA$) providing input arguments for
 the motion operations.
-\item \path{ga_algebra_ops_physics.hpp} ($PGA$ only) contains basics for rigid body
+\item \path{ga_algebra_ops_mechanics.hpp} ($PGA$ only) contains basics for rigid body
 dynamics calculations like inertia, its inverse and right hand sides for the dynamics
 equations.
 \end{itemize}
@@ -160,12 +160,12 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     linear subspace each, span a plane that is defined by the additive combination of
     those sub-spaces). The outer product (also called the wedge product) connects
     subspaces represented by their operands and creates new subspaces defined by the span
-    of its subspaces of the operands. It establishes a join-operation between the involved
+    of the subspaces of its operands. It establishes a join-operation between the involved
     subspaces.
     
     The outer product also allows for direct calculation of linear
-    independence: if vectors a linear independent their outer product is zero, if they are
-    linear dependent their outer product is unequal zero.
+    independence: if vectors are linear independent their outer product is unequal
+    zero, if they are linear dependent their outer product is zero.
 
     \item The geometric product ($a \wedgedot b$) is the combination of both types of
     products in one expression. They can result in multivectors consisting of parts with

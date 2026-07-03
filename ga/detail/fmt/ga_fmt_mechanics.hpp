@@ -5,10 +5,10 @@
 
 #include "ga_fmt_core.hpp"
 
-// Pull in the physics inertia types so their fmt::formatter specialisations
+// Pull in the mechanics inertia types so their fmt::formatter specialisations
 // below are available wherever ga_pga.hpp is included.
-#include "../../ga_pga2dp_ops_physics.hpp"
-#include "../../ga_pga3dp_ops_physics.hpp"
+#include "../../ga_pga2dp_ops_mechanics.hpp"
+#include "../../ga_pga3dp_ops_mechanics.hpp"
 
 // Pull in the (optional) closed-loop layers so the loop_constraint{2,3}dp formatters
 // below are available wherever ga_pga.hpp is included (the constraints headers themselves
@@ -17,7 +17,7 @@
 #include "../../ga_pga3dp_ops_constraints.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Formatting support for PGA Physics types (Inertia matrices)
+// Formatting support for PGA mechanics types (Inertia matrices)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 

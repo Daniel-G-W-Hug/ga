@@ -5,10 +5,10 @@
 
 // Closed-loop (parallel mechanism) layer for PGA2DP. A SEPARATE, ADDITIVE capability on
 // top of the open-chain dynamic_system2dp: a user who only needs open chains includes
-// ga_pga2dp_ops_physics.hpp and pays no complexity. closed_loop_system2dp HAS-A
+// ga_pga2dp_ops_mechanics.hpp and pays no complexity. closed_loop_system2dp HAS-A
 // dynamic_system2dp (composition) as its spanning tree and closes kinematic loops by
 // registering loop-closure constraints between existing tree frames, then solving the
-// resulting constrained problem. (Background: ga_docu/5_ga_modelling_physics.tex,
+// resulting constrained problem. (Background: ga_docu/5_ga_modelling_mechanics.tex,
 // "Reduced vs. maximal coordinates".)
 //
 // Everything is built on the constraint residual g(q) (the closure error) and its
@@ -33,7 +33,7 @@
 // (ga_pga3dp_ops_constraints.hpp).
 
 #include "detail/ga_solver.hpp"      // hd::ga::lstsq_solve / kkt_solve (shared solvers)
-#include "ga_pga2dp_ops_physics.hpp" // dynamic_system2dp (the reused spanning tree)
+#include "ga_pga2dp_ops_mechanics.hpp" // dynamic_system2dp (the reused spanning tree)
 #include "ga_usr_utilities.hpp"      // hd::ga::rk4_step (shared RK4 integrator)
 #include "ga_value_t.hpp"            // value_t
 

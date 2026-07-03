@@ -13,7 +13,7 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga,
 
 // Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);
-void bind_physics(nb::module_& pga);
+void bind_mechanics(nb::module_& pga);
 
 NB_MODULE(_ga_py, m) {
     m.doc() = "Python bindings for the hd::ga geometric algebra library.\n"
@@ -25,5 +25,5 @@ NB_MODULE(_ga_py, m) {
 
     register_all(m, ega, pga, sta);
     bind_rk4_step(m);
-    bind_physics(pga);
+    bind_mechanics(pga);
 }

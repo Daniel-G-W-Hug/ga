@@ -277,7 +277,7 @@ is hand-rolled per algebra (vector + bivector for ega3d/pga2dp; +trivector for
 pga3dp/sta4ds). Code generation for sandwich products needs its own emitter that handles
 the two-step `M ⟑ X ⟑ rev(M)` structure and the substantial simplification that source
 applies to the second step. For the simplified target form see
-`ga_pga2dp_ops_physics.hpp`'s `move2dp(X, M)` and `ga_pga3dp_ops_physics.hpp`'s
+`ga_pga2dp_ops_mechanics.hpp`'s `move2dp(X, M)` and `ga_pga3dp_ops_mechanics.hpp`'s
 `move3dp(X, M)`.
 
 ## Extending the System

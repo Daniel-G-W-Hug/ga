@@ -35,17 +35,17 @@
 #include "ga_pga2dp_ops.hpp" // include all pga operations for 2dp
 #include "ga_pga3dp_ops.hpp" // include all pga operations for 3dp
 
-// PGA physics operations (inertia, rigid body dynamics)
-#include "ga_pga2dp_ops_physics.hpp" // physics operations for 2dp
-#include "ga_pga3dp_ops_physics.hpp" // physics operations for 3dp
+// PGA mechanics operations (inertia, rigid body dynamics)
+#include "ga_pga2dp_ops_mechanics.hpp" // mechanics operations for 2dp
+#include "ga_pga3dp_ops_mechanics.hpp" // mechanics operations for 3dp
 
 // PGA closed-loop / parallel-mechanism operations (loop-closure constraints), an additive
-// layer composed on top of the open-chain physics tier (open-loop users need not include it)
+// layer composed on top of the open-chain mechanics tier (open-loop users need not include it)
 #include "ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
 #include "ga_pga3dp_ops_constraints.hpp" // closed-loop operations for 3dp
 
-// physics convenience aliases (after the physics ops headers they depend on)
-#include "ga_usr_types_physics.hpp" // inertia2dp / inertia3dp (value_t-based)
+// mechanics convenience aliases (after the mechanics ops headers they depend on)
+#include "ga_usr_types_mechanics.hpp" // inertia2dp / inertia3dp (value_t-based)
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

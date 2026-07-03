@@ -1,8 +1,8 @@
-"""Tests for the rigid-body physics bindings (inertia2dp / inertia3dp +
+"""Tests for the rigid-body mechanics bindings (inertia2dp / inertia3dp +
 factories + LU inverse + body-frame Euler ODE rhs).
 
 These mirror the analytical checks asserted in the C++ doctest cases at
-ga_test/src/ga_appl{2,3}dp_physics_test.hpp:
+ga_test/src/ga_appl{2,3}dp_mechanics_test.hpp:
   * inertia matrices match closed-form formulas (Steiner / parallel-axis);
   * forward and inverse maps round-trip for a pivot-aligned input;
   * compute_omega_dot returns a vector aligned with the pivot direction

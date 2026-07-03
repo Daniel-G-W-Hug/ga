@@ -370,7 +370,7 @@ class ClosedLoopSystem:
         return self.kinetic_energy() + self.potential_energy()
 
 
-# --- the planar four-bar (matches ga_appl2dp_physics_test.hpp) ------------------
+# --- the planar four-bar (matches ga_appl2dp_mechanics_test.hpp) ------------------
 #
 #   a (crank) = 2, b (coupler) = 3, c (rocker) = sqrt(5), d (ground) = 4
 #   O2 = (0,0), O4 = (d,0); spanning tree crank -> coupler + rocker branch, closed
