@@ -6,7 +6,6 @@
 
 #include "ga/ga_pga.hpp"
 
-#include <QFontDatabase>
 #include <QPolygonF>
 #include <QTimer>
 #include <algorithm>

@@ -953,7 +953,8 @@ silently won't appear or won't build. Mirror an existing scene end-to-end (e.g.
   wrapper struct, the `add_<name>` declaration, and a `std::vector<a<name>>` data member.
 - `coordsys_model.cpp` — the `add_<name>` implementation **and** a `<vec>.clear()` line in
   `Coordsys_model::clear()` (forgetting the clear leaks state across model switches).
-- `w_mainwindow.cpp` — the `#include`, the item-creation loop (connect
+- `scenes.cpp` (the scene catalog, split out of `w_mainwindow.cpp`) — the `#include`,
+  the item-creation block in `populate_scene` (connect
   `resetRequested` / `pauseToggleRequested` / `traceToggleRequested` to the slots), and
   the scene-registration block (`add_<name>` + `set_label` + a `diagram_legend`).
 - `ga_view/CMakeLists.txt` — add `src/active_<name>.cpp` to `SOURCES`.
