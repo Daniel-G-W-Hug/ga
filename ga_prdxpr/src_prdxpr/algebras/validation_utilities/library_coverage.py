@@ -4,8 +4,10 @@ library_coverage.py
 
 For each algebra, compare the set of product functions emitted by
 `ga_prdxpr --output=code` against the set already present in the
-hand-maintained `ga/ga_<algebra>_ops_products.hpp`. Reports which
-generated functions still need to be copy-pasted into the ga library.
+hand-maintained library headers: `ga/ga_<algebra>_ops_products.hpp`
+plus `ga/ga_<algebra>_ops_basics.hpp` (where the generated complements
+and duals are spliced). Reports which generated functions still need
+to be copy-pasted into the ga library.
 
 Signatures are normalized to `funcname(LeftType, RightType)` after
 stripping template parameters (`<T>`, `<std::common_type_t<T, U>>`),
@@ -324,7 +326,15 @@ def _extract_signature_text(block):
 
 
 def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatter_path):
+    # The generated functions land in two library headers: the products file
+    # (dot, gpr, wdg, contractions, ...) and the basics file (complements and
+    # duals, spliced there by splice_generated_code.py). Scan both.
     lib_file = os.path.join(lib_dir, f"ga_{algebra}_ops_products.hpp")
+    lib_files = [lib_file]
+    basics_file = os.path.join(lib_dir, f"ga_{algebra}_ops_basics.hpp")
+    if os.path.isfile(basics_file):
+        lib_files.append(basics_file)
+    lib_names = " / ".join(os.path.basename(f) for f in lib_files)
     print(f"=== {algebra} ===")
     if not os.path.isfile(lib_file):
         print(f"  library file not found: {lib_file}")
@@ -342,17 +352,21 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
         sig_to_block = None
 
     if diff_mode:
-        with open(lib_file) as f:
-            lib_blocks = extract_lib_blocks(f.read())
-        lib_sigs = set(lib_blocks.keys())
-        # Workspace-relative path for the location hint (one level above
+        # Workspace-relative paths for the location hint (one level above
         # `ga/` is the project root, e.g. `ga/ga_ega3d_ops_products.hpp`).
         proj_root = os.path.dirname(lib_dir)
-        lib_rel = os.path.relpath(lib_file, proj_root)
+        lib_blocks = {}
+        for lf in lib_files:
+            rel = os.path.relpath(lf, proj_root)
+            with open(lf) as f:
+                for sig, (text, line) in extract_lib_blocks(f.read()).items():
+                    lib_blocks[sig] = (text, line, rel)
+        lib_sigs = set(lib_blocks.keys())
     else:
         lib_blocks = None
-        lib_sigs = get_library_signatures(lib_file)
-        lib_rel = None
+        lib_sigs = set()
+        for lf in lib_files:
+            lib_sigs |= get_library_signatures(lf)
 
     missing = sorted(gen_sigs - lib_sigs)
     extra = sorted(lib_sigs - gen_sigs)
@@ -364,7 +378,7 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
     if missing:
         print(
             f"\n  TO ADD to library ({len(missing)} signatures present in "
-            f"generated code but not in {os.path.basename(lib_file)}):"
+            f"generated code but not in {lib_names}):"
         )
         for s in missing:
             print(f"    {s}")
@@ -374,7 +388,7 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
             print(f"{'=' * 78}")
             print(
                 f"  Full source for {len(missing)} missing functions "
-                f"(copy-paste into {os.path.basename(lib_file)}):"
+                f"(copy-paste into {lib_names}):"
             )
             print(f"{'=' * 78}")
             for s in missing:
@@ -400,11 +414,11 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
         in_both = sorted(gen_sigs & lib_sigs)
         differing = []
         for s in in_both:
-            lib_text, lib_line = lib_blocks[s]
+            lib_text, lib_line, lib_rel = lib_blocks[s]
             gen_norm = _normalize_for_diff(sig_to_block[s], formatter_path)
             lib_norm = _normalize_for_diff(lib_text, formatter_path)
             if gen_norm != lib_norm:
-                differing.append((s, gen_norm, lib_norm, lib_line))
+                differing.append((s, gen_norm, lib_norm, lib_line, lib_rel))
 
         fmt_note = (
             ""
@@ -417,7 +431,7 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
         )
         if differing:
             print(f"{'=' * 78}")
-            for s, gen_norm, lib_norm, lib_line in differing:
+            for s, gen_norm, lib_norm, lib_line, lib_rel in differing:
                 print(f"\n--- {s} ---")
                 # Print the full signature (from generated, since codegen always
                 # produces a single-line form that's easy to read) so the
@@ -432,7 +446,7 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
                 diff = difflib.unified_diff(
                     lib_norm.splitlines(keepends=True),
                     gen_norm.splitlines(keepends=True),
-                    fromfile=f"library:{os.path.basename(lib_file)}",
+                    fromfile=f"library:{os.path.basename(lib_rel)}",
                     tofile=f"generated:{algebra}",
                     n=3,
                 )

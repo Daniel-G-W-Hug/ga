@@ -546,8 +546,8 @@ delegations.
   `ga_codegen_emitter.{hpp,cpp}`).
 - Validation pipeline: `ga_prdxpr/src_prdxpr/codegen/tools/`
   (`diff_codegen.py`, `inline_to_tempvars.py`, `expand_delegations.py`).
-- Default output (`ga_prdxpr` with no args) is unchanged at 11559 lines —
-  `code` is opt-in only.
+- Default output (`ga_prdxpr` with no args) is a stable reference (currently 25081
+  lines, see the README's "Verification" section) — `code` is opt-in only.
 - See `ga_prdxpr/README.md` for usage, the invocation matrix, and the
   "Open Codegen Work" section (sandwich product codegen, STA4D rollout).
 
