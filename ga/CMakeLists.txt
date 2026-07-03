@@ -16,6 +16,7 @@ set(HEADERS
     detail/ga_ega_types.hpp
     detail/ga_pga_types.hpp
     detail/ga_sta_types.hpp
+    detail/ga_solver.hpp
     #
     detail/type_t/ga_scalar_t.hpp
     detail/type_t/ga_vec2_t.hpp
@@ -53,22 +54,17 @@ set(HEADERS
     detail/type_t/ga_mvec4ds.hpp
     detail/type_t/ga_mvec4ds_e.hpp
     detail/type_t/ga_mvec4ds_u.hpp
+    detail/type_t/ga_dualnum4ds.hpp
     #
     # user facing includes
     #
-    ga_minimal.hpp
     ga_ega.hpp
     ga_pga.hpp
     ga_sta.hpp
     #
-    ga_ega2d_only.hpp
-    ga_ega3d_only.hpp
-    ga_pga2dp_only.hpp
-    ga_pga3dp_only.hpp
-    ga_sta4ds_only.hpp
-    #
     ga_usr_consts.hpp
     ga_usr_types.hpp
+    ga_usr_types_physics.hpp
     ga_usr_utilities.hpp
     ga_algebra.hpp
     ga_value_t.hpp
@@ -84,12 +80,14 @@ set(HEADERS
     ga_pga2dp_ops_products.hpp
     ga_pga2dp_ops.hpp
     ga_pga2dp_ops_physics.hpp
+    ga_pga2dp_ops_constraints.hpp
     #
     ga_pga3dp_ops_basics.hpp
     ga_pga3dp_ops_products.hpp
     ga_pga3dp_ops.hpp
     ga_pga3dp_ops_physics.hpp
-        #
+    ga_pga3dp_ops_constraints.hpp
+    #
     ga_sta4ds_ops_basics.hpp
     ga_sta4ds_ops_products.hpp
     ga_sta4ds_ops.hpp
