@@ -48,7 +48,6 @@ using namespace hd::ga::pga;
 #include <QPointF>
 #include <QVBoxLayout>
 
-#include <algorithm> // std::clamp
 #include <cmath>     // std::sqrt
 #include <map>       // std::map
 #include <stdexcept> // std::runtime_error
@@ -56,46 +55,6 @@ using namespace hd::ga::pga;
 #include <vector>    // std::vector
 
 #include "scenes.hpp"
-
-namespace {
-
-// step functions used by the step-function demo model below
-//
-//                  0.                               for x < low_x
-// linear_step(x) = (x - low_x)/(high_x - low_x)     for low_x <= x <= high_x
-//                  1.                               for x > high_x
-//
-double linear_step(double low_x, double high_x, double x)
-{
-    // scale, bias and saturate x to 0..1 range
-    return std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
-}
-
-//                  0.                for x < low_x
-// smooth_step(x) = 3*x^2 - 2*x^3     for low_x <= x <= high_x
-//                  1.                for x > high_x
-//
-// origin: 3rd order polynomial with df/dx=0 at low_x and high_x
-//
-double smooth_step(double low_x, double high_x, double x)
-{
-    double const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
-    return t * t * (3.0 - 2.0 * t);
-}
-
-//                    0.                          for x < low_x
-// smoother_step(x) = 6*x^5 - 15*x^4 + 10*x^3     for low_x <= x <= high_x
-//                    1.                          for x > high_x
-//
-// origin: 5th order polynomial with df/dx=0 and df/dx2=0 at low_x and high_x
-//
-double smoother_step(double low_x, double high_x, double x)
-{
-    double const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
-    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
-}
-
-} // namespace
 
 std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 {

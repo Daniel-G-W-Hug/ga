@@ -52,6 +52,7 @@ void register_functions_top(nb::module_& m) {
     m.def("gr", [](bivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](trivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](pscalar4ds const& a0) { return gr(a0); });
+    m.def("linear_step", [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
     m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1, int a2) { return lstsq_solve(a0, a1, a2); });
     m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1, int a2) { return lu_solve(a0, a1, a2); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
@@ -74,4 +75,6 @@ void register_functions_top(nb::module_& m) {
     m.def("rk4_get_time", [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
     m.def("rpm2radps", [](double a0) { return rpm2radps(a0); });
     m.def("sign", [](double a0) { return sign(a0); });
+    m.def("smooth_step", [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
+    m.def("smoother_step", [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
 }

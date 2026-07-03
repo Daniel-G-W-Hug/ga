@@ -38,6 +38,42 @@ constexpr value_t radps2rpm(value_t value) { return value * 60.0 / (2.0 * pi); }
 constexpr value_t Hz2radps(value_t value) { return value * 2.0 * pi; };
 constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
 
+// step functions mapping x to the range [0.0, 1.0] (e.g. for blending/easing):
+// each normalizes x over [low_x, high_x], clamps to [0.0, 1.0] and applies its shape
+//
+//                  0.                               for x < low_x
+// linear_step(x) = (x - low_x)/(high_x - low_x)     for low_x <= x <= high_x
+//                  1.                               for x > high_x
+//
+constexpr value_t linear_step(value_t low_x, value_t high_x, value_t x)
+{
+    return std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+}
+
+//                  0.                for x < low_x
+// smooth_step(x) = 3*x^2 - 2*x^3     for low_x <= x <= high_x
+//                  1.                for x > high_x
+//
+// origin: 3rd order polynomial with df/dx = 0 at low_x and high_x
+//
+constexpr value_t smooth_step(value_t low_x, value_t high_x, value_t x)
+{
+    value_t const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
+}
+
+//                    0.                          for x < low_x
+// smoother_step(x) = 6*x^5 - 15*x^4 + 10*x^3     for low_x <= x <= high_x
+//                    1.                          for x > high_x
+//
+// origin: 5th order polynomial with df/dx = 0 and d²f/dx² = 0 at low_x and high_x
+//
+constexpr value_t smoother_step(value_t low_x, value_t high_x, value_t x)
+{
+    value_t const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
 // sign function for floating point types
 // returns +1.0 for value >= 0.0 and -1.0 for value < 0.0
 // HINT: this is intentionally NOT the typical signum function
