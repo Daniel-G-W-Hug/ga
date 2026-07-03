@@ -79,16 +79,18 @@ set(HEADERS
     src_prdxpr/codegen/ga_codegen_emitter.hpp
 )
 
-# Core transformation system
-set(SOURCES_VISUAL_COMPARISON_TEST src_trafo/ga_prdxpr_trafo.cpp
-            src_trafo/ga_prdxpr_trafo_expr_simplifier.cpp
-            src_trafo/ga_prdxpr_trafo_sandwich_transformer.cpp
-            src_trafo/ga_prdxpr_trafo_nary_expression.cpp
-            src_trafo/ga_prdxpr_trafo_tests.cpp
-            src_trafo/ga_prdxpr_trafo_viscmp.cpp)
+# Visual comparison tool and parser test, built on the same sandwich pipeline
+# the main generator uses (src_prdxpr/sandwich/).
+set(SOURCES_VISUAL_COMPARISON_TEST
+            src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.cpp
+            src_prdxpr/sandwich/ga_prdxpr_sandwich_simplifier.cpp
+            src_prdxpr/sandwich/ga_prdxpr_sandwich_transformer.cpp
+            src_prdxpr/sandwich/ga_prdxpr_sandwich_nary_expression.cpp
+            src_prdxpr/tests/ga_prdxpr_viscmp_tests.cpp
+            src_prdxpr/tests/ga_prdxpr_viscmp.cpp)
 
-set(SOURCES_PARSER_TEST src_trafo/ga_prdxpr_trafo_parser_test.cpp
-            src_trafo/ga_prdxpr_trafo.cpp)
+set(SOURCES_PARSER_TEST src_prdxpr/tests/ga_prdxpr_parser_test.cpp
+            src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.cpp)
 
 set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/tests/ga_prdxpr_rule_generator_test.cpp
             src_prdxpr/core/ga_prdxpr_common.cpp

@@ -116,13 +116,21 @@ src_prdxpr/
 │                                          composes OutputCases that the generator
 │                                          turns into output
 ├── sandwich/                    # sandwich-product transformation pipeline
-│                                 (parser → simplifier → n-ary AST → transformer)
+│                                 (parser → simplifier → n-ary AST → transformer;
+│                                 grammar in ga_prdxpr_sandwich_parser.ebnf)
 ├── generator/                   # ConfigurableGenerator orchestrator: dispatches a
 │                                 ProductConfig to coeffs/tables/code output
 ├── codegen/                     # --output=code emitter (TypeRegistry + emit_function)
 │   └── tools/                   # Python validation pipeline (diff_codegen.py, ...)
-├── tests/                       # standalone ga_prdxpr_rule_generator_test executable
-└── reference_output/            # golden .txt fixtures used during development
+├── tests/                       # sources of the companion executables:
+│                                 ga_prdxpr_rule_generator_test (rule/metric/dual
+│                                 table dump), ga_prdxpr_parser_test (doctest suite
+│                                 for the sandwich expression parser), and
+│                                 ga_prdxpr_viscmp (compares sandwich transforms
+│                                 against hand-derived reference results)
+└── reference_output/            # golden .txt fixtures used during development,
+                                  incl. ga_prdxpr_transformation_manual.txt (read
+                                  by ga_prdxpr_viscmp at runtime)
 ```
 
 ### Where to make changes
@@ -313,7 +321,11 @@ applies to the second step. For the simplified target form see
 
 ## Verification and Testing
 
-The bare invocation must remain stable; deviations indicate a regression. The C++ code
+The bare invocation must remain stable; deviations indicate a regression. The sandwich
+pipeline has its own checks: `ga_prdxpr_parser_test` (doctest) covers the expression
+parser, and `ga_prdxpr_viscmp` compares the transformed sandwich products against the
+hand-derived results in `reference_output/ga_prdxpr_transformation_manual.txt` (run both
+from `build/ga_prdxpr/`). The C++ code
 generator is independently validated by piping `--output=code` through `clang-format` and
 diffing against the matching `ga/*_ops_products.hpp` (see [Validating against existing
 source](#validating-against-existing-source)).

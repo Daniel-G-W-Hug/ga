@@ -6,9 +6,9 @@
 // be compared with the modified result" "lines 20 and 21 contain the original input
 // strings and line 31 and 32 contain the reference solution"
 
-#include "ga_prdxpr_trafo_expr_simplifier.hpp"
-#include "ga_prdxpr_trafo_sandwich_transformer.hpp"
-#include "ga_prdxpr_trafo_tests.hpp"
+#include "ga_prdxpr_viscmp_tests.hpp"
+#include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
+#include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -40,11 +40,11 @@ class VisualComparisonTester {
         // Read manual file (using documented path pattern from CLAUDE.md)
         // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
 #ifdef _WIN32
-        std::ifstream file(
-            "../../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+        std::ifstream file("../../../ga_prdxpr/src_prdxpr/reference_output/"
+                           "ga_prdxpr_transformation_manual.txt");
 #else
-        std::ifstream file(
-            "../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+        std::ifstream file("../../ga_prdxpr/src_prdxpr/reference_output/"
+                           "ga_prdxpr_transformation_manual.txt");
 #endif
         if (!file.is_open()) {
             fmt::println("Error: Could not open manual file");
@@ -387,11 +387,11 @@ class VisualComparisonTester {
 
         // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
 #ifdef _WIN32
-        std::ifstream file(
-            "../../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+        std::ifstream file("../../../ga_prdxpr/src_prdxpr/reference_output/"
+                           "ga_prdxpr_transformation_manual.txt");
 #else
-        std::ifstream file(
-            "../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+        std::ifstream file("../../ga_prdxpr/src_prdxpr/reference_output/"
+                           "ga_prdxpr_transformation_manual.txt");
 #endif
         if (!file.is_open()) {
             fmt::println("Error: Could not open manual file for expected results");

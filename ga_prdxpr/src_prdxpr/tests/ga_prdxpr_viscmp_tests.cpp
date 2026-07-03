@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_prdxpr_trafo_tests.hpp"
-#include "ga_prdxpr_trafo.hpp"
+#include "ga_prdxpr_viscmp_tests.hpp"
+#include "sandwich/ga_prdxpr_sandwich_parser.hpp"
 
 #include <fmt/format.h>
 

@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_prdxpr_trafo_expr_simplifier.hpp"
-#include "ga_prdxpr_trafo_nary_expression.hpp"
-#include "ga_prdxpr_trafo_sandwich_transformer.hpp"
+#include "sandwich/ga_prdxpr_sandwich_nary_expression.hpp"
+#include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
+#include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Test functions for transformation system development and validation

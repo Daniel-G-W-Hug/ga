@@ -12,7 +12,7 @@ repository.
 - **Working Directory**: Always work from the build directory when running executables or
   when creating temporary files
 - **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or
-  `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_trafo/`
+  `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_prdxpr/`
 - **File Organization**: Keep all temporary/debug files in the build directory (`build/`)
   rather than the source tree to maintain clean project organization.
 
@@ -32,7 +32,7 @@ repository.
 ├── ga_view/ga_view                                 # Qt6 2D visualization executable
 ├── ga_prdxpr/                                      # Code generator + its own tests/tools
 │   ├── ga_prdxpr                                   #   main product-expression generator
-│   ├── ga_prdxpr_parser_test                       #   config/case_name parser tests
+│   ├── ga_prdxpr_parser_test                       #   sandwich expression parser tests
 │   ├── ga_prdxpr_rule_generator_test               #   rule/metric/dual/complement table dump
 │   └── ga_prdxpr_viscmp                            #   visual comparison helper
 └── ga_py/_ga_py.cpython-<ver>-<plat>.so            # nanobind Python extension (opt-in, see below)

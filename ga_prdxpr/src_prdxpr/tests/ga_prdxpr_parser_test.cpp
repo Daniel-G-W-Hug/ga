@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include "ga_prdxpr_trafo.hpp"
+#include "sandwich/ga_prdxpr_sandwich_parser.hpp"
 
 TEST_SUITE("expression transformation")
 {
