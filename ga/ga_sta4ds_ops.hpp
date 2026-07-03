@@ -100,6 +100,81 @@ inline std::array<T, 36> sta_rotor_xf_mat_bivec(MVec4ds_E<T> const& R)
             T(2.0) * (b04 + b17 - b23 + b56), a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7};
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// rotor exp / log / sqrt support helpers.
+//
+// The signature-agnostic renormalisation and invariant bivector decomposition follow
+// De Keninck & Roelfs, "Normalization, Square Roots, and the Exponential and Logarithmic
+// Maps in Geometric Algebras of Less than 6D" (2022, arXiv:2206.07496). STA is R(1,3)
+// used here on the DUAL of the paper's R(3,1) PGA convention -- the geometric-product
+// rotor sandwich is the same, and the pseudoscalar squares to I^2 = -1 (a complex-type
+// Study number), so the paper's Listing 1 signs must be re-derived for this signature;
+// the code below is written signature-agnostically from the paper's sec. 5-6 instead.
+//
+// These live in hd::ga::detail (like the transform_opt matrices above) so the binding
+// generator -- which scans hd::ga / ::ega / ::pga / ::sta -- skips them. They use the
+// sta:: geometric product and reversion, brought in with local using-declarations since
+// ADL on the hd::ga-scoped operand types would not otherwise reach hd::ga::sta.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// exp of a SIMPLE bivector b whose geometric square is the scalar lambda = gr0(b*b):
+//   lambda < 0 (spacelike / rotation):  cos(t)  + (sin(t)/t)  b,  t = sqrt(-lambda)
+//   lambda > 0 (timelike  / boost):     cosh(t) + (sinh(t)/t) b,  t = sqrt( lambda)
+//   lambda = 0 (lightlike / null):      1 + b   (exact: b*b == 0 kills all higher terms)
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec4ds_E<T> sta4ds_exp_simple(BiVec4ds<T> const& b, T lambda)
+{
+    if (lambda < -safe_epsilon<T>()) {
+        T const t = std::sqrt(-lambda);
+        return MVec4ds_E<T>(Scalar4ds<T>(std::cos(t)), (std::sin(t) / t) * b);
+    }
+    if (lambda > safe_epsilon<T>()) {
+        T const t = std::sqrt(lambda);
+        return MVec4ds_E<T>(Scalar4ds<T>(std::cosh(t)), (std::sinh(t) / t) * b);
+    }
+    return MVec4ds_E<T>(Scalar4ds<T>(1.0), b); // null / zero plane -> 1 + b (exact)
+}
+
+// I * B for a bivector B (geometric product by the unit pseudoscalar) -> bivector.
+// Maps a rotation 2-plane to its orthogonal (dual) boost 2-plane and vice versa;
+// (I b_hat)^2 = I^2 b_hat^2 flips the causal character (unit rotation <-> unit boost).
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec4ds<T> sta4ds_biv_dual(BiVec4ds<T> const& B)
+{
+    using sta::operator*;
+    return gr2(PScalar4ds<T>(1.0) * MVec4ds_E<T>(B));
+}
+
+// Nearest rotor to an even element X (De Keninck & Roelfs eq. 24): the signature-agnostic
+// renormalisation via the self-reverse Study number  X*rev(X) = s + t*I  (I^2 = -1),
+//   R = (X rev(X))^{-1/2} X = alpha X + beta (I X),
+// which stays a proper unit rotor even for NON-simple X (t != 0) -- the case a
+// scalar-only norm |<X rev(X)>_0|^{-1/2} would silently drop. Reduces to X / sqrt(s) when
+// t == 0.
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec4ds_E<T> sta4ds_nearest_rotor(MVec4ds_E<T> const& X)
+{
+    using sta::operator*;
+    using sta::rev;
+    MVec4ds_E<T> const XX = X * rev(X);
+    T const s = T(gr0(XX));                // <X rev(X)>_0
+    T const t = T(gr4(XX));                // <X rev(X)>_4  (coeff of g1234)
+    T const nS = std::sqrt(s * s + t * t); // ||X rev(X)||_S
+    if (nS <= safe_epsilon<T>()) {
+        // singular (X ~ 0, e.g. X = 1 + R with R = -1): no unique nearest rotor
+        return MVec4ds_E<T>(Scalar4ds<T>(1.0), BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                            PScalar4ds<T>(0.0));
+    }
+    T const c = std::sqrt(T(0.5) * (s + nS));       // c+ branch (natural for I^2 = -1)
+    T const denom = T(4.0) * c * c * c * c + t * t; // 4 c^4 - <XX~>_4^2 = 4 c^4 + t^2
+    T const alpha = T(4.0) * c * c * c / denom;
+    T const beta = -T(2.0) * c * t / denom;
+    return alpha * X + beta * (PScalar4ds<T>(1.0) * X); // alpha X + beta (I X)
+}
+
 } // namespace hd::ga::detail
 
 
@@ -115,8 +190,8 @@ namespace hd::ga::sta {
 //            timelike bivectors (g14, g24, g34; B^2 > 0) generate Lorentz boosts.
 //
 // Implemented:
-//   - exp(BiVec)                      -> rotor exponential of a (simple) bivector
-//   - log(rotor)                      -> bivector log of a (simple) rotor (exp inverse)
+//   - exp(BiVec)                      -> rotor exponential of a bivector (simple or not)
+//   - log(rotor)                      -> bivector log of a rotor (inverse of exp)
 //   - get_rotor(plane, angle)         -> rotor for a spatial rotation
 //   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
 //   - sqrt(rotor)                     -> rotor halving the rotation angle / rapidity
@@ -130,84 +205,133 @@ namespace hd::ga::sta {
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
 //   - is_congruent()                  -> same subspace up to a scalar factor
 //
-// TODO (next steps): general (non-simple) rotor support in exp() / log() / sqrt() via the
-//   invariant bivector decomposition (log() currently handles SIMPLE rotors, matching
-//   exp()).
+// exp() / log() / sqrt() handle general (non-simple) rotors -- a Lorentz boost and a
+// spatial rotation combined in dual planes -- via the invariant bivector decomposition
+// and the signature-agnostic Study-number renormalisation (De Keninck & Roelfs 2022,
+// arXiv:2206.07496); see the detail:: helpers at the top of this file.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // rotor exponential w.r.t. the geometric product
 //
-// For a SIMPLE bivector B (B^B == 0, so B*B is a pure scalar = the geometric square
-// s = B^2 = gr0(B*B)). Its sign is the plane's causal character; the magnitude is
-// a = nrm(B) = sqrt(|s|):
-//   B spacelike (s < 0):  exp(B) = cos(a)  + (B/a) sin(a)    (rotation)
-//   B timelike  (s > 0):  exp(B) = cosh(a) + (B/a) sinh(a)   (Lorentz boost)
-//   B lightlike (s == 0): exp(B) = 1 + B
+// B*B is a self-reverse Study number  B*B = <B^2>_0 + <B^2>_4 = bb_s + bb_ps I:
+//   bb_s  = gr0(B*B)  the geometric square (its sign = the plane's causal character)
+//   bb_ps = gr4(B*B)  the wedge B^B  (zero iff B is SIMPLE, i.e. a single 2-plane)
 //
-// The branch is taken from is_spacelike / is_timelike / is_lightlike (which read the
-// geometric square gr0(B*B)), NOT from nrm_sq(B): under the P-unify metric nrm_sq(B)
-// is the reverse-norm (= -B^2 for a bivector), so the causal character lives in the
-// geometric square, while nrm(B) = sqrt(|nrm_sq(B)|) = sqrt(|s|) still gives |a|.
+// SIMPLE B (bb_ps == 0), with a = sqrt(|bb_s|):
+//   B spacelike (bb_s < 0):  exp(B) = cos(a)  + (B/a) sin(a)    (rotation)
+//   B timelike  (bb_s > 0):  exp(B) = cosh(a) + (B/a) sinh(a)   (Lorentz boost)
+//   B lightlike (bb_s == 0): exp(B) = 1 + B   (exact -- B*B == 0 kills higher terms)
 //
-// TODO: general (non-simple) bivectors, where B*B also has a pseudoscalar part.
+// NON-simple B (bb_ps != 0): the invariant decomposition splits B into two orthogonal
+// commuting simple bivectors  B = b_boost + b_rot  (De Keninck & Roelfs sec. 6). With
+// I^2 = -1 their squares straddle zero (lambda_boost >= 0 >= lambda_rot), so a general
+// STA rotor is a Lorentz boost times a spatial rotation in dual planes:
+//   exp(B) = exp(b_boost) * exp(b_rot)   (the factors commute).
+//
+// The causal branch reads the GEOMETRIC square gr0(B*B), NOT nrm_sq(B): under the
+// P-unify metric nrm_sq(B) is the reverse-norm (= -B^2 for a bivector), so the causal
+// character lives in the geometric square, while nrm(B) = sqrt(|bb_s|) gives |a|.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
 {
-    T const a =
-        T(nrm(B)); // sqrt(|B^2|): rotation angle (spacelike) / rapidity (timelike)
-    if (is_lightlike(B) || a <= detail::safe_epsilon<T>()) {
-        // null/zero plane -> identity rotor (covers the lightlike case to first order)
-        return MVec4ds_E<T>(Scalar4ds<T>(1.0), B);
+    T const bb_s = detail::sta4ds_geom_sq(B);    // <B^2>_0 (geometric square)
+    T const bb_ps = T(gr4(MVec4ds_E<T>(B) * B)); // <B^2>_4 (wedge B^B)
+
+    if (std::abs(bb_ps) <= detail::safe_epsilon<T>()) {
+        // SIMPLE bivector -> closed-form generalised Euler formula
+        return detail::sta4ds_exp_simple(B, bb_s);
     }
-    if (is_spacelike(B)) {
-        // spacelike plane -> circular (rotation)
-        return MVec4ds_E<T>(Scalar4ds<T>(std::cos(a)), (std::sin(a) / a) * B);
-    }
-    // timelike plane -> hyperbolic (Lorentz boost)
-    return MVec4ds_E<T>(Scalar4ds<T>(std::cosh(a)), (std::sinh(a) / a) * B);
+
+    // NON-simple bivector: invariant decomposition B = b_boost + b_rot via the Study
+    // projectors P_+/- = (1 +/- conj(B^2)/||B^2||_S)/2, with conj(B^2) = bb_s - bb_ps I.
+    T const nS = std::sqrt(bb_s * bb_s + bb_ps * bb_ps); // ||B^2||_S
+    BiVec4ds<T> const proj =
+        (bb_s * B - bb_ps * detail::sta4ds_biv_dual(B)) / nS; // conj(B^2) B / ||B^2||_S
+    BiVec4ds<T> const b_boost = T(0.5) * (B + proj); // b_boost^2 = (bb_s+nS)/2>=0
+    BiVec4ds<T> const b_rot = T(0.5) * (B - proj);   // b_rot^2   = (bb_s-nS)/2<=0
+    using sta::operator*;
+    return detail::sta4ds_exp_simple(b_boost, T(0.5) * (bb_s + nS)) *
+           detail::sta4ds_exp_simple(b_rot, T(0.5) * (bb_s - nS));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // rotor logarithm w.r.t. the geometric product -- the inverse of exp()
 //
-// For a SIMPLE rotor R = exp(B) with a simple bivector B (B^B == 0), recovers B. The
-// rotor's bivector part gr2(R) shares B's plane and causal character, with magnitude
-// nrm(gr2 R) = |sin(a)| (rotation) or sinh(a) (boost), where a = nrm(B). Branch on the
-// causal character of gr2(R) (matching exp()), with s = gr0(R):
-//   gr2(R) spacelike (rotation): R = cos(a)  + (sin(a)/a)  B  => a = atan2(|sin a|, cos
-//   a) gr2(R) timelike  (boost):    R = cosh(a) + (sinh(a)/a) B  => a = acosh(cosh a)
-//   gr2(R) lightlike / a ~ 0:    R = 1 + B (or identity)      => B = gr2(R) directly
-// then B = (a / nrm(gr2 R)) * gr2(R). A rotation by ~pi leaves the plane orientation
-// ambiguous (the usual rotation-logarithm axis ambiguity).
+// R's pseudoscalar part s4 = gr4(R) = sinh(f) sin(th) is the non-simplicity indicator:
+// it is zero iff R is a SIMPLE rotor (a single rotation OR a single boost).
 //
-// TODO: general (non-simple) rotors (where gr2(R)^gr2(R) != 0, i.e. R also has a
-// pseudoscalar part) need the invariant bivector decomposition; not handled here.
+// SIMPLE rotor (|s4| ~ 0): gr2(R) shares B's plane and causal character, with magnitude
+// nrm(gr2 R) = |sin(a)| (rotation) or sinh(a) (boost), s = gr0(R):
+//   gr2(R) spacelike (rotation): R = cos(a)  + (sin(a)/a)  B  => a = atan2(|sin a|, cos
+//   a) gr2(R) timelike  (boost):    R = cosh(a) + (sinh(a)/a) B  => a = asinh(sinh a)
+//   gr2(R) lightlike / a ~ 0:    R = 1 + B (or identity)      => B = gr2(R) directly
+// then B = (a / nrm(gr2 R)) * gr2(R).
+//
+// NON-simple rotor (|s4| > 0): R = exp(b_boost) exp(b_rot) is a boost (rapidity f) and a
+// spatial rotation (angle th) in orthogonal (dual) planes. Decompose gr2(R) into its two
+// invariant simple parts (De Keninck & Roelfs sec. 7); the rotation plane b_rot comes
+// from gr2(R) directly, and the boost plane b_boost is recovered as the dual of the
+// rotation plane, oriented so that exp reproduces R's g1234 part s4 -- this stays robust
+// even at th == pi/2 (where the boost plane vanishes from gr2(R)).
+//
+// A rotation by ~pi (th -> 0 or pi) shares the usual rotation-logarithm axis ambiguity;
+// there the non-simple split degenerates back to the simple branch.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
 {
     BiVec4ds<T> const Bv = gr2(R);
-    T const bn =
-        T(nrm(Bv)); // |sin(a)| (rotation) / sinh(a) (boost) / 0 (identity or null)
-    if (bn <= detail::safe_epsilon<T>()) {
-        // a ~ 0 -> identity (Bv ~ 0); or a lightlike (null) plane where exp(B) = 1 + B
-        return Bv;
-    }
-    T const s = T(gr0(R)); // cos(a) (rotation) or cosh(a) (boost)
-    if (is_spacelike(Bv)) {
-        // spacelike plane -> circular (rotation by angle a)
-        T const a = std::atan2(bn, s);
+    T const s0 = T(gr0(R));
+    T const s4 = T(gr4(R)); // = sinh(f) sin(th); zero iff SIMPLE
+
+    if (std::abs(s4) <= detail::safe_epsilon<T>()) {
+        // SIMPLE rotor -> single-plane logarithm
+        T const bn = T(nrm(Bv)); // |sin a| (rotation) / sinh a (boost) / 0
+        if (bn <= detail::safe_epsilon<T>()) {
+            // a ~ 0 -> identity (Bv ~ 0); or a lightlike (null) plane, exp(B) = 1 + B
+            return Bv;
+        }
+        if (is_spacelike(Bv)) {
+            T const a = std::atan2(bn, s0); // rotation by angle a in [0, pi]
+            return (a / bn) * Bv;
+        }
+        // timelike plane -> Lorentz boost (rapidity a); asinh(sinh a) is well-conditioned
+        T const a = std::asinh(bn);
         return (a / bn) * Bv;
     }
-    // timelike plane -> hyperbolic (Lorentz boost, rapidity a)
-    T const a = std::acosh(s >= T(1.0) ? s : T(1.0));
-    return (a / bn) * Bv;
+
+    // NON-simple rotor: split gr2(R) into its two invariant planes via the Study
+    // projectors, exactly as exp() does for the generating bivector.
+    T const bv_s = detail::sta4ds_geom_sq(Bv);
+    T const bv_ps = T(gr4(MVec4ds_E<T>(Bv) * Bv));
+    T const nSv = std::sqrt(bv_s * bv_s + bv_ps * bv_ps);
+    BiVec4ds<T> const projv = (bv_s * Bv - bv_ps * detail::sta4ds_biv_dual(Bv)) / nSv;
+    BiVec4ds<T> const sm = T(0.5) * (Bv - projv); // rotation-plane part, sm^2 <= 0
+    T const P =
+        std::sqrt(std::max(T(0.0), T(0.5) * (bv_s + nSv))); // |sp| = |cos th| sinh f
+    T const Q =
+        std::sqrt(std::max(T(0.0), T(0.5) * (nSv - bv_s))); // |sm| = cosh f  sin th
+
+    // rotation: angle th in [0, pi], unit plane b_hat_rot = sm / Q  (Q > 0 when |s4| > 0)
+    T const th = std::atan2(Q, s0);
+    BiVec4ds<T> const bhat_rot = sm / Q;
+
+    // boost: rapidity f from sinh f = sqrt(P^2 + s4^2); the boost plane is the dual of
+    // the rotation plane, sign-fixed so exp reproduces R's g1234 coefficient s4.
+    T const f = std::asinh(std::sqrt(P * P + s4 * s4));
+    BiVec4ds<T> const bhat_boost_cand =
+        detail::sta4ds_biv_dual(bhat_rot); // unit, ^2 = +1
+    using sta::operator*;
+    T const kappa = T(gr4(MVec4ds_E<T>(bhat_boost_cand) * bhat_rot)); // (b+ ^ b-) = +/-1
+    T const sgn = (s4 * kappa >= T(0.0)) ? T(1.0) : T(-1.0);
+
+    return f * (sgn * bhat_boost_cand) + th * bhat_rot;
 }
 
 
@@ -249,43 +373,32 @@ inline MVec4ds_E<std::common_type_t<T, U>> get_boost(BiVec4ds<T> const& B, U phi
 ////////////////////////////////////////////////////////////////////////////////
 // sqrt(rotor) w.r.t. the geometric product -- halves the rotation angle / boost rapidity
 //
-// For a SIMPLE unit rotor R the "versor average" sqrt(R) = normalize(1 + R) bisects the
-// versor arc from the identity to R, then renormalises, yielding exp(0.5 * log R):
+// The principal square root sqrt(R) = Normalize(1 + R) (De Keninck & Roelfs eq. 11)
+// bisects the versor arc from the identity to R:
 //   spatial rotation  R = cos a  + sin a  B  (B^2 < 0)  ->  cos(a/2)  + sin(a/2)  B
 //   Lorentz boost     R = cosh f + sinh f B  (B^2 > 0)  ->  cosh(f/2) + sinh(f/2) B
 //
-// The renormalisation uses the VERSOR norm  |X| = sqrt(gr0(rev(X) * X))  (the scalar
-// part of rev(X) * X), which equals 1 for a unit STA rotor. This is deliberately NOT
-// the grade-wise nrm_sq(MVec4ds_E): for these rotors that grade sum is cos(2a) / cosh(2f)
-// (signed Lorentzian bivector norm), not the versor norm, so it must not be used here.
+// Normalization is the signature-agnostic Study renormalisation (eq. 24, in
+// detail::sta4ds_nearest_rotor): for a SIMPLE rotor 1 + R has a scalar norm and this is
+// just (1 + R)/sqrt(<..>_0), but for a NON-simple rotor 1 + R has a non-scalar (Study)
+// norm with a g1234 part -- dropping it (a scalar-only versor norm) would return a
+// non-rotor, so the full Study normalisation is used. R is first renormalised to a unit
+// rotor the same way, so non-unit inputs (e.g. integration drift) are handled.
 //
-// PRE: R is a simple rotor (a single rotation or boost plane) -- e.g. the output of
-//      get_rotor / get_boost / exp of a simple bivector. General (non-simple) rotors,
-//      whose bivector carries a g1234 part, are not handled (mirrors exp()'s scope).
+// R = -1 (a 2*pi rotation) gives 1 + R = 0, which has no unique principal root ->
+// nearest_rotor returns the identity rotor (the conventional choice).
+//
+// NOTE: the c+ Study branch is the principal root for <1 + R>_0 >= 0, which holds for any
+// rotor near the identity (the renormalisation-drift use case). An extreme rotor
+// combining a large boost with a rotation past pi/2 can push <1 + R>_0 < 0 onto the other
+// (c-) branch; that regime shares the branch-cut ambiguity of any square root.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> sqrt(MVec4ds_E<T> const& R)
 {
-    MVec4ds_E<T> M{R};
-
-    // ensure a unit rotor (the bisection assumes |R| = 1 in the versor norm)
-    T const r_nsq = T(gr0(rev(M) * M));
-    if (r_nsq > detail::safe_epsilon<T>() &&
-        std::abs(r_nsq - T(1.0)) > detail::safe_epsilon<T>()) {
-        M = M / std::sqrt(r_nsq);
-    }
-
-    // X = 1 + R, renormalised by the versor norm sqrt(gr0(rev(X) * X))
-    MVec4ds_E<T> const X = Scalar4ds<T>(1.0) + M;
-    T const n_sq = T(gr0(rev(X) * X));
-    if (n_sq <= detail::safe_epsilon<T>()) {
-        // degenerate: R = -1 (a 2*pi rotation) -> 1 + R = 0 has no unique direction;
-        // return the identity rotor (the conventional principal square root)
-        return MVec4ds_E<T>(Scalar4ds<T>(1.0), BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                            PScalar4ds<T>(0.0));
-    }
-    return X / std::sqrt(n_sq);
+    MVec4ds_E<T> const Ru = detail::sta4ds_nearest_rotor(R);     // ensure a unit rotor
+    return detail::sta4ds_nearest_rotor(Scalar4ds<T>(1.0) + Ru); // Normalize(1 + R)
 }
 
 

@@ -3,8 +3,11 @@
 
 #include "doctest/doctest.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <iostream>
+#include <random>
 #include <tuple>
 #include <variant>
 #include <vector>
@@ -1012,6 +1015,123 @@ TEST_SUITE("STA 3D Tests")
 
         fmt::println("sqrt: sqrt(R)^2 == R; halves angle/rapidity; unit rotor; "
                      "two half-transforms == one; degenerate -1 -> identity");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp: exp / log / sqrt for GENERAL (non-simple) rotors
+    // -- a Lorentz boost and a spatial rotation combined in orthogonal (dual) planes,
+    //    so R carries a g1234 part (gr4(R) != 0). This is the case the earlier
+    //    simple-only implementation could not handle; guards against regressions in the
+    //    invariant-decomposition (exp/log) and Study-renormalisation (sqrt) code paths.
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: general (non-simple) rotor exp / log / sqrt")
+    {
+        fmt::println("G<1,3,0>: general (non-simple) rotor exp / log / sqrt");
+
+        auto rotor_diff = [](mvec4ds_e const& a, mvec4ds_e const& b) {
+            return std::max({std::abs(a.c0 - b.c0), std::abs(a.c1 - b.c1),
+                             std::abs(a.c2 - b.c2), std::abs(a.c3 - b.c3),
+                             std::abs(a.c4 - b.c4), std::abs(a.c5 - b.c5),
+                             std::abs(a.c6 - b.c6), std::abs(a.c7 - b.c7)});
+        };
+
+        // reference exp via truncated Taylor series (ground truth for moderate |B|)
+        auto exp_series = [](bivec4ds const& B, int N) {
+            mvec4ds_e term{scalar4ds{1.0}, bivec4ds{0, 0, 0, 0, 0, 0}, pscalar4ds{0.0}};
+            mvec4ds_e sum = term;
+            mvec4ds_e const Bmv{scalar4ds{0.0}, B, pscalar4ds{0.0}};
+            for (int k = 1; k <= N; ++k) {
+                term = term * Bmv;
+                term = term * (1.0 / k);
+                sum = sum + term;
+            }
+            return sum;
+        };
+
+        // ---- a concrete non-simple bivector: boost in g14 + rotation in g23 (dual
+        //      planes) plus off-axis components so no coordinate is accidentally zero
+        //      ----
+        {
+            bivec4ds const B{0.5, -0.2, 0.1, 0.4, -0.3, 0.25}; // v-part boost, m-part rot
+            REQUIRE(std::abs(value_t(gr4(mvec4ds_e{B} * B))) >
+                    1.0e-3); // genuinely non-simple
+
+            auto const R = exp(B);
+            CHECK(std::abs(value_t(gr4(R))) > 1.0e-3); // rotor has a g1234 part
+
+            // exp matches the series definition
+            CHECK(rotor_diff(R, exp_series(B, 30)) == doctest::Approx(0.0));
+
+            // log is the inverse of exp (both directions)
+            auto const B_back = log(R);
+            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0));
+            CHECK(rotor_diff(exp(B_back), R) == doctest::Approx(0.0));
+
+            // sqrt: defining property and unit-rotor / geometric meaning
+            auto const sR = sqrt(R);
+            CHECK(rotor_diff(sR * sR, R) == doctest::Approx(0.0));
+            CHECK(value_t(gr0(rev(sR) * sR)) == doctest::Approx(1.0)); // unit rotor
+            vec4ds const x{2.0, 3.0, 5.0, 7.0};
+            CHECK(nrm_sq(transform(transform(x, sR), sR) - transform(x, R)) ==
+                  doctest::Approx(0.0)); // two half-transforms == one full
+        }
+
+        // ---- edge: rotation angle == pi/2, where the boost plane vanishes from gr2(R)
+        //      and must be recovered from the pseudoscalar part via the dual ----
+        {
+            bivec4ds const B = 0.8 * g14_4ds + (pi / 2.0) * g23_4ds;
+            auto const R = exp(B);
+            CHECK(value_t(nrm(log(R) - B)) == doctest::Approx(0.0));
+            CHECK(rotor_diff(sqrt(R) * sqrt(R), R) == doctest::Approx(0.0));
+        }
+
+        // ---- larger boost + rotation, still non-simple (outside series range) ----
+        {
+            bivec4ds const B = 1.3 * g14_4ds + 1.1 * g31_4ds;
+            auto const R = exp(B);
+            CHECK(value_t(nrm(log(R) - B)) == doctest::Approx(0.0));
+            CHECK(rotor_diff(sqrt(R) * sqrt(R), R) == doctest::Approx(0.0));
+            CHECK(value_t(gr0(rev(sqrt(R)) * sqrt(R))) == doctest::Approx(1.0));
+        }
+
+        // ---- deterministic random sweep of non-simple rotors ----
+        {
+            std::mt19937 gen(20240617u);
+            std::uniform_real_distribution<value_t> d(-1.0, 1.0);
+            int tested = 0;
+            value_t worst_series = 0.0, worst_logexp = 0.0, worst_explog = 0.0;
+            value_t worst_sqrt = 0.0, worst_unit = 0.0;
+            for (int i = 0; i < 2000; ++i) {
+                bivec4ds B{d(gen), d(gen), d(gen), d(gen), d(gen), d(gen)};
+                B = 0.35 * B; // moderate norm so the series converges
+                if (std::abs(value_t(gr4(mvec4ds_e{B} * B))) < 1.0e-3) continue; // simple
+                ++tested;
+                auto const R = exp(B);
+                worst_series = std::max(worst_series, rotor_diff(R, exp_series(B, 30)));
+                auto const Bb = log(R);
+                worst_logexp = std::max(worst_logexp, value_t(nrm(Bb - B)));
+                worst_explog = std::max(worst_explog, rotor_diff(exp(Bb), R));
+                auto const sR = sqrt(R);
+                worst_sqrt = std::max(worst_sqrt, rotor_diff(sR * sR, R));
+                worst_unit =
+                    std::max(worst_unit, std::abs(value_t(gr0(rev(sR) * sR)) - 1.0));
+            }
+            REQUIRE(tested > 1500); // most random bivectors are non-simple
+            CHECK(worst_series == doctest::Approx(0.0).epsilon(1.0e-9));
+            CHECK(worst_logexp == doctest::Approx(0.0).epsilon(1.0e-9));
+            CHECK(worst_explog == doctest::Approx(0.0).epsilon(1.0e-9));
+            CHECK(worst_sqrt == doctest::Approx(0.0).epsilon(1.0e-9));
+            CHECK(worst_unit == doctest::Approx(0.0).epsilon(1.0e-9));
+            fmt::println("   random non-simple rotors tested: {}", tested);
+            fmt::println("   worst: exp-series {:.2e}  log(exp)-B {:.2e}  exp(log)-R "
+                         "{:.2e}  sqrt^2-R {:.2e}  unit {:.2e}",
+                         worst_series, worst_logexp, worst_explog, worst_sqrt,
+                         worst_unit);
+        }
+
+        fmt::println("exp/log/sqrt: non-simple rotors (boost x rotation in dual planes) "
+                     "round-trip to machine precision");
     }
 
     TEST_CASE("G<1,3,0>: left-right complement composition")

@@ -5126,6 +5126,54 @@ TEST_SUITE("PGA 3DP Tests")
         }
     }
 
+    TEST_CASE("G<3,0,1>: sqrt(motor) round-trip (simple & non-simple screw)")
+    {
+        fmt::println("G<3,0,1>: sqrt(motor) round-trip (simple & non-simple screw)");
+
+        // Defining property of sqrt w.r.t. the regressive product: sqrt(M) ⟇ sqrt(M) ==
+        // M. Two branches must both hold: SIMPLE motors (scalar part ~ 0) and non-simple
+        // SCREW motors (scalar part != 0, the closed-form Lengyel formula). The screw
+        // branch guards the regressive dual-map path against a sign regression.
+
+        auto const P0 = vec3dp{2, -1, 3, 1};
+
+        // a) simple motor: a pure rotation (scalar part == 0)
+        {
+            auto const M = get_motor(
+                wdg(vec3dp{1, 0, 1, 1}, deg2rad(80) * bulk_normalize(vec3dp{0, 1, 0, 0})),
+                deg2rad(80));
+            REQUIRE(std::abs(M.c0) < eps); // simple branch
+            auto const R = sqrt(M);
+            CHECK(rgpr(R, R) == M); // sqrt(M) ⟇ sqrt(M) == M
+            CHECK(bulk_nrm_sq(move3dp(move3dp(P0, R), R) - move3dp(P0, M)) ==
+                  doctest::Approx(0.0)); // two halves == one
+        }
+
+        // b) non-simple SCREW motor: rotation about an offset axis + translation along it
+        //    (scalar part != 0 -> exercises the non-simple sqrt formula)
+        {
+            auto const B = bivec3dp{0.3, -0.8, 0.5, 0.7, -0.2, 1.1};
+            auto const M = exp(B);
+            REQUIRE(std::abs(M.c0) > eps); // non-simple branch
+            auto const R = sqrt(M);
+            CHECK(rgpr(R, R) == M); // sqrt(M) ⟇ sqrt(M) == M
+            CHECK(bulk_nrm_sq(move3dp(move3dp(P0, R), R) - move3dp(P0, M)) ==
+                  doctest::Approx(0.0));   // two halves == one
+            CHECK(2.0 * log(R) == log(M)); // sqrt halves the screw generator
+        }
+
+        // c) get_motor screw (explicit axis / angle / pitch) also round-trips
+        {
+            auto const M = get_motor(y_axis_3dp, deg2rad(110), 1.7);
+            REQUIRE(std::abs(M.c0) > eps);
+            auto const R = sqrt(M);
+            CHECK(rgpr(R, R) == M);
+        }
+
+        fmt::println(
+            "sqrt: sqrt(M) ⟇ sqrt(M) == M for simple and non-simple screw motors");
+    }
+
     TEST_CASE("Vec3dp: operations - inverses II")
     {
         fmt::println("Vec3dp: operations - inverses II");
