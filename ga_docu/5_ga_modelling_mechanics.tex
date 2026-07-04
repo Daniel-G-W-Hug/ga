@@ -848,10 +848,9 @@ time integration, and using the initial conditions defined above. As a result, w
 get the positions and velocities as function of time.
 
 \paragraph{Classical body frame vs.\ $PGA$ --- what unifies:} It is instructive to compare
-the
-single $PGA$ equation of motion~(\ref{eq:ode_system_body_frame}), $\dot{\Omega}_b =
-I_b^{-1}\!\left[F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b])\right]$, with the classical
-body-frame formulation. Classically one carries two separate vector equations -- Newton's
+the classical body-frame formulation with the single $PGA$ equation of
+motion~(\ref{eq:ode_system_body_frame}), $\dot{\Omega}_b = I_b^{-1}\!\left[F_b -
+\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])\right]$. Classically one carries two separate vector equations -- Newton's
 for $\dot{\vec{v}}$ and Euler's for $\dot{\vec{\omega}}$ (the latter with the nonlinear
 gyroscopic term $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$) -- plus a separate
 orientation update via a rotation matrix or quaternion. The $PGA$ formulation collapses
@@ -1555,8 +1554,8 @@ a rotation only requires two dimensions for its representation in geometric alge
 
 % Three-column layout: Application (spanning) | Tag | Description
 % Adjust \cwAppPhys and \cwTagPhys; description fills the rest.
-\newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.15\textwidth}
-\newlength{\cwTagPhys}\setlength{\cwTagPhys}{0.06\textwidth}
+\newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.16\textwidth}
+\newlength{\cwTagPhys}\setlength{\cwTagPhys}{0.07\textwidth}
 \newlength{\cwDescPhys}\setlength{\cwDescPhys}{\dimexpr\textwidth - \cwAppPhys -
 \cwTagPhys - 4\arrayrulewidth - 6\tabcolsep\relax}
 \begin{table}[H]
@@ -2070,7 +2069,7 @@ gains a component and the joint screws become lines, while the constraint Jacobi
 bordered solve are unchanged.
 
 
-\subsubsection{Addendum: what geometric algebra contributes to rigid-body dynamics}
+\subsubsection[Addendum: what geometric algebra contributes]{Addendum: what geometric algebra contributes to rigid-body dynamics}
 \label{subsubsection:addendum_ga_contribution}
 
 This addendum weighs the approach against classical methods. It is not
