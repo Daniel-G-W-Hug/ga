@@ -3,6 +3,14 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this
 repository.
 
+## Commit policy (MANDATORY)
+
+**Never commit on your own initiative.** After completing and verifying a change, present
+the result and wait for the user's explicit request to commit. This includes follow-up
+work: an instruction like "apply the fixes" or an earlier "commit everything" authorizes
+that step only -- it does NOT extend to committing later changes in the same session.
+When in doubt, leave the working tree for review and say it is ready.
+
 ## Project Paths and Build System
 
 **CRITICAL PATH INFORMATION:**
@@ -27,6 +35,8 @@ repository.
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
 │   ├── ga_appl3dp_test                             #   PGA3D applications
+│   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
+│   ├── ga_stencil_test                             #   FD stencil generator (detail/ga_stencil.hpp)
 │   ├── ga_export_python_cases                      #   emits cross-check JSON for ga_py tests
 │   └── ga_sta_bench_transform                      #   STA transform_opt micro-benchmark
 ├── ga_view/ga_view                                 # Qt6 2D visualization executable
@@ -212,10 +222,26 @@ indistinguishable in style from the surrounding hand-written text.
 - emphatic-contrast framing: "The central point — and the easiest to get wrong — is…",
   "That is wrong:", "The clearest evidence is…", "is exactly what…", "precisely why…";
 - triads and slogan cadence ("clarity, unification and visualizability");
-- lexical fillers: "robust", "powerful", "crucial", "seamless", "comprehensive".
+- lexical fillers: "robust", "powerful", "crucial", "seamless", "comprehensive",
+  "genuine(ly)";
+- aphorism-cadence lines — a short quotable sentence standing on its own ("Where an
+  error sits in the chain is its physics."); state the fact in plain declarative form
+  instead;
+- full-sentence rhetorical italics — `\emph{}` wrapping an entire sentence for stress
+  (emphasis is for first-use term definitions only);
+- "is exactly the/what ..." — drop the "exactly"; identities read stronger without it.
 
 Keeping the *content* (depth, derivations, references) while neutralizing the *register*
 is the goal — a voice-only pass, not a deletion of substance.
+
+**Build & overfull check (after any ga_docu prose edit):** build with
+`latexmk -pdf 0_ga_docu.tex` from `ga_docu/`, then grep the fresh log for
+`Overfull \hbox` and fix any NEW entries by rewording, not by layout hacks. The usual
+cause is an inline formula straddling a line break — reword so the formula lands at a
+line boundary (sentence-final position after breakable prose works well). Always
+re-check the log after the fix: a careless rewording can move the overflow and make it
+larger. Sub-half-point remnants (< 0.5pt ≈ 0.2 mm) are invisible in print and not worth
+wording churn.
 
 ### C++ Formatting (clang-format — MANDATORY before writing/committing)
 
@@ -320,7 +346,7 @@ the whole tree or hand-rolling a helper:
 | `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
 | `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
 | `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
-| `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form) |
+| `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form); step/easing helpers `linear_step`/`smooth_step`/`smoother_step` |
 | `ga/detail/ga_solver.hpp` | the small dense linear solver — `lu_solve`, `lstsq_solve` (least-squares / minimum-norm via normal equations), `kkt_solve` (constrained KKT); used by the physics assembly and the closed-loop layer |
 | `ga/detail/ga_stencil.hpp` | finite-difference stencil generator — `stencil_t` (Fornberg-style weights, order, truncation error via `lu_decomp`/`lu_backsubs`; explicit + compact schemes), `factorial`; infrastructure for discretized field derivatives (numerical nabla, planned STA electrodynamics) |
 
@@ -801,7 +827,9 @@ Audit scripts complementing the in-process validator live in
 - `compare_algebras.sh <product>` — diff one product's pair sets across same-dim
   algebras.
 - `library_coverage.py` — compare what `ga_prdxpr --output=code` emits against
-  what's in `ga/ga_<algebra>_ops_products.hpp`. Reports which generated functions
+  what's in the library headers: `ga/ga_<algebra>_ops_products.hpp` **plus**
+  `ga_<algebra>_ops_basics.hpp` (where the generated complements/duals are
+  spliced). Reports which generated functions
   still need to be copy-pasted into the library; supports `--show-code` for
   paste-ready blocks and `--diff` for body comparison after clang-format
   normalisation. Uses `--algebra=ALGEBRAS` (comma-separated, mirrors
@@ -1086,6 +1114,11 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   shadow the `detail::safe_epsilon` etc. used unqualified inside `hd::ga::sta`. Scalar
   `transform_opt` is slower than `transform()` for one-offs (matrix build not amortised);
   only the batch overload wins (~3× at `-O3`). Bench: `ga_test/utilities/`.
+
+- **Planned physics tier**: the STA differential-operator/electrodynamics layer (vector
+  derivative ∇, Maxwell `∇F = J`, Lorentz force + proper-time rotor EOM) is collected as
+  a phased plan in [TODO/sta_differential_operators.md](TODO/sta_differential_operators.md);
+  `ga/detail/ga_stencil.hpp` (FD stencil weights) is its numeric groundwork.
 
 - **`get_rotor` and `get_boost` use OPPOSITE half-angle signs by design.** `get_rotor`
   negates (`-theta/2`, matching ega3d); `get_boost` does not (`+phi/2`). Each sign is the
