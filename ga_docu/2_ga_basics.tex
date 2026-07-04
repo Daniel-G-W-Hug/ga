@@ -450,7 +450,7 @@ The extended metric $\metric{G}$ is a so-called exomorphism matrix that fulfills
     \label{eq:exomorphism}
 \end{equation} for any multivector $A$ and $B$ (see~\cite{Lengyel_pga-illuminated:2024},
 pp. 61ff.). This exomorphism is defined with respect to the wedge product. The wedge
-product itself is defined independend of any metric. However, this property defines an
+product itself is defined independent of any metric. However, this property defines an
 extended metric, and the resulting extended metric can in turn be used to define a dot
 product for components of any grade of a multivector. The dot product $dot(a,b) = a^T
 \metric{G} b$ is defined as a metric product (see eq.~(\ref{eg:inner_product_metric})
@@ -698,7 +698,7 @@ Reversion of the component $M_r$ is defined by the pattern $\rev{M}_r =
 \rev{M} = \grprj{M}{0} + \grprj{M}{1} - \grprj{M}{2} - \grprj{M}{3} + \grprj{M}{4}
 \end{equation}
 While the Clifford conjugation of the grade $r$ multivector-component $M_r$ is defined by
-$M^*_r = (-1)^(\frac{r*(r+1)}{2}) M_r$ (function $conj()$). It is effectively a
+$M^*_r = (-1)^{\frac{r(r+1)}{2}} M_r$ (function $conj()$). It is effectively a
 composition of reversion and grade involution ($M^* = \widehat{\rev{M}} =
 \rev{\widehat{M}}$) resulting in
  \begin{equation}
@@ -1012,7 +1012,7 @@ multivector $A$:
 \begin{enumerate}
     \item \emph{complement after metric} (this library, after Lengyel):
     $A^{\star} = \rcmpl{\metric{G}A}$ --- multiply by the extended metric, then take the
-    purely combinatorial complement. This is exactly the (bulk) dual already defined
+    purely combinatorial complement. This is the (bulk) dual already defined
     in~(\ref{eq:rightbulkdual}) and~(\ref{eq:leftbulkdual}).
     \item \emph{pseudoscalar multiplication}: $A \wedgedot I_n$ and $A \wedgedot
     I_n^{-1}$.
@@ -1048,7 +1048,7 @@ the determinant:
 \end{equation}
 For a Euclidean algebra ($det = +1$) this is the identity --- the left dual undoes the right
 dual. For $STA4DS$ ($det = -1$) it is $-A$: the left dual is the inverse only up to the
-sign $det$. The genuine inverse applies the metric on the \emph{dual} side instead of the
+sign $det$. The exact inverse applies the metric on the \emph{dual} side instead of the
 primal side. Since $\metric{G}^2 = I_n$, the inverse of $A^{\star} = \rcmpl{\metric{G}A}$
 is the \emph{un-dual} (Lengyel: antidual), one per handedness:
 \begin{subeqnarray}
@@ -1228,7 +1228,7 @@ space in regular matric multiplication. The left dual is defined as $(\lcmpl{\me
 u})\wedge u = \leftbulkdual{u}\wedge u = I_{n}$ and the right dual is defined as $u \wedge
 (\rcmpl{\metric{G} u}) = u \wedge \rightbulkdual{u} =I_{n}$. \\
 
-Complements and duals are the indistinguishable in $EGA$ since the metric is the identity
+Complements and duals are indistinguishable in $EGA$ since the metric is the identity
 matrix. However, in $PGA$ they differ since the metric selects certain basis vectors that
 are no longer present after the matrix multiplication with the metric (see subsection
 \ref{subsection:tables_of_products_pga}).\\
@@ -1263,7 +1263,7 @@ complement and left dual are given in the table for $3D$ $EGA$ below.\\
     \end{tabular}%
     }
     \captionof{table}{\footnotesize Right and left complements, as well as right and
-    left in $2D$ $EGA$ for every basis element.}
+    left duals in $2D$ $EGA$ for every basis element.}
     \label{tab:ega2d_cmpl_dual}
     \end{center}
 

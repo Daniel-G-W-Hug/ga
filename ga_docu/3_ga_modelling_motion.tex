@@ -913,7 +913,7 @@ above.
 \paragraph{Caution:} The additive split $\Omega = \Omega_{rot} + \Omega_{tra}$ is a
 statement
 about \emph{generators} --- the velocity level, where rates add and the components are
-independent. \emph{Finite motions do not add.} One must not read this split as a recipe for
+independent. Finite motions do not add. One must not read this split as a recipe for
 building a combined finite motion by adding generators (equivalently, by assuming the two
 motors commute); that is valid only in one special case. The next section makes this
 precise (Sec.~\ref{subsubsection_lie_algebra_vs_lie_group}).
@@ -945,8 +945,8 @@ Rotation about origin & $\{0,\;0,\;1\}$ & body spins about world origin \\
 \end{table}
 
 A general instantaneous velocity $\Omega_b = \{-v_y,\; v_x,\; \omega\}$ means
-\emph{simultaneously}: translate at $(v_x, v_y)$ \emph{and} rotate at $\omega$ -- with
-\emph{no coupling} between the three components. Integrating the velocity over an
+simultaneously: translate at $(v_x, v_y)$ and rotate at $\omega$ -- with no coupling
+between the three components. Integrating the velocity over an
 infinitesimal step $dt$ gives
 \begin{equation}
     B_b \leftarrow B_b + \Omega_b \cdot dt,
@@ -963,7 +963,7 @@ rotation about some center, or a pure translation. There is no screw motion.
 \end{quote}
 
 Consequently, for any $B_b$ with $B_b.z \neq 0$, the motor $\exp_{\veedot}(\tfrac{1}{2}
-B_b)$ is \emph{always a pure rotation} -- the translational components merely determine
+B_b)$ is always a pure rotation -- the translational components merely determine
 the rotation center:
 \begin{equation}
     \text{pivot} = \left(\frac{B_b.x}{B_b.z},\;\frac{B_b.y}{B_b.z}\right).
@@ -972,8 +972,8 @@ the rotation center:
 The ``translation'' encoded in $B_b.x$ and $B_b.y$ does not produce an independent
 translational displacement; it shifts the rotation center. \\
 
-\emph{At the velocity level (Lie algebra)  the components are independent. At the
-displacement level (Lie group) they are not.} \\
+At the velocity level (Lie algebra) the components are independent. At the
+displacement level (Lie group) they are not. \\
 
 In $3D$ the Lie algebra $\mathfrak{se}(3)$ is six-dimensional: three components for the
 rotation axis direction, three for the translation velocity. Chasles' theorem for $3D$
@@ -985,7 +985,7 @@ motion}: a rotation about an axis combined with a translation \emph{along} that 
 (helical motion).
 \end{quote}
 
-Exponentiating a combined $3D$ generator therefore yields a genuine screw -- rotation and
+Exponentiating a combined $3D$ generator therefore yields a screw -- rotation and
 translation are simultaneously present in the finite displacement. The rotation axis
 direction and the translational pitch are independently adjustable because there exists a
 direction (along the axis) that is geometrically orthogonal to the plane of rotation. In
