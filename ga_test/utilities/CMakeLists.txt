@@ -47,3 +47,26 @@ add_custom_target(run_${BENCH_TRANSFORM}
     COMMENT "Running sta4ds transform benchmark"
     VERBATIM
 )
+
+set(BENCH_DIPOLE ga_dipole_bench)
+add_executable(${BENCH_DIPOLE} bench_dipole_ga_vs_classical.cpp)
+target_include_directories(${BENCH_DIPOLE} PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(${BENCH_DIPOLE} PRIVATE ga)
+link_fmt_to_target(${BENCH_DIPOLE})
+set_target_properties(${BENCH_DIPOLE} PROPERTIES
+    EXCLUDE_FROM_ALL TRUE
+    RUNTIME_OUTPUT_DIRECTORY "${_BENCH_OUTPUT_DIR}")
+target_compile_definitions(${BENCH_DIPOLE} PRIVATE NDEBUG)
+if(MSVC)
+    target_compile_options(${BENCH_DIPOLE} PRIVATE /O2)
+else()
+    target_compile_options(${BENCH_DIPOLE} PRIVATE -O3)
+endif()
+
+add_custom_target(run_${BENCH_DIPOLE}
+    COMMAND ${BENCH_DIPOLE}
+    DEPENDS ${BENCH_DIPOLE}
+    WORKING_DIRECTORY "${_BENCH_OUTPUT_DIR}"
+    COMMENT "Running dipole GA-vs-classical benchmark"
+    VERBATIM
+)
