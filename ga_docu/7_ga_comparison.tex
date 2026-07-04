@@ -62,4 +62,44 @@
     rotations and translations.
 \end{itemize}
 
+\subsubsection{Space-time algebra ($STA$)}
+
+\begin{itemize}
+    \item Extends the Euclidean approach to space-time: $\mathbb{G}(1,3,0)$ with three
+    space-like and one time-like basis vector (Minkowski signature).
+    \item Bivectors carry both kinds of transformation generators: space-like planes
+    generate rotations, time-like planes generate Lorentz boosts. The even-grade rotors
+    implement both through the same sandwich product as in $EGA$.
+    \item Quantities that are separate objects in $3D$ combine into single space-time
+    objects (events and four-velocities as vectors; the electric and magnetic fields as
+    one field bivector), and frame changes act on all of them by rotor conjugation.
+    \item Suitable when time is part of the modelled physics itself: fields of moving
+    sources, induction, waves, invariance arguments. For static and quasi-static
+    problems $EGA$ with time as an external parameter remains sufficient.
+\end{itemize}
+
+\subsubsection{Choosing the algebra}
+
+The algebras are layers with distinct responsibilities rather than competing
+formalisms. $EGA$ describes the \emph{value} of a physical quantity at a point: its
+metric is invertible, which provides norms, angles and gradients, and with them field
+calculus. Its objects carry no position -- the evaluation point is a parameter, not
+part of the object. $PGA$ describes \emph{located} objects -- points, lines of action,
+planes, poses -- and rigid motion; its degenerate metric intentionally gives up field
+calculus to gain translations as sandwich products. $STA$ describes quantities whose
+physics couples space and time. \\
+
+A quantity therefore belongs in $EGA$ when its position is merely where it is evaluated
+(a field value, an energy density), and in $PGA$ when its position is part of what it
+is (a force on its line of action, the pose of a body). The two connect through the
+ideal sector: an $EGA$ direction embeds as an ideal point, an $EGA$ bivector as an
+ideal line (a couple), so a local result computed in $EGA$ is bound to its location by
+a single wedge product -- e.g. $P \wedge f$ turns a force vector evaluated at a point
+into the wrench acting on that point's line of action. $STA$ enters when time can no
+longer stay an external parameter. \\
+
+In short: $EGA$ answers \emph{what} -- the value of a quantity at a point. $PGA$
+answers \emph{where} -- location and rigid motion. $STA$ answers \emph{when} --
+coupling across space and time.
+
 \newpage
