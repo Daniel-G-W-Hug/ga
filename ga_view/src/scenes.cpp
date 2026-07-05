@@ -23,6 +23,7 @@ using namespace hd::ga::pga;
 #include "active_grinding_marks.hpp"
 #include "active_grinding_topo.hpp"
 #include "active_kinematics2dp.hpp"
+#include "active_maglev.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
 #include "active_ode_plate.hpp"
@@ -1684,6 +1685,24 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    // maglev hover-digital-twin demo items (PGA3DP free rigid body + PID)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->amag.size(); ++idx) {
+        active_maglev* ml = new active_maglev(cs, wcs, cm->amag[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, ml,
+                         &active_maglev::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, ml,
+                         &active_maglev::togglePause);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, ml,
+                         &active_maglev::toggleTrace);
+        QObject::connect(wcs, &w_Coordsys::forcesToggleRequested, ml,
+                         &active_maglev::toggleForces);
+        QObject::connect(wcs, &w_Coordsys::icrToggleRequested, ml,
+                         &active_maglev::toggleMagnets);
+        scene->addItem(ml);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     // wafer-grinding grain-trajectory demo items (PGA3DP kinematic_system3dp)
     ///////////////////////////////////////////////////////////////////////////
     for (size_t idx = 0; idx < cm->agm.size(); ++idx) {
@@ -2827,6 +2846,35 @@ std::vector<Coordsys_model> build_models()
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.49; // wider box -> heading wraps to fewer lines (shorter box)
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append maglev hover-digital-twin scene (PGA3DP): a Halbach-ring mover levitating
+    // over a 6x6 grid of rotatable magnet groups, stabilized by a 1 kHz PID + minimum-
+    // norm actuation loop (Earnshaw makes passive hover impossible). Fully 3D physics,
+    // rendered as a top view + side view; runs a cyclic demo program from parked
+    // contact through lift-off, maneuvers, a payload step, and landing.
+    {
+        Coordsys_model cm;
+        cm.add_maglev(amaglev{});
+        cm.set_label("Maglev hover twin (magnetostatic dipoles + PID)");
+
+        diagram_legend leg;
+        leg.heading = "Maglev hover twin: Halbach-ring mover, 6x6 magnet-group "
+                      "grid, 1 kHz PID, damped min-norm wrench retargeting.";
+        leg.entries = {{"SPACE / R:", "pause-resume / reset"},
+                       {"T:", "toggle the cm trace (top view)"},
+                       {"F:", "toggle the force/moment overlay"},
+                       {"I:", "inspect actuator magnets"},
+                       {"─────", "──────────"},
+                       {"arrows:", "actuator moment orientations"},
+                       {"red spoke:", "yaw marker; flag: yaw/tilt/lift"},
+                       {"z chart:", "height vs setpoint (payload sag)"}};
+        leg.x_pct = 0.58;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.40;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));

@@ -384,6 +384,48 @@ struct aplanar_delta {
     planar_delta_params params;
 };
 
+// Parameters of the maglev hover-digital-twin demo (ga_test/src/ga_dipole_model.hpp).
+// A mover carrying a Halbach dipole ring levitates over an nx x ny grid of rotatable
+// Halbach-type magnet groups; a PID + gravity-feedforward controller at 1 kHz retargets
+// the wrench with one minimum-norm Newton step per cycle. The physics is fully 3D; the
+// scene draws a top view (x-y) and a side view (x-z) of the one 3D state and runs a
+// cyclic demo program: parked -> lift-off -> hover -> yaw -> tilt -> travel -> payload
+// step -> spin (full 360 deg about a tilted axis) -> landing.
+// The defaults are validated by a full-program replay (two consecutive demo cycles,
+// max tracking error < 0.7 mm). Two hard physical limits found there -- respect them
+// when re-tuning:
+//   - z_park: the vertical Earnshaw runaway stiffens steeply as the gap closes
+//     (lambda ~ 450 1/s at 8 mm vs ~ 40-60 1/s at 12-30 mm) -- parking much below
+//     12 mm is uncontrollable for a 1 kHz loop of this bandwidth;
+//   - r_travel: the path reaches x = -2 r_travel, and the mover ring (radius 50 mm)
+//     must stay over the actuated area (array edge ~113 mm) -- beyond that the
+//     wrench authority collapses and the mover is dropped.
+struct maglev_params {
+    int nx{6}, ny{6};         // stator grid (6x6 lets the mover travel)
+    double s_g{5.0};          // group moment scale [Am^2]
+    double mass{0.204};       // mover mass [kg] (controller model AND true plant)
+    double z_park{0.012};     // parked standoff height [m] (mimics surface contact)
+    double z_hover{0.03};     // hover height [m]
+    double wc{60.0};          // controller bandwidth [rad/s] (> plant runaway rate)
+    double zeta{1.0};         // controller damping ratio
+    double ki_scale{0.25};    // integral gain scale (recovers the payload sag)
+    double yaw_max{0.5236};   // yaw-turn amplitude [rad] (30 deg; ring symmetry: 45)
+    double tilt_max{0.04363}; // tilt amplitude [rad] (2.5 deg, about y: visible in x-z)
+    double r_travel{0.025};   // radius of the travel circle [m] (see note above)
+    double spin_tilt{0.0524}; // spin-axis tilt from vertical [rad] (3 deg)
+    double payload_frac{0.5}; // unmodelled payload mass fraction of `mass`
+    double ns_rate{2.0};      // null-space centering rate [1/s] (angle-drift fix)
+    double ns_zmin{0.022};    // centering only above this height [m] (see controller)
+    int cycles_per_tick{16};  // 1 kHz control cycles per ~16 ms tick (real time)
+    int substeps{2};          // RK4 substeps per control cycle
+    int jac_period{10};       // actuation-Jacobian refresh interval [cycles]
+};
+
+// Active item: maglev hover digital twin demo (no active points)
+struct amaglev {
+    maglev_params params;
+};
+
 // Parameters of the wafer-grinding grain-trajectory demo (Phase 0 of TODO/grinding.md).
 // It runs the six-frame kinematic_system3dp of Tao Fig. 1 -- two chains off the
 // stationary chuck centre: chuck_ctr_rot -> wafer_top_avg_rot (the wafer, spun at n_s)
@@ -628,6 +670,9 @@ class Coordsys_model {
     // add planar 5-bar parallel manipulator demo item
     [[maybe_unused]] size_t add_planar_delta(aplanar_delta const& apld_in);
 
+    // add maglev hover-digital-twin demo item
+    [[maybe_unused]] size_t add_maglev(amaglev const& amag_in);
+
     [[maybe_unused]] size_t add_grinding_marks(agrinding_marks const& agm_in);
 
     [[maybe_unused]] size_t add_grinding_topo(agrinding_topo const& agto_in);
@@ -715,6 +760,9 @@ class Coordsys_model {
 
     // data for planar 5-bar parallel manipulator demo items
     std::vector<aplanar_delta> apld;
+
+    // data for maglev hover-digital-twin demo items
+    std::vector<amaglev> amag;
 
     // data for wafer-grinding grain-trajectory demo items
     std::vector<agrinding_marks> agm;
