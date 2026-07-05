@@ -130,8 +130,11 @@ inline void stencil_t::calc_stencil()
     std::mdspan perm{mem_perm.data(), n()};
     std::mdspan rhs{mem_rhs.data(), n()};
 
-    // setup column index ranges (begin/end indices for the f, f', f'' columns)
-    size_t j0b, j0e, j1b, j1e, j2b, j2e, col;
+    // setup column index ranges (begin/end indices for the f, f', f'' columns);
+    // the f'/f'' ranges are set and used only under the nf1()/nf2() guards below,
+    // but MSVC cannot prove the guards match, so zero-initialize to silence C4701
+    size_t j0b, j0e, col;
+    size_t j1b = 0, j1e = 0, j2b = 0, j2e = 0;
 
     // f
     j0b = 0;

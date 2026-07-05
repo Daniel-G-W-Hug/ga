@@ -2191,9 +2191,9 @@ TEST_SUITE("PGA3DP: application tests")
         // half-angle generator). The displacement is a direction (w=0); a pure Rz
         // rotation acts on its x,y,z exactly like Tc2 on the homogeneous EM.L point.
         auto const Rz_bw = motor_from_pose3dp(pose3dp{O_3dp, vec3dp{0, 0, bw, 0}});
-        auto E_corr_ga = [&](vec3dp const& del, vec3dp const& eps, vec3dp const& Lpt) {
+        auto E_corr_ga = [&](vec3dp const& del, vec3dp const& eps_rot, vec3dp const& Lpt) {
             auto const M_e =
-                motor_from_pose3dp(pose3dp{vec3dp{del.x, del.y, del.z, 1.0}, eps});
+                motor_from_pose3dp(pose3dp{vec3dp{del.x, del.y, del.z, 1.0}, eps_rot});
             auto const twist = 2.0 * log(M_e); // full screw generator Omega
             auto const d = rcmt(twist, Lpt);   // velocity field at the offset point
             return move3dp(vec3dp{d.x, d.y, d.z, 0.0}, Rz_bw); // rotate into wafer frame
