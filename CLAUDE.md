@@ -152,8 +152,8 @@ the following notation:
 
 | Symbol       | Unicode | LaTeX                         | Meaning                                     |
 | ------------ | ------- | ----------------------------- | ------------------------------------------- |
-| ⟑            | U+27D1  | (direct Unicode)              | Geometric product                           |
-| ⟇            | U+27C7  | (direct Unicode)              | Regressive geometric product                |
+| ⟑            | U+27D1  | `\wedgedot` (MnSymbol)        | Geometric product (EGA/STA)                 |
+| ⟇            | U+27C7  | `\veedot` (MnSymbol)          | Regressive geometric product (PGA)          |
 | $\tilde{M}$  | —       | `\tilde{}`                    | Reverse of M (`rev(M)` in code)             |
 | $\utilde{M}$ | —       | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
 
@@ -163,6 +163,11 @@ the following notation:
   previewers) without a package import
 - **LaTeX documentation** (`ga_docu`): use `\undertilde{}` from the `accents` package
   (`\usepackage{accents}`)
+- **LaTeX math (`ga_docu` `.tex`)**: write the geometric product as `\wedgedot` (⟑) and the
+  regressive product as `\veedot` (⟇), both from `MnSymbol` — not as bare juxtaposition.
+  `\wedgedot` is the EGA/STA product, `\veedot` the PGA product; e.g. rotor sandwich
+  `R \wedgedot X \wedgedot \rev{R}`, motor sandwich `M \veedot X \veedot \rrev{M}`. Prose
+  and `.md` may use the Unicode ⟑/⟇ directly.
 - For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and
   function names are kept distinct throughout this codebase
 - Motor composition (PGA) uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
