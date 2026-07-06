@@ -727,7 +727,13 @@ void w_Coordsys::wheelEvent(QWheelEvent* event)
         double dy_min = y - cs->y.min();
         double dy_max = cs->y.max() - y;
 
+        // 4 numTicks = 1% scaling. numTicks is unbounded (a fast macOS trackpad flick
+        // reports angleDelta().y() in the hundreds); clamp the per-gesture factor to a
+        // safe positive band so a single event can never collapse the range to zero
+        // (scale_fact == 0 at numTicks == 400) or invert it (scale_fact < 0 beyond that),
+        // both of which produce a degenerate max <= min axis and abort the app.
         double scale_fact = 1.0 - 0.01 * 0.25 * numTicks; // 4 numTicks = 1% scaling
+        scale_fact = std::clamp(scale_fact, 0.2, 5.0);
 
         double new_xmin = x - scale_fact * dx_min;
         double new_xmax = x + scale_fact * dx_max;

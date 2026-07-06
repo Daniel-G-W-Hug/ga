@@ -19,6 +19,26 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h"
 
+namespace {
+
+// Defense-in-depth for the interactive zoom paths: enforce a strictly positive axis
+// span so a degenerate (or inverted) range from a runaway gesture can never reach the
+// Axis ctor precondition (which throws and aborts the app). The floor is relative to
+// the range magnitude, with an absolute fallback near zero; it only clamps ranges that
+// are already collapsed, so normal zooming is untouched.
+void sanitize_rng(axis_rng& rng)
+{
+    double const min_span =
+        std::max(1.0e-9, 1.0e-9 * std::max(std::abs(rng.min), std::abs(rng.max)));
+    if (!(rng.max - rng.min >= min_span)) { // also catches NaN
+        double const mid = 0.5 * (rng.min + rng.max);
+        rng.min = mid - 0.5 * min_span;
+        rng.max = mid + 0.5 * min_span;
+    }
+}
+
+} // namespace
+
 Axis::Axis(widget_axis_data wd_in, axis_data ad_in, std::optional<double> px_density_in) :
     wd{wd_in}, ad{ad_in}, target_px_density_rng{px_density_in}
 {
@@ -527,6 +547,7 @@ void Coordsys::adjust_to_zoom(double new_xmin, double new_xmax, double new_ymin,
                                           new_xmin, new_xmax);
     adx.rng.min = new_xmin;
     adx.rng.max = new_xmax;
+    sanitize_rng(adx.rng);
 
     // create new axis
     x = Axis(wdx, adx);
@@ -538,6 +559,7 @@ void Coordsys::adjust_to_zoom(double new_xmin, double new_xmax, double new_ymin,
                                           new_ymin, new_ymax);
     ady.rng.min = new_ymin;
     ady.rng.max = new_ymax;
+    sanitize_rng(ady.rng);
 
     // create new axis
     if (ar_const == keep_aspect_ratio::yes) {
@@ -652,9 +674,10 @@ void Coordsys::adjust_to_wheel_zoom(double new_xmin, double new_xmax, double new
 
         adx.rng.min = new_xmin;
         adx.rng.max = new_xmax;
+        sanitize_rng(adx.rng);
 
         adx.ticks.major_delta = get_new_delta_wheel_zoom(
-            new_xmin, new_xmax, adx.ticks.major_delta, xtarget_ratio);
+            adx.rng.min, adx.rng.max, adx.ticks.major_delta, xtarget_ratio);
 
         widget_axis_data wdx = x.get_widget_axis_data();
         x = Axis(wdx, adx);
@@ -665,9 +688,10 @@ void Coordsys::adjust_to_wheel_zoom(double new_xmin, double new_xmax, double new
 
         ady.rng.min = new_ymin;
         ady.rng.max = new_ymax;
+        sanitize_rng(ady.rng);
 
         ady.ticks.major_delta = get_new_delta_wheel_zoom(
-            new_ymin, new_ymax, ady.ticks.major_delta, ytarget_ratio);
+            ady.rng.min, ady.rng.max, ady.ticks.major_delta, ytarget_ratio);
 
 
         widget_axis_data wdy = y.get_widget_axis_data();
