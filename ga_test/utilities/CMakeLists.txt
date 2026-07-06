@@ -70,3 +70,27 @@ add_custom_target(run_${BENCH_DIPOLE}
     COMMENT "Running dipole GA-vs-classical benchmark"
     VERBATIM
 )
+
+# Maglev motion stability-envelope study (closed-loop sweeps; on-demand only).
+set(MAGLEV_STABILITY ga_maglev_stability)
+add_executable(${MAGLEV_STABILITY} bench_maglev_stability.cpp)
+target_include_directories(${MAGLEV_STABILITY} PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(${MAGLEV_STABILITY} PRIVATE ga)
+link_fmt_to_target(${MAGLEV_STABILITY})
+set_target_properties(${MAGLEV_STABILITY} PROPERTIES
+    EXCLUDE_FROM_ALL TRUE
+    RUNTIME_OUTPUT_DIRECTORY "${_BENCH_OUTPUT_DIR}")
+target_compile_definitions(${MAGLEV_STABILITY} PRIVATE NDEBUG)
+if(MSVC)
+    target_compile_options(${MAGLEV_STABILITY} PRIVATE /O2)
+else()
+    target_compile_options(${MAGLEV_STABILITY} PRIVATE -O3)
+endif()
+
+add_custom_target(run_${MAGLEV_STABILITY}
+    COMMAND ${MAGLEV_STABILITY}
+    DEPENDS ${MAGLEV_STABILITY}
+    WORKING_DIRECTORY "${_BENCH_OUTPUT_DIR}"
+    COMMENT "Running maglev motion stability-envelope study"
+    VERBATIM
+)
