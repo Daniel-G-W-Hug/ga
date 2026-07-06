@@ -2871,7 +2871,8 @@ std::vector<Coordsys_model> build_models()
                        {"─────", "──────────"},
                        {"arrows:", "actuator moment orientations"},
                        {"red spoke:", "yaw marker; flag: yaw/tilt/lift"},
-                       {"z chart:", "height vs setpoint (payload sag)"}};
+                       {"z chart:", "height vs setpoint (payload sag)"},
+                       {"cycles:", "baseline, then FAST (block Jacobian)"}};
         leg.x_pct = 0.58;
         leg.y_pct = 0.02;
         leg.size_pct = 0.40;

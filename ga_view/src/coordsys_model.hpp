@@ -410,7 +410,7 @@ struct maglev_params {
     double zeta{1.0};         // controller damping ratio
     double ki_scale{0.25};    // integral gain scale (recovers the payload sag)
     double yaw_max{0.5236};   // yaw-turn amplitude [rad] (30 deg; ring symmetry: 45)
-    double tilt_max{0.04363}; // tilt amplitude [rad] (2.5 deg, about y: visible in x-z)
+    double tilt_max{0.1047};  // tilt amplitude [rad] (6 deg, about y: visible in x-z)
     double r_travel{0.025};   // radius of the travel circle [m] (see note above)
     double spin_tilt{0.0524}; // spin-axis tilt from vertical [rad] (3 deg)
     double payload_frac{0.5}; // unmodelled payload mass fraction of `mass`
