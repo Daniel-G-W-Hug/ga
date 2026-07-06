@@ -94,3 +94,28 @@ add_custom_target(run_${MAGLEV_STABILITY}
     COMMENT "Running maglev motion stability-envelope study"
     VERBATIM
 )
+
+# Headless replica of the ga_view maglev demo state machine: validate choreography /
+# controller changes before shipping them to the scene (on-demand only).
+set(MAGLEV_REPLICA maglev_scene_replica)
+add_executable(${MAGLEV_REPLICA} maglev_scene_replica.cpp)
+target_include_directories(${MAGLEV_REPLICA} PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(${MAGLEV_REPLICA} PRIVATE ga)
+link_fmt_to_target(${MAGLEV_REPLICA})
+set_target_properties(${MAGLEV_REPLICA} PROPERTIES
+    EXCLUDE_FROM_ALL TRUE
+    RUNTIME_OUTPUT_DIRECTORY "${_BENCH_OUTPUT_DIR}")
+target_compile_definitions(${MAGLEV_REPLICA} PRIVATE NDEBUG)
+if(MSVC)
+    target_compile_options(${MAGLEV_REPLICA} PRIVATE /O2)
+else()
+    target_compile_options(${MAGLEV_REPLICA} PRIVATE -O3)
+endif()
+
+add_custom_target(run_${MAGLEV_REPLICA}
+    COMMAND ${MAGLEV_REPLICA}
+    DEPENDS ${MAGLEV_REPLICA}
+    WORKING_DIRECTORY "${_BENCH_OUTPUT_DIR}"
+    COMMENT "Running maglev scene replica validation"
+    VERBATIM
+)
