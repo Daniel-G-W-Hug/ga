@@ -129,6 +129,16 @@ link_fmt_to_target(${EXEC_NAME10})
 add_subdirectory(utilities)
 
 # ----------------------------------------------------------------------------
+# Maglev application benchmarks / validation tools (maglev_utilities/).
+#
+# The maglev-specific counterpart of utilities/, kept in its own subdirectory so
+# it moves wholesale to the private repo with the maglev application. Same
+# forced-O3 / /RTC1-strip rationale as utilities/. Depends on link_fmt_to_target
+# (defined above), so this add_subdirectory must stay after that definition.
+# ----------------------------------------------------------------------------
+add_subdirectory(maglev_utilities)
+
+# ----------------------------------------------------------------------------
 # Cross-check JSON exporter for the Python wrapper.
 #
 # Builds a small executable that walks a representative set of GA operations,
