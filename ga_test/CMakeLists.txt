@@ -10,7 +10,7 @@ set(EXEC_NAME7 ga_stencil_test)
 # ga_dipole_test folded into ga_maglev_test (dipole chapter of the maglev bundle)
 set(EXEC_NAME9 ga_maglev_test)
 set(EXEC_NAME10 ga_grinding_test)
-set(EXPORT_NAME ga_export_python_cases)
+# ga_export_python_cases now lives in python_utilities/ (localized EXPORT_NAME)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
 set(EGA_FILES
@@ -139,42 +139,10 @@ add_subdirectory(utilities)
 add_subdirectory(maglev_utilities)
 
 # ----------------------------------------------------------------------------
-# Cross-check JSON exporter for the Python wrapper.
+# Cross-check JSON exporter for the Python wrapper (python_utilities/).
 #
-# Builds a small executable that walks a representative set of GA operations,
-# captures (op, inputs, expected output) tuples, and emits them as JSON to
-# ga_py/tests/data/ga_test_cases.json. The Python test suite consumes that
-# file to verify the wrapper produces bit-identical results to C++.
-#
-# Only built when the Python wrapper is enabled (-D_GA_BUILD_PYTHON=ON);
-# otherwise the executable would be useless. The companion convenience target
-# `regenerate_python_test_data` builds AND runs the exporter, refreshing the
-# committed JSON snapshot.
-#
-# This target does NOT depend on doctest --- it's a standalone program that
-# uses only ga + fmt.
+# Standalone tool (ga + fmt, no doctest), only built with -D_GA_BUILD_PYTHON=ON.
+# Lives in its own subdirectory, out of the doctest test targets. Depends on
+# link_fmt_to_target (defined above), so this add_subdirectory stays after it.
 # ----------------------------------------------------------------------------
-if(_GA_BUILD_PYTHON)
-    # Committed JSON snapshot consumed by the Python cross-check test suite.
-    set(_GA_PY_CASES_JSON
-        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
-
-    add_executable(${EXPORT_NAME} src/export_python_cases.cpp)
-    target_include_directories(${EXPORT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
-    target_link_libraries(${EXPORT_NAME} PRIVATE ga)
-    target_compile_options(${EXPORT_NAME} PRIVATE
-        $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
-    # Bake in the absolute default output path so the exporter works
-    # regardless of the working directory it is launched from (e.g. when
-    # run as a target from an IDE). A command-line argument still overrides.
-    target_compile_definitions(${EXPORT_NAME} PRIVATE
-        _GA_PY_CASES_JSON_DEFAULT="${_GA_PY_CASES_JSON}")
-    link_fmt_to_target(${EXPORT_NAME})
-    add_custom_target(regenerate_python_test_data
-        COMMAND ${EXPORT_NAME} "${_GA_PY_CASES_JSON}"
-        DEPENDS ${EXPORT_NAME}
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        COMMENT "Regenerating Python cross-check cases at ${_GA_PY_CASES_JSON}"
-        VERBATIM
-    )
-endif()
+add_subdirectory(python_utilities)
