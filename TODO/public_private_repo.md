@@ -26,6 +26,21 @@ Two application cases differ only in **git-history treatment** (see §7):
 > **history purge run while the repo is private**, and the repo is flipped **back to
 > public only at the very end**, once the tree and history are verified clean. That closes
 > the SHA-fetch window §7 otherwise could not (see the reordered §6/§7).
+>
+> **FINAL PARTITION — MODULE-LEVEL (decided 2026-07-08).** The split is now cut mostly by
+> whole module, which retires the delicate `ga_view` scene-by-scene seam:
+>
+> | Public | Private |
+> | ------ | ------- |
+> | `ga/` (library — ships the generated product code), `ga_bindgen/`, `ga_py/`, `ga_lua/`, **`ga_prdxpr/`** (kept public: regeneration + "missing products easily added" are documented features) | **`ga_view/` (whole module)** — viz explains GA but is not self-standing; moving it whole dissolves the scene seam and takes the maglev + grinding scenes with it |
+> | `ga_test/` **minus** the maglev + grinding bundles | `ga_test/` maglev + grinding bundles + `maglev_utilities/`; `ga/detail`-free `ga_dipole_model.hpp` |
+> | `ga_docu/` **generated PDF only** (§4d) | `ga_docu/` LaTeX sources |
+> | top-level CMake, README, LICENSE, `.clang-format` | `TODO/` (whole, principle 7) |
+>
+> Within-module splits remaining: `ga_test` (generic vs. maglev/grinding — done via the test
+> bundling) and `ga_docu` (LaTeX private / PDF public). Everything else is whole-directory.
+> **History purge stays maglev-only** — `ga_prdxpr`/`ga_view` history is uncritical and is
+> **not** rewritten (§7).
 
 ---
 
@@ -83,7 +98,7 @@ Post-bundling layout (the test-bundling intermediate step is DONE — see
 | `ga_test/src/ga_maglev_dipole_test.hpp` | dipole chapter (was `ga_dipole_test.cpp`, folded in) |
 | `ga_test/src/ga_maglev_twin_test.hpp` | actuator + hover-twin chapter (was the body of `ga_maglev_test.cpp`) |
 | `ga_test/maglev_utilities/` (whole dir) | `bench_dipole_ga_vs_classical.cpp`, `bench_maglev_stability.cpp`, `maglev_scene_replica.cpp` + its `CMakeLists.txt` (targets `ga_dipole_bench`, `ga_maglev_stability`, `maglev_scene_replica`) |
-| `ga_view/src/active_maglev.{hpp,cpp}` | view scene (seam, §4c/§5) |
+| `ga_view/src/active_maglev.{hpp,cpp}` | in `ga_view/` → moves with the whole module (§4c) |
 
 Maglev docs move with the whole `TODO/` (principle 7) — no per-file listing needed
 (`magnetic_levitation.md`, `maglev_S1_dipole_formulation.md`, `CtrlXFlow6d.pptx` are among
@@ -103,8 +118,8 @@ The grinding cases were **extracted from the shared 3dp test headers into a dedi
   force loop (D.2b), wafer thinning (D.2c), loop integrator (D.2d), feed control (D.2e).
 - `ga_test/src/ga_grinding_cai_test.hpp` — the Cai volumetric-error machine (Phase F);
   folded into the grinding package as its own chapter (see [test_bundling_by_application.md](test_bundling_by_application.md)).
-- View scenes: `ga_view/src/active_grinding_{cs,flatness,marks,topo}.{hpp,cpp}` (4 scenes,
-  same hand-sync surface as maglev — see §5).
+- View scenes: `ga_view/src/active_grinding_{cs,flatness,marks,topo}.{hpp,cpp}` (4 scenes) —
+  these move with the **whole `ga_view/` module** (§4c), not individually.
 - Python demos: `ga_py/demo/{tumbling_plane,intersecting_discs}.py` (grinding-labeled
   building blocks).
 - Docs: the grinding write-ups (`grinding.md`, `tao_eq13_derivation.md`,
@@ -162,8 +177,9 @@ byte-identical.
 
 The library-consuming pieces (tests, benches, replica) move trivially — they only
 `target_link_libraries(... ga)` (maglev additionally includes the private
-`ga_dipole_model.hpp`). The structural work is the `ga_view` registration seam (§4c/§5)
-and the grinding extraction refactor (§4a).
+`ga_dipole_model.hpp`). With `ga_view` moving **wholesale** (§4c) there is no scene seam to
+build; the remaining pieces are the `ga_test` overlay (§4b) and the grinding test extraction
+(§4a, already done).
 
 ### 3a. Workflows after the split
 
@@ -231,37 +247,31 @@ endif()
 and includes the `maglev_utilities/` subdirectory (benches + replica) (linking
 `doctest::doctest ga`, include dir = private root). Unset `GA_PRIVATE_DIR` → nothing added.
 
-### 4c. `ga_view` — generic scene registry seam (one binary, add-on compiled in)
+### 4c. `ga_view` — moved WHOLESALE to private (decided 2026-07-08; no seam)
 
-Five scenes now leave public (maglev + 4 grinding), each with the **same six-point
-hand-sync** (see §5). That tips the design decisively to a **generic active-item registry**
-rather than per-scene special-casing:
+**Superseding decision:** the entire `ga_view/` directory moves to the private repo — no
+scene-by-scene split, no `coordsys_model`/`scenes.cpp` surgery, no registry, no `#ifdef`.
+Rationale (user): the visualization explains GA aspects but is not self-explanatory on its
+own, so the public repo does without it; and moving the whole module dissolves the delicate
+scene seam entirely. The grinding *scenes* (`active_grinding_*`) and the maglev scene
+(`active_maglev`) go private automatically as part of `ga_view` — nothing app-specific has
+to be teased out of shared view files.
 
-- Replace the per-scene `std::vector<a…>` members in `coordsys_model` and the per-scene
-  `add_<name>` / `clear()` lines with a **type-erased active-item registry**, so
-  `coordsys_model` carries no application-specific type at all. This removes the whole
-  hand-sync class of problems for every current and future scene — public scene files
-  become application-free.
-- Add a registration hook the app iterates in `populate_scene`/`build_models`, e.g.
-  `register_scene(scene_descriptor)` where the descriptor carries the model-builder and the
-  active-item factory (the `populate_scene` block).
-- CMake seam in `ga_view/CMakeLists.txt`:
+Mechanics:
 
-  ```cmake
-  if(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_view/private_scenes.cmake")
-      include("${GA_PRIVATE_DIR}/ga_view/private_scenes.cmake")  # adds sources
-      target_compile_definitions(ga_view PRIVATE GA_VIEW_PRIVATE_SCENES)
-  endif()
-  ```
+- **Public top-level `CMakeLists.txt`:** guard the viewer so a public checkout (no `ga_view/`)
+  skips it: `if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ga_view" AND Qt6_FOUND)
+  add_subdirectory(ga_view) endif()`.
+- **Private superset:** its top-level CMake adds `add_subdirectory(external/ga)` (the public
+  library etc.) and then `add_subdirectory(ga_view)` from `ga_private/ga_view/`; `ga_view`
+  links the `ga` target across the submodule boundary (added first, so the target exists).
+- Nothing public build-depends on `ga_view` (verified) — removing it leaves the public build
+  green. The only public reference is a docstring in
+  `ga_py/tests/test_merry_go_round.py` (it reconstructs the kinematics independently) →
+  reword the comment.
 
-  `private_scenes.cmake` appends `active_maglev.cpp`, `active_grinding_*.cpp`, and their
-  `register_*_scene.cpp` TUs (each self-registers) to the `ga_view` target.
-
-> Fallback if the full registry is too big for one pass: move the application types into
-> private headers and gate their registration behind a single `#ifdef
-> GA_VIEW_PRIVATE_SCENES` call site — still one binary, still no application code in public,
-> at the cost of one guarded stub in `scenes.cpp`. With **five** scenes moving, the generic
-> registry is strongly preferred; the `#ifdef` fallback scales worse.
+This retires the former scene-registry seam design entirely (the wholesale move is simpler
+and lower-risk).
 
 ### 4d. `ga_docu` — all LaTeX private; public gets a generated PDF only (decided 2026-07-08)
 
@@ -305,26 +315,6 @@ grep -rln -iE 'maglev|dipole|grind|wafer|tao|sommerfeld|zhou' \
 
 ---
 
-## 5. `ga_view` hand-sync surface (what 4c must absorb)
-
-Each moving scene touches the same six shared points. Maglev, for reference:
-
-- `scenes.cpp`: `#include` (l.26); item-creation block in `populate_scene` (l.1688–1701,
-  connects reset/pause/trace/forces/magnets slots); registration block (l.2854–2865,
-  `add_maglev` + label + legend).
-- `coordsys_model.hpp`: `maglev_params`, `amaglev`, `add_maglev` decl, `std::vector<amaglev>
-  amag`.
-- `coordsys_model.cpp`: `add_maglev` impl, `amag.clear()` in `clear()`.
-- `ga_view/CMakeLists.txt`: the `.cpp` source.
-
-The 4 grinding scenes (`active_grinding_{cs,flatness,marks,topo}`) each replicate this:
-`grinding_*_params` + `agrinding_*` structs, `add_grinding_*` methods, `*_mark`/`agr*`
-vectors + their `clear()` lines, plus scenes.cpp blocks. The generic registry (4c) collapses
-all five into self-registering descriptors and removes every one of these hand-sync points
-from public files.
-
----
-
 ## 6. Migration steps (order of operations)
 
 **The whole sequence runs while `ga` is private (Phase 0 done); the repo is flipped back to
@@ -356,8 +346,14 @@ public only in the final step.**
    entries. (Decide separately whether the tracked plan docs also need a history purge, or
    just leave older history — see §7.)
 8. **Update docs**: public `CLAUDE.md` (the split + per-app file convention; **remove/
-   genericise every `TODO/*` reference** since `TODO/` is now private — principle 7) and
-   `README.md`. The branch-model note (`github_setup.md`) is itself a `TODO/` doc → private.
+   genericise every `TODO/*` reference** since `TODO/` is now private — principle 7; drop
+   the `ga_view` build/scene sections). Public **top-level `README.md`: remove the 3
+   `ga_view` lines** (module list, the `ga_view: fmt, qt6` dependency, the `brew install
+   qt6` line) — audited 2026-07-08, that is the *only* README cross-reference to a
+   private-bound module; the `ga_prdxpr` README section **stays** (public), and all
+   per-module READMEs are already clean. The branch-model note (`github_setup.md`) is
+   itself a `TODO/` doc → private. Also reword the `ga_view` docstring in
+   `ga_py/tests/test_merry_go_round.py`.
 9. **Verify the clean state (§8)** on `ga`: grep gate, history gate, public doc build — all
    green — then **flip `ga` back to public**. Because the purge happened while private,
    there is never a public window in which the removed commits are fetchable by SHA.
