@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "sandwich/ga_prdxpr_sandwich_nary_expression.hpp"
 #include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
+#include "sandwich/ga_prdxpr_sandwich_nary_expression.hpp"
 
 // Pull in canonical per-algebra basis declarations so the sandwich configs
 // stay in sync with whatever ordering / naming the algebra headers use.

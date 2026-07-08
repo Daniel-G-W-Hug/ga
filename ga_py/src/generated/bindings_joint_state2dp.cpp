@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,12 +28,20 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_joint_state2dp(nb::module_& m) {
+void bind_joint_state2dp(nb::module_& m)
+{
     nb::class_<joint_state2dp>(m, "joint_state2dp")
         .def("__init__", [](joint_state2dp* self) { new (self) joint_state2dp{}; })
-        .def("__init__",
-            [](joint_state2dp* self, joint2dp const& type, vec2dp const& screw_b, mvec2dp_u const& rest, double phi, double omega, double stiffness, double damping, double q_rest) { new (self) joint_state2dp(type, screw_b, rest, phi, omega, stiffness, damping, q_rest); },
-            nb::arg("type"), nb::arg("screw_b"), nb::arg("rest"), nb::arg("phi"), nb::arg("omega"), nb::arg("stiffness"), nb::arg("damping"), nb::arg("q_rest"))
+        .def(
+            "__init__",
+            [](joint_state2dp* self, joint2dp const& type, vec2dp const& screw_b,
+               mvec2dp_u const& rest, double phi, double omega, double stiffness,
+               double damping, double q_rest) {
+                new (self) joint_state2dp(type, screw_b, rest, phi, omega, stiffness,
+                                          damping, q_rest);
+            },
+            nb::arg("type"), nb::arg("screw_b"), nb::arg("rest"), nb::arg("phi"),
+            nb::arg("omega"), nb::arg("stiffness"), nb::arg("damping"), nb::arg("q_rest"))
         .def_rw("type", &joint_state2dp::type)
         .def_rw("screw_b", &joint_state2dp::screw_b)
         .def_rw("rest", &joint_state2dp::rest)
@@ -42,24 +50,23 @@ void bind_joint_state2dp(nb::module_& m) {
         .def_rw("stiffness", &joint_state2dp::stiffness)
         .def_rw("damping", &joint_state2dp::damping)
         .def_rw("q_rest", &joint_state2dp::q_rest)
-        .def("__repr__", [](const joint_state2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__str__", [](const joint_state2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__format__",
+        .def("__repr__", [](const joint_state2dp& v) { return fmt::format("{}", v); })
+        .def("__str__", [](const joint_state2dp& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
             [](const joint_state2dp& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       v);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
+            },
+            nb::arg("format_spec"))
         .def("__eq__", [](const joint_state2dp& a, const joint_state2dp& b) {
-            return a.type == b.type && a.screw_b == b.screw_b && a.rest == b.rest && a.phi == b.phi && a.omega == b.omega && a.stiffness == b.stiffness && a.damping == b.damping && a.q_rest == b.q_rest;
-        })
-        ;
+            return a.type == b.type && a.screw_b == b.screw_b && a.rest == b.rest &&
+                   a.phi == b.phi && a.omega == b.omega && a.stiffness == b.stiffness &&
+                   a.damping == b.damping && a.q_rest == b.q_rest;
+        });
 }

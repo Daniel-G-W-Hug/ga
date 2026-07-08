@@ -8,14 +8,14 @@ namespace nb = nanobind;
 // Implemented in src/generated/register_all.cpp (generated).
 // `top` receives free functions from `hd::ga`; `ega` / `pga` / `sta` receive
 // types and free functions from their respective sub-namespaces.
-void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga,
-                  nb::module_& sta);
+void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta);
 
 // Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);
 void bind_mechanics(nb::module_& pga);
 
-NB_MODULE(_ga_py, m) {
+NB_MODULE(_ga_py, m)
+{
     m.doc() = "Python bindings for the hd::ga geometric algebra library.\n"
               "Generated from C++ headers by ga_bindgen.";
 

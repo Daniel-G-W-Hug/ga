@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,21 +28,18 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void register_enums_pga(nb::module_& m) {
+void register_enums_pga(nb::module_& m)
+{
     nb::enum_<constraint2dp>(m, "constraint2dp")
-        .value("coincidence", constraint2dp::coincidence)
-        ;
+        .value("coincidence", constraint2dp::coincidence);
     nb::enum_<constraint3dp>(m, "constraint3dp")
-        .value("coincidence", constraint3dp::coincidence)
-        ;
+        .value("coincidence", constraint3dp::coincidence);
     nb::enum_<joint2dp>(m, "joint2dp")
         .value("free", joint2dp::free)
         .value("revolute", joint2dp::revolute)
-        .value("prismatic", joint2dp::prismatic)
-        ;
+        .value("prismatic", joint2dp::prismatic);
     nb::enum_<joint3dp>(m, "joint3dp")
         .value("free", joint3dp::free)
         .value("revolute", joint3dp::revolute)
-        .value("prismatic", joint3dp::prismatic)
-        ;
+        .value("prismatic", joint3dp::prismatic);
 }

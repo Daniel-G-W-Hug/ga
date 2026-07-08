@@ -67,14 +67,14 @@ class active_ode : public QObject, public QGraphicsItem {
     spring_params m_params;
 
     // State variables (in model coordinates, not widget pixels)
-    vec2dp m_initial_fixation;  // For reset (point: w=1.0)
-    vec2dp m_initial_mass;      // For reset (point: w=1.0)
-    vec2dp m_velocity;          // Current velocity [m/s] (vector: w=0.0)
+    vec2dp m_initial_fixation; // For reset (point: w=1.0)
+    vec2dp m_initial_mass;     // For reset (point: w=1.0)
+    vec2dp m_velocity;         // Current velocity [m/s] (vector: w=0.0)
 
     // Force vectors for visualization (in Newton [N])
-    vec2dp m_spring_force;   // (vector: w=0.0)
-    vec2dp m_damping_force;  // (vector: w=0.0)
-    vec2dp m_gravity_force;  // (vector: w=0.0)
+    vec2dp m_spring_force;  // (vector: w=0.0)
+    vec2dp m_damping_force; // (vector: w=0.0)
+    vec2dp m_gravity_force; // (vector: w=0.0)
 
     // RK4 integration state (FST_ODR_SYS_SIZE = 2: [position, velocity])
     std::vector<vec2dp> u_mem;   // [position(w=1.0), velocity(w=0.0)]

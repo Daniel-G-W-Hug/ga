@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,77 +28,184 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_pscalar2dp(nb::module_& m) {
+void bind_pscalar2dp(nb::module_& m)
+{
     nb::class_<pscalar2dp>(m, "pscalar2dp")
         .def(nb::init<>())
         .def(nb::init<double>())
-        .def_prop_rw("value",
-            [](const pscalar2dp& s) -> double { return static_cast<double>(s); },
-            [](      pscalar2dp& s, double v) { static_cast<double&>(s) = v; })
+        .def_prop_rw(
+            "value", [](const pscalar2dp& s) -> double { return static_cast<double>(s); },
+            [](pscalar2dp& s, double v) { static_cast<double&>(s) = v; })
         .def("__float__", [](const pscalar2dp& s) { return static_cast<double>(s); })
-        .def("__repr__", [](const pscalar2dp& s) {
-            return fmt::format("pscalar2dp({})", static_cast<double>(s));
-        })
-        .def("__str__", [](const pscalar2dp& s) {
-            return fmt::format("{}", s);
-        })
-        .def("__format__",
+        .def("__repr__",
+             [](const pscalar2dp& s) {
+                 return fmt::format("pscalar2dp({})", static_cast<double>(s));
+             })
+        .def("__str__", [](const pscalar2dp& s) { return fmt::format("{}", s); })
+        .def(
+            "__format__",
             [](const pscalar2dp& s, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", s);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       s);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), s);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
+            },
+            nb::arg("format_spec"))
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
         .def(nb::self * double())
         .def(double() * nb::self)
         .def(nb::self / double())
-        .def("__eq__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) == static_cast<double>(b); }, nb::is_operator())
-        .def("__ne__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) != static_cast<double>(b); }, nb::is_operator())
-        .def("__lt__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) < static_cast<double>(b); }, nb::is_operator())
-        .def("__le__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) <= static_cast<double>(b); }, nb::is_operator())
-        .def("__gt__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) > static_cast<double>(b); }, nb::is_operator())
-        .def("__ge__", [](pscalar2dp const& a, pscalar2dp const& b) { return static_cast<double>(a) >= static_cast<double>(b); }, nb::is_operator())
-        .def("__lt__", [](pscalar2dp const& a, double b) { return static_cast<double>(a) < b; }, nb::is_operator())
-        .def("__le__", [](pscalar2dp const& a, double b) { return static_cast<double>(a) <= b; }, nb::is_operator())
-        .def("__gt__", [](pscalar2dp const& a, double b) { return static_cast<double>(a) > b; }, nb::is_operator())
-        .def("__ge__", [](pscalar2dp const& a, double b) { return static_cast<double>(a) >= b; }, nb::is_operator())
-        .def("__add__", [](pscalar2dp const& a, vec2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](pscalar2dp const& a, bivec2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](pscalar2dp const& a, scalar2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](pscalar2dp const& a, dualnum2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__sub__", [](pscalar2dp const& a, vec2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](pscalar2dp const& a, bivec2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](pscalar2dp const& a, scalar2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](pscalar2dp const& a, dualnum2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, mvec2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar2dp const& a, pscalar2dp const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar2dp const& a, bivec2dp const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar2dp const& a, vec2dp const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar2dp const& a, scalar2dp const& b) { return a << b; }, nb::is_operator())
-        .def("__rshift__", [](pscalar2dp const& a, pscalar2dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](pscalar2dp const& a, bivec2dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](pscalar2dp const& a, vec2dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](pscalar2dp const& a, scalar2dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, pscalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, mvec2dp const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, mvec2dp_e const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, mvec2dp_u const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, bivec2dp const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, vec2dp const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2dp const& a, scalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
-        ;
+        .def(
+            "__eq__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) == static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__ne__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) != static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__lt__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) < static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__le__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) <= static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__gt__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) > static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__ge__",
+            [](pscalar2dp const& a, pscalar2dp const& b) {
+                return static_cast<double>(a) >= static_cast<double>(b);
+            },
+            nb::is_operator())
+        .def(
+            "__lt__",
+            [](pscalar2dp const& a, double b) { return static_cast<double>(a) < b; },
+            nb::is_operator())
+        .def(
+            "__le__",
+            [](pscalar2dp const& a, double b) { return static_cast<double>(a) <= b; },
+            nb::is_operator())
+        .def(
+            "__gt__",
+            [](pscalar2dp const& a, double b) { return static_cast<double>(a) > b; },
+            nb::is_operator())
+        .def(
+            "__ge__",
+            [](pscalar2dp const& a, double b) { return static_cast<double>(a) >= b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, vec2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, bivec2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, scalar2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, dualnum2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, vec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, bivec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, scalar2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, dualnum2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, pscalar2dp const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, mvec2dp const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, mvec2dp_e const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, bivec2dp const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, vec2dp const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](pscalar2dp const& a, scalar2dp const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](pscalar2dp const& a, pscalar2dp const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](pscalar2dp const& a, bivec2dp const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](pscalar2dp const& a, vec2dp const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](pscalar2dp const& a, scalar2dp const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](pscalar2dp const& a, pscalar2dp const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](pscalar2dp const& a, bivec2dp const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](pscalar2dp const& a, vec2dp const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](pscalar2dp const& a, scalar2dp const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, pscalar2dp const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, mvec2dp const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, mvec2dp_e const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, mvec2dp_u const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, bivec2dp const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, vec2dp const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](pscalar2dp const& a, scalar2dp const& b) { return wdg(a, b); },
+            nb::is_operator());
 }

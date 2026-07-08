@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void register_functions_sta(nb::module_& m) {
+void register_functions_sta(nb::module_& m)
+{
     m.def("angle", [](vec4ds const& a0, vec4ds const& a1) { return angle(a0, a1); });
     m.def("cmt", [](mvec4ds const& a0, mvec4ds const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](pscalar4ds const& a0, pscalar4ds const& a1) { return cmt(a0, a1); });
@@ -91,11 +92,21 @@ void register_functions_sta(nb::module_& m) {
     m.def("inv", [](mvec4ds_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds const& a0) { return inv(a0); });
-    m.def("is_congruent", [](scalar4ds const& a0, scalar4ds const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](vec4ds const& a0, vec4ds const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](bivec4ds const& a0, bivec4ds const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](trivec4ds const& a0, trivec4ds const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](pscalar4ds const& a0, pscalar4ds const& a1, double a2) { return is_congruent(a0, a1, a2); });
+    m.def("is_congruent", [](scalar4ds const& a0, scalar4ds const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](vec4ds const& a0, vec4ds const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](bivec4ds const& a0, bivec4ds const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](trivec4ds const& a0, trivec4ds const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](pscalar4ds const& a0, pscalar4ds const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
     m.def("is_lightlike", [](vec4ds const& a0) { return is_lightlike(a0); });
     m.def("is_lightlike", [](bivec4ds const& a0) { return is_lightlike(a0); });
     m.def("is_lightlike", [](trivec4ds const& a0) { return is_lightlike(a0); });
@@ -150,8 +161,10 @@ void register_functions_sta(nb::module_& m) {
     m.def("nrm_sq", [](mvec4ds_e const& a0) { return nrm_sq(a0); });
     m.def("nrm_sq", [](mvec4ds_u const& a0) { return nrm_sq(a0); });
     m.def("nrm_sq", [](mvec4ds const& a0) { return nrm_sq(a0); });
-    m.def("project_onto", [](vec4ds const& a0, vec4ds const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec4ds const& a0, bivec4ds const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec4ds const& a0, vec4ds const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec4ds const& a0, bivec4ds const& a1) { return project_onto(a0, a1); });
     m.def("r_cmpl", [](scalar4ds const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](vec4ds const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](bivec4ds const& a0) { return r_cmpl(a0); });
@@ -176,16 +189,26 @@ void register_functions_sta(nb::module_& m) {
     m.def("r_undual", [](mvec4ds_e const& a0) { return r_undual(a0); });
     m.def("r_undual", [](mvec4ds_u const& a0) { return r_undual(a0); });
     m.def("r_undual", [](mvec4ds const& a0) { return r_undual(a0); });
-    m.def("rapidity", [](vec4ds const& a0, vec4ds const& a1) { return rapidity(a0, a1); });
-    m.def("reflect_on", [](vec4ds const& a0, vec4ds const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](vec4ds const& a0, trivec4ds const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](vec4ds const& a0, bivec4ds const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](bivec4ds const& a0, bivec4ds const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on_vec", [](vec4ds const& a0, vec4ds const& a1) { return reflect_on_vec(a0, a1); });
-    m.def("reject_from", [](vec4ds const& a0, vec4ds const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec4ds const& a0, bivec4ds const& a1) { return reject_from(a0, a1); });
-    m.def("rel_bivec_split", [](bivec4ds const& a0, vec4ds const& a1) { return rel_bivec_split(a0, a1); });
-    m.def("rel_vec_split", [](bivec4ds const& a0, vec4ds const& a1) { return rel_vec_split(a0, a1); });
+    m.def("rapidity",
+          [](vec4ds const& a0, vec4ds const& a1) { return rapidity(a0, a1); });
+    m.def("reflect_on",
+          [](vec4ds const& a0, vec4ds const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](vec4ds const& a0, trivec4ds const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](vec4ds const& a0, bivec4ds const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](bivec4ds const& a0, bivec4ds const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on_vec",
+          [](vec4ds const& a0, vec4ds const& a1) { return reflect_on_vec(a0, a1); });
+    m.def("reject_from",
+          [](vec4ds const& a0, vec4ds const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec4ds const& a0, bivec4ds const& a1) { return reject_from(a0, a1); });
+    m.def("rel_bivec_split",
+          [](bivec4ds const& a0, vec4ds const& a1) { return rel_bivec_split(a0, a1); });
+    m.def("rel_vec_split",
+          [](bivec4ds const& a0, vec4ds const& a1) { return rel_vec_split(a0, a1); });
     m.def("rev", [](scalar4ds const& a0) { return rev(a0); });
     m.def("rev", [](vec4ds const& a0) { return rev(a0); });
     m.def("rev", [](bivec4ds const& a0) { return rev(a0); });
@@ -241,7 +264,8 @@ void register_functions_sta(nb::module_& m) {
     m.def("rwdg", [](vec4ds const& a0, mvec4ds_u const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](mvec4ds_u const& a0, scalar4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar4ds const& a0, mvec4ds_u const& a1) { return rwdg(a0, a1); });
-    m.def("rwdg", [](pscalar4ds const& a0, pscalar4ds const& a1) { return rwdg(a0, a1); });
+    m.def("rwdg",
+          [](pscalar4ds const& a0, pscalar4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar4ds const& a0, trivec4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](trivec4ds const& a0, pscalar4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar4ds const& a0, bivec4ds const& a1) { return rwdg(a0, a1); });
@@ -266,19 +290,34 @@ void register_functions_sta(nb::module_& m) {
     m.def("rwdg", [](vec4ds const& a0, scalar4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar4ds const& a0, vec4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar4ds const& a0, scalar4ds const& a1) { return rwdg(a0, a1); });
-    m.def("space_split", [](vec4ds const& a0, vec4ds const& a1) { return space_split(a0, a1); });
+    m.def("space_split",
+          [](vec4ds const& a0, vec4ds const& a1) { return space_split(a0, a1); });
     m.def("sqrt", [](mvec4ds_e const& a0) { return sqrt(a0); });
-    m.def("time_split", [](vec4ds const& a0, vec4ds const& a1) { return time_split(a0, a1); });
-    m.def("transform", [](vec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
-    m.def("transform", [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
-    m.def("transform", [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
-    m.def("transform", [](mvec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
-    m.def("transform_opt", [](vec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
-    m.def("transform_opt", [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
-    m.def("transform_opt", [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
-    m.def("transform_opt", [](std::vector<vec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
-    m.def("transform_opt", [](std::vector<trivec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
-    m.def("transform_opt", [](std::vector<bivec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("time_split",
+          [](vec4ds const& a0, vec4ds const& a1) { return time_split(a0, a1); });
+    m.def("transform",
+          [](vec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
+    m.def("transform",
+          [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
+    m.def("transform",
+          [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
+    m.def("transform",
+          [](mvec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
+    m.def("transform_opt",
+          [](vec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt",
+          [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt",
+          [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt", [](std::vector<vec4ds> const& a0, mvec4ds_e const& a1) {
+        return transform_opt(a0, a1);
+    });
+    m.def("transform_opt", [](std::vector<trivec4ds> const& a0, mvec4ds_e const& a1) {
+        return transform_opt(a0, a1);
+    });
+    m.def("transform_opt", [](std::vector<bivec4ds> const& a0, mvec4ds_e const& a1) {
+        return transform_opt(a0, a1);
+    });
     m.def("wdg", [](mvec4ds const& a0, mvec4ds const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec4ds const& a0, mvec4ds_e const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec4ds_e const& a0, mvec4ds const& a1) { return wdg(a0, a1); });

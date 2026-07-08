@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,14 +28,16 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void register_functions_pga(nb::module_& m) {
+void register_functions_pga(nb::module_& m)
+{
     m.def("angle", [](vec2dp const& a0, vec2dp const& a1) { return angle(a0, a1); });
     m.def("angle", [](bivec2dp const& a0, bivec2dp const& a1) { return angle(a0, a1); });
     m.def("angle", [](vec3dp const& a0, vec3dp const& a1) { return angle(a0, a1); });
     m.def("angle", [](bivec3dp const& a0, bivec3dp const& a1) { return angle(a0, a1); });
     m.def("angle", [](trivec3dp const& a0, bivec3dp const& a1) { return angle(a0, a1); });
     m.def("angle", [](bivec3dp const& a0, trivec3dp const& a1) { return angle(a0, a1); });
-    m.def("angle", [](trivec3dp const& a0, trivec3dp const& a1) { return angle(a0, a1); });
+    m.def("angle",
+          [](trivec3dp const& a0, trivec3dp const& a1) { return angle(a0, a1); });
     m.def("att", [](vec2dp const& a0) { return att(a0); });
     m.def("att", [](point2dp const& a0) { return att(a0); });
     m.def("att", [](bivec2dp const& a0) { return att(a0); });
@@ -235,9 +237,15 @@ void register_functions_pga(nb::module_& m) {
     m.def("get_motor", [](bivec3dp const& a0, double a1) { return get_motor(a0, a1); });
     m.def("get_motor", [](vec3dp const& a0) { return get_motor(a0); });
     m.def("get_motor", [](vector3d const& a0) { return get_motor(a0); });
-    m.def("get_motor_from_lines", [](bivec2dp const& a0, bivec2dp const& a1) { return get_motor_from_lines(a0, a1); });
-    m.def("get_motor_from_lines", [](bivec3dp const& a0, bivec3dp const& a1) { return get_motor_from_lines(a0, a1); });
-    m.def("get_motor_from_planes", [](trivec3dp const& a0, trivec3dp const& a1) { return get_motor_from_planes(a0, a1); });
+    m.def("get_motor_from_lines", [](bivec2dp const& a0, bivec2dp const& a1) {
+        return get_motor_from_lines(a0, a1);
+    });
+    m.def("get_motor_from_lines", [](bivec3dp const& a0, bivec3dp const& a1) {
+        return get_motor_from_lines(a0, a1);
+    });
+    m.def("get_motor_from_planes", [](trivec3dp const& a0, trivec3dp const& a1) {
+        return get_motor_from_planes(a0, a1);
+    });
     m.def("gr_inv", [](scalar2dp const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](vec2dp const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](bivec2dp const& a0) { return gr_inv(a0); });
@@ -266,20 +274,43 @@ void register_functions_pga(nb::module_& m) {
     m.def("inv", [](mvec3dp_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec3dp_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec3dp const& a0) { return inv(a0); });
-    m.def("invert_on", [](vec2dp const& a0, vec2dp const& a1) { return invert_on(a0, a1); });
-    m.def("invert_on", [](bivec2dp const& a0, vec2dp const& a1) { return invert_on(a0, a1); });
-    m.def("invert_on", [](vec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
-    m.def("invert_on", [](bivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
-    m.def("invert_on", [](trivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
-    m.def("is_congruent", [](scalar2dp const& a0, scalar2dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](vec2dp const& a0, vec2dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](bivec2dp const& a0, bivec2dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](pscalar2dp const& a0, pscalar2dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](scalar3dp const& a0, scalar3dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](vec3dp const& a0, vec3dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](bivec3dp const& a0, bivec3dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](trivec3dp const& a0, trivec3dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](pscalar3dp const& a0, pscalar3dp const& a1, double a2) { return is_congruent(a0, a1, a2); });
+    m.def("invert_on",
+          [](vec2dp const& a0, vec2dp const& a1) { return invert_on(a0, a1); });
+    m.def("invert_on",
+          [](bivec2dp const& a0, vec2dp const& a1) { return invert_on(a0, a1); });
+    m.def("invert_on",
+          [](vec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
+    m.def("invert_on",
+          [](bivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
+    m.def("invert_on",
+          [](trivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
+    m.def("is_congruent", [](scalar2dp const& a0, scalar2dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](vec2dp const& a0, vec2dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](bivec2dp const& a0, bivec2dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](pscalar2dp const& a0, pscalar2dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](scalar3dp const& a0, scalar3dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](vec3dp const& a0, vec3dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](bivec3dp const& a0, bivec3dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](trivec3dp const& a0, trivec3dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](pscalar3dp const& a0, pscalar3dp const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
     m.def("join", [](bivec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, bivec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });
@@ -318,10 +349,14 @@ void register_functions_pga(nb::module_& m) {
     m.def("l_weight_dual", [](mvec3dp const& a0) { return l_weight_dual(a0); });
     m.def("log", [](mvec2dp_u const& a0) { return log(a0); });
     m.def("log", [](mvec3dp_e const& a0) { return log(a0); });
-    m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) { return make_cuboid_body(a0, a1, a2, a3); });
+    m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) {
+        return make_cuboid_body(a0, a1, a2, a3);
+    });
     m.def("make_disc_body", [](double a0, double a1) { return make_disc_body(a0, a1); });
-    m.def("make_disc_body", [](double a0, double a1, double a2) { return make_disc_body(a0, a1, a2); });
-    m.def("make_plate_body", [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
+    m.def("make_disc_body",
+          [](double a0, double a1, double a2) { return make_disc_body(a0, a1, a2); });
+    m.def("make_plate_body",
+          [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
     m.def("meet", [](bivec2dp const& a0, bivec2dp const& a1) { return meet(a0, a1); });
     m.def("meet", [](line2d const& a0, line2d const& a1) { return meet(a0, a1); });
     m.def("meet", [](trivec3dp const& a0, trivec3dp const& a1) { return meet(a0, a1); });
@@ -332,33 +367,65 @@ void register_functions_pga(nb::module_& m) {
     m.def("meet", [](line3d const& a0, plane3d const& a1) { return meet(a0, a1); });
     m.def("motor_from_pose2dp", [](pose2dp const& a0) { return motor_from_pose2dp(a0); });
     m.def("motor_from_pose3dp", [](pose3dp const& a0) { return motor_from_pose3dp(a0); });
-    m.def("move2dp", [](vec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp", [](bivec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp", [](mvec2dp_u const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp", [](mvec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp", [](std::vector<vec2dp> const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp", [](std::vector<bivec2dp> const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
-    m.def("move2dp_opt", [](vec2dp const& a0, mvec2dp_u const& a1) { return move2dp_opt(a0, a1); });
-    m.def("move2dp_opt", [](bivec2dp const& a0, mvec2dp_u const& a1) { return move2dp_opt(a0, a1); });
-    m.def("move3dp", [](vec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](bivec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](trivec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](mvec3dp_e const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](mvec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](std::vector<vec3dp> const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](std::vector<bivec3dp> const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp", [](std::vector<trivec3dp> const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
-    m.def("move3dp_opt", [](vec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
-    m.def("move3dp_opt", [](bivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
-    m.def("move3dp_opt", [](trivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
-    m.def("pose2dp_from_motor", [](mvec2dp_u const& a0) { return pose2dp_from_motor(a0); });
-    m.def("pose3dp_from_motor", [](mvec3dp_e const& a0) { return pose3dp_from_motor(a0); });
-    m.def("project_onto", [](vec2dp const& a0, vec2dp const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec2dp const& a0, bivec2dp const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec3dp const& a0, vec3dp const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec3dp const& a0, bivec3dp const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec3dp const& a0, trivec3dp const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](bivec3dp const& a0, trivec3dp const& a1) { return project_onto(a0, a1); });
+    m.def("move2dp",
+          [](vec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
+    m.def("move2dp",
+          [](bivec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
+    m.def("move2dp",
+          [](mvec2dp_u const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
+    m.def("move2dp",
+          [](mvec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
+    m.def("move2dp", [](std::vector<vec2dp> const& a0, mvec2dp_u const& a1) {
+        return move2dp(a0, a1);
+    });
+    m.def("move2dp", [](std::vector<bivec2dp> const& a0, mvec2dp_u const& a1) {
+        return move2dp(a0, a1);
+    });
+    m.def("move2dp_opt",
+          [](vec2dp const& a0, mvec2dp_u const& a1) { return move2dp_opt(a0, a1); });
+    m.def("move2dp_opt",
+          [](bivec2dp const& a0, mvec2dp_u const& a1) { return move2dp_opt(a0, a1); });
+    m.def("move3dp",
+          [](vec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
+    m.def("move3dp",
+          [](bivec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
+    m.def("move3dp",
+          [](trivec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
+    m.def("move3dp",
+          [](mvec3dp_e const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
+    m.def("move3dp",
+          [](mvec3dp const& a0, mvec3dp_e const& a1) { return move3dp(a0, a1); });
+    m.def("move3dp", [](std::vector<vec3dp> const& a0, mvec3dp_e const& a1) {
+        return move3dp(a0, a1);
+    });
+    m.def("move3dp", [](std::vector<bivec3dp> const& a0, mvec3dp_e const& a1) {
+        return move3dp(a0, a1);
+    });
+    m.def("move3dp", [](std::vector<trivec3dp> const& a0, mvec3dp_e const& a1) {
+        return move3dp(a0, a1);
+    });
+    m.def("move3dp_opt",
+          [](vec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
+    m.def("move3dp_opt",
+          [](bivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
+    m.def("move3dp_opt",
+          [](trivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
+    m.def("pose2dp_from_motor",
+          [](mvec2dp_u const& a0) { return pose2dp_from_motor(a0); });
+    m.def("pose3dp_from_motor",
+          [](mvec3dp_e const& a0) { return pose3dp_from_motor(a0); });
+    m.def("project_onto",
+          [](vec2dp const& a0, vec2dp const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec2dp const& a0, bivec2dp const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec3dp const& a0, vec3dp const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec3dp const& a0, bivec3dp const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec3dp const& a0, trivec3dp const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](bivec3dp const& a0, trivec3dp const& a1) { return project_onto(a0, a1); });
     m.def("r_bulk_dual", [](scalar3dp const& a0) { return r_bulk_dual(a0); });
     m.def("r_bulk_dual", [](vec3dp const& a0) { return r_bulk_dual(a0); });
     m.def("r_bulk_dual", [](bivec3dp const& a0) { return r_bulk_dual(a0); });
@@ -384,7 +451,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("r_weight_dual", [](mvec3dp_u const& a0) { return r_weight_dual(a0); });
     m.def("r_weight_dual", [](mvec3dp const& a0) { return r_weight_dual(a0); });
     m.def("rcmt", [](mvec2dp const& a0, mvec2dp const& a1) { return rcmt(a0, a1); });
-    m.def("rcmt", [](pscalar2dp const& a0, pscalar2dp const& a1) { return rcmt(a0, a1); });
+    m.def("rcmt",
+          [](pscalar2dp const& a0, pscalar2dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](pscalar2dp const& a0, bivec2dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](bivec2dp const& a0, pscalar2dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](pscalar2dp const& a0, vec2dp const& a1) { return rcmt(a0, a1); });
@@ -401,7 +469,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("rcmt", [](scalar2dp const& a0, vec2dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](scalar2dp const& a0, scalar2dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](mvec3dp const& a0, mvec3dp const& a1) { return rcmt(a0, a1); });
-    m.def("rcmt", [](pscalar3dp const& a0, pscalar3dp const& a1) { return rcmt(a0, a1); });
+    m.def("rcmt",
+          [](pscalar3dp const& a0, pscalar3dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](pscalar3dp const& a0, trivec3dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](trivec3dp const& a0, pscalar3dp const& a1) { return rcmt(a0, a1); });
     m.def("rcmt", [](pscalar3dp const& a0, bivec3dp const& a1) { return rcmt(a0, a1); });
@@ -429,28 +498,40 @@ void register_functions_pga(nb::module_& m) {
     m.def("rdot", [](mvec2dp const& a0, mvec2dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](mvec2dp_e const& a0, mvec2dp_e const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](mvec2dp_u const& a0, mvec2dp_u const& a1) { return rdot(a0, a1); });
-    m.def("rdot", [](pscalar2dp const& a0, pscalar2dp const& a1) { return rdot(a0, a1); });
+    m.def("rdot",
+          [](pscalar2dp const& a0, pscalar2dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](bivec2dp const& a0, bivec2dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](vec2dp const& a0, vec2dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](scalar2dp const& a0, scalar2dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](mvec3dp const& a0, mvec3dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](mvec3dp_e const& a0, mvec3dp_e const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](mvec3dp_u const& a0, mvec3dp_u const& a1) { return rdot(a0, a1); });
-    m.def("rdot", [](pscalar3dp const& a0, pscalar3dp const& a1) { return rdot(a0, a1); });
+    m.def("rdot",
+          [](pscalar3dp const& a0, pscalar3dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](trivec3dp const& a0, trivec3dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](bivec3dp const& a0, bivec3dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](vec3dp const& a0, vec3dp const& a1) { return rdot(a0, a1); });
     m.def("rdot", [](scalar3dp const& a0, scalar3dp const& a1) { return rdot(a0, a1); });
-    m.def("reflect_on", [](vec2dp const& a0, bivec2dp const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](bivec2dp const& a0, bivec2dp const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](vec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](bivec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](trivec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
-    m.def("reject_from", [](vec2dp const& a0, vec2dp const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec2dp const& a0, bivec2dp const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec3dp const& a0, vec3dp const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec3dp const& a0, bivec3dp const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec3dp const& a0, trivec3dp const& a1) { return reject_from(a0, a1); });
+    m.def("reflect_on",
+          [](vec2dp const& a0, bivec2dp const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](bivec2dp const& a0, bivec2dp const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](vec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](bivec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](trivec3dp const& a0, trivec3dp const& a1) { return reflect_on(a0, a1); });
+    m.def("reject_from",
+          [](vec2dp const& a0, vec2dp const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec2dp const& a0, bivec2dp const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec3dp const& a0, vec3dp const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec3dp const& a0, bivec3dp const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec3dp const& a0, trivec3dp const& a1) { return reject_from(a0, a1); });
     m.def("rev", [](scalar2dp const& a0) { return rev(a0); });
     m.def("rev", [](vec2dp const& a0) { return rev(a0); });
     m.def("rev", [](bivec2dp const& a0) { return rev(a0); });
@@ -499,7 +580,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("rgpr", [](vec2dp const& a0, mvec2dp_u const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec2dp_u const& a0, scalar2dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](scalar2dp const& a0, mvec2dp_u const& a1) { return rgpr(a0, a1); });
-    m.def("rgpr", [](pscalar2dp const& a0, pscalar2dp const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr",
+          [](pscalar2dp const& a0, pscalar2dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](pscalar2dp const& a0, bivec2dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](bivec2dp const& a0, pscalar2dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](pscalar2dp const& a0, vec2dp const& a1) { return rgpr(a0, a1); });
@@ -554,7 +636,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("rgpr", [](vec3dp const& a0, mvec3dp_u const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_u const& a0, scalar3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](scalar3dp const& a0, mvec3dp_u const& a1) { return rgpr(a0, a1); });
-    m.def("rgpr", [](pscalar3dp const& a0, pscalar3dp const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr",
+          [](pscalar3dp const& a0, pscalar3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](pscalar3dp const& a0, trivec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](trivec3dp const& a0, pscalar3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](pscalar3dp const& a0, bivec3dp const& a1) { return rgpr(a0, a1); });
@@ -607,20 +690,29 @@ void register_functions_pga(nb::module_& m) {
     m.def("rrev", [](mvec3dp_e const& a0) { return rrev(a0); });
     m.def("rrev", [](mvec3dp_u const& a0) { return rrev(a0); });
     m.def("rrev", [](mvec3dp const& a0) { return rrev(a0); });
-    m.def("rtwdg1", [](bivec2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](bivec2dp const& a0, vec2dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](vec2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](bivec2dp const& a0, scalar2dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](scalar2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec2dp const& a0, scalar2dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](scalar2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](vec2dp const& a0, vec2dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](trivec3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](trivec3dp const& a0, bivec3dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](bivec3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec3dp const& a0, bivec3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](trivec3dp const& a0, vec3dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](vec3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](trivec3dp const& a0, scalar3dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](scalar3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
-    m.def("rtwdg1", [](bivec3dp const& a0, bivec3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec3dp const& a0, scalar3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](scalar3dp const& a0, trivec3dp const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec3dp const& a0, bivec3dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](bivec3dp const& a0, vec3dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](vec3dp const& a0, bivec3dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rwdg", [](mvec2dp const& a0, mvec2dp const& a1) { return rwdg(a0, a1); });
@@ -656,7 +748,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("rwdg", [](vec2dp const& a0, mvec2dp_u const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](mvec2dp_u const& a0, scalar2dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar2dp const& a0, mvec2dp_u const& a1) { return rwdg(a0, a1); });
-    m.def("rwdg", [](pscalar2dp const& a0, pscalar2dp const& a1) { return rwdg(a0, a1); });
+    m.def("rwdg",
+          [](pscalar2dp const& a0, pscalar2dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar2dp const& a0, bivec2dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](bivec2dp const& a0, pscalar2dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar2dp const& a0, vec2dp const& a1) { return rwdg(a0, a1); });
@@ -711,7 +804,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("rwdg", [](vec3dp const& a0, mvec3dp_u const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](mvec3dp_u const& a0, scalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar3dp const& a0, mvec3dp_u const& a1) { return rwdg(a0, a1); });
-    m.def("rwdg", [](pscalar3dp const& a0, pscalar3dp const& a1) { return rwdg(a0, a1); });
+    m.def("rwdg",
+          [](pscalar3dp const& a0, pscalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar3dp const& a0, trivec3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](trivec3dp const& a0, pscalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](pscalar3dp const& a0, bivec3dp const& a1) { return rwdg(a0, a1); });

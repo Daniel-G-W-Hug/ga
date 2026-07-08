@@ -233,7 +233,8 @@ constexpr DualNum3dp<std::common_type_t<T, U>> operator-(DualNum3dp<T> const& M,
 // Layouts (for reference):
 //   MVec3dp_E (8 comps): c0=scalar, c1..c6=bivec(vx,vy,vz,mx,my,mz), c7=pscalar
 //   MVec3dp_U (8 comps): c0..c3=vec(x,y,z,w), c4..c7=trivec(x,y,z,w)
-//   MVec3dp  (16 comps): c0=scalar, c1..c4=vec, c5..c10=bivec, c11..c14=trivec, c15=pscalar
+//   MVec3dp  (16 comps): c0=scalar, c1..c4=vec, c5..c10=bivec, c11..c14=trivec,
+//   c15=pscalar
 ////////////////////////////////////////////////////////////////////////////////
 
 // dual number + bivector  =>  even multivector
@@ -263,8 +264,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(DualNum3dp<T> const& M,
                                                         MVec3dp_E<U> const& E)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(M.c0 + E.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6,
-                            E.c7 + M.c1);
+    return MVec3dp_E<ctype>(M.c0 + E.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6, E.c7 + M.c1);
 }
 
 // even multivector + dual number  =>  even multivector
@@ -274,8 +274,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& E,
                                                         DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(E.c0 + M.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6,
-                            E.c7 + M.c1);
+    return MVec3dp_E<ctype>(E.c0 + M.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6, E.c7 + M.c1);
 }
 
 // dual number + vector  =>  full multivector
@@ -307,8 +306,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(DualNum3dp<T> const& M,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{},
-                          t, PScalar3dp<ctype>(M.c1));
+    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t,
+                          PScalar3dp<ctype>(M.c1));
 }
 
 // trivector + dual number  =>  full multivector
@@ -318,8 +317,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{},
-                          t, PScalar3dp<ctype>(M.c1));
+    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t,
+                          PScalar3dp<ctype>(M.c1));
 }
 
 // dual number + odd multivector  =>  full multivector
@@ -329,10 +328,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(DualNum3dp<T> const& M,
                                                       MVec3dp_U<U> const& O)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0),
-                          Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
-                          BiVec3dp<ctype>{},
-                          TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
+    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
+                          BiVec3dp<ctype>{}, TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
                           PScalar3dp<ctype>(M.c1));
 }
 
@@ -343,10 +340,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& O,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0),
-                          Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
-                          BiVec3dp<ctype>{},
-                          TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
+    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
+                          BiVec3dp<ctype>{}, TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
                           PScalar3dp<ctype>(M.c1));
 }
 
@@ -357,10 +352,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(DualNum3dp<T> const& M,
                                                       MVec3dp<U> const& A)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3, A.c4,
-                          A.c5, A.c6, A.c7, A.c8, A.c9, A.c10,
-                          A.c11, A.c12, A.c13, A.c14,
-                          A.c15 + M.c1);
+    return MVec3dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3, A.c4, A.c5, A.c6, A.c7, A.c8,
+                          A.c9, A.c10, A.c11, A.c12, A.c13, A.c14, A.c15 + M.c1);
 }
 
 // multivector + dual number  =>  full multivector
@@ -370,10 +363,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& A,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3, A.c4,
-                          A.c5, A.c6, A.c7, A.c8, A.c9, A.c10,
-                          A.c11, A.c12, A.c13, A.c14,
-                          A.c15 + M.c1);
+    return MVec3dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3, A.c4, A.c5, A.c6, A.c7, A.c8,
+                          A.c9, A.c10, A.c11, A.c12, A.c13, A.c14, A.c15 + M.c1);
 }
 
 
@@ -417,8 +408,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& E,
                                                         DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(E.c0 - M.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6,
-                            E.c7 - M.c1);
+    return MVec3dp_E<ctype>(E.c0 - M.c0, E.c1, E.c2, E.c3, E.c4, E.c5, E.c6, E.c7 - M.c1);
 }
 
 // dual number - vector  =>  full multivector
@@ -450,8 +440,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(DualNum3dp<T> const& M,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{},
-                          -t, PScalar3dp<ctype>(M.c1));
+    return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{}, -t,
+                          PScalar3dp<ctype>(M.c1));
 }
 
 // trivector - dual number  =>  full multivector
@@ -461,8 +451,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(-M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{},
-                          t, PScalar3dp<ctype>(-M.c1));
+    return MVec3dp<ctype>(Scalar3dp<ctype>(-M.c0), Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t,
+                          PScalar3dp<ctype>(-M.c1));
 }
 
 // dual number - odd multivector  =>  full multivector
@@ -473,8 +463,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(DualNum3dp<T> const& M,
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp<ctype>(Scalar3dp<ctype>(M.c0),
-                          Vec3dp<ctype>(-O.c0, -O.c1, -O.c2, -O.c3),
-                          BiVec3dp<ctype>{},
+                          Vec3dp<ctype>(-O.c0, -O.c1, -O.c2, -O.c3), BiVec3dp<ctype>{},
                           TriVec3dp<ctype>(-O.c4, -O.c5, -O.c6, -O.c7),
                           PScalar3dp<ctype>(M.c1));
 }
@@ -486,10 +475,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& O,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(-M.c0),
-                          Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
-                          BiVec3dp<ctype>{},
-                          TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
+    return MVec3dp<ctype>(Scalar3dp<ctype>(-M.c0), Vec3dp<ctype>(O.c0, O.c1, O.c2, O.c3),
+                          BiVec3dp<ctype>{}, TriVec3dp<ctype>(O.c4, O.c5, O.c6, O.c7),
                           PScalar3dp<ctype>(-M.c1));
 }
 
@@ -500,9 +487,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(DualNum3dp<T> const& M,
                                                       MVec3dp<U> const& A)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(M.c0 - A.c0, -A.c1, -A.c2, -A.c3, -A.c4,
-                          -A.c5, -A.c6, -A.c7, -A.c8, -A.c9, -A.c10,
-                          -A.c11, -A.c12, -A.c13, -A.c14,
+    return MVec3dp<ctype>(M.c0 - A.c0, -A.c1, -A.c2, -A.c3, -A.c4, -A.c5, -A.c6, -A.c7,
+                          -A.c8, -A.c9, -A.c10, -A.c11, -A.c12, -A.c13, -A.c14,
                           M.c1 - A.c15);
 }
 
@@ -513,10 +499,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& A,
                                                       DualNum3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(A.c0 - M.c0, A.c1, A.c2, A.c3, A.c4,
-                          A.c5, A.c6, A.c7, A.c8, A.c9, A.c10,
-                          A.c11, A.c12, A.c13, A.c14,
-                          A.c15 - M.c1);
+    return MVec3dp<ctype>(A.c0 - M.c0, A.c1, A.c2, A.c3, A.c4, A.c5, A.c6, A.c7, A.c8,
+                          A.c9, A.c10, A.c11, A.c12, A.c13, A.c14, A.c15 - M.c1);
 }
 
 } // namespace hd::ga

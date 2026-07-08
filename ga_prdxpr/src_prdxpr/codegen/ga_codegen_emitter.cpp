@@ -497,12 +497,10 @@ std::optional<std::string> emit_function(configurable::AlgebraData const& algebr
     return os.str();
 }
 
-std::optional<std::string> emit_unary_function(std::string const& func_name,
-                                               TypeInfo const& input_info,
-                                               std::string const& input_param,
-                                               TypeInfo const& result_info,
-                                               mvec_coeff const& out_mv,
-                                               std::string* skip_reason)
+std::optional<std::string>
+emit_unary_function(std::string const& func_name, TypeInfo const& input_info,
+                    std::string const& input_param, TypeInfo const& result_info,
+                    mvec_coeff const& out_mv, std::string* skip_reason)
 {
     if (result_info.storage == StorageKind::Composite) {
         if (skip_reason) {
@@ -529,10 +527,11 @@ std::optional<std::string> emit_unary_function(std::string const& func_name,
     return os.str();
 }
 
-std::optional<std::string> emit_unary_delegation_function(
-    std::string const& func_name, TypeInfo const& input_info,
-    std::string const& input_param, TypeInfo const& result_info,
-    std::vector<std::string> const& args)
+std::optional<std::string>
+emit_unary_delegation_function(std::string const& func_name, TypeInfo const& input_info,
+                               std::string const& input_param,
+                               TypeInfo const& result_info,
+                               std::vector<std::string> const& args)
 {
     std::ostringstream os;
     os << "template <typename T>\n";

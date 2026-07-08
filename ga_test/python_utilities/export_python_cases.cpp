@@ -501,8 +501,8 @@ void emit_sta_cases()
         bivec4ds g12{0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
         auto Rrot = get_rotor(g12, deg2rad(90.0));
         vec4ds g1{1.0, 0.0, 0.0, 0.0};
-        add_case("sta_transform_rotate_g1_90deg", "sta", "transform",
-                 transform(g1, Rrot), 1e-9, g1, Rrot);
+        add_case("sta_transform_rotate_g1_90deg", "sta", "transform", transform(g1, Rrot),
+                 1e-9, g1, Rrot);
 
         // boost the rest 4-velocity g4 by rapidity phi in the g14 plane
         bivec4ds g14{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};

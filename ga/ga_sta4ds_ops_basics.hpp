@@ -1046,8 +1046,9 @@ constexpr MVec4ds<T> l_dual(MVec4ds<T> const& M)
 // metric un-duals (inverse duals): the genuine inverse of the metric dual, with the
 // metric applied on the DUAL side rather than the primal side (Lengyel: "antidual").
 //
-//   r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )   inverts r_dual: r_undual(r_dual(A)) == A
-//   l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )   inverts l_dual: l_undual(l_dual(A)) == A
+//   r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )   inverts r_dual: r_undual(r_dual(A)) ==
+//   A l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )   inverts l_dual: l_undual(l_dual(A))
+//   == A
 //
 // Even-dimensional STA has two duals, hence two un-duals -- one per handedness. They
 // coincide on the even grades (where l_dual == r_dual) and differ by a sign on the odd
@@ -1055,9 +1056,10 @@ constexpr MVec4ds<T> l_dual(MVec4ds<T> const& M)
 //
 // NOTE the naive composition l_dual(r_dual(A)) is NOT the identity: it equals det · A
 // (= -A for G(1,3,0)). The un-dual puts the metric on the dual side instead and recovers
-// A exactly, at every grade and for any non-degenerate signature (it depends on the metric
-// only through G² = I). Defined here by composing the (metric) dual with the (metric-free)
-// complements, so it inherits their correctness rather than re-deriving sign tables.
+// A exactly, at every grade and for any non-degenerate signature (it depends on the
+// metric only through G² = I). Defined here by composing the (metric) dual with the
+// (metric-free) complements, so it inherits their correctness rather than re-deriving
+// sign tables.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

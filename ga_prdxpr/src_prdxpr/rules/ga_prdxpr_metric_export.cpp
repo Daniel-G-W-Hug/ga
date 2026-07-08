@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "rules/ga_prdxpr_metric_calc.hpp"
 #include "rules/ga_prdxpr_metric_export.hpp"
+#include "rules/ga_prdxpr_metric_calc.hpp"
 #include <iostream>
 #include <sstream>
 

@@ -74,7 +74,8 @@ void register_constants_pga(nb::module_& m);
 void register_constants_sta(nb::module_& m);
 void register_constants_top(nb::module_& m);
 
-void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta) {
+void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta)
+{
     register_enums_ega(ega);
     register_enums_pga(pga);
     register_enums_sta(sta);

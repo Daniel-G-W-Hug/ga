@@ -145,7 +145,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     for (size_t i = 0; i < v.size(); ++i) {
         QPointF p_orig(cs->x.au_to_w(v[i].x), cs->y.au_to_w(v[i].y));
         QPointF p_refl(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
-        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+        QPointF p_mid = (p_orig + p_refl) / 2.0; // Point on hyperplane
 
         // Arrow from original to hyperplane (dashed line, solid arrow head)
         qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
@@ -164,7 +164,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     for (size_t i = 0; i < vr.size(); ++i) {
         QPointF p_orig(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
         QPointF p_refl(cs->x.au_to_w(vrr[i].x), cs->y.au_to_w(vrr[i].y));
-        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+        QPointF p_mid = (p_orig + p_refl) / 2.0; // Point on hyperplane
 
         // Arrow from original to hyperplane (dashed line, solid arrow head)
         qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));

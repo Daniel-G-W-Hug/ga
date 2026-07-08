@@ -1592,5 +1592,5 @@ class dynamic_system2dp : public kinematic_system2dp {
 
 } // namespace hd::ga::pga
 
-// value_t convenience aliases (inertia2dp, ...) live in ga_usr_types_mechanics.hpp, next to
-// the other mechanics convenience types.
+// value_t convenience aliases (inertia2dp, ...) live in ga_usr_types_mechanics.hpp, next
+// to the other mechanics convenience types.

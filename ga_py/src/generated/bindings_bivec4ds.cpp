@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,51 +28,50 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_bivec4ds(nb::module_& m) {
+void bind_bivec4ds(nb::module_& m)
+{
     nb::class_<bivec4ds>(m, "bivec4ds")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double, double, double>())
         .def("__init__",
-            [](bivec4ds* self,
-               nb::ndarray<double, nb::shape<6>, nb::c_contig,
-                           nb::device::cpu> arr) {
-                double const* d = arr.data();
-                new (self) bivec4ds(d[0], d[1], d[2], d[3], d[4], d[5]);
-            })
+             [](bivec4ds* self,
+                nb::ndarray<double, nb::shape<6>, nb::c_contig, nb::device::cpu> arr) {
+                 double const* d = arr.data();
+                 new (self) bivec4ds(d[0], d[1], d[2], d[3], d[4], d[5]);
+             })
         .def_rw("vx", &bivec4ds::vx)
         .def_rw("vy", &bivec4ds::vy)
         .def_rw("vz", &bivec4ds::vz)
         .def_rw("mx", &bivec4ds::mx)
         .def_rw("my", &bivec4ds::my)
         .def_rw("mz", &bivec4ds::mz)
-        .def("__repr__", [](const bivec4ds& v) {
-            return fmt::format("bivec4ds({}, {}, {}, {}, {}, {})", v.vx, v.vy, v.vz, v.mx, v.my, v.mz);
-        })
-        .def("__str__", [](const bivec4ds& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__format__",
+        .def("__repr__",
+             [](const bivec4ds& v) {
+                 return fmt::format("bivec4ds({}, {}, {}, {}, {}, {})", v.vx, v.vy, v.vz,
+                                    v.mx, v.my, v.mz);
+             })
+        .def("__str__", [](const bivec4ds& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
             [](const bivec4ds& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       v);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
-        .def("__array__",
-            [](bivec4ds const& v, nb::handle /*dtype*/,
-               nb::handle /*copy*/) {
-                auto* data = new double[6]{v.vx, v.vy, v.vz, v.mx, v.my, v.mz};
-                nb::capsule owner(data, [](void* p) noexcept {
-                    delete[] static_cast<double*>(p);
-                });
-                return nb::ndarray<nb::numpy, double, nb::shape<6>>(
-                    data, { 6 }, owner);
             },
-            nb::arg("dtype").none() = nb::none(),
-            nb::arg("copy").none() = nb::none())
+            nb::arg("format_spec"))
+        .def(
+            "__array__",
+            [](bivec4ds const& v, nb::handle /*dtype*/, nb::handle /*copy*/) {
+                auto* data = new double[6]{v.vx, v.vy, v.vz, v.mx, v.my, v.mz};
+                nb::capsule owner(
+                    data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+                return nb::ndarray<nb::numpy, double, nb::shape<6>>(data, {6}, owner);
+            },
+            nb::arg("dtype").none() = nb::none(), nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -85,49 +84,136 @@ void bind_bivec4ds(nb::module_& m) {
         .def(nb::self / double())
         .def(nb::self *= double())
         .def(nb::self /= double())
-        .def("__add__", [](bivec4ds const& a, scalar4ds const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](bivec4ds const& a, pscalar4ds const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](bivec4ds const& a, mvec4ds_e const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](bivec4ds const& a, vec4ds const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](bivec4ds const& a, trivec4ds const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](bivec4ds const& a, dualnum4ds const& b) { return a + b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, scalar4ds const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, pscalar4ds const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, mvec4ds_e const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, vec4ds const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, trivec4ds const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](bivec4ds const& a, dualnum4ds const& b) { return a - b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, bivec4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, mvec4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, mvec4ds_e const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, mvec4ds_u const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, pscalar4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, trivec4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, vec4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec4ds const& a, scalar4ds const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, bivec4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, mvec4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, mvec4ds_e const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, mvec4ds_u const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, pscalar4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, trivec4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, vec4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](bivec4ds const& a, scalar4ds const& b) { return a << b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, bivec4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, mvec4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, mvec4ds_e const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, mvec4ds_u const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, pscalar4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, trivec4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, vec4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](bivec4ds const& a, scalar4ds const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, bivec4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, mvec4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, mvec4ds_e const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, mvec4ds_u const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, pscalar4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, trivec4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, vec4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](bivec4ds const& a, scalar4ds const& b) { return wdg(a, b); }, nb::is_operator())
-        ;
+        .def(
+            "__add__", [](bivec4ds const& a, scalar4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec4ds const& a, pscalar4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec4ds const& a, mvec4ds_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec4ds const& a, vec4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec4ds const& a, trivec4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec4ds const& a, dualnum4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, scalar4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, pscalar4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, mvec4ds_e const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, vec4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, trivec4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec4ds const& a, dualnum4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, bivec4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, mvec4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, mvec4ds_e const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, mvec4ds_u const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, pscalar4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, trivec4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, vec4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](bivec4ds const& a, scalar4ds const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, bivec4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, mvec4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, mvec4ds_e const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, mvec4ds_u const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, pscalar4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, trivec4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, vec4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](bivec4ds const& a, scalar4ds const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, bivec4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, mvec4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, mvec4ds_e const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, mvec4ds_u const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, pscalar4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, trivec4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, vec4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](bivec4ds const& a, scalar4ds const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, bivec4ds const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, mvec4ds const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, mvec4ds_e const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, mvec4ds_u const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, pscalar4ds const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, trivec4ds const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, vec4ds const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](bivec4ds const& a, scalar4ds const& b) { return wdg(a, b); },
+            nb::is_operator());
 }

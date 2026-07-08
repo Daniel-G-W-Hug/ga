@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,32 +28,33 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_pose2dp(nb::module_& m) {
+void bind_pose2dp(nb::module_& m)
+{
     nb::class_<pose2dp>(m, "pose2dp")
         .def("__init__", [](pose2dp* self) { new (self) pose2dp{}; })
-        .def("__init__",
-            [](pose2dp* self, vec2dp const& origin, double phi) { new (self) pose2dp(origin, phi); },
+        .def(
+            "__init__",
+            [](pose2dp* self, vec2dp const& origin, double phi) {
+                new (self) pose2dp(origin, phi);
+            },
             nb::arg("origin"), nb::arg("phi"))
         .def_rw("origin", &pose2dp::origin)
         .def_rw("phi", &pose2dp::phi)
-        .def("__repr__", [](const pose2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__str__", [](const pose2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__format__",
+        .def("__repr__", [](const pose2dp& v) { return fmt::format("{}", v); })
+        .def("__str__", [](const pose2dp& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
             [](const pose2dp& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       v);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
+            },
+            nb::arg("format_spec"))
         .def("__eq__", [](const pose2dp& a, const pose2dp& b) {
             return a.origin == b.origin && a.phi == b.phi;
-        })
-        ;
+        });
 }

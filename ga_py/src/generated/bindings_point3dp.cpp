@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_point3dp(nb::module_& m) {
+void bind_point3dp(nb::module_& m)
+{
     nb::class_<point3dp, vec3dp>(m, "point3dp")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double>())
@@ -36,39 +37,40 @@ void bind_point3dp(nb::module_& m) {
         .def(nb::init<point3d>())
         .def(nb::init<vec3d>())
         .def("__init__",
-            [](point3dp* self,
-               nb::ndarray<double, nb::shape<4>, nb::c_contig,
-                           nb::device::cpu> arr) {
-                double const* d = arr.data();
-                new (self) point3dp(d[0], d[1], d[2], d[3]);
-            })
-        .def("__repr__", [](const point3dp& v) {
-            return fmt::format("point3dp({}, {}, {}, {})", v.x, v.y, v.z, v.w);
-        })
-        .def("__str__", [](const point3dp& v) {
-            return fmt::format("{}", static_cast<const vec3dp&>(v));
-        })
-        .def("__format__",
+             [](point3dp* self,
+                nb::ndarray<double, nb::shape<4>, nb::c_contig, nb::device::cpu> arr) {
+                 double const* d = arr.data();
+                 new (self) point3dp(d[0], d[1], d[2], d[3]);
+             })
+        .def("__repr__",
+             [](const point3dp& v) {
+                 return fmt::format("point3dp({}, {}, {}, {})", v.x, v.y, v.z, v.w);
+             })
+        .def("__str__",
+             [](const point3dp& v) {
+                 return fmt::format("{}", static_cast<const vec3dp&>(v));
+             })
+        .def(
+            "__format__",
             [](const point3dp& v, std::string_view spec) {
                 try {
-                    if (spec.empty()) return fmt::format("{}", static_cast<const vec3dp&>(v));
+                    if (spec.empty())
+                        return fmt::format("{}", static_cast<const vec3dp&>(v));
                     return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
                                        static_cast<const vec3dp&>(v));
-                } catch (fmt::format_error const& e) {
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
-        .def("__array__",
-            [](point3dp const& v, nb::handle /*dtype*/,
-               nb::handle /*copy*/) {
-                auto* data = new double[4]{v.x, v.y, v.z, v.w};
-                nb::capsule owner(data, [](void* p) noexcept {
-                    delete[] static_cast<double*>(p);
-                });
-                return nb::ndarray<nb::numpy, double, nb::shape<4>>(
-                    data, { 4 }, owner);
             },
-            nb::arg("dtype").none() = nb::none(),
-            nb::arg("copy").none() = nb::none())
-        ;
+            nb::arg("format_spec"))
+        .def(
+            "__array__",
+            [](point3dp const& v, nb::handle /*dtype*/, nb::handle /*copy*/) {
+                auto* data = new double[4]{v.x, v.y, v.z, v.w};
+                nb::capsule owner(
+                    data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+                return nb::ndarray<nb::numpy, double, nb::shape<4>>(data, {4}, owner);
+            },
+            nb::arg("dtype").none() = nb::none(), nb::arg("copy").none() = nb::none());
 }

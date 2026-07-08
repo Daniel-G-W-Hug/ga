@@ -1,9 +1,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "rules/ga_prdxpr_rule_generator.hpp"
 #include "rules/ga_prdxpr_dual_calc.hpp"
 #include "rules/ga_prdxpr_metric_calc.hpp"
-#include "rules/ga_prdxpr_rule_generator.hpp"
 #include <algorithm>
 #include <functional>
 #include <mdspan>

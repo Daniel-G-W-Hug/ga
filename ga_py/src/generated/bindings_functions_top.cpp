@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void register_functions_top(nb::module_& m) {
+void register_functions_top(nb::module_& m)
+{
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
     m.def("gr", [](scalar2d const& a0) { return gr(a0); });
@@ -52,9 +53,12 @@ void register_functions_top(nb::module_& m) {
     m.def("gr", [](bivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](trivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](pscalar4ds const& a0) { return gr(a0); });
-    m.def("linear_step", [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
-    m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1, int a2) { return lstsq_solve(a0, a1, a2); });
-    m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1, int a2) { return lu_solve(a0, a1, a2); });
+    m.def("linear_step",
+          [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
+    m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
+                            int a2) { return lstsq_solve(a0, a1, a2); });
+    m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
+                         int a2) { return lu_solve(a0, a1, a2); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });
@@ -72,9 +76,12 @@ void register_functions_top(nb::module_& m) {
     m.def("rgr", [](bivec4ds const& a0) { return rgr(a0); });
     m.def("rgr", [](trivec4ds const& a0) { return rgr(a0); });
     m.def("rgr", [](pscalar4ds const& a0) { return rgr(a0); });
-    m.def("rk4_get_time", [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
+    m.def("rk4_get_time",
+          [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
     m.def("rpm2radps", [](double a0) { return rpm2radps(a0); });
     m.def("sign", [](double a0) { return sign(a0); });
-    m.def("smooth_step", [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
-    m.def("smoother_step", [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
+    m.def("smooth_step",
+          [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
+    m.def("smoother_step",
+          [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
 }

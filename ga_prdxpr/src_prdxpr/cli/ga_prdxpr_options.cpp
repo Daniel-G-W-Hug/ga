@@ -243,7 +243,7 @@ bool ArgumentParser::is_valid_product(std::string const& name) const
 bool ArgumentParser::is_valid_output_type(std::string const& name) const
 {
     static std::set<std::string> const valid_types = {"coeffs", "tables", "metrics",
-                                                      "code", "all", "none"};
+                                                      "code",   "all",    "none"};
     return valid_types.count(name) > 0;
 }
 

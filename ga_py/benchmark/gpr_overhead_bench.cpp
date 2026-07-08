@@ -25,8 +25,8 @@
 #include <cstdlib>
 #include <vector>
 
-using namespace hd::ga;       // type aliases (vec3d, mvec3d_e, …)
-using namespace hd::ga::ega;  // EGA-specific operators (operator*, gpr, …)
+using namespace hd::ga;      // type aliases (vec3d, mvec3d_e, …)
+using namespace hd::ga::ega; // EGA-specific operators (operator*, gpr, …)
 
 namespace {
 
@@ -45,8 +45,7 @@ std::vector<vec3d> make_vecs(std::size_t N, double offset)
 }
 
 // One timed pass over the whole input; returns elapsed seconds.
-double one_pass(std::vector<vec3d> const& as,
-                std::vector<vec3d> const& bs,
+double one_pass(std::vector<vec3d> const& as, std::vector<vec3d> const& bs,
                 volatile double& sink)
 {
     auto const t0 = std::chrono::steady_clock::now();
@@ -58,17 +57,17 @@ double one_pass(std::vector<vec3d> const& as,
         local_sink += c.c0 + c.c1 + c.c2 + c.c3;
     }
     auto const t1 = std::chrono::steady_clock::now();
-    sink = local_sink;  // observable side-effect → loop body cannot be DCE'd
+    sink = local_sink; // observable side-effect → loop body cannot be DCE'd
     return std::chrono::duration<double>(t1 - t0).count();
 }
 
-}  // namespace
+} // namespace
 
 
 int main(int argc, char** argv)
 {
     std::size_t N = (argc > 1) ? std::strtoull(argv[1], nullptr, 10) : 50000;
-    int repeats   = (argc > 2) ? std::atoi(argv[2]) : 7;
+    int repeats = (argc > 2) ? std::atoi(argv[2]) : 7;
 
     auto const as = make_vecs(N, 0.0);
     auto const bs = make_vecs(N, 100.0);
@@ -85,8 +84,8 @@ int main(int argc, char** argv)
     fmt::print("# C++ gpr overhead — N={} elements, best of {}\n", N, repeats);
     fmt::print("# vec3d * vec3d -> mvec3d_e  (geometric product)\n");
     fmt::print("\n");
-    fmt::print("  C++ tight loop:    {:7.2f} ms total   {:6.1f} ns/call\n",
-               best * 1e3, ns_per_call);
+    fmt::print("  C++ tight loop:    {:7.2f} ms total   {:6.1f} ns/call\n", best * 1e3,
+               ns_per_call);
     fmt::print("  (sink={:.6e} — anti-DCE, ignore the value)\n",
                static_cast<double>(sink));
     return 0;

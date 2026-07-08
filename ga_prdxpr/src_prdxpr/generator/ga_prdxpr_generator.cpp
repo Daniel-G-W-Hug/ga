@@ -1,9 +1,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "generator/ga_prdxpr_generator.hpp"
 #include "codegen/ga_codegen_emitter.hpp"
 #include "codegen/ga_codegen_types.hpp"
-#include "generator/ga_prdxpr_generator.hpp"
 #include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 #include <cctype>
 #include <fmt/core.h>
@@ -890,15 +890,17 @@ void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
             // Aggregate (multivector) inputs: emit the grade-wise DELEGATION form
             //   func(M) = ResultAgg(func(gr_{n-g}(M)) for each result grade g, ascending)
             // The result aggregate is the one whose grade set is {n - g : g in input
-            // grades} (auto-handles the even-dim "same type" and odd-dim mv_e<->mv_u swap).
+            // grades} (auto-handles the even-dim "same type" and odd-dim mv_e<->mv_u
+            // swap).
             if (fname == "mv" || fname == "mv_e" || fname == "mv_u") {
                 std::set<int> const in_grades = grade_set_of(fname);
                 std::set<int> out_grades;
-                for (int g : in_grades) out_grades.insert(n - g);
+                for (int g : in_grades)
+                    out_grades.insert(n - g);
 
                 std::string result_filter;
-                for (auto const& cand : {std::string("mv_e"), std::string("mv_u"),
-                                         std::string("mv")}) {
+                for (auto const& cand :
+                     {std::string("mv_e"), std::string("mv_u"), std::string("mv")}) {
                     if (registry.has(cand) && grade_set_of(cand) == out_grades) {
                         result_filter = cand;
                         break;

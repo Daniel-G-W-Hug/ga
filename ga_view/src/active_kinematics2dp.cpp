@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_common.hpp"
 #include "active_kinematics2dp.hpp"
+#include "active_common.hpp"
 
 #include <algorithm> // std::min, std::max
 

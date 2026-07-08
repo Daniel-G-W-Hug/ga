@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_line2d(nb::module_& m) {
+void bind_line2d(nb::module_& m)
+{
     nb::class_<line2d, bivec2dp>(m, "line2d")
         .def(nb::init<>())
         .def(nb::init<double, double, double>())
@@ -36,39 +37,40 @@ void bind_line2d(nb::module_& m) {
         .def(nb::init<point2d, point2d>())
         .def(nb::init<point2d, vec2d>())
         .def("__init__",
-            [](line2d* self,
-               nb::ndarray<double, nb::shape<3>, nb::c_contig,
-                           nb::device::cpu> arr) {
-                double const* d = arr.data();
-                new (self) line2d(d[0], d[1], d[2]);
-            })
-        .def("__repr__", [](const line2d& v) {
-            return fmt::format("line2d({}, {}, {})", v.x, v.y, v.z);
-        })
-        .def("__str__", [](const line2d& v) {
-            return fmt::format("{}", static_cast<const bivec2dp&>(v));
-        })
-        .def("__format__",
+             [](line2d* self,
+                nb::ndarray<double, nb::shape<3>, nb::c_contig, nb::device::cpu> arr) {
+                 double const* d = arr.data();
+                 new (self) line2d(d[0], d[1], d[2]);
+             })
+        .def("__repr__",
+             [](const line2d& v) {
+                 return fmt::format("line2d({}, {}, {})", v.x, v.y, v.z);
+             })
+        .def("__str__",
+             [](const line2d& v) {
+                 return fmt::format("{}", static_cast<const bivec2dp&>(v));
+             })
+        .def(
+            "__format__",
             [](const line2d& v, std::string_view spec) {
                 try {
-                    if (spec.empty()) return fmt::format("{}", static_cast<const bivec2dp&>(v));
+                    if (spec.empty())
+                        return fmt::format("{}", static_cast<const bivec2dp&>(v));
                     return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
                                        static_cast<const bivec2dp&>(v));
-                } catch (fmt::format_error const& e) {
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
-        .def("__array__",
-            [](line2d const& v, nb::handle /*dtype*/,
-               nb::handle /*copy*/) {
-                auto* data = new double[3]{v.x, v.y, v.z};
-                nb::capsule owner(data, [](void* p) noexcept {
-                    delete[] static_cast<double*>(p);
-                });
-                return nb::ndarray<nb::numpy, double, nb::shape<3>>(
-                    data, { 3 }, owner);
             },
-            nb::arg("dtype").none() = nb::none(),
-            nb::arg("copy").none() = nb::none())
-        ;
+            nb::arg("format_spec"))
+        .def(
+            "__array__",
+            [](line2d const& v, nb::handle /*dtype*/, nb::handle /*copy*/) {
+                auto* data = new double[3]{v.x, v.y, v.z};
+                nb::capsule owner(
+                    data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+                return nb::ndarray<nb::numpy, double, nb::shape<3>>(data, {3}, owner);
+            },
+            nb::arg("dtype").none() = nb::none(), nb::arg("copy").none() = nb::none());
 }

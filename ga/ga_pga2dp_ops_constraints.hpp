@@ -32,10 +32,10 @@
 // detail/ga_solver.hpp) are shared verbatim with the 3D layer
 // (ga_pga3dp_ops_constraints.hpp).
 
-#include "detail/ga_solver.hpp"      // hd::ga::lstsq_solve / kkt_solve (shared solvers)
+#include "detail/ga_solver.hpp"        // hd::ga::lstsq_solve / kkt_solve (shared solvers)
 #include "ga_pga2dp_ops_mechanics.hpp" // dynamic_system2dp (the reused spanning tree)
-#include "ga_usr_utilities.hpp"      // hd::ga::rk4_step (shared RK4 integrator)
-#include "ga_value_t.hpp"            // value_t
+#include "ga_usr_utilities.hpp"        // hd::ga::rk4_step (shared RK4 integrator)
+#include "ga_value_t.hpp"              // value_t
 
 #include <cmath>     // std::abs
 #include <cstddef>   // size_t

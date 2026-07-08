@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_mvec3d(nb::module_& m) {
+void bind_mvec3d(nb::module_& m)
+{
     nb::class_<mvec3d>(m, "mvec3d")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double, double, double, double, double>())
@@ -43,12 +44,11 @@ void bind_mvec3d(nb::module_& m) {
         .def(nb::init<mvec3d_u>())
         .def(nb::init<scalar3d, vec3d, bivec3d, pscalar3d>())
         .def("__init__",
-            [](mvec3d* self,
-               nb::ndarray<double, nb::shape<8>, nb::c_contig,
-                           nb::device::cpu> arr) {
-                double const* d = arr.data();
-                new (self) mvec3d(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
-            })
+             [](mvec3d* self,
+                nb::ndarray<double, nb::shape<8>, nb::c_contig, nb::device::cpu> arr) {
+                 double const* d = arr.data();
+                 new (self) mvec3d(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+             })
         .def_rw("c0", &mvec3d::c0)
         .def_rw("c1", &mvec3d::c1)
         .def_rw("c2", &mvec3d::c2)
@@ -57,34 +57,34 @@ void bind_mvec3d(nb::module_& m) {
         .def_rw("c5", &mvec3d::c5)
         .def_rw("c6", &mvec3d::c6)
         .def_rw("c7", &mvec3d::c7)
-        .def("__repr__", [](const mvec3d& v) {
-            return fmt::format("mvec3d({}, {}, {}, {}, {}, {}, {}, {})", v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7);
-        })
-        .def("__str__", [](const mvec3d& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__format__",
+        .def("__repr__",
+             [](const mvec3d& v) {
+                 return fmt::format("mvec3d({}, {}, {}, {}, {}, {}, {}, {})", v.c0, v.c1,
+                                    v.c2, v.c3, v.c4, v.c5, v.c6, v.c7);
+             })
+        .def("__str__", [](const mvec3d& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
             [](const mvec3d& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       v);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
-        .def("__array__",
-            [](mvec3d const& v, nb::handle /*dtype*/,
-               nb::handle /*copy*/) {
-                auto* data = new double[8]{v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7};
-                nb::capsule owner(data, [](void* p) noexcept {
-                    delete[] static_cast<double*>(p);
-                });
-                return nb::ndarray<nb::numpy, double, nb::shape<8>>(
-                    data, { 8 }, owner);
             },
-            nb::arg("dtype").none() = nb::none(),
-            nb::arg("copy").none() = nb::none())
+            nb::arg("format_spec"))
+        .def(
+            "__array__",
+            [](mvec3d const& v, nb::handle /*dtype*/, nb::handle /*copy*/) {
+                auto* data =
+                    new double[8]{v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7};
+                nb::capsule owner(
+                    data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+                return nb::ndarray<nb::numpy, double, nb::shape<8>>(data, {8}, owner);
+            },
+            nb::arg("dtype").none() = nb::none(), nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -97,45 +97,116 @@ void bind_mvec3d(nb::module_& m) {
         .def(nb::self / double())
         .def(nb::self *= double())
         .def(nb::self /= double())
-        .def("__add__", [](mvec3d const& a, scalar3d const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](mvec3d const& a, vec3d const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](mvec3d const& a, bivec3d const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](mvec3d const& a, pscalar3d const& b) { return a + b; }, nb::is_operator())
-        .def("__sub__", [](mvec3d const& a, scalar3d const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](mvec3d const& a, vec3d const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](mvec3d const& a, bivec3d const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](mvec3d const& a, pscalar3d const& b) { return a - b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, mvec3d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, mvec3d_e const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, mvec3d_u const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, pscalar3d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, bivec3d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, vec3d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d const& a, scalar3d const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, mvec3d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, mvec3d_e const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, mvec3d_u const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, pscalar3d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, bivec3d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, vec3d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](mvec3d const& a, scalar3d const& b) { return a << b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, mvec3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, mvec3d_e const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, mvec3d_u const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, pscalar3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, bivec3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, vec3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](mvec3d const& a, scalar3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, mvec3d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, mvec3d_e const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, mvec3d_u const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, pscalar3d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, bivec3d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, vec3d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](mvec3d const& a, scalar3d const& b) { return wdg(a, b); }, nb::is_operator())
+        .def(
+            "__add__", [](mvec3d const& a, scalar3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d const& a, vec3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d const& a, bivec3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d const& a, pscalar3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d const& a, scalar3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d const& a, vec3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d const& a, bivec3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d const& a, pscalar3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, mvec3d const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, mvec3d_e const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, mvec3d_u const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, pscalar3d const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, bivec3d const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, vec3d const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](mvec3d const& a, scalar3d const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, mvec3d const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, mvec3d_e const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, mvec3d_u const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, pscalar3d const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, bivec3d const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, vec3d const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](mvec3d const& a, scalar3d const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, mvec3d const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, mvec3d_e const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, mvec3d_u const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, pscalar3d const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, bivec3d const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, vec3d const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](mvec3d const& a, scalar3d const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, mvec3d const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, mvec3d_e const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, mvec3d_u const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, pscalar3d const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, bivec3d const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, vec3d const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](mvec3d const& a, scalar3d const& b) { return wdg(a, b); },
+            nb::is_operator())
         .def("gr0", [](const mvec3d& M) { return gr0(M); })
         .def("gr1", [](const mvec3d& M) { return gr1(M); })
         .def("gr2", [](const mvec3d& M) { return gr2(M); })
-        .def("gr3", [](const mvec3d& M) { return gr3(M); })
-        ;
+        .def("gr3", [](const mvec3d& M) { return gr3(M); });
 }

@@ -71,7 +71,8 @@ std::string inertia_format(Inertia const& I, std::string_view spec)
     try {
         if (spec.empty()) return fmt::format("{}", I);
         return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), I);
-    } catch (fmt::format_error const& e) {
+    }
+    catch (fmt::format_error const& e) {
         throw std::invalid_argument(e.what());
     }
 }
@@ -92,14 +93,14 @@ void bind_mechanics(nb::module_& pga)
         .def(nb::init<>(), "Default-construct a 3x3 zero inertia matrix.")
         .def(nb::self += nb::self)
         .def(nb::self -= nb::self)
-        .def("__call__",
-             [](inertia2dp const& I, vec2dp const& Omega) { return I(Omega); },
-             nb::arg("Omega"),
-             "Forward inertia map I[Omega]: vec2dp rate-of-change -> bivec2dp momentum.")
-        .def("__call__",
-             [](inertia2dp const& I, bivec2dp const& F) { return I(F); },
-             nb::arg("F"),
-             "Inverse inertia map I_inv[F]: bivec2dp momentum -> vec2dp rate-of-change.")
+        .def(
+            "__call__", [](inertia2dp const& I, vec2dp const& Omega) { return I(Omega); },
+            nb::arg("Omega"),
+            "Forward inertia map I[Omega]: vec2dp rate-of-change -> bivec2dp momentum.")
+        .def(
+            "__call__", [](inertia2dp const& I, bivec2dp const& F) { return I(F); },
+            nb::arg("F"),
+            "Inverse inertia map I_inv[F]: bivec2dp momentum -> vec2dp rate-of-change.")
         .def("__getitem__", &inertia_get<inertia2dp, 3>,
              "Read element (row, col); pass a 2-tuple, e.g. I[2, 2].")
         .def("__setitem__", &inertia_set<inertia2dp, 3>,
@@ -107,39 +108,40 @@ void bind_mechanics(nb::module_& pga)
         .def("__repr__",
              [](inertia2dp const& I) { return fmt::format("inertia2dp({})", I); })
         .def("__str__", [](inertia2dp const& I) { return fmt::format("{}", I); })
-        .def("__format__",
-             [](inertia2dp const& I, std::string_view spec) {
-                 return inertia_format(I, spec);
-             },
-             nb::arg("format_spec"));
+        .def(
+            "__format__",
+            [](inertia2dp const& I, std::string_view spec) {
+                return inertia_format(I, spec);
+            },
+            nb::arg("format_spec"));
 
     // 2dp factory / arithmetic free functions.
-    pga.def("get_point_inertia",
-            [](double m, vec2dp const& X) { return get_point_inertia(m, X); },
-            nb::arg("m"), nb::arg("X"),
-            "Inertia of a point mass m at position X (2dp).");
-    pga.def("get_plate_inertia",
-            [](double m, double w, double h, vec2dp const& P_pivot) {
-                return get_plate_inertia(m, w, h, P_pivot);
-            },
-            nb::arg("m"), nb::arg("w"), nb::arg("h"),
-            nb::arg("P_pivot") = vec2dp{0.0, 0.0, 1.0},
-            "Inertia of a uniform rectangular plate (mass m, width w, height h) "
-            "centered at the body origin, with parallel-axis (Steiner) correction "
-            "about an optional pivot P_pivot (default = body origin).");
-    pga.def("get_inertia_inverse",
-            [](inertia2dp const& I) { return get_inertia_inverse(I); },
-            nb::arg("I"),
-            "Inverse of a 2dp inertia matrix via LU decomposition. "
-            "Raises ValueError if the matrix is singular.");
-    pga.def("compute_omega_dot",
-            [](inertia2dp const& I_inv, bivec2dp const& F,
-               vec2dp const& Omega, inertia2dp const& I) {
-                return compute_omega_dot(I_inv, F, Omega, I);
-            },
-            nb::arg("I_inv"), nb::arg("F"), nb::arg("Omega"), nb::arg("I"),
-            "Right-hand side of the body-frame Euler ODE in 2dp:\n"
-            "  Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]");
+    pga.def(
+        "get_point_inertia",
+        [](double m, vec2dp const& X) { return get_point_inertia(m, X); }, nb::arg("m"),
+        nb::arg("X"), "Inertia of a point mass m at position X (2dp).");
+    pga.def(
+        "get_plate_inertia",
+        [](double m, double w, double h, vec2dp const& P_pivot) {
+            return get_plate_inertia(m, w, h, P_pivot);
+        },
+        nb::arg("m"), nb::arg("w"), nb::arg("h"),
+        nb::arg("P_pivot") = vec2dp{0.0, 0.0, 1.0},
+        "Inertia of a uniform rectangular plate (mass m, width w, height h) "
+        "centered at the body origin, with parallel-axis (Steiner) correction "
+        "about an optional pivot P_pivot (default = body origin).");
+    pga.def(
+        "get_inertia_inverse", [](inertia2dp const& I) { return get_inertia_inverse(I); },
+        nb::arg("I"),
+        "Inverse of a 2dp inertia matrix via LU decomposition. "
+        "Raises ValueError if the matrix is singular.");
+    pga.def(
+        "compute_omega_dot",
+        [](inertia2dp const& I_inv, bivec2dp const& F, vec2dp const& Omega,
+           inertia2dp const& I) { return compute_omega_dot(I_inv, F, Omega, I); },
+        nb::arg("I_inv"), nb::arg("F"), nb::arg("Omega"), nb::arg("I"),
+        "Right-hand side of the body-frame Euler ODE in 2dp:\n"
+        "  Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]");
 
     // ----- inertia3dp ------------------------------------------------------
     // 6x6 inertia map for PGA3DP rigid bodies. In 3D both forward and
@@ -148,11 +150,12 @@ void bind_mechanics(nb::module_& pga)
         .def(nb::init<>(), "Default-construct a 6x6 zero inertia matrix.")
         .def(nb::self += nb::self)
         .def(nb::self -= nb::self)
-        .def("__call__",
-             [](inertia3dp const& I, bivec3dp const& Omega) { return I(Omega); },
-             nb::arg("Omega"),
-             "Inertia map I[Omega] (or I_inv[F] for the inverse): "
-             "bivec3dp -> bivec3dp.")
+        .def(
+            "__call__",
+            [](inertia3dp const& I, bivec3dp const& Omega) { return I(Omega); },
+            nb::arg("Omega"),
+            "Inertia map I[Omega] (or I_inv[F] for the inverse): "
+            "bivec3dp -> bivec3dp.")
         .def("__getitem__", &inertia_get<inertia3dp, 6>,
              "Read element (row, col); pass a 2-tuple, e.g. I[5, 2].")
         .def("__setitem__", &inertia_set<inertia3dp, 6>,
@@ -160,37 +163,38 @@ void bind_mechanics(nb::module_& pga)
         .def("__repr__",
              [](inertia3dp const& I) { return fmt::format("inertia3dp({})", I); })
         .def("__str__", [](inertia3dp const& I) { return fmt::format("{}", I); })
-        .def("__format__",
-             [](inertia3dp const& I, std::string_view spec) {
-                 return inertia_format(I, spec);
-             },
-             nb::arg("format_spec"));
+        .def(
+            "__format__",
+            [](inertia3dp const& I, std::string_view spec) {
+                return inertia_format(I, spec);
+            },
+            nb::arg("format_spec"));
 
     // 3dp factory / arithmetic free functions.
-    pga.def("get_point_inertia",
-            [](double m, vec3dp const& X) { return get_point_inertia(m, X); },
-            nb::arg("m"), nb::arg("X"),
-            "Inertia of a point mass m at position X (3dp).");
-    pga.def("get_cuboid_inertia",
-            [](double m, double w, double h, double d, bivec3dp const& L_pivot) {
-                return get_cuboid_inertia(m, w, h, d, L_pivot);
-            },
-            nb::arg("m"), nb::arg("w"), nb::arg("h"), nb::arg("d"),
-            nb::arg("L_pivot") = bivec3dp{},
-            "Inertia of a uniform rectangular cuboid (mass m, extents w x h x d) "
-            "centered at the body origin, with parallel-axis (Steiner) correction "
-            "about an optional pivot line L_pivot (default = body origin / no shift).");
-    pga.def("get_inertia_inverse",
-            [](inertia3dp const& I) { return get_inertia_inverse(I); },
-            nb::arg("I"),
-            "Inverse of a 3dp inertia matrix via LU decomposition. "
-            "Raises ValueError if the matrix is singular.");
-    pga.def("compute_omega_dot",
-            [](inertia3dp const& I_inv, bivec3dp const& F,
-               bivec3dp const& Omega, inertia3dp const& I) {
-                return compute_omega_dot(I_inv, F, Omega, I);
-            },
-            nb::arg("I_inv"), nb::arg("F"), nb::arg("Omega"), nb::arg("I"),
-            "Right-hand side of the body-frame Euler ODE in 3dp:\n"
-            "  Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]");
+    pga.def(
+        "get_point_inertia",
+        [](double m, vec3dp const& X) { return get_point_inertia(m, X); }, nb::arg("m"),
+        nb::arg("X"), "Inertia of a point mass m at position X (3dp).");
+    pga.def(
+        "get_cuboid_inertia",
+        [](double m, double w, double h, double d, bivec3dp const& L_pivot) {
+            return get_cuboid_inertia(m, w, h, d, L_pivot);
+        },
+        nb::arg("m"), nb::arg("w"), nb::arg("h"), nb::arg("d"),
+        nb::arg("L_pivot") = bivec3dp{},
+        "Inertia of a uniform rectangular cuboid (mass m, extents w x h x d) "
+        "centered at the body origin, with parallel-axis (Steiner) correction "
+        "about an optional pivot line L_pivot (default = body origin / no shift).");
+    pga.def(
+        "get_inertia_inverse", [](inertia3dp const& I) { return get_inertia_inverse(I); },
+        nb::arg("I"),
+        "Inverse of a 3dp inertia matrix via LU decomposition. "
+        "Raises ValueError if the matrix is singular.");
+    pga.def(
+        "compute_omega_dot",
+        [](inertia3dp const& I_inv, bivec3dp const& F, bivec3dp const& Omega,
+           inertia3dp const& I) { return compute_omega_dot(I_inv, F, Omega, I); },
+        nb::arg("I_inv"), nb::arg("F"), nb::arg("Omega"), nb::arg("I"),
+        "Right-hand side of the body-frame Euler ODE in 3dp:\n"
+        "  Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]");
 }

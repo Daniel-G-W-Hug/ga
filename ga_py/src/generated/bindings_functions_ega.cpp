@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,7 +28,8 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void register_functions_ega(nb::module_& m) {
+void register_functions_ega(nb::module_& m)
+{
     m.def("angle", [](vec2d const& a0, vec2d const& a1) { return angle(a0, a1); });
     m.def("angle", [](vec3d const& a0, vec3d const& a1) { return angle(a0, a1); });
     m.def("angle", [](bivec3d const& a0, bivec3d const& a1) { return angle(a0, a1); });
@@ -119,12 +120,20 @@ void register_functions_ega(nb::module_& m) {
     m.def("gr_inv", [](mvec3d_e const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](mvec3d_u const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](mvec3d const& a0) { return gr_inv(a0); });
-    m.def("gs_orthogonal", [](vec2d const& a0, vec2d const& a1) { return gs_orthogonal(a0, a1); });
-    m.def("gs_orthogonal", [](vec3d const& a0, vec3d const& a1) { return gs_orthogonal(a0, a1); });
-    m.def("gs_orthogonal", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) { return gs_orthogonal(a0, a1, a2); });
-    m.def("gs_orthonormal", [](vec2d const& a0, vec2d const& a1) { return gs_orthonormal(a0, a1); });
-    m.def("gs_orthonormal", [](vec3d const& a0, vec3d const& a1) { return gs_orthonormal(a0, a1); });
-    m.def("gs_orthonormal", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) { return gs_orthonormal(a0, a1, a2); });
+    m.def("gs_orthogonal",
+          [](vec2d const& a0, vec2d const& a1) { return gs_orthogonal(a0, a1); });
+    m.def("gs_orthogonal",
+          [](vec3d const& a0, vec3d const& a1) { return gs_orthogonal(a0, a1); });
+    m.def("gs_orthogonal", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) {
+        return gs_orthogonal(a0, a1, a2);
+    });
+    m.def("gs_orthonormal",
+          [](vec2d const& a0, vec2d const& a1) { return gs_orthonormal(a0, a1); });
+    m.def("gs_orthonormal",
+          [](vec3d const& a0, vec3d const& a1) { return gs_orthonormal(a0, a1); });
+    m.def("gs_orthonormal", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) {
+        return gs_orthonormal(a0, a1, a2);
+    });
     m.def("inv", [](scalar2d const& a0) { return inv(a0); });
     m.def("inv", [](vec2d const& a0) { return inv(a0); });
     m.def("inv", [](pscalar2d const& a0) { return inv(a0); });
@@ -137,13 +146,27 @@ void register_functions_ega(nb::module_& m) {
     m.def("inv", [](mvec3d_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec3d_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec3d const& a0) { return inv(a0); });
-    m.def("is_congruent", [](scalar2d const& a0, scalar2d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](vec2d const& a0, vec2d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](pscalar2d const& a0, pscalar2d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](scalar3d const& a0, scalar3d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](vec3d const& a0, vec3d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](bivec3d const& a0, bivec3d const& a1, double a2) { return is_congruent(a0, a1, a2); });
-    m.def("is_congruent", [](pscalar3d const& a0, pscalar3d const& a1, double a2) { return is_congruent(a0, a1, a2); });
+    m.def("is_congruent", [](scalar2d const& a0, scalar2d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](vec2d const& a0, vec2d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](pscalar2d const& a0, pscalar2d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](scalar3d const& a0, scalar3d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](vec3d const& a0, vec3d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](bivec3d const& a0, bivec3d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
+    m.def("is_congruent", [](pscalar3d const& a0, pscalar3d const& a1, double a2) {
+        return is_congruent(a0, a1, a2);
+    });
     m.def("l_cmpl", [](scalar2d const& a0) { return l_cmpl(a0); });
     m.def("l_cmpl", [](vec2d const& a0) { return l_cmpl(a0); });
     m.def("l_cmpl", [](pscalar2d const& a0) { return l_cmpl(a0); });
@@ -154,7 +177,8 @@ void register_functions_ega(nb::module_& m) {
     m.def("l_dual", [](pscalar2d const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2d_e const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2d const& a0) { return l_dual(a0); });
-    m.def("l_expand", [](bivec3d const& a0, vec3d const& a1) { return l_expand(a0, a1); });
+    m.def("l_expand",
+          [](bivec3d const& a0, vec3d const& a1) { return l_expand(a0, a1); });
     m.def("log", [](mvec2d_e const& a0) { return log(a0); });
     m.def("log", [](mvec3d_e const& a0) { return log(a0); });
     m.def("normalize", [](scalar2d const& a0) { return normalize(a0); });
@@ -193,9 +217,12 @@ void register_functions_ega(nb::module_& m) {
     m.def("nrm_sq", [](mvec3d_e const& a0) { return nrm_sq(a0); });
     m.def("nrm_sq", [](mvec3d_u const& a0) { return nrm_sq(a0); });
     m.def("nrm_sq", [](mvec3d const& a0) { return nrm_sq(a0); });
-    m.def("project_onto", [](vec2d const& a0, vec2d const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec3d const& a0, vec3d const& a1) { return project_onto(a0, a1); });
-    m.def("project_onto", [](vec3d const& a0, bivec3d const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec2d const& a0, vec2d const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec3d const& a0, vec3d const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec3d const& a0, bivec3d const& a1) { return project_onto(a0, a1); });
     m.def("r_cmpl", [](scalar2d const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](vec2d const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](pscalar2d const& a0) { return r_cmpl(a0); });
@@ -206,16 +233,26 @@ void register_functions_ega(nb::module_& m) {
     m.def("r_dual", [](pscalar2d const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2d_e const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2d const& a0) { return r_dual(a0); });
-    m.def("r_expand", [](vec3d const& a0, bivec3d const& a1) { return r_expand(a0, a1); });
-    m.def("reflect_on", [](vec2d const& a0, vec2d const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](vec3d const& a0, vec3d const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](vec3d const& a0, bivec3d const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on", [](bivec3d const& a0, bivec3d const& a1) { return reflect_on(a0, a1); });
-    m.def("reflect_on_vec", [](vec2d const& a0, vec2d const& a1) { return reflect_on_vec(a0, a1); });
-    m.def("reflect_on_vec", [](vec3d const& a0, vec3d const& a1) { return reflect_on_vec(a0, a1); });
-    m.def("reject_from", [](vec2d const& a0, vec2d const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec3d const& a0, vec3d const& a1) { return reject_from(a0, a1); });
-    m.def("reject_from", [](vec3d const& a0, bivec3d const& a1) { return reject_from(a0, a1); });
+    m.def("r_expand",
+          [](vec3d const& a0, bivec3d const& a1) { return r_expand(a0, a1); });
+    m.def("reflect_on",
+          [](vec2d const& a0, vec2d const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](vec3d const& a0, vec3d const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](vec3d const& a0, bivec3d const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on",
+          [](bivec3d const& a0, bivec3d const& a1) { return reflect_on(a0, a1); });
+    m.def("reflect_on_vec",
+          [](vec2d const& a0, vec2d const& a1) { return reflect_on_vec(a0, a1); });
+    m.def("reflect_on_vec",
+          [](vec3d const& a0, vec3d const& a1) { return reflect_on_vec(a0, a1); });
+    m.def("reject_from",
+          [](vec2d const& a0, vec2d const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec3d const& a0, vec3d const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec3d const& a0, bivec3d const& a1) { return reject_from(a0, a1); });
     m.def("rev", [](scalar2d const& a0) { return rev(a0); });
     m.def("rev", [](vec2d const& a0) { return rev(a0); });
     m.def("rev", [](pscalar2d const& a0) { return rev(a0); });
@@ -233,12 +270,21 @@ void register_functions_ega(nb::module_& m) {
     m.def("rotate", [](vec3d const& a0, mvec3d_e const& a1) { return rotate(a0, a1); });
     m.def("rotate", [](bivec3d const& a0, mvec3d_e const& a1) { return rotate(a0, a1); });
     m.def("rotate", [](mvec3d const& a0, mvec3d_e const& a1) { return rotate(a0, a1); });
-    m.def("rotate_opt", [](vec2d const& a0, mvec2d_e const& a1) { return rotate_opt(a0, a1); });
-    m.def("rotate_opt", [](std::vector<vec2d> const& a0, mvec2d_e const& a1) { return rotate_opt(a0, a1); });
-    m.def("rotate_opt", [](vec3d const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
-    m.def("rotate_opt", [](std::vector<vec3d> const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
-    m.def("rotate_opt", [](bivec3d const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
-    m.def("rotate_opt", [](std::vector<bivec3d> const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
+    m.def("rotate_opt",
+          [](vec2d const& a0, mvec2d_e const& a1) { return rotate_opt(a0, a1); });
+    m.def("rotate_opt", [](std::vector<vec2d> const& a0, mvec2d_e const& a1) {
+        return rotate_opt(a0, a1);
+    });
+    m.def("rotate_opt",
+          [](vec3d const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
+    m.def("rotate_opt", [](std::vector<vec3d> const& a0, mvec3d_e const& a1) {
+        return rotate_opt(a0, a1);
+    });
+    m.def("rotate_opt",
+          [](bivec3d const& a0, mvec3d_e const& a1) { return rotate_opt(a0, a1); });
+    m.def("rotate_opt", [](std::vector<bivec3d> const& a0, mvec3d_e const& a1) {
+        return rotate_opt(a0, a1);
+    });
     m.def("rtwdg1", [](vec2d const& a0, vec2d const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](vec2d const& a0, scalar2d const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](scalar2d const& a0, vec2d const& a1) { return rtwdg1(a0, a1); });

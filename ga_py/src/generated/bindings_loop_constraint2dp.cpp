@@ -2,6 +2,8 @@
 // Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 // Source manifest: ga_bindgen/manifest.json
 
+#include <array>
+#include <fmt/format.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -10,8 +12,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
-#include <fmt/format.h>
-#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,35 +28,40 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_loop_constraint2dp(nb::module_& m) {
+void bind_loop_constraint2dp(nb::module_& m)
+{
     nb::class_<loop_constraint2dp>(m, "loop_constraint2dp")
-        .def("__init__", [](loop_constraint2dp* self) { new (self) loop_constraint2dp{}; })
         .def("__init__",
-            [](loop_constraint2dp* self, int frame_a, vec2dp const& anchor_a, int frame_b, vec2dp const& anchor_b, constraint2dp const& type) { new (self) loop_constraint2dp(frame_a, anchor_a, frame_b, anchor_b, type); },
-            nb::arg("frame_a"), nb::arg("anchor_a"), nb::arg("frame_b"), nb::arg("anchor_b"), nb::arg("type"))
+             [](loop_constraint2dp* self) { new (self) loop_constraint2dp{}; })
+        .def(
+            "__init__",
+            [](loop_constraint2dp* self, int frame_a, vec2dp const& anchor_a, int frame_b,
+               vec2dp const& anchor_b, constraint2dp const& type) {
+                new (self) loop_constraint2dp(frame_a, anchor_a, frame_b, anchor_b, type);
+            },
+            nb::arg("frame_a"), nb::arg("anchor_a"), nb::arg("frame_b"),
+            nb::arg("anchor_b"), nb::arg("type"))
         .def_rw("frame_a", &loop_constraint2dp::frame_a)
         .def_rw("anchor_a", &loop_constraint2dp::anchor_a)
         .def_rw("frame_b", &loop_constraint2dp::frame_b)
         .def_rw("anchor_b", &loop_constraint2dp::anchor_b)
         .def_rw("type", &loop_constraint2dp::type)
-        .def("__repr__", [](const loop_constraint2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__str__", [](const loop_constraint2dp& v) {
-            return fmt::format("{}", v);
-        })
-        .def("__format__",
+        .def("__repr__", [](const loop_constraint2dp& v) { return fmt::format("{}", v); })
+        .def("__str__", [](const loop_constraint2dp& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
             [](const loop_constraint2dp& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
-                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
-                                       v);
-                } catch (fmt::format_error const& e) {
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
                     throw std::invalid_argument(e.what());
                 }
-            }, nb::arg("format_spec"))
+            },
+            nb::arg("format_spec"))
         .def("__eq__", [](const loop_constraint2dp& a, const loop_constraint2dp& b) {
-            return a.frame_a == b.frame_a && a.anchor_a == b.anchor_a && a.frame_b == b.frame_b && a.anchor_b == b.anchor_b && a.type == b.type;
-        })
-        ;
+            return a.frame_a == b.frame_a && a.anchor_a == b.anchor_a &&
+                   a.frame_b == b.frame_b && a.anchor_b == b.anchor_b && a.type == b.type;
+        });
 }

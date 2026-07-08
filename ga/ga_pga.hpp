@@ -40,7 +40,8 @@
 #include "ga_pga3dp_ops_mechanics.hpp" // mechanics operations for 3dp
 
 // PGA closed-loop / parallel-mechanism operations (loop-closure constraints), an additive
-// layer composed on top of the open-chain mechanics tier (open-loop users need not include it)
+// layer composed on top of the open-chain mechanics tier (open-loop users need not
+// include it)
 #include "ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
 #include "ga_pga3dp_ops_constraints.hpp" // closed-loop operations for 3dp
 

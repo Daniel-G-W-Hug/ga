@@ -42,7 +42,8 @@ void report(char const* title, char const* subtitle, std::vector<Result> const& 
 {
     double const base = rows.front().ns_per_vec; // row 0 is the transform() baseline
     double best = rows.front().ns_per_vec;
-    for (auto const& r : rows) best = std::min(best, r.ns_per_vec);
+    for (auto const& r : rows)
+        best = std::min(best, r.ns_per_vec);
 
     std::printf("%s - %s\n", title, subtitle);
     std::printf("  %-24s %9s  %8s   %s\n", "method", "ns/vec", "speedup", "note");
@@ -61,7 +62,8 @@ void report(char const* title, char const* subtitle, std::vector<Result> const& 
     }
     else {
         double worst = base;
-        for (auto const& r : rows) worst = std::max(worst, r.ns_per_vec);
+        for (auto const& r : rows)
+            worst = std::max(worst, r.ns_per_vec);
         std::printf("  => transform() is fastest (transform_opt %.2fx slower); %s\n\n",
                     worst / base, clause);
     }
@@ -133,7 +135,8 @@ int main()
         value_t acc = 0.0;
         for (int r = 0; r < reps; ++r) {
             auto const out = transform_opt(in, R);
-            for (auto const& w : out) acc += w.x + w.y + w.z + w.w;
+            for (auto const& w : out)
+                acc += w.x + w.y + w.z + w.w;
         }
         auto const t1 = std::chrono::steady_clock::now();
         checksum += acc;
@@ -155,8 +158,8 @@ int main()
     char const* mode = "DEBUG build -- timings NOT meaningful, rebuild optimized";
 #endif
 
-    std::printf("sta4ds transform benchmark   (N=%zu vecs x %d reps, %s, double)\n",
-                N, reps, mode);
+    std::printf("sta4ds transform benchmark   (N=%zu vecs x %d reps, %s, double)\n", N,
+                reps, mode);
     std::printf("============================================================="
                 "==========\n\n");
 

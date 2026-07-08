@@ -86,25 +86,24 @@ std::optional<std::string> emit_function(configurable::AlgebraData const& algebr
 //
 // Returns nullopt (with *skip_reason) for a Composite result, which only arises for
 // aggregate inputs (mv/mv_e/mv_u) -- those stay hand-written delegations.
-std::optional<std::string> emit_unary_function(std::string const& func_name,
-                                               TypeInfo const& input_info,
-                                               std::string const& input_param,
-                                               TypeInfo const& result_info,
-                                               mvec_coeff const& out_mv,
-                                               std::string* skip_reason = nullptr);
+std::optional<std::string>
+emit_unary_function(std::string const& func_name, TypeInfo const& input_info,
+                    std::string const& input_param, TypeInfo const& result_info,
+                    mvec_coeff const& out_mv, std::string* skip_reason = nullptr);
 
 // Emit the grade-wise DELEGATION form of a unary complement/dual for an aggregate
 // (multivector) input, e.g.
 //   r_dual(MVec4ds_E<T> const& M)
 //   { return MVec4ds_E<T>(r_dual(gr4(M)), r_dual(gr2(M)), r_dual(gr0(M))); }
 // `args` are the ready-made constructor arguments (in result-constructor order), built by
-// the caller as "<func_name>(gr<k>(<input_param>))" with the grade extractors in the order
-// that fills the result type's grade slots (descending input grade, since the dual /
-// complement reverses grade). Mirrors the hand-coded *_ops_basics.hpp aggregate routines
-// (minus their derivation comments).
-std::optional<std::string> emit_unary_delegation_function(
-    std::string const& func_name, TypeInfo const& input_info,
-    std::string const& input_param, TypeInfo const& result_info,
-    std::vector<std::string> const& args);
+// the caller as "<func_name>(gr<k>(<input_param>))" with the grade extractors in the
+// order that fills the result type's grade slots (descending input grade, since the dual
+// / complement reverses grade). Mirrors the hand-coded *_ops_basics.hpp aggregate
+// routines (minus their derivation comments).
+std::optional<std::string>
+emit_unary_delegation_function(std::string const& func_name, TypeInfo const& input_info,
+                               std::string const& input_param,
+                               TypeInfo const& result_info,
+                               std::vector<std::string> const& args);
 
 } // namespace codegen

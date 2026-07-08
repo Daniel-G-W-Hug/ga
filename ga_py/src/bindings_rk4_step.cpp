@@ -37,20 +37,18 @@ namespace {
 // Single-template helper that emits the m.def(...) lambda for one VecType.
 // Defined as a function template so each VecType gets its own concrete
 // instantiation — nanobind requires concrete signatures at the binding site.
-template <typename VecType>
-void bind_rk4_step_one(nb::module_& m)
+template <typename VecType> void bind_rk4_step_one(nb::module_& m)
 {
-    m.def("rk4_step",
-          [](std::vector<VecType> u, std::array<std::vector<VecType>, 2> uh,
-             std::vector<VecType> const& rhs, value_t dt, size_t rk_step) {
-              return rk4_step<VecType>(std::move(u), std::move(uh), rhs, dt,
-                                       rk_step);
-          },
-          nb::arg("u"), nb::arg("uh"), nb::arg("rhs"), nb::arg("dt"),
-          nb::arg("rk_step"),
-          "Runge-Kutta 4 sub-step (vector overload). Returns "
-          "(u_new, (uh0_new, uh1_new)). VecType is dispatched on the element "
-          "type of `u`.");
+    m.def(
+        "rk4_step",
+        [](std::vector<VecType> u, std::array<std::vector<VecType>, 2> uh,
+           std::vector<VecType> const& rhs, value_t dt, size_t rk_step) {
+            return rk4_step<VecType>(std::move(u), std::move(uh), rhs, dt, rk_step);
+        },
+        nb::arg("u"), nb::arg("uh"), nb::arg("rhs"), nb::arg("dt"), nb::arg("rk_step"),
+        "Runge-Kutta 4 sub-step (vector overload). Returns "
+        "(u_new, (uh0_new, uh1_new)). VecType is dispatched on the element "
+        "type of `u`.");
 }
 
 } // anonymous namespace

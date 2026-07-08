@@ -119,7 +119,7 @@ using mvec4ds = MVec4ds<value_t>;     // fully populated 4ds multivector
 using dualnum4ds = DualNum4ds<value_t>;
 
 // NOTE: mechanics convenience aliases (inertia2dp, inertia3dp, ...) live in
-// ga_usr_types_mechanics.hpp -- they alias templates defined by the mechanics ops headers,
-// which are included after this file.
+// ga_usr_types_mechanics.hpp -- they alias templates defined by the mechanics ops
+// headers, which are included after this file.
 
 } // namespace hd::ga
