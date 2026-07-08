@@ -65,30 +65,33 @@ Two application cases differ only in **git-history treatment** (see §7):
 
 ### 2b. MAGLEV bundle → private (move + purge history, §7)
 
+Post-bundling layout (the test-bundling intermediate step is DONE — see
+[test_bundling_by_application.md](test_bundling_by_application.md)):
+
 | Public path today | Kind |
 | ----------------- | ---- |
 | `ga_test/src/ga_dipole_model.hpp` | private physics core (dipole field/force/torque, Halbach group, `maglev_rig`, `mover_body`, `solve_alpha`) |
-| `ga_test/src/ga_dipole_test.cpp` | test target `ga_dipole_test` |
-| `ga_test/src/ga_maglev_test.cpp` | test target `ga_maglev_test` |
-| `ga_test/utilities/bench_dipole_ga_vs_classical.cpp` | bench `ga_dipole_bench` |
-| `ga_test/utilities/bench_maglev_stability.cpp` | bench `ga_maglev_stability` |
-| `ga_test/utilities/maglev_scene_replica.cpp` | validator `maglev_scene_replica` |
+| `ga_test/src/ga_maglev_test.cpp` | entry of the `ga_maglev_test` bundle (doctest main) |
+| `ga_test/src/ga_maglev_dipole_test.hpp` | dipole chapter (was `ga_dipole_test.cpp`, folded in) |
+| `ga_test/src/ga_maglev_twin_test.hpp` | actuator + hover-twin chapter (was the body of `ga_maglev_test.cpp`) |
+| `ga_test/maglev_utilities/` (whole dir) | `bench_dipole_ga_vs_classical.cpp`, `bench_maglev_stability.cpp`, `maglev_scene_replica.cpp` + its `CMakeLists.txt` (targets `ga_dipole_bench`, `ga_maglev_stability`, `maglev_scene_replica`) |
 | `ga_view/src/active_maglev.{hpp,cpp}` | view scene (seam, §4c/§5) |
 | `TODO/magnetic_levitation.md`, `TODO/maglev_S1_dipole_formulation.md`, `TODO/CtrlXFlow6d.pptx` | docs (already git-excluded) |
 
 ### 2c. GRINDING bundle → private (move only, no history purge, §7)
 
-Currently **interleaved** in shared 3dp test headers and must be **extracted into dedicated
-files first** (§4a). The grinding-labeled cases (verified list):
+The grinding cases were **extracted from the shared 3dp test headers into a dedicated
+`ga_grinding_test` bundle** (the intermediate step, now DONE). Files that move:
 
-- In [`ga_appl3dp_appl_test.hpp`](../ga_test/src/ga_appl3dp_appl_test.hpp): tumbling plane
-  & intersecting discs (grinding building blocks), tumbling tool plane via
-  `static_system3dp`, grain trajectory (Phase 0), wafer-tilt flatness (Zhou Figs 5–7),
-  grinding-mark wavelengths (D.1), wafer topography (D.1b), contact force feed-forward
-  (D.2a), Sommerfeld warm-up (B.1).
-- In [`ga_appl3dp_mechanics_test.hpp`](../ga_test/src/ga_appl3dp_mechanics_test.hpp), whole
-  `TEST_SUITE`s: Tao wheel-spindle (C.2–C.4), grinding force loop (D.2b), wafer thinning
-  (D.2c), loop integrator (D.2d), feed control (D.2e).
+- `ga_test/src/ga_grinding_test.cpp` — entry (doctest main).
+- `ga_test/src/ga_grinding_appl_test.hpp` — kinematics/geometry/topology cases (tumbling
+  plane, intersecting discs, tumbling tool plane, grain trajectory Phase 0, wafer-tilt
+  flatness Zhou, grinding-mark wavelengths D.1, wafer topography D.1b, contact force
+  feed-forward D.2a, Sommerfeld warm-up B.1).
+- `ga_test/src/ga_grinding_mechanics_test.hpp` — Tao wheel-spindle (C.2–C.4) + grinding
+  force loop (D.2b), wafer thinning (D.2c), loop integrator (D.2d), feed control (D.2e).
+- `ga_test/src/ga_grinding_cai_test.hpp` — the Cai volumetric-error machine (Phase F);
+  folded into the grinding package as its own chapter (see [test_bundling_by_application.md](test_bundling_by_application.md)).
 - View scenes: `ga_view/src/active_grinding_{cs,flatness,marks,topo}.{hpp,cpp}` (4 scenes,
   same hand-sync surface as maglev — see §5).
 - Python demos: `ga_py/demo/{tumbling_plane,intersecting_discs}.py` (grinding-labeled
@@ -98,7 +101,8 @@ files first** (§4a). The grinding-labeled cases (verified list):
   chapter (moves whole, §4d).
 
 > Note: the **force-control work (Phase D.2a–e) is already written and public** — it is not
-> future work. It moves now with the rest of the grinding bundle.
+> future work. It moves with the rest of the grinding bundle. **Cai now shares grinding's
+> fate** (private) since it is a chapter of `ga_grinding_test`.
 
 ### 2d. Stays PUBLIC
 
@@ -177,25 +181,19 @@ pinned in via a submodule bump.
 Behaviour-preserving changes committed to public `develop` so the application bundles can
 leave without breaking any public build.
 
-### 4a. Extract the interleaved grinding cases into dedicated files (the new big item)
+### 4a. Extract the interleaved grinding cases into dedicated files — DONE
 
-Grinding is currently woven through `ga_appl3dp_appl_test.hpp` and
-`ga_appl3dp_mechanics_test.hpp`. To move it as whole files:
+**Completed as the test-bundling intermediate step** (public refactor, committed to
+`develop`; details in [test_bundling_by_application.md](test_bundling_by_application.md)).
+Grinding was cut out of `ga_appl3dp_{appl,mechanics}_test.hpp` into the `ga_grinding_test`
+bundle (`ga_grinding_{appl,cai,mechanics}_test.hpp`); the Cai machine folded in as its own
+chapter; the maglev bundle consolidated (`ga_maglev_test` = dipole + twin chapters); the
+maglev tools moved to `ga_test/maglev_utilities/` and the exporter to
+`ga_test/python_utilities/`. All verified by assertion-count parity (pure relocation).
 
-1. Create a grinding test executable mirroring the existing pattern: `ga_grinding_test`
-   built from `ga_test/src/ga_grinding_test.cpp` including
-   `ga_grinding_appl_test.hpp` (kinematics/geometry/topology cases) and
-   `ga_grinding_mechanics_test.hpp` (Tao spindle + D.2 force-loop suites).
-2. **Cut** every grinding-labeled `TEST_CASE`/`TEST_SUITE` (the §2c list) out of the two
-   `ga_appl3dp_*` headers into the new grinding headers. Leave the generic PGA application
-   tests behind (audit the remainder to confirm none is grinding-labeled).
-3. Verify `ga_appl3dp_test` still passes (now generic-only) and the new `ga_grinding_test`
-   passes with the same assertions — this is a pure relocation, no assertion changes.
-4. Commit this **in the public repo** first (it is a legitimate public refactor). Only then
-   move `ga_grinding_*` to private.
-
-This establishes the **per-application file convention** (principle 5): each application is
-its own `ga_<app>_test` executable + `active_<app>_*` scenes + doc chapter.
+This established the **per-application file convention** (principle 5): each application is
+its own `ga_<app>_test` executable (+ chapters) + `active_<app>_*` scenes + doc chapter.
+Grinding/maglev are now whole-file/whole-directory moves for the repo split.
 
 ### 4b. `ga_test` — optional private target overlay
 
@@ -206,9 +204,9 @@ if(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")
 endif()
 ```
 
-`private_targets.cmake` (in `ga_private`) declares `ga_maglev_test`, `ga_dipole_test`,
-`ga_grinding_test`, and the maglev benches/replica (linking `doctest::doctest ga`, include
-dir = private root). Unset `GA_PRIVATE_DIR` → nothing added.
+`private_targets.cmake` (in `ga_private`) declares `ga_maglev_test` and `ga_grinding_test`,
+and includes the `maglev_utilities/` subdirectory (benches + replica) (linking
+`doctest::doctest ga`, include dir = private root). Unset `GA_PRIVATE_DIR` → nothing added.
 
 ### 4c. `ga_view` — generic scene registry seam (one binary, add-on compiled in)
 
@@ -344,11 +342,14 @@ Scope is narrow (verified): the maglev/dipole files live **only on `develop`**; 
 
 1. **Backup** a full mirror (`git clone --mirror`) before any rewrite.
 2. **`git filter-repo`** on `develop` to purge these paths from every reachable commit:
-   `ga_test/src/ga_dipole_model.hpp`, `ga_test/src/ga_dipole_test.cpp`,
-   `ga_test/src/ga_maglev_test.cpp`, the two maglev benches, `maglev_scene_replica.cpp`,
+   `ga_test/src/ga_dipole_model.hpp`, `ga_test/src/ga_maglev_test.cpp`,
+   `ga_test/src/ga_maglev_dipole_test.hpp`, `ga_test/src/ga_maglev_twin_test.hpp`, the whole
+   `ga_test/maglev_utilities/` directory (the two benches + the replica),
    `ga_view/src/active_maglev.{hpp,cpp}`, and `ga_docu/6_ga_applications_pga.tex` (the app
    chapter contains the confidential maglev section; purging it also drops the
-   non-confidential grinding doc from history — harmless).
+   non-confidential grinding doc from history — harmless). Note the pre-bundling
+   `ga_dipole_test.cpp` is also present in older history and must be purged too (git-log the
+   path to confirm and add it to the filter-repo `--path` set).
    Do the §4 refactors + the plain `git rm` of these files as a *normal* commit first, so
    only historical revisions need scrubbing.
 3. **Force-push** `develop`: `git push --force-with-lease origin develop`.
@@ -389,8 +390,8 @@ purge can be run then.)
 - **Public doc build**: `latexmk -pdf 0_ga_docu.tex` in a public checkout compiles with no
   undefined references (chapter omitted, glossary reworded).
 - **Private build** (submodule superset): builds the public library + view app + all
-  application targets; `ga_maglev_test`, `ga_dipole_test`, `ga_grinding_test`,
-  `maglev_scene_replica` pass; maglev + grinding scenes appear in `ga_view` and match
+  application targets; `ga_maglev_test`, `ga_grinding_test`, and the `maglev_utilities/`
+  tools (`maglev_scene_replica`) pass; maglev + grinding scenes appear in `ga_view` and match
   pre-split behaviour (compare against `maglev_scene_replica`); private doc build includes
   the applications chapter with references resolved.
 - **No behaviour change from the grinding extraction (§4a)**: the relocated grinding

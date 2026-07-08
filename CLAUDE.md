@@ -34,10 +34,12 @@ When in doubt, leave the working tree for review and say it is ready.
 │   ├── ga_pga_test                                 #   Projective GA tests (2dp/3dp)
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
-│   ├── ga_appl3dp_test                             #   PGA3D applications
+│   ├── ga_appl3dp_test                             #   PGA3D applications (generic geometry/kinematics/mechanics)
+│   ├── ga_grinding_test                            #   wafer grinding + Cai machine (PGA3DP application bundle)
+│   ├── ga_maglev_test                              #   magnetic-levitation application bundle (dipole + hover twin)
 │   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
 │   ├── ga_stencil_test                             #   FD stencil generator (detail/ga_stencil.hpp)
-│   ├── ga_export_python_cases                      #   emits cross-check JSON for ga_py tests
+│   ├── ga_export_python_cases                      #   emits cross-check JSON for ga_py tests (python_utilities/)
 │   └── ga_sta_bench_transform                      #   STA transform_opt micro-benchmark
 ├── ga_view/ga_view                                 # Qt6 2D visualization executable
 ├── ga_prdxpr/                                      # Code generator + its own tests/tools
@@ -112,13 +114,15 @@ cd ga_test && ./ga_ega_test && cd ..    # Tests for Euclidean GA
 cd ga_test && ./ga_pga_test && cd ..    # Tests for Projective GA
 ```
 
-**Runtime note (Debug builds):** `ga_appl3dp_test` is the long pole — it runs ~9266
-assertions and takes **~3 minutes** in a `Debug` build (the default
-`CMAKE_BUILD_TYPE`), so a 2-minute command timeout will kill it mid-run. When invoking
-it, give it a generous timeout (>=300 s) and run it on its own rather than chained behind
-the other suites. The other suites finish in a few seconds each. For a fast full-suite
-pass, configure a separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where
-`ga_appl3dp_test` drops to a few seconds — at the cost of a longer one-off compile.
+**Runtime note (Debug builds):** the pga3dp application suites are the long poles in a
+`Debug` build (the default `CMAKE_BUILD_TYPE`) — `ga_appl3dp_test` (generic geometry/
+mechanics, ~7670 assertions) and `ga_grinding_test`, which now carries the RK4/integrator-
+heavy Tao spindle and grinding force-loop cases. Each can take a couple of minutes in
+Debug, so a 2-minute command timeout may kill one mid-run. Give these two a generous
+timeout (>=300 s) and run each on its own rather than chained behind the other suites; the
+remaining suites finish in a few seconds each. For a fast full-suite pass, configure a
+separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where they drop to a few
+seconds — at the cost of a longer one-off compile.
 
 ## Running Applications
 
@@ -931,7 +935,7 @@ NON-generated files — each one surfaced as a test failure when missed:
 - `ga_py/src/module.cpp` — create the submodule and pass it to `register_all`
 - `ga_py/python/ga_py/__init__.py` — import/forward the submodule and update `__all__`
 - `ga_bindgen/src/emit_stubs.py` — add `<submod>.pyi` to `STUB_FILES`
-- `ga_test/src/export_python_cases.cpp` — representative cross-check cases
+- `ga_test/python_utilities/export_python_cases.cpp` — representative cross-check cases
 - `ga_py/tests/conftest.py` — `FIELD_ORDER` for new struct-shaped types
 - `ga_py/tests/test_cross_check.py` — `_TYPE_LOCATIONS` submodule scan loop
 - `ga_py/tests/test_constants.py` — `EXPECTED` table **and** the total-count assertion

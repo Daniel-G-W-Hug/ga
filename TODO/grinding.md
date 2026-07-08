@@ -20,6 +20,15 @@ Status: **CLOSED 2026-06-20 — see the box above.** (Historical: planning + ini
 (`static_/kinematic_/dynamic_system{2,3}dp`, the closed-loop layer) was built as the
 runway for exactly this. Companion memory: `project_wafer_grinding`.
 
+> **Note (test bundling, 2026-07-08):** the grinding tests were later extracted from the
+> shared `ga_appl3dp_*` headers into a dedicated **`ga_grinding_test`** bundle
+> (`ga_grinding_appl_test.hpp` = kinematics/geometry/topology; `ga_grinding_mechanics_test.hpp`
+> = Tao spindle + D.2 force-loop suites; `ga_grinding_cai_test.hpp` = the Cai machine).
+> Inline references below to `ga_appl3dp_appl_test.hpp` / `ga_appl3dp_mechanics_test.hpp`
+> (and the older name `ga_appl3dp_physics_test.hpp`) predate that move; the grinding cases
+> they name now live in the corresponding `ga_grinding_*` file. See
+> [test_bundling_by_application.md](test_bundling_by_application.md).
+
 ---
 
 ## REOPENED 2026-06-29 — Phase F: machine geometric / volumetric error model (Cai 2024)

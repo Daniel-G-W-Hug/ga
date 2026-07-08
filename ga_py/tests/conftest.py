@@ -97,7 +97,7 @@ def approx_eq(a: float, b: float, tol: float = EPS_DEFAULT) -> bool:
 # --------------------------------------------------------------------------- #
 # Used by test_constants.py and test_cross_check.py to compare bound objects
 # against expected component tuples. Order MUST match the C++ side and the
-# ga_test/src/export_python_cases.cpp emitter.
+# ga_test/python_utilities/export_python_cases.cpp emitter.
 
 FIELD_ORDER = {
     "vec2d": ("x", "y"),

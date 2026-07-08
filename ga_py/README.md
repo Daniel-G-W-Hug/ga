@@ -536,7 +536,7 @@ array APIs.
 
 `tests/test_cross_check.py` replays a JSON snapshot of `(op, args, expected)` tuples
 emitted by the C++ side and verifies the Python wrapper produces bit-equivalent results
-within tolerance. The C++ exporter is `ga_test/src/export_python_cases.cpp`, an executable
+within tolerance. The C++ exporter is `ga_test/python_utilities/export_python_cases.cpp`, an executable
 separate from the doctest binaries that uses the production `ga/` headers.
 
 The snapshot is committed to git. Refresh it whenever the case set changes:

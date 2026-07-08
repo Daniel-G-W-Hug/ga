@@ -1,13 +1,23 @@
 # Bundling tests by application case (intermediate step)
 
+> **STATUS: DONE (2026-07-08).** Executed as commits `85ce5ec` (grinding bundle) →
+> `c919eb5` (Cai folded into grinding) → `541e946` (dipole folded into `ga_maglev_test`) →
+> `95a9d5a` (`maglev_utilities/`) → `40a0be4` (`python_utilities/`) → `4379774` (tidy
+> residual generic), each verified by assertion-count parity. **One deviation from the plan
+> below:** Cai was **not** given its own `ga_cai_test` (§5) — the user chose to fold it into
+> the grinding package as a chapter (`ga_grinding_cai_test.hpp`), so it travels to the
+> private repo with grinding. The utilities split (`maglev_utilities/`, `python_utilities/`)
+> was added during execution and is not in the original plan text below.
+
 Reorganize the test suite so **each application case is one self-contained test
 executable**, mirroring how `ga_pga_test.cpp` bundles all PGA tests. This is the
 preparatory step for the public/private repo split
 ([public_private_repo.md](public_private_repo.md) §4a): once an application's tests live in
 dedicated files, moving that application to the private repo is a whole-file move.
 
-Deliverables: `ga_grinding_test` (new) and `ga_maglev_test` (consolidate the existing
-maglev + dipole files) — plus a **naming convention** every future application follows.
+Deliverables: `ga_grinding_test` (new, incl. the Cai chapter) and `ga_maglev_test`
+(consolidate the maglev + dipole files) — plus a **naming convention** every future
+application follows.
 
 ---
 

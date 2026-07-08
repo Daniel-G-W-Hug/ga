@@ -1,6 +1,6 @@
 """T5 --- Cross-check the Python wrapper against C++ reference output.
 
-Loads `data/ga_test_cases.json` (emitted by ga_test/src/export_python_cases.cpp)
+Loads `data/ga_test_cases.json` (emitted by ga_test/python_utilities/export_python_cases.cpp)
 and replays each case through the Python bindings, asserting the result
 matches the captured C++ output within tolerance.
 
