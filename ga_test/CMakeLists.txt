@@ -9,6 +9,7 @@ set(EXEC_NAME6 ga_integrator_test)
 set(EXEC_NAME7 ga_stencil_test)
 set(EXEC_NAME8 ga_dipole_test)
 set(EXEC_NAME9 ga_maglev_test)
+set(EXEC_NAME10 ga_grinding_test)
 set(EXPORT_NAME ga_export_python_cases)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
@@ -39,6 +40,9 @@ set(DIPOLE_FILES
 set(MAGLEV_FILES
     src/ga_maglev_test.cpp)
 
+set(GRINDING_FILES
+    src/ga_grinding_test.cpp)
+
 add_executable(${EXEC_NAME1} ${EGA_FILES})        #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME2} ${PGA_FILES})        #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME3} ${APPL2DP_FILES})    #dep: doctest, fmt, ga
@@ -48,6 +52,7 @@ add_executable(${EXEC_NAME6} ${INTEGRATOR_FILES}) #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME7} ${STENCIL_FILES})    #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME8} ${DIPOLE_FILES})     #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME9} ${MAGLEV_FILES})     #dep: doctest, fmt, ga
+add_executable(${EXEC_NAME10} ${GRINDING_FILES})  #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
@@ -58,6 +63,7 @@ target_include_directories(${EXEC_NAME6} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME7} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME8} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME9} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC_NAME10} PRIVATE ${CMAKE_SOURCE_DIR})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
@@ -71,6 +77,7 @@ target_link_libraries(${EXEC_NAME6} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME7} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME8} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME9} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME10} PRIVATE doctest::doctest ga)
 
 # doctest anonymous-symbol counter + its c2y warning.
 #
@@ -84,7 +91,7 @@ target_link_libraries(${EXEC_NAME9} PRIVATE doctest::doctest ga)
 #
 # -Wno-c2y-extensions: silences the c2y-extension warning __COUNTER__ raises on clang.
 foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4} ${EXEC_NAME5}
-               ${EXEC_NAME6} ${EXEC_NAME7} ${EXEC_NAME8} ${EXEC_NAME9})
+               ${EXEC_NAME6} ${EXEC_NAME7} ${EXEC_NAME8} ${EXEC_NAME9} ${EXEC_NAME10})
     target_compile_definitions(${target} PRIVATE DOCTEST_COUNTER=__COUNTER__)
     target_compile_options(${target} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
 endforeach()
@@ -115,6 +122,7 @@ link_fmt_to_target(${EXEC_NAME6})
 link_fmt_to_target(${EXEC_NAME7})
 link_fmt_to_target(${EXEC_NAME8})
 link_fmt_to_target(${EXEC_NAME9})
+link_fmt_to_target(${EXEC_NAME10})
 
 # ----------------------------------------------------------------------------
 # Standalone benchmarks (utilities/).
