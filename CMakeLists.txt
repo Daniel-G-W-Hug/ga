@@ -101,14 +101,17 @@ if(_GA_USE_LUA)
     add_subdirectory(ga_lua)             # lua scripting for ga
 endif()
 
-# ga_view: Skip on macOS with GCC due to Qt6 header incompatibility
-# Qt6 uses _Pragma in function signatures which GCC rejects but Clang allows
-# This is a known Qt6+GCC issue on macOS, may work on Linux
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
-    message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
-    message(STATUS "         Use Clang to build ga_view, or build on Linux")
-else()
-    add_subdirectory(ga_view)            # qt-based viewer
+# ga_view is a private module (it moves to ga_private); the public repo has no ga_view/,
+# so build it only when the directory is present (private superset, or before the move).
+# Also skip on macOS with GCC due to a Qt6 header incompatibility (Qt6 uses _Pragma in
+# function signatures which GCC rejects but Clang allows; may work on Linux).
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ga_view")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
+        message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
+        message(STATUS "         Use Clang to build ga_view, or build on Linux")
+    else()
+        add_subdirectory(ga_view)        # qt-based viewer
+    endif()
 endif()
 
 add_subdirectory(ga_prdxpr)              # generate product expressions

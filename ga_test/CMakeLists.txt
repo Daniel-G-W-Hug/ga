@@ -139,6 +139,20 @@ add_subdirectory(utilities)
 add_subdirectory(maglev_utilities)
 
 # ----------------------------------------------------------------------------
+# Private application overlay (opt-in).
+#
+# When the private superset (ga_private) is present it sets GA_PRIVATE_DIR and
+# supplies ga_private/ga_test/private_targets.cmake, which declares the private
+# application test/bench targets (maglev + grinding bundles, maglev_utilities/)
+# that will move out of this public repo. Public-only builds leave GA_PRIVATE_DIR
+# unset -> nothing extra is added. Placed after link_fmt_to_target() (defined
+# above) so the overlay can use it.
+# ----------------------------------------------------------------------------
+if(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")
+    include("${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")
+endif()
+
+# ----------------------------------------------------------------------------
 # Cross-check JSON exporter for the Python wrapper (python_utilities/).
 #
 # Standalone tool (ga + fmt, no doctest), only built with -D_GA_BUILD_PYTHON=ON.
