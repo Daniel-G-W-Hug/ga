@@ -255,13 +255,21 @@ wording churn.
 ### C++ Formatting (clang-format — MANDATORY before writing/committing)
 
 **Run clang-format on every C++ file you generate or edit, before considering the change
-done.** The repo style is the global `~/.clang-format` (no repo-local override);
-clang-format finds it by searching upward from the file's directory, so the file must live
-**inside the repo tree** when formatted (a temp file under `/tmp/` silently falls back to
-LLVM defaults — see the "clang-format gotcha" note later in this file).
+done.** The repo style is a **committed repo-local `.clang-format` at the repo root**
+(added so co-workers get identical formatting regardless of their global config; it is a
+verbatim copy of the maintainer's former global `~/.clang-format`). clang-format finds it
+by searching upward from the file's directory, so the file must live **inside the repo
+tree** when formatted (a temp file under `/tmp/` silently falls back to LLVM defaults — see
+the "clang-format gotcha" note later in this file).
+
+**Version baseline:** the whole tree was reformatted once with **clang-format 22.x** (the
+config alone does not pin output — different clang-format versions reorder includes and
+break lines differently). Use a **matching major version (22.x)** so a format-on-save does
+not re-churn the repo. If you must use a newer major, expect a one-time repo-wide reflow and
+raise it before committing.
 
 ```bash
-clang-format -i path/to/file.cpp   # format in place (picks up ~/.clang-format)
+clang-format -i path/to/file.cpp   # format in place (picks up the repo-root .clang-format)
 ```
 
 Why this matters: the editor reformats on save with the same config, so unformatted output
@@ -269,7 +277,7 @@ gets reflowed later — which **churns line numbers and re-sorts `#include` grou
 producing noisy, hard-to-review diffs and stale `file:line` references. Formatting up
 front avoids that.
 
-Key settings to match even when hand-writing (full config in `~/.clang-format`):
+Key settings to match even when hand-writing (full config in the repo-root `.clang-format`):
 
 - **`ColumnLimit: 90`** — the hard wrap limit (this is the minimum to respect).
 - `IndentWidth: 4`, `UseTab: Never`; `BreakBeforeBraces: Stroustrup`; `IndentCaseLabels:
@@ -855,8 +863,8 @@ lives in [ga_prdxpr/src_prdxpr/utilities/](ga_prdxpr/src_prdxpr/utilities/):
   and unrelated products are left intact). Used to keep `dot` / contractions
   (`*_ops_products.hpp`) and the complements / duals (`*_ops_basics.hpp`) in sync.
 
-**clang-format gotcha (bit us once):** clang-format finds the project style (the global
-`~/.clang-format`) by searching **upward from the input file's directory**. A temp file
+**clang-format gotcha (bit us once):** clang-format finds the project style (the repo-root
+`.clang-format`) by searching **upward from the input file's directory**. A temp file
 under `/tmp/` is not under the repo, so clang-format silently falls back to LLVM defaults
 (2-space indent, `Type const &name`) and the output will not match the library. Always
 clang-format files **inside the repo tree** — the splicer writes its temp file into the

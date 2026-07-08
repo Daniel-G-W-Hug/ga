@@ -20,3 +20,8 @@ __pycache__/
 
 # Editor / IDE caches
 .VSCodeCounter/
+
+# Track the repo-local .clang-format despite a global "ignore all dotfiles" (.*) rule that
+# some maintainers keep in ~/.gitignore. Committing it gives co-workers identical formatting
+# without depending on their personal global config.
+!.clang-format
