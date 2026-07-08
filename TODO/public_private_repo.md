@@ -35,8 +35,9 @@ Two application cases differ only in **git-history treatment** (see §7):
    general-purpose force elements and `dynamic_system`/`closed_loop_system`), `ga_prdxpr`,
    `ga_lua`, `ga_py`, the core algebra tests, the **generic mechanism demos** (four-bar,
    double pendulum, merry-go-round, planar delta, closed-loop 5-bar, open-vs-closed) and
-   **feature demos** (projection, reflection, bivectors), and the generic `ga_docu`
-   chapters.
+   **feature demos** (projection, reflection, bivectors). Documentation is a **generated
+   PDF only** — the `ga_docu` LaTeX sources are private; public ships just the generic-
+   chapters PDF (§4d).
 2. **Private = application cases (code + docs).** Wafer grinding and magnetic levitation,
    each as a self-contained bundle: tests, benches, view scenes, and doc chapter.
 3. **Dependency direction is one-way.** Private code depends on the public library; public
@@ -49,6 +50,13 @@ Two application cases differ only in **git-history treatment** (see §7):
    whole case is one grep and one move. This drives the extraction refactor in §4a.
 6. **Confidential content leaves public history; non-confidential application code only
    leaves `HEAD`.** Two-tier, see §7.
+7. **The entire `TODO/` directory is private (decided 2026-07-08).** All plans and working
+   notes — tracked or git-excluded, application-specific or generic — move to the private
+   repo. Plans and old plans do not belong in the public part regardless of the character
+   of the task they describe. The public repo carries no `TODO/`. This removes any
+   per-file plan triage (see the simplified doc handling in §2b/§2c). One consequence:
+   public `CLAUDE.md` must not point at `TODO/*` files — those references get genericised
+   or dropped in the public-repo docs pass (§8/§6 step 8).
 
 ---
 
@@ -76,7 +84,10 @@ Post-bundling layout (the test-bundling intermediate step is DONE — see
 | `ga_test/src/ga_maglev_twin_test.hpp` | actuator + hover-twin chapter (was the body of `ga_maglev_test.cpp`) |
 | `ga_test/maglev_utilities/` (whole dir) | `bench_dipole_ga_vs_classical.cpp`, `bench_maglev_stability.cpp`, `maglev_scene_replica.cpp` + its `CMakeLists.txt` (targets `ga_dipole_bench`, `ga_maglev_stability`, `maglev_scene_replica`) |
 | `ga_view/src/active_maglev.{hpp,cpp}` | view scene (seam, §4c/§5) |
-| `TODO/magnetic_levitation.md`, `TODO/maglev_S1_dipole_formulation.md`, `TODO/CtrlXFlow6d.pptx` | docs (already git-excluded) |
+
+Maglev docs move with the whole `TODO/` (principle 7) — no per-file listing needed
+(`magnetic_levitation.md`, `maglev_S1_dipole_formulation.md`, `CtrlXFlow6d.pptx` are among
+them; the first three are already git-excluded).
 
 ### 2c. GRINDING bundle → private (move only, no history purge, §7)
 
@@ -96,9 +107,9 @@ The grinding cases were **extracted from the shared 3dp test headers into a dedi
   same hand-sync surface as maglev — see §5).
 - Python demos: `ga_py/demo/{tumbling_plane,intersecting_discs}.py` (grinding-labeled
   building blocks).
-- Docs: `TODO/grinding.md`, `TODO/tao_eq13_derivation.md`,
-  `TODO/Grinding_setup_CS_draft.md`; and the grinding half of the `ga_docu` applications
-  chapter (moves whole, §4d).
+- Docs: the grinding write-ups (`grinding.md`, `tao_eq13_derivation.md`,
+  `Grinding_setup_CS_draft.md`) move with the whole `TODO/` (principle 7); the grinding
+  half of the `ga_docu` applications chapter moves whole (§4d).
 
 > Note: the **force-control work (Phase D.2a–e) is already written and public** — it is not
 > future work. It moves with the rest of the grinding bundle. **Cai now shares grinding's
@@ -113,8 +124,9 @@ The grinding cases were **extracted from the shared 3dp test headers into a dedi
   `bench_sta4ds_transform`.
 - The generic mechanism/feature view scenes and their tests; the 2D application tests
   (`ga_appl2dp_*` — verified grinding-free).
-- The generic `ga_docu` chapters (intro, basics, modelling-motion, mechanics, comparison,
-  glossary, literature).
+- A **generated PDF** of the generic `ga_docu` chapters (intro, basics, modelling-motion,
+  mechanics, comparison, glossary, literature). The LaTeX sources themselves are private
+  and the PDF is built there and copied over (§4d) — public carries no `.tex`.
 
 ---
 
@@ -128,15 +140,25 @@ to an exact public commit. Location: `/Users/hud3bh/prg/cpp/pj/ga_private` (sibl
 ga/                              PUBLIC repo (github.com/Daniel-G-W-Hug/ga)
 ga_private/                      PRIVATE repo (superset)
 ├── external/ga/                 ← git submodule → public repo, pinned to a commit
-├── ga_test/src/     ga_maglev_*, ga_dipole_*, ga_grinding_*  (application tests)
-├── ga_test/utilities/           maglev benches + replica
+├── .clang-format                ← own copy at the root (its files search up to HERE, not
+│                                  into external/ga); keep byte-identical to the public one
+├── ga_test/src/     ga_maglev_* (dipole+twin+model), ga_grinding_* (appl/cai/mechanics)
+├── ga_test/maglev_utilities/    bench_dipole, bench_maglev_stability, maglev_scene_replica
 ├── ga_test/private_targets.cmake        declares the private test/bench targets
 ├── ga_view/src/     active_maglev.*, active_grinding_*.*  (+ registration TUs)
 ├── ga_view/private_scenes.cmake         adds the private scene sources to ga_view
 ├── ga_docu/         6_ga_applications_pga.tex  (applications chapter)
-├── TODO/            confidential + application docs
+├── TODO/            the WHOLE TODO/ directory (all plans, principle 7)
 └── CMakeLists.txt   → add_subdirectory(external/ga); pass GA_PRIVATE_DIR down
 ```
+
+**`.clang-format` in both repos (added 2026-07-08):** the repo style is now a committed
+`.clang-format` at the public repo root (a verbatim copy of the maintainer's former global
+config), so co-workers format identically regardless of their own global. The private repo
+needs its **own** copy at `ga_private/` root — clang-format searches upward from a file and
+would stop at `ga_private/` without descending into the `external/ga` submodule, so a
+private-repo file would otherwise fall back to LLVM defaults. Keep the two copies
+byte-identical.
 
 The library-consuming pieces (tests, benches, replica) move trivially — they only
 `target_link_libraries(... ga)` (maglev additionally includes the private
@@ -165,9 +187,10 @@ git add external/ga && git commit -m "bump public ga to <short-sha>"
 
 records exactly which public commit each private state builds against (the "strong link").
 
-**Documentation** — generic GA docs stay in public `ga_docu`. The applications chapter and
-confidential write-ups live in `ga_private/`. A private doc references a public one by
-pinned path (`external/ga/ga_docu/…`).
+**Documentation** — all `ga_docu` LaTeX lives in `ga_private/`; public carries only a
+generated generic-chapters PDF, refreshed from private when docs change (§4d). So editing
+docs is always a private-repo activity; a doc update ends with rebuilding + copying the
+public PDF into the `external/ga` submodule checkout and bumping it in public.
 
 **Implementing private add-ons on public parts** — one working copy holds both: edit public
 code inside `external/ga` (a normal public checkout on its own branch), private code in the
@@ -240,37 +263,44 @@ rather than per-scene special-casing:
 > at the cost of one guarded stub in `scenes.cpp`. With **five** scenes moving, the generic
 > registry is strongly preferred; the `#ifdef` fallback scales worse.
 
-### 4d. `ga_docu` — move the whole applications chapter private
+### 4d. `ga_docu` — all LaTeX private; public gets a generated PDF only (decided 2026-07-08)
 
-The applications chapter [`6_ga_applications_pga.tex`](../ga_docu/6_ga_applications_pga.tex)
-(Wafer Grinding + Magnetic Levitation) is one self-contained file, `\input` once from
-[`0_ga_docu.tex`](../ga_docu/0_ga_docu.tex) (l.186). Move it whole:
+**Simplification (user, 2026-07-08):** the public repo keeps **no LaTeX at all** — the
+entire `ga_docu/` `.tex` sources + build machinery move to the private repo, and the public
+repo carries a **single generated PDF** of the *generic* chapters (the public library
+documentation), refreshed from private whenever the docs change. This removes the whole
+LaTeX seam from public (no `\IfFileExists` chapter guard, no glossary-`\ref` reword, no
+cross-ref management, no LaTeX toolchain for public users).
 
-1. Move `6_ga_applications_pga.tex` to `ga_private/ga_docu/`.
-2. Guard the include in public `0_ga_docu.tex`:
+Layout:
 
-   ```latex
-   % Application chapter lives in the private repo; included only in the private build.
-   \IfFileExists{6_ga_applications_pga.tex}{\input{6_ga_applications_pga.tex}}{}
-   ```
+- **Private** owns `ga_docu/*.tex` (all chapters, incl. the applications chapter) + the
+  build. It builds **two** PDFs:
+  - the *full* internal PDF (all chapters, incl. applications — private only), and
+  - the *public* PDF = generic chapters only (applications chapter omitted). The omit is
+    a private-side build switch — e.g. keep the `\IfFileExists{6_ga_applications_pga.tex}`
+    guard in `0_ga_docu.tex` and build the public variant with that file absent, or a
+    `\if@public` flag. The one dangling `8_ga_glossary.tex` `\ref{subsubsection:wafer_grinding}`
+    is reworded once (private-side) so the public variant has no undefined reference.
+- **Public** carries only `ga_docu/ga_docu.pdf` (the generic-chapters PDF) — no `.tex`.
+- **Sync workflow:** a small private script (`make public-pdf`) rebuilds the public PDF and
+  copies it to `external/ga/ga_docu/ga_docu.pdf` (the submodule checkout), committed to
+  public as a normal artifact bump when docs change.
 
-   Public: file absent → chapter omitted, builds clean. Private: TEXINPUTS/symlink resolves
-   it (public `ga_docu/6_ga_applications_pga.tex` is git-ignored so the private file drops
-   in), chapter appears.
-3. **Fix the one dangling cross-ref:** [`8_ga_glossary.tex`](../ga_docu/8_ga_glossary.tex)
-   l.210 `\ref{subsubsection:wafer_grinding}` → reword to drop the `\ref{}` (verified: the
-   only public cross-ref into the chapter).
-
-Future private chapters attach the same way — one guarded `\IfFileExists{…}{\input}{}` per
-chapter in `0_ga_docu.tex`, no public `.tex` edits. History: whole-file → clean path purge
-(§7).
+**Public-repo removal (in §6):** `git rm ga_docu/*.tex` and the LaTeX aux/build files; keep
+(or replace with) the generic-only PDF. **History:** the current public `.tex` (applications
+chapter) *and* the current committed PDF already render maglev, so both the applications
+`.tex` and the old `0_ga_docu.pdf` blobs fall under the maglev history purge (§7) — add
+`ga_docu/6_ga_applications_pga.tex` and `ga_docu/0_ga_docu.pdf` to the `filter-repo --path`
+set; the public repo then re-adds a fresh generic-only PDF at a clean name (e.g.
+`ga_docu/ga_docu.pdf`).
 
 ### 4e. Confirm the clean cut
 
 ```bash
 grep -rln -iE 'maglev|dipole|grind|wafer|tao|sommerfeld|zhou' \
-    ga/ ga_prdxpr/ ga_lua/ ga_py/ga_py/ ga_docu/
-# after 4a–4d + moves: expect no matches (grinding demos & app chapter gone)
+    ga/ ga_prdxpr/ ga_lua/ ga_py/
+# after 4a–4d + moves: expect no matches (ga_docu is gone from public entirely)
 ```
 
 ---
@@ -312,17 +342,22 @@ public only in the final step.**
 3. **Create `ga_private`** with the submodule superset (§3); add `external/ga`.
 4. **Move** the maglev bundle (§2b) and grinding bundle (§2c) into mirrored private paths.
    Add `private_targets.cmake` (§4b), `private_scenes.cmake` + registration TUs (§4c), and
-   the applications chapter (§4d). Get the private superset building; all application
-   tests, benches, and view scenes pass **from the private repo**.
+   the **whole `ga_docu/` LaTeX** (§4d). Get the private superset building; all application
+   tests, benches, and view scenes pass **from the private repo**; the private doc build
+   produces both the full and the public (generic-only) PDF.
 5. **Remove from `ga`** (plain `git rm`): the maglev files, the grinding files
-   (`ga_grinding_*`, `active_grinding_*`, the two Python demos), and the application doc
-   chapter; delete their references from public CMake / `coordsys_model` (now behind the
-   registry). Verify build + tests green; `ga_view` shows only generic demos.
+   (`ga_grinding_*`, `active_grinding_*`, the two Python demos), and **all `ga_docu/*.tex` +
+   LaTeX build files** (replace with the generic-only `ga_docu/ga_docu.pdf` from private);
+   delete their references from public CMake / `coordsys_model` (now behind the registry).
+   Verify build + tests green; `ga_view` shows only generic demos.
 6. **History: purge MAGLEV (§7) — while private.** Grinding is move-only, no purge.
-7. **Move the git-excluded TODO docs** into `ga_private/TODO/`; drop the `.git/info/exclude`
-   entries.
-8. **Update docs**: `CLAUDE.md` (the split + per-app file convention + where each
-   application lives), `README.md`, `TODO/github_setup.md` (branch model for both repos).
+7. **Move the WHOLE `TODO/` directory** into `ga_private/TODO/` (principle 7 — all plans go
+   private) and `git rm -r TODO/` from public; drop the now-moot `.git/info/exclude`
+   entries. (Decide separately whether the tracked plan docs also need a history purge, or
+   just leave older history — see §7.)
+8. **Update docs**: public `CLAUDE.md` (the split + per-app file convention; **remove/
+   genericise every `TODO/*` reference** since `TODO/` is now private — principle 7) and
+   `README.md`. The branch-model note (`github_setup.md`) is itself a `TODO/` doc → private.
 9. **Verify the clean state (§8)** on `ga`: grep gate, history gate, public doc build — all
    green — then **flip `ga` back to public**. Because the purge happened while private,
    there is never a public window in which the removed commits are fetchable by SHA.
@@ -345,11 +380,14 @@ Scope is narrow (verified): the maglev/dipole files live **only on `develop`**; 
    `ga_test/src/ga_dipole_model.hpp`, `ga_test/src/ga_maglev_test.cpp`,
    `ga_test/src/ga_maglev_dipole_test.hpp`, `ga_test/src/ga_maglev_twin_test.hpp`, the whole
    `ga_test/maglev_utilities/` directory (the two benches + the replica),
-   `ga_view/src/active_maglev.{hpp,cpp}`, and `ga_docu/6_ga_applications_pga.tex` (the app
+   `ga_view/src/active_maglev.{hpp,cpp}`, `ga_docu/6_ga_applications_pga.tex` (the app
    chapter contains the confidential maglev section; purging it also drops the
-   non-confidential grinding doc from history — harmless). Note the pre-bundling
-   `ga_dipole_test.cpp` is also present in older history and must be purged too (git-log the
-   path to confirm and add it to the filter-repo `--path` set).
+   non-confidential grinding doc from history — harmless), and **`ga_docu/0_ga_docu.pdf`**
+   (every committed build of it *renders* the maglev chapter, so the binary blobs carry the
+   confidential content too — purge the PDF path, then the public repo re-adds a fresh
+   generic-only PDF at a clean name, §4d). Note the pre-bundling `ga_dipole_test.cpp` is also
+   present in older history and must be purged too (git-log the path to confirm and add it to
+   the filter-repo `--path` set).
    Do the §4 refactors + the plain `git rm` of these files as a *normal* commit first, so
    only historical revisions need scrubbing.
 3. **Force-push** `develop`: `git push --force-with-lease origin develop`.
@@ -368,8 +406,14 @@ from the `develop` tip in a normal commit. Older commits retain grinding; that i
 nothing there is secret. (Should any grinding content ever become confidential, a targeted
 purge can be run then.)
 
-> The git-excluded `TODO/` docs were never committed — confirm with
-> `git log --all --oneline -- TODO/magnetic_levitation.md` (expect empty).
+> **`TODO/` (whole directory, principle 7):** the git-excluded docs
+> (`magnetic_levitation.md`, `maglev_S1_dipole_formulation.md`, `CtrlXFlow6d.pptx`) were
+> never committed (confirm with `git log --all --oneline -- TODO/magnetic_levitation.md` →
+> empty), so they need no purge. The *tracked* plan docs (`grinding.md`,
+> `public_private_repo.md`, `github_setup.md`, …) are in public history; `git rm -r TODO/`
+> removes them from `HEAD`, and — since they are plans, not confidential physics — leaving
+> them in older history is acceptable. Purge them too only if you want the public repo to
+> carry no plan history at all (they can be added to the maglev `filter-repo --path` set).
 >
 > Residual limitation (only relevant if `ga` was ever public before Phase 0): copies already
 > cloned/forked/cached externally cannot be retracted — going private stops *future* access
