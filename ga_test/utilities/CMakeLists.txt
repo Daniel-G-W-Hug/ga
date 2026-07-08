@@ -25,7 +25,7 @@ set(_BENCH_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/..")
 
 set(BENCH_TRANSFORM ga_sta_bench_transform)
 add_executable(${BENCH_TRANSFORM} bench_sta4ds_transform.cpp)
-target_include_directories(${BENCH_TRANSFORM} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${BENCH_TRANSFORM} PRIVATE ${GA_ROOT})
 target_link_libraries(${BENCH_TRANSFORM} PRIVATE ga)
 link_fmt_to_target(${BENCH_TRANSFORM})
 # exclude from the default "build all" so a normal build/test cycle never builds it

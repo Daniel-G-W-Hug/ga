@@ -117,13 +117,13 @@ add_executable(${EXEC4_NAME} ${SOURCES_RULE_GENERATOR_TEST})  #dep: fmt
 # Include directories.
 # Project root is needed for "ga/..." headers; src_prdxpr/ is needed for the
 # subfolder-prefixed includes (e.g. "core/ga_prdxpr_common.hpp").
-target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+target_include_directories(${EXEC_NAME} PRIVATE ${GA_ROOT}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
-target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+target_include_directories(${EXEC2_NAME} PRIVATE ${GA_ROOT}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
-target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+target_include_directories(${EXEC3_NAME} PRIVATE ${GA_ROOT}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
-target_include_directories(${EXEC4_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+target_include_directories(${EXEC4_NAME} PRIVATE ${GA_ROOT}
                                                  ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 
 # Dependencies are handled by the main CMakeLists.txt dependency system

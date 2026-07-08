@@ -18,10 +18,10 @@ if(_GA_BUILD_PYTHON)
 
     # Committed JSON snapshot consumed by the Python cross-check test suite.
     set(_GA_PY_CASES_JSON
-        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
+        "${GA_ROOT}/ga_py/tests/data/ga_test_cases.json")
 
     add_executable(${EXPORT_NAME} export_python_cases.cpp)
-    target_include_directories(${EXPORT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+    target_include_directories(${EXPORT_NAME} PRIVATE ${GA_ROOT})
     target_link_libraries(${EXPORT_NAME} PRIVATE ga)
     target_compile_options(${EXPORT_NAME} PRIVATE
         $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
@@ -37,7 +37,7 @@ if(_GA_BUILD_PYTHON)
     add_custom_target(regenerate_python_test_data
         COMMAND ${EXPORT_NAME} "${_GA_PY_CASES_JSON}"
         DEPENDS ${EXPORT_NAME}
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        WORKING_DIRECTORY "${GA_ROOT}"
         COMMENT "Regenerating Python cross-check cases at ${_GA_PY_CASES_JSON}"
         VERBATIM
     )

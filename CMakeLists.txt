@@ -18,6 +18,14 @@ project(
   VERSION 0.1
   LANGUAGES CXX)
 
+# Root of THIS (public `ga`) source tree. Use GA_ROOT -- not CMAKE_SOURCE_DIR -- for the
+# repo-root include path and exporter paths in the sub-CMakeLists, so the build works both
+# standalone AND when this repo is added as a subdirectory of a superproject (the private
+# `ga_private` superset adds it as the `external/ga` submodule, where CMAKE_SOURCE_DIR is
+# the superproject root, not this one). CMAKE_CURRENT_SOURCE_DIR here is always this repo's
+# root. Propagates to all add_subdirectory descendants as a normal variable.
+set(GA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # set(CMAKE_VERBOSE_MAKEFILE ON)  // alternative: make VERBOSE=1
 # add_definitions(-Dxxx)
 

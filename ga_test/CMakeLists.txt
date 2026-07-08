@@ -50,15 +50,15 @@ add_executable(${EXEC_NAME7} ${STENCIL_FILES})    #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME9} ${MAGLEV_FILES})     #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME10} ${GRINDING_FILES})  #dep: doctest, fmt, ga
 
-target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME4} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME5} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME6} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME7} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME9} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME10} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC_NAME1} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME2} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME3} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME4} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME5} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME6} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME7} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME9} PRIVATE ${GA_ROOT})
+target_include_directories(${EXEC_NAME10} PRIVATE ${GA_ROOT})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
