@@ -3,25 +3,18 @@
 
 #include "doctest/doctest.h"
 
-#include <algorithm> // std::min, std::max, std::clamp
-#include <array>     // std::array (Cai HTM 4x4 reference matrices, Phase F)
-#include <cmath>     // std::sin, std::cos, std::atan
-#include <limits>    // std::numeric_limits
-#include <random>    // std::mt19937, distributions (grain-size randomness)
-#include <utility>   // std::pair
-#include <vector>    // std::vector
-
 // include functions to be tested
-#include "ga/ga_ega.hpp" // for cross product
+#include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
-using namespace hd::ga::ega; // use specific operations of EGA (for cross product)
+using namespace hd::ga::ega; // use specific operations of EGA
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// projective geometric algebra pga3dp application tests
+// projective geometric algebra pga3dp application tests (generic PGA3DP geometry /
+// kinematics; the wafer-grinding and Cai cases now live in ga_grinding_test)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_SUITE("PGA3DP: application tests")
