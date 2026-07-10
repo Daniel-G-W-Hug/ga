@@ -7,9 +7,9 @@ set(EXEC_NAME4 ga_appl3dp_test)
 set(EXEC_NAME5 ga_sta_test)
 set(EXEC_NAME6 ga_integrator_test)
 set(EXEC_NAME7 ga_stencil_test)
-# ga_dipole_test folded into ga_maglev_test (dipole chapter of the maglev bundle)
-set(EXEC_NAME9 ga_maglev_test)
-set(EXEC_NAME10 ga_grinding_test)
+# The maglev + grinding application bundles (formerly EXEC_NAME9/10) moved to the
+# private repo; they are declared by ga_private/ga_test/private_targets.cmake via
+# the GA_PRIVATE_DIR hook at the end of this file.
 # ga_export_python_cases now lives in python_utilities/ (localized EXPORT_NAME)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
@@ -34,12 +34,6 @@ set(INTEGRATOR_FILES
 set(STENCIL_FILES
     src/ga_stencil_test.cpp)
 
-set(MAGLEV_FILES
-    src/ga_maglev_test.cpp)
-
-set(GRINDING_FILES
-    src/ga_grinding_test.cpp)
-
 add_executable(${EXEC_NAME1} ${EGA_FILES})        #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME2} ${PGA_FILES})        #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME3} ${APPL2DP_FILES})    #dep: doctest, fmt, ga
@@ -47,8 +41,6 @@ add_executable(${EXEC_NAME4} ${APPL3DP_FILES})    #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME5} ${STA_FILES})        #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME6} ${INTEGRATOR_FILES}) #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME7} ${STENCIL_FILES})    #dep: doctest, fmt, ga
-add_executable(${EXEC_NAME9} ${MAGLEV_FILES})     #dep: doctest, fmt, ga
-add_executable(${EXEC_NAME10} ${GRINDING_FILES})  #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${GA_ROOT})
 target_include_directories(${EXEC_NAME2} PRIVATE ${GA_ROOT})
@@ -57,8 +49,6 @@ target_include_directories(${EXEC_NAME4} PRIVATE ${GA_ROOT})
 target_include_directories(${EXEC_NAME5} PRIVATE ${GA_ROOT})
 target_include_directories(${EXEC_NAME6} PRIVATE ${GA_ROOT})
 target_include_directories(${EXEC_NAME7} PRIVATE ${GA_ROOT})
-target_include_directories(${EXEC_NAME9} PRIVATE ${GA_ROOT})
-target_include_directories(${EXEC_NAME10} PRIVATE ${GA_ROOT})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
@@ -70,8 +60,6 @@ target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME6} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME7} PRIVATE doctest::doctest ga)
-target_link_libraries(${EXEC_NAME9} PRIVATE doctest::doctest ga)
-target_link_libraries(${EXEC_NAME10} PRIVATE doctest::doctest ga)
 
 # doctest anonymous-symbol counter + its c2y warning.
 #
@@ -85,7 +73,7 @@ target_link_libraries(${EXEC_NAME10} PRIVATE doctest::doctest ga)
 #
 # -Wno-c2y-extensions: silences the c2y-extension warning __COUNTER__ raises on clang.
 foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4} ${EXEC_NAME5}
-               ${EXEC_NAME6} ${EXEC_NAME7} ${EXEC_NAME9} ${EXEC_NAME10})
+               ${EXEC_NAME6} ${EXEC_NAME7})
     target_compile_definitions(${target} PRIVATE DOCTEST_COUNTER=__COUNTER__)
     target_compile_options(${target} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
 endforeach()
@@ -114,8 +102,6 @@ link_fmt_to_target(${EXEC_NAME4})
 link_fmt_to_target(${EXEC_NAME5})
 link_fmt_to_target(${EXEC_NAME6})
 link_fmt_to_target(${EXEC_NAME7})
-link_fmt_to_target(${EXEC_NAME9})
-link_fmt_to_target(${EXEC_NAME10})
 
 # ----------------------------------------------------------------------------
 # Standalone benchmarks (utilities/).
@@ -129,24 +115,14 @@ link_fmt_to_target(${EXEC_NAME10})
 add_subdirectory(utilities)
 
 # ----------------------------------------------------------------------------
-# Maglev application benchmarks / validation tools (maglev_utilities/).
-#
-# The maglev-specific counterpart of utilities/, kept in its own subdirectory so
-# it moves wholesale to the private repo with the maglev application. Same
-# forced-O3 / /RTC1-strip rationale as utilities/. Depends on link_fmt_to_target
-# (defined above), so this add_subdirectory must stay after that definition.
-# ----------------------------------------------------------------------------
-add_subdirectory(maglev_utilities)
-
-# ----------------------------------------------------------------------------
 # Private application overlay (opt-in).
 #
 # When the private superset (ga_private) is present it sets GA_PRIVATE_DIR and
 # supplies ga_private/ga_test/private_targets.cmake, which declares the private
-# application test/bench targets (maglev + grinding bundles, maglev_utilities/)
-# that will move out of this public repo. Public-only builds leave GA_PRIVATE_DIR
-# unset -> nothing extra is added. Placed after link_fmt_to_target() (defined
-# above) so the overlay can use it.
+# application test/bench targets (the maglev + grinding bundles and the
+# maglev_utilities/ benches, all now living in the private repo). Public-only
+# builds leave GA_PRIVATE_DIR unset -> nothing extra is added. Placed after
+# link_fmt_to_target() (defined above) so the overlay can use it.
 # ----------------------------------------------------------------------------
 if(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")
     include("${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")

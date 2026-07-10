@@ -3,7 +3,6 @@
 - **ga**: header-only library for geometric algebra in 2d and 3d
 - **ga_test**: tests for the ga header-only library
 - **ga_lua**: lua scripting interface based on the ga library
-- **ga_view**: qt-based visualization of 2d ga objects and operations
 - **ga_prdxpr**: code generator for GA product expressions
 - **ga_py**: Python wrapper around the `ga/` library — see
   [`ga_py/README.md`](ga_py/README.md) for installation and usage
@@ -15,7 +14,6 @@
 - ga: fmt (must be included by every user — header-only lib!)
 - ga_test: fmt, doctest
 - ga_lua: fmt, lua, sol2
-- ga_view: fmt, qt6
 - ga_prdxpr: fmt
 - ga_py: fmt, Python 3.10+, Python packages `nanobind` (build) and
   `pytest`/`hypothesis`/`numpy` (tests). End users do **not** need libclang.
@@ -28,7 +26,6 @@
 ```bash
 brew install fmt         # always required
 brew install doctest     # only required for ga_test
-brew install qt6         # only required for ga_view
 brew install lua         # lua and sol2 only required for ga_lua
 # sol2 to be installed from: https://github.com/ThePhD/sol2
 brew install python      # only required for ga_py (>= 3.10)
@@ -44,7 +41,6 @@ For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md
 fmt:      https://github.com/fmtlib/fmt
 doctest:  https://github.com/doctest/doctest
 lua:      winget install --id DEVCOM.Lua   (need an x64 lua binary or linking will fail)
-qt6:      official installer
 sol2:     https://github.com/ThePhD/sol2
 python:   winget install --id Python.Python.3.12   (only for ga_py; any 3.10+ works)
 LLVM:     https://releases.llvm.org/   (only for ga_bindgen)

@@ -1,9 +1,8 @@
-"""Python port of the ga_view merry-go-round kinematics example.
+"""Python port of the merry-go-round kinematics example.
 
-The C++ demo (`ga_view/src/active_merry_go_round.cpp`) drives a
-`kinematic_system2dp` frame tree: a rotating platform P mounted on the
-inertial ground W, carrying N turntables T_i that each spin relative to the
-platform. A marked point on T0 traces an epicyclic world path.
+The example drives a `kinematic_system2dp` frame tree: a rotating platform P
+mounted on the inertial ground W, carrying N turntables T_i that each spin
+relative to the platform. A marked point on T0 traces an epicyclic world path.
 
 `kinematic_system2dp` is a stateful C++ class and is *not* bound to Python.
 The point of this test is to confirm that all the underlying GA artefacts the
@@ -13,9 +12,6 @@ primitives (`rgpr`, `rrev`, `exp`, `move2dp`, `rcmt`) — are reachable from
 Python and compose into the same kinematics. We therefore *reconstruct* the
 relevant pieces of `kinematic_system2dp` from those primitives and validate
 the result against an independent closed-form (epicyclic) solution.
-
-Mirrors the parameter defaults in `ga_view/src/coordsys_model.hpp`
-(`merry_go_round_params`).
 """
 from __future__ import annotations
 

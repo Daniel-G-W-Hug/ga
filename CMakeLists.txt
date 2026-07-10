@@ -109,16 +109,30 @@ if(_GA_USE_LUA)
     add_subdirectory(ga_lua)             # lua scripting for ga
 endif()
 
-# ga_view is a private module (it moves to ga_private); the public repo has no ga_view/,
-# so build it only when the directory is present (private superset, or before the move).
-# Also skip on macOS with GCC due to a Qt6 header incompatibility (Qt6 uses _Pragma in
+# ga_view is a private module (it moved to ga_private). The public repo has no
+# ga_view/ of its own; the private superset supplies it at ${GA_PRIVATE_DIR}/ga_view
+# and attaches it through the GA_PRIVATE_DIR overlay below. The local-directory
+# branch is kept for a checkout that still carries ga_view/ (e.g. before the move).
+#
+# Adding the private viewer from HERE (this scope) rather than from the superset's
+# own top-level CMake is deliberate: the Qt6/fmt/doctest/ga dependency targets are
+# created by this project's dependency system in this scope and are not visible in
+# the parent superset scope, so a sibling add_subdirectory there cannot link them.
+#
+# Skip on macOS with GCC due to a Qt6 header incompatibility (Qt6 uses _Pragma in
 # function signatures which GCC rejects but Clang allows; may work on Linux).
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ga_view")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ga_view/CMakeLists.txt")
+    set(_GA_VIEW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ga_view")
+elseif(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_view/CMakeLists.txt")
+    set(_GA_VIEW_DIR "${GA_PRIVATE_DIR}/ga_view")
+endif()
+if(_GA_VIEW_DIR)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
         message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
         message(STATUS "         Use Clang to build ga_view, or build on Linux")
     else()
-        add_subdirectory(ga_view)        # qt-based viewer
+        # Binary dir is named so it works whether ga_view is in-tree or external.
+        add_subdirectory("${_GA_VIEW_DIR}" ga_view)   # qt-based viewer
     endif()
 endif()
 
