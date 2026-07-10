@@ -35,13 +35,10 @@ When in doubt, leave the working tree for review and say it is ready.
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
 │   ├── ga_appl3dp_test                             #   PGA3D applications (generic geometry/kinematics/mechanics)
-│   ├── ga_grinding_test                            #   wafer grinding + Cai machine (PGA3DP application bundle)
-│   ├── ga_maglev_test                              #   magnetic-levitation application bundle (dipole + hover twin)
 │   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
 │   ├── ga_stencil_test                             #   FD stencil generator (detail/ga_stencil.hpp)
 │   ├── ga_export_python_cases                      #   emits cross-check JSON for ga_py tests (python_utilities/)
 │   └── ga_sta_bench_transform                      #   STA transform_opt micro-benchmark
-├── ga_view/ga_view                                 # Qt6 2D visualization executable
 ├── ga_prdxpr/                                      # Code generator + its own tests/tools
 │   ├── ga_prdxpr                                   #   main product-expression generator
 │   ├── ga_prdxpr_parser_test                       #   sandwich expression parser tests
@@ -55,11 +52,14 @@ When in doubt, leave the working tree for review and say it is ready.
 - The `ga_py` extension is built only when CMake is configured with
   `-D_GA_BUILD_PYTHON=ON` (see the "Python wrapper" section). Without that flag the
   `build/ga_py/` directory is absent.
-- `ga_view` requires Qt6, `ga_lua` requires Lua + sol2 — targets are skipped when their
-  optional dependencies are not found (see "Dependencies").
+- `ga_lua` requires Lua + sol2 — the target is skipped when the optional dependency is
+  not found (see "Dependencies").
 - Source modules without a runtime binary: `ga/` (header-only library), `ga_bindgen/`
-  (libclang scanner, run via its own venv — see "Python wrapper"), `ga_docu/` (LaTeX),
-  `ga_algebra_overview/` (reference material).
+  (libclang scanner, run via its own venv — see "Python wrapper").
+- **This is the PUBLIC repo.** The visualization viewer (`ga_view`), the application test
+  bundles (wafer grinding, magnetic levitation), and the `ga_docu` LaTeX sources live in a
+  private superset repo that embeds this one as a submodule; the public repo ships only the
+  generic library, generators, bindings, generic tests, and a generated `ga_docu/ga_docu.pdf`.
 
 **File Path Rules for Code:**
 
@@ -90,7 +90,7 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 - ALL build artifacts must be generated in `build/` directory only
 - NEVER run cmake directly in source directories (ga_lua/, ga_test/, etc.)
 - NEVER run make/ninja commands outside `build/` directory
-- Build directory structure: `build/ga_lua/`, `build/ga_test/`, `build/ga_view/`, etc.
+- Build directory structure: `build/ga_lua/`, `build/ga_test/`, `build/ga_prdxpr/`, etc.
 - Always run builds from the project root's `build/` directory
 
 **Build Workflow:**
@@ -114,15 +114,13 @@ cd ga_test && ./ga_ega_test && cd ..    # Tests for Euclidean GA
 cd ga_test && ./ga_pga_test && cd ..    # Tests for Projective GA
 ```
 
-**Runtime note (Debug builds):** the pga3dp application suites are the long poles in a
-`Debug` build (the default `CMAKE_BUILD_TYPE`) — `ga_appl3dp_test` (generic geometry/
-mechanics, ~7670 assertions) and `ga_grinding_test`, which now carries the RK4/integrator-
-heavy Tao spindle and grinding force-loop cases. Each can take a couple of minutes in
-Debug, so a 2-minute command timeout may kill one mid-run. Give these two a generous
-timeout (>=300 s) and run each on its own rather than chained behind the other suites; the
-remaining suites finish in a few seconds each. For a fast full-suite pass, configure a
-separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where they drop to a few
-seconds — at the cost of a longer one-off compile.
+**Runtime note (Debug builds):** `ga_appl3dp_test` (generic geometry/mechanics, ~7670
+assertions) is the long pole in a `Debug` build (the default `CMAKE_BUILD_TYPE`) — it can
+take a couple of minutes, so a 2-minute command timeout may kill it mid-run. Give it a
+generous timeout (>=300 s) and run it on its own rather than chained behind the other
+suites; the remaining suites finish in a few seconds each. For a fast full-suite pass,
+configure a separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where it
+drops to a few seconds — at the cost of a longer one-off compile.
 
 ## Running Applications
 
@@ -131,7 +129,6 @@ Execute applications from the build directory:
 ```bash
 cd ga_lua && ./ga_lua && cd ..                    # Interactive Lua shell
 cd ga_lua && ./ga_lua script.lua && cd ..         # Run Lua script
-cd ga_view && ./ga_view && cd ..                  # Qt6 visualization tool
 cd ga_prdxpr && ./ga_prdxpr --help && cd ..       # Code generator - see README.md for details
 ```
 
@@ -145,7 +142,6 @@ This is a header-only geometric algebra library (`ga/`) with accompanying module
 - **ga/**: Core header-only GA library supporting both Euclidean (EGA) and Projective
   (PGA) geometric algebra
 - **ga_test/**: Test suite using doctest framework
-- **ga_view/**: Qt6-based 2D visualization tool for GA objects and operations
 - **ga_lua/**: Lua scripting interface for GA operations
 - **ga_prdxpr/**: Code generator for GA product expressions (EGA2D, EGA3D, PGA2DP, PGA3DP)
 
@@ -195,62 +191,6 @@ paragraphs, bullet items, blockquotes, and lead-in sentences before code blocks.
   to fit 90 columns.
 - **URLs and reference-style link targets** — let them overrun rather than break the link.
 - **Headings** — keep on one line even if a long heading exceeds 90.
-
-### Documentation prose voice (ga_docu `.tex` and `.md`)
-
-The documentation has a consistent **human voice**: terse, declarative, equation-first.
-When writing or editing prose (especially AI-assisted drafts, which drift away from it),
-match that register. The point is not to hide tooling — it is that the new prose should be
-indistinguishable in style from the surrounding hand-written text.
-
-**Match these traits (what the human sections do):**
-
-- **Equation-first.** Prose serves the math; state results, then derive. Don't open a
-  passage with a thesis sentence the equations then illustrate.
-- **Declarative, not persuasive.** State what *is*; do not argue that it is good. Avoid
-  evaluative/marketing framing.
-- **Sparse emphasis.** Use `\emph{}` (LaTeX) / `*italic*` (md) for first-use term
-  definitions only, not for rhetorical stress ("the state \emph{is} geometry").
-- **No tutorial sub-headers inside a subsection.** The human text flows with `\\`
-  paragraph breaks; it does not chop a `\subsubsection` into punchy `\paragraph{}` titles.
-  If sign-posting is truly needed, use a plain neutral lead-in, not a slogan.
-- **Working notes are fine.** Inline `(tbd: …)` / "we don't reproduce that here" is the
-  author's style; don't polish them away.
-- **Dashes:** write `---` (em) / `--` (en) in LaTeX. A **literal Unicode `—` in a `.tex`
-  file is a paste tell** — convert it.
-- **`\paragraph{}` spacing (LaTeX):** never end the preceding paragraph with `\\` before a
-  `\paragraph{Label:}` — the trailing `\\` adds spurious vertical space above the label.
-
-**Avoid these AI-drift tells (they flagged the recently-added passages):**
-
-- punchy/evaluative `\paragraph{}` slogans: "The showcase: …", "Where it is genuinely
-  advantageous", "Where it does not help (honest caveats)";
-- persuasive/marketing register: "buys X for free", "wins on clarity, unification and
-  visualizability", "the selling point", "a single sentence backed by running code",
-  "literally", "genuinely", "elegant on paper", "weigh the approach even-handedly";
-- emphatic-contrast framing: "The central point — and the easiest to get wrong — is…",
-  "That is wrong:", "The clearest evidence is…", "is exactly what…", "precisely why…";
-- triads and slogan cadence ("clarity, unification and visualizability");
-- lexical fillers: "robust", "powerful", "crucial", "seamless", "comprehensive",
-  "genuine(ly)";
-- aphorism-cadence lines — a short quotable sentence standing on its own ("Where an
-  error sits in the chain is its physics."); state the fact in plain declarative form
-  instead;
-- full-sentence rhetorical italics — `\emph{}` wrapping an entire sentence for stress
-  (emphasis is for first-use term definitions only);
-- "is exactly the/what ..." — drop the "exactly"; identities read stronger without it.
-
-Keeping the *content* (depth, derivations, references) while neutralizing the *register*
-is the goal — a voice-only pass, not a deletion of substance.
-
-**Build & overfull check (after any ga_docu prose edit):** build with
-`latexmk -pdf 0_ga_docu.tex` from `ga_docu/`, then grep the fresh log for
-`Overfull \hbox` and fix any NEW entries by rewording, not by layout hacks. The usual
-cause is an inline formula straddling a line break — reword so the formula lands at a
-line boundary (sentence-final position after breakable prose works well). Always
-re-check the log after the fix: a careless rewording can move the overflow and make it
-larger. Sub-half-point remnants (< 0.5pt ≈ 0.2 mm) are invisible in print and not worth
-wording churn.
 
 ### C++ Formatting (clang-format — MANDATORY before writing/committing)
 
@@ -344,7 +284,7 @@ function; it is the authoritative per-file index. The split:
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
 | `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent` |
-| `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`, `grinding_controller`) |
+| `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), and the `extra_wrenches()` subclass hook for application-specific wrenches |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
 
 So e.g. `exp`/`log` live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
@@ -507,10 +447,10 @@ canonical form (enforced project-wide; produced by
 ### Dependencies
 
 Required: fmt library (header-only)
-Optional: doctest (testing), Qt6 (visualization), Lua + sol2 (scripting), readline
+Optional: doctest (testing), Lua + sol2 (scripting), readline
 (for enhanced interactive scripting experience)
 
-Install on macOS: `brew install fmt doctest qt6 lua readline`
+Install on macOS: `brew install fmt doctest lua readline`
 
 ### Windows Dependency Management (vcpkg + System Lua)
 
@@ -985,64 +925,6 @@ them since they only occur inside bodies the scanner never collects. A newer sys
 is fine; do NOT hardcode a versioned `libclang` path in `clang_setup.py` (keep it
 system-agnostic across macOS/Windows).
 
-## Adding a ga_view scene (hand-sync surface)
-
-A new active/animated scene in `ga_view/` touches **five** places — miss one and the scene
-silently won't appear or won't build. Mirror an existing scene end-to-end (e.g.
-`active_four_bar`, `active_planar_delta`) rather than wiring from scratch:
-
-- `ga_view/src/active_<name>.{hpp,cpp}` — the `QGraphicsItem` / `QObject` scene. Reuse the
-  established pattern: `drawBar` / `drawPivot` / `toScreen` helpers, a `QTimer`-driven
-  `tick()`, an optional trace `std::deque`, and the `togglePause` / `resetAnimation` /
-  `toggleTrace` (SPACE / R / T) slots.
-- `coordsys_model.hpp` — a `<name>_params` struct (with sensible defaults), an `a<name>`
-  wrapper struct, the `add_<name>` declaration, and a `std::vector<a<name>>` data member.
-- `coordsys_model.cpp` — the `add_<name>` implementation **and** a `<vec>.clear()` line in
-  `Coordsys_model::clear()` (forgetting the clear leaks state across model switches).
-- `scenes.cpp` (the scene catalog, split out of `w_mainwindow.cpp`) — the `#include`,
-  the item-creation block in `populate_scene` (connect
-  `resetRequested` / `pauseToggleRequested` / `traceToggleRequested` to the slots), and
-  the scene-registration block (`add_<name>` + `set_label` + a `diagram_legend`).
-- `ga_view/CMakeLists.txt` — add `src/active_<name>.cpp` to `SOURCES`.
-
-**A scene's constructor only runs when its view is selected.** So an offscreen
-smoke-launch (`QT_QPA_PLATFORM=offscreen ./ga_view`) confirms the build links and the
-other scenes still run, but it does **not** exercise the new scene's own ctor/setup —
-page to the view for that, and hand off to the user for the visual-layout check (legend
-placement, colours, labels are tuned to their feedback, as for the existing scenes).
-
-### Text sizing in ga_view — cross-platform fonts (MANDATORY for any drawn text)
-
-All ga_view text is tuned for a macOS layout but must render identically on Windows. Two
-platform traps, both solved by the helpers in
-[ga_view/src/view_fonts.hpp](ga_view/src/view_fonts.hpp) — **use them for every painter
-text; never call `setPointSize()` or the `QFont(family, pointSize, …)` constructor
-directly in scene/chrome code:**
-
-- **DPI / point-size trap.** A point is 1/72 inch, so Qt scales a point size to pixels by
-  the screen's *logical* DPI — 72 on macOS (1 pt → 1 px) but 96 on Windows (1 pt → 1.333
-  px). All scene geometry, axis ticks and the legend box are laid out in *pixels*, so
-  point-sized text comes out ~33 % larger on Windows relative to the drawing (labels
-  collide, the fixed-width legend box overflows). `setPixelSize()` renders the same height
-  on every platform. The helpers do this; **pass the same numeric value the macOS point
-  size used** (`pt == px` at 72 dpi), which preserves the tuned layout verbatim.
-
-- **Font-substitution trap.** A family present only on macOS is silently substituted on
-  Windows (e.g. `"Helvetica"` → Arial), shifting glyph *widths* even at equal pixel
-  height — visible as long legend lines wrapping/overflowing differently. Use families
-  present on **both** OSes with matching metrics.
-
-The two helpers (both DPI-independent via `setPixelSize`):
-
-- `named_font("Arial", px, weight = QFont::Normal, italic = false)` — proportional text
-  (titles, axis labels, the legend box). Use `"Arial"`, **not** `"Helvetica"`.
-- `mono_font(px, bold = false)` — monospace text (live readouts, point labels like
-  `A`/`B`/`O2`). Backed by `"Courier New"` (present on macOS + Windows), **not**
-  `QFontDatabase::systemFont(FixedFont)` (which is Menlo on macOS vs Consolas on Windows).
-
-`main.cpp` sets the app-default widget font to `"Arial"` for the same reason. After any
-font change, hand off to the user to compare macOS vs Windows — only they can see both.
-
 ## Congruence Testing (`is_congruent`)
 
 Two GA elements are **congruent** if they span the same subspace up to a non-zero
@@ -1112,9 +994,8 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   `detail::sta4ds_geom_sq`. Under the exomorphism metric `nrm_sq` is the *reverse-norm*
   `⟨rev(X) X⟩₀` = the extended metric `P`, which is sign-flipped from `B²` at grades 2,3 —
   so `nrm_sq` must NOT drive causal character. (`detail::sta4ds_geom_sq` is a hand-written
-  transcription of `gr0(X⟑X)`; a test pins it to the geometric product.) See
-  [TODO/sta_metric_considerations.md](TODO/sta_metric_considerations.md) for the `P`
-  (metric) vs `B²` (geometric square) distinction.
+  transcription of `gr0(X⟑X)`; a test pins it to the geometric product.) The `P`
+  (metric) vs `B²` (geometric square) distinction is the key subtlety here.
 
 - **Versor norm vs grade-wise `nrm_sq`.** `sqrt(rotor)` / normalizing a rotor
   (`MVec4ds_E`) must use the **versor norm** `sqrt(gr0(rev(X) ⟑ X))`, *not*
@@ -1132,9 +1013,8 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   `transform_opt` is slower than `transform()` for one-offs (matrix build not amortised);
   only the batch overload wins (~3× at `-O3`). Bench: `ga_test/utilities/`.
 
-- **Planned physics tier**: the STA differential-operator/electrodynamics layer (vector
-  derivative ∇, Maxwell `∇F = J`, Lorentz force + proper-time rotor EOM) is collected as
-  a phased plan in [TODO/sta_differential_operators.md](TODO/sta_differential_operators.md);
+- **Planned physics tier**: an STA differential-operator/electrodynamics layer (vector
+  derivative ∇, Maxwell `∇F = J`, Lorentz force + proper-time rotor EOM) is planned;
   `ga/detail/ga_stencil.hpp` (FD stencil weights) is its numeric groundwork.
 
 - **`get_rotor` and `get_boost` use OPPOSITE half-angle signs by design.** `get_rotor`
@@ -1163,6 +1043,13 @@ with none attached the gravity/bias path is byte-unchanged):
   axial `±l` give the emergent tilt stiffness). Contributes its potential to
   `potential_energy()`.
 
+**Application-specific force elements via subclassing.** `dynamic_system{2,3}dp` exposes a
+`protected virtual extra_wrenches()` (returns `{}` in the base); `assemble_mass_bias` folds
+each returned `(frame, world-wrench)` pair onto the frame's supporting joints exactly like
+the grounded-spring path. A subclass overrides it to inject configuration-dependent wrenches
+(e.g. a contact/penalty model) without the base knowing anything about them — the generic
+base stays free of any application vocabulary.
+
 **`assemble_mass_bias` moving-base invariant (do NOT regress).** The assembler sums each
 body's inertia over **dof joints ∪ kinematically-driven joints**, projecting every
 inertia-bearing body onto its *ancestor* dof joints. A driven joint is a moving base: its
@@ -1170,7 +1057,7 @@ body inertia loads the joints above it and its prescribed velocity feeds their N
 bias (so a driven spinning rotor produces the clamped gyroscopic/centrifugal dynamics).
 Refactoring the body list back to dof-joints-only **silently drops driven-joint inertia** →
 a singular mass matrix when a driven joint carries the only inertia below a dof joint (e.g. a
-motor-clamped spindle spin). Only indirectly tested (via the Tao spindle, Phase C), so guard
+motor-clamped spindle spin). Only indirectly tested (via a driven spinning rotor), so guard
 it deliberately.
 
 ## Geometric Algebra Mathematical Foundations
@@ -1199,10 +1086,10 @@ bivector (a common, wrong assumption carried over from 3D):
 
 The PGA rate-of-change of a point is `Xdot = rcmt(Omega, X)` — **argument order matters**:
 `rcmt(Omega, X) = -rcmt(X, Omega)` (twist first); the sign/order differs from EGA's
-`cmt(r, Omega_E)`. Moving-frame kinematic fields (see
-`ga_docu/5_ga_modelling_mechanics.tex`, "Moving coordinate systems"): velocity `rcmt(Omega,
-X)`, centripetal `rcmt(Omega, rcmt(Omega, r))`, Coriolis `2*rcmt(Omega, v_rel)`,
-frame/Euler `rcmt(Omega_dot, r)`. Full derivations in `ga_docu/3_ga_modelling_motion.tex`.
+`cmt(r, Omega_E)`. Moving-frame kinematic fields (see the `ga_docu` PDF, "Moving coordinate
+systems"): velocity `rcmt(Omega, X)`, centripetal `rcmt(Omega, rcmt(Omega, r))`, Coriolis
+`2*rcmt(Omega, v_rel)`, frame/Euler `rcmt(Omega_dot, r)`. Full derivations in the `ga_docu`
+PDF (modelling-motion chapter).
 
 ### Supported Algebra Types
 
@@ -1261,8 +1148,7 @@ CRITICAL: these are the *metric exomorphism* values `P`, NOT the blade squares
 earlier `is_minkowski` override stored the blade squares in the metric slot — that was a
 bug, now removed. Do NOT reintroduce "special" STA metric rules. The blade square (the
 **geometric square** `B² = gr0(X⟑X)`) is a separate quantity used only for causal
-character / rotors — see "STA4D rotor operations" and
-[TODO/sta_metric_considerations.md](TODO/sta_metric_considerations.md).
+character / rotors — see "STA4D rotor operations" above.
 
 ### Automatic Rule Generation System
 
