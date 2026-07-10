@@ -9,6 +9,21 @@
 - **ga_bindgen**: contributor tool that scans `ga/` headers with libclang and emits the
   `ga_py` bindings — see [`ga_bindgen/README.md`](ga_bindgen/README.md)
 
+## Repository structure
+
+This **public `ga` repository** holds the generic geometric-algebra library and its
+generic tooling: the header-only library, `ga_prdxpr`, `ga_lua`, `ga_py`/`ga_bindgen`, the
+test suite, and a generated documentation PDF (`ga_docu/ga_docu.pdf`).
+
+The Qt6 visualization viewer (`ga_view`) and the application-specific cases are maintained
+in a **separate private superset repository** that embeds this repo as a git submodule and
+builds it together with those additional modules. You only need the private repo if you
+work on the viewer or the application cases — for everything else this repo is
+self-contained. Contributors doing application work will be pointed to that repo directly.
+
+**Branches:** `develop` is the active development branch; `main` is the stable baseline.
+Base your work on `develop`.
+
 ## Dependencies
 
 - ga: fmt (must be included by every user — header-only lib!)
@@ -203,7 +218,7 @@ ga_prdxpr --output=all                                   # everything
 - **ega3d**: Euclidean Geometric Algebra 3D G(3,0,0)
 - **pga2dp**: Projective Geometric Algebra 2D G(2,0,1)
 - **pga3dp**: Projective Geometric Algebra 3D G(3,0,1)
-- **sta4ds**: Space-Time Algebra G(1,3,0)
+- **sta4ds**: Spacetime Algebra G(1,3,0)
 
 ### Common Product Types
 
