@@ -23,11 +23,18 @@ This automatically:
 ## Build Options
 
 ```bash
-# Force FetchContent for reproducible builds (CI/CD)
+# Default: prefer system installs, FetchContent only the missing supported deps
+# (fmt / doctest / sol2). This is GA_USE_SYSTEM_DEPENDENCIES=ON (the default) with
+# GA_FORCE_FETCH_CONTENT=OFF — nothing to pass.
+cmake ..
+
+# Force FetchContent for the supported deps even if they are installed system-wide
+# (reproducible CI/CD builds)
 cmake .. -DGA_FORCE_FETCH_CONTENT=ON
 
-# System-only mode (fail if a dependency is missing rather than fetching it)
-cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=ON -DGA_FORCE_FETCH_CONTENT=OFF
+# Ignore system installs and FetchContent the supported deps instead (equivalent to
+# the force flag for those deps)
+cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=OFF
 
 # Skip the Lua shell / its readline support
 cmake .. -D_GA_USE_LUA=OFF

@@ -199,10 +199,10 @@ ga_prdxpr --output=all                                   # everything
 
 ### Available Algebras
 
-- **ega2d**: Euclidean Geometric Algebra 2D
-- **ega3d**: Euclidean Geometric Algebra 3D
-- **pga2dp**: Projective Geometric Algebra 2D
-- **pga3dp**: Projective Geometric Algebra 3D
+- **ega2d**: Euclidean Geometric Algebra 2D G(2,0,0)
+- **ega3d**: Euclidean Geometric Algebra 3D G(3,0,0)
+- **pga2dp**: Projective Geometric Algebra 2D G(2,0,1)
+- **pga3dp**: Projective Geometric Algebra 3D G(3,0,1)
 - **sta4ds**: Space-Time Algebra G(1,3,0)
 
 ### Common Product Types

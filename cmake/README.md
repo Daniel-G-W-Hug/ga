@@ -30,11 +30,12 @@ cmake ..
 cmake .. -DGA_FORCE_FETCH_CONTENT=ON
 ```
 
-### Option 3: System Only
+### Option 3: FetchContent instead of system installs
 
 ```cmake
-# Only uses system dependencies, skips ../../include/ and FetchContent
-cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=ON -DGA_FORCE_FETCH_CONTENT=OFF
+# Ignore system-installed fmt/doctest/sol2 and FetchContent them instead
+# (equivalent to GA_FORCE_FETCH_CONTENT=ON for those deps)
+cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=OFF
 ```
 
 ### Option 4: Disable readline
