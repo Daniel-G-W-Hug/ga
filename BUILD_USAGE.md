@@ -1,8 +1,12 @@
 # Cross-Platform Build Usage Guide
 
-## Quick Start
+> **This is the public `ga` repository** — the header-only geometric-algebra library, the
+> `ga_prdxpr` code generator, the `ga_lua` scripting shell, the `ga_py` Python wrapper, and
+> the test suite. The Qt6 visualization viewer and the application bundles (wafer grinding,
+> magnetic levitation) live in a private superset repo that embeds this one as a submodule,
+> so **nothing here needs Qt6**.
 
-### Default Configuration (Recommended)
+## Quick Start
 
 ```bash
 mkdir -p build && cd build
@@ -12,105 +16,69 @@ cmake --build .
 
 This automatically:
 
-- Uses system dependencies when available (macOS: homebrew, Windows: vcpkg)
-- Falls back to FetchContent for missing dependencies
-- Shows clear summary of what was found/downloaded
+- uses system dependencies when available (macOS: Homebrew, Windows: vcpkg),
+- falls back to FetchContent for missing supported dependencies,
+- prints a summary of what was found / downloaded.
 
-### Build Options
+## Build Options
 
 ```bash
 # Force FetchContent for reproducible builds (CI/CD)
 cmake .. -DGA_FORCE_FETCH_CONTENT=ON
 
-# System-only mode (fail if dependencies missing)
+# System-only mode (fail if a dependency is missing rather than fetching it)
 cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=ON -DGA_FORCE_FETCH_CONTENT=OFF
 
-# Disable optional readline support
-cmake .. -DGA_USE_READLINE=OFF
+# Skip the Lua shell / its readline support
+cmake .. -D_GA_USE_LUA=OFF
+cmake .. -D_GA_USE_READLINE=OFF
+
+# Build the Python wrapper (ga_py) as well — needs nanobind in the ga_py venv,
+# see ga_py/README.md
+cmake .. -D_GA_BUILD_PYTHON=ON
+
+# Release build (recommended for the heavier test suites)
+cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
+
+## Dependencies
+
+Only **fmt** is needed to use the library (header-only; FetchContent fallback if it is not
+installed). Everything else is optional and gates only its own target — a missing optional
+dependency simply skips that target and the build stays green.
+
+| Dependency        | Enables                                   | macOS (brew)     | Linux (apt)        | Fallback              |
+|-------------------|-------------------------------------------|------------------|--------------------|-----------------------|
+| fmt               | the library + every target                | `fmt`            | `libfmt-dev`       | FetchContent          |
+| doctest           | the test suite (`ga_test`)                | `doctest`        | `libdoctest-dev`   | FetchContent          |
+| Lua + sol2        | the Lua shell (`ga_lua`, `_GA_USE_LUA`)   | `lua`            | `lua5.1-dev`       | sol2 via FetchContent |
+| readline          | nicer `ga_lua` interactive editing        | `readline`       | `libreadline-dev`  | optional              |
+| Python + nanobind | the Python wrapper (`ga_py`, opt-in `-D_GA_BUILD_PYTHON=ON`) | `python` | `python3-dev` | see `ga_py/README.md` |
 
 ## Platform-Specific Setup
 
 ### macOS (Homebrew)
 
 ```bash
-# Required dependencies
-brew install qt6 lua
-
-# Optional (for system-first approach)
-brew install fmt doctest readline
+brew install fmt doctest lua readline
 ```
 
-### Windows (vcpkg recommended)
+### Windows (vcpkg + system Lua)
 
 ```bash
-# Install Qt6 from qt.io installer
-# Install Lua from lua.org
-
-# Optional (if you want system dependencies)
 vcpkg install fmt doctest sol2 readline-win32 --triplet x64-windows
+# Lua is linked from a system install — see the Windows section of CLAUDE.md.
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Required dependencies
-sudo apt-get install qt6-base-dev qt6-tools-dev lua5.1-dev
-
-# Optional dependencies
-sudo apt-get install libfmt-dev libdoctest-dev libreadline-dev
+sudo apt-get install libfmt-dev libdoctest-dev lua5.1-dev libreadline-dev
 ```
 
-## Build System Benefits
+## Configuration Summary
 
-### ✅ Fixed Issues
-
-- **Lua Linking**: Fixed scoping issues with CMake functions vs macros
-- **sol2 Compatibility**: Updated to development branch for C++23 support
-- **Cross-Platform**: Works consistently across macOS, Windows, Linux
-
-### ✅ New Features
-
-- **Flexible Dependencies**: System-first with FetchContent fallback
-- **User Control**: Multiple build configuration options
-- **Clear Feedback**: Detailed dependency resolution messages
-- **Version Pinning**: Stable versions for FetchContent dependencies
-
-### ✅ Developer Experience
-
-- **Just Works**: Default configuration handles most scenarios
-- **CI/CD Ready**: Force FetchContent for reproducible builds
-- **Informative**: Clear error messages with installation instructions
-- **Fast**: Reuses system packages when available
-
-## Migration from Old System
-
-The new system is **fully backward compatible**. Your existing build workflow continues to
-work:
-
-```bash
-cd build
-cmake ..
-cmake --build .
-```
-
-No changes needed to your existing scripts or documentation.
-
-## Dependency Resolution Summary
-
-| Dependency | macOS            | Windows          | Linux   | Fallback            |
-|------------|------------------|------------------|---------|---------------------|
-| Qt6        | brew             | qt.io installer  | apt-get | Required            |
-| Lua        | brew             | lua.org          | apt-get | Required            |
-| fmt        | brew             | vcpkg            | apt-get | FetchContent        |
-| doctest    | brew             | vcpkg            | apt-get | FetchContent        |
-| sol2       | n/a              | n/a              | n/a     | FetchContent        |
-| hd utils   | ../../include/hd | ../../include/hd | same    | Project-specific    |
-| readline   | brew             | n/a              | apt-get | Optional            |
-
-## Configuration Summary Display
-
-After running `cmake ..`, you'll see a helpful summary:
+After `cmake ..` you get a summary of what was resolved, e.g.:
 
 ```text
 GA Project Configuration Summary:
@@ -118,11 +86,10 @@ GA Project Configuration Summary:
 Build type: Debug
 C++ standard: 23
 fmt: ✓ Available
-doctest: ✓ Available  
+doctest: ✓ Available
 sol2: ✓ Available
-Qt6: ✓ Available
 Lua: ✓ Available
-hd utils: ✓ Available
 ```
 
-This immediately shows you what's working and what might need attention.
+This shows at a glance what is enabled and what might need attention (an unavailable
+optional dependency just means its target is skipped).

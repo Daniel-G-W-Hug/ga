@@ -2,6 +2,10 @@
 
 This directory contains modular CMake scripts for flexible dependency management across Windows, macOS, and Linux.
 
+> This is the **public `ga` repository**: the header-only library, `ga_prdxpr`, `ga_lua`,
+> `ga_py`, and the test suite. It needs **no Qt6** — the Qt6 viewer lives in a private
+> superset repo that embeds this one as a submodule.
+
 ## Features
 
 - **Three-Tier Resolution**: Automatically resolves dependencies in order: system → ../../include/ → FetchContent (readline prefers system)
@@ -42,10 +46,10 @@ cmake .. -D_GA_USE_READLINE=OFF
 
 ## Dependencies by Category
 
-### Always System-Installed (Required)
+### System-Installed (per target)
 
-- **Qt6**: Must be installed separately (GUI framework)  
-- **Lua 5.1+**: Must be installed separately (scripting runtime)
+- **Lua 5.1+**: must be installed separately, for the `ga_lua` scripting shell
+  (`_GA_USE_LUA`, ON by default; the target is skipped if Lua is absent)
 
 ### Flexible (System → ../../include/ → FetchContent)
 
@@ -62,29 +66,27 @@ cmake .. -D_GA_USE_READLINE=OFF
 ### macOS (Homebrew)
 
 ```bash
-# Required
-brew install qt6 lua
+# For the Lua shell
+brew install lua
 
-# Optional (if not using ../../include/ or FetchContent)
+# fmt/doctest/readline (if not using ../../include/ or FetchContent)
 brew install fmt doctest readline
 ```
 
 ### Windows (vcpkg recommended)
 
 ```bash
-# Required - install Qt6 from qt.io and Lua from lua.org
-
-# Optional (if not using ../../include/ or FetchContent)
-vcpkg install fmt doctest
+# Lua is linked from a system install (see the Windows section of CLAUDE.md)
+vcpkg install fmt doctest sol2 readline-win32 --triplet x64-windows
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Required
-sudo apt-get install qt6-base-dev qt6-tools-dev lua5.1-dev
+# For the Lua shell
+sudo apt-get install lua5.1-dev
 
-# Optional (if not using ../../include/ or FetchContent)  
+# fmt/doctest/readline (if not using ../../include/ or FetchContent)
 sudo apt-get install libfmt-dev libdoctest-dev libreadline-dev
 ```
 

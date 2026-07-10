@@ -157,3 +157,17 @@
            ga_py/demo/hello_ga.py, retired TODO/considerations_python_wrapper.md with
            content folded into the READMEs); various documentation improvements and a
            spellchecking pass
+- 2026/07: added STA4D (space-time algebra, G(1,3,0)) with geometric-product rotor
+           sandwich transforms, boosts, exp/log/sqrt, and closed-form transform_opt
+           helpers; added the regressive inverse rinv() for PGA and completed inv()
+           across all algebras; built out generic rigid-body dynamics
+           (static_/kinematic_/dynamic_system{2,3}dp) with additive force elements
+           (joint spring/damper, time-varying applied wrench, grounded spatial spring)
+           and an opt-in closed_loop_system KKT constraint layer, all bound into
+           ga_py and ga_lua; reorganized the project into a PUBLIC generic library and a
+           PRIVATE application superset that embeds it as a git submodule -- the Qt6
+           viewer and the application-specific test/model bundles moved to the private
+           repo, the generic dynamic_system{2,3}dp gained a protected extra_wrenches()
+           subclass seam so an application can inject its own force elements without the
+           base knowing about them, and the ga_docu documentation now ships as a
+           generated PDF (the LaTeX sources are maintained in the private superset)
