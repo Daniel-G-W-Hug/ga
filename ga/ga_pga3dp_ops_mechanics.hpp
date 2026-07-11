@@ -964,8 +964,8 @@ struct joint_state3dp {
 //
 // applied as the force line (wrench) wdg(P_world, F). Because the wrench acts at the
 // physical attachment point, BOTH the translational stiffness AND the tilt stiffness
-// (lever arm of P about the body origin) emerge geometrically from one element -- e.g. a
-// spindle's radial bearings at axial stations +-l give a tilt stiffness ~ k l^2 without
+// (lever arm of P about the body origin) emerge geometrically from one element -- e.g.
+// two radial springs at axial stations +-l give a tilt stiffness ~ k l^2 without
 // any separate torsional spring. The spring also contributes its potential
 // 1/2 (k.x dx^2 + k.y dy^2 + k.z dz^2) to potential_energy(); the damper is dissipative.
 struct grounded_spring3dp {
@@ -1040,8 +1040,8 @@ class dynamic_system3dp : public kinematic_system3dp {
     };
     std::unordered_map<size_t, driven_spec> driven_;
 
-    // Optional GROUNDED spatial springs/dampers per frame (a frame may carry several -- a
-    // spindle has two radial bearings + an axial bearing). Configuration-dependent: their
+    // Optional GROUNDED spatial springs/dampers per frame (a frame may carry several --
+    // e.g. two radial springs + an axial spring). Configuration-dependent: their
     // restoring wrench is recomputed from the live pose/velocity at each RK4 sub-step, so
     // it is folded into assemble_mass_bias (the q-ddot-dependent path) like an applied
     // wrench, NOT prescribed as a function of time. See grounded_spring3dp.

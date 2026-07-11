@@ -85,8 +85,6 @@ TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga", "hd::ga::sta"}
 SKIP_TYPE_SPELLINGS = {
     "grounded_spring2dp",  # add_grounded_spring component bundle (dynamic_system internal)
     "grounded_spring3dp",
-    "contact_state3dp",    # live state handed to a grinding force law (3D contact loop)
-    "grinding_law3dp",     # std::function<vec3dp(contact_state3dp const&)> -- force-law callback
     "wrench_fn",           # std::function<bivecNdp(value_t)> -- applied-wrench callback
     "integrator_kind",     # selector for dynamic_system3dp::set_integrator (rk4 | abm2)
 }

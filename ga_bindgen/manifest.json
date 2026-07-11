@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-03T22:06:21+00:00",
+  "generated_at": "2026-07-11T05:31:46+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -18807,42 +18807,6 @@
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
           "source_line": 106
-        }
-      ]
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "grinding_force_depth",
-      "overloads": [
-        {
-          "return_type": "vec3dp",
-          "param_types": [
-            "const contact_state3dp &",
-            "value_t",
-            "value_t"
-          ],
-          "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1017
-        },
-        {
-          "return_type": "vec3dp",
-          "param_types": [
-            "const contact_state3dp &",
-            "value_t",
-            "value_t"
-          ],
-          "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1017
-        },
-        {
-          "return_type": "vec3dp",
-          "param_types": [
-            "const contact_state3dp &",
-            "value_t",
-            "value_t"
-          ],
-          "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1017
         }
       ]
     },
@@ -38947,7 +38911,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1122
+          "source_line": 1124
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -38955,7 +38919,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1129
+          "source_line": 1131
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -38963,7 +38927,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1136
+          "source_line": 1138
         },
         {
           "return_type": "Vec4ds<T>",
@@ -38971,7 +38935,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1143
+          "source_line": 1145
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -38979,7 +38943,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1150
+          "source_line": 1152
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -38987,7 +38951,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1157
+          "source_line": 1159
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -38995,7 +38959,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1164
+          "source_line": 1166
         },
         {
           "return_type": "MVec4ds<T>",
@@ -39003,7 +38967,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1171
+          "source_line": 1173
         }
       ]
     },
@@ -39388,7 +39352,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1065
+          "source_line": 1067
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -39396,7 +39360,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1072
+          "source_line": 1074
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -39404,7 +39368,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1079
+          "source_line": 1081
         },
         {
           "return_type": "Vec4ds<T>",
@@ -39412,7 +39376,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1086
+          "source_line": 1088
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -39420,7 +39384,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1093
+          "source_line": 1095
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -39428,7 +39392,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1100
+          "source_line": 1102
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -39436,7 +39400,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1107
+          "source_line": 1109
         },
         {
           "return_type": "MVec4ds<T>",
@@ -39444,7 +39408,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1114
+          "source_line": 1116
         }
       ]
     },
@@ -43789,7 +43753,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 293
+          "source_line": 292
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -43798,7 +43762,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 305
+          "source_line": 303
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -43807,7 +43771,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 316
+          "source_line": 314
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -43816,7 +43780,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 327
+          "source_line": 325
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -43825,7 +43789,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 338
+          "source_line": 335
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -43888,7 +43852,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 242
+          "source_line": 243
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -43897,7 +43861,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 252
+          "source_line": 253
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -43906,7 +43870,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 262
+          "source_line": 263
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -43924,7 +43888,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 284
+          "source_line": 283
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43933,7 +43897,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 295
+          "source_line": 294
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43942,7 +43906,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 306
+          "source_line": 305
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43951,7 +43915,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 317
+          "source_line": 316
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43960,7 +43924,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 328
+          "source_line": 327
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43969,7 +43933,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 342
+          "source_line": 339
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43978,7 +43942,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 356
+          "source_line": 351
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -43987,7 +43951,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 369
+          "source_line": 362
         },
         {
           "return_type": "Scalar_t<std::common_type_t<T, U>, Tag>",
@@ -45318,7 +45282,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 293
+          "source_line": 292
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -45327,7 +45291,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 305
+          "source_line": 303
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -45336,7 +45300,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 316
+          "source_line": 314
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -45345,7 +45309,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 327
+          "source_line": 325
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -45354,7 +45318,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 338
+          "source_line": 335
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -45417,7 +45381,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 242
+          "source_line": 243
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -45426,7 +45390,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 252
+          "source_line": 253
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -45435,7 +45399,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 262
+          "source_line": 263
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -45453,7 +45417,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 284
+          "source_line": 283
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45462,7 +45426,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 295
+          "source_line": 294
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45471,7 +45435,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 306
+          "source_line": 305
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45480,7 +45444,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 317
+          "source_line": 316
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45489,7 +45453,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 328
+          "source_line": 327
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45498,7 +45462,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 342
+          "source_line": 339
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45507,7 +45471,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 356
+          "source_line": 351
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -45516,7 +45480,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 369
+          "source_line": 362
         },
         {
           "return_type": "Scalar_t<std::common_type_t<T, U>, Tag>",
@@ -47009,7 +46973,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 293
+          "source_line": 292
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -47018,7 +46982,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 305
+          "source_line": 303
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -47027,7 +46991,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 316
+          "source_line": 314
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -47036,7 +47000,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 327
+          "source_line": 325
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -47045,7 +47009,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 338
+          "source_line": 335
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -47108,7 +47072,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 242
+          "source_line": 243
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -47117,7 +47081,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 252
+          "source_line": 253
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -47126,7 +47090,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 262
+          "source_line": 263
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -47144,7 +47108,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 284
+          "source_line": 283
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47153,7 +47117,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 295
+          "source_line": 294
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47162,7 +47126,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 306
+          "source_line": 305
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47171,7 +47135,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 317
+          "source_line": 316
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47180,7 +47144,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 328
+          "source_line": 327
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47189,7 +47153,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 342
+          "source_line": 339
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47198,7 +47162,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 356
+          "source_line": 351
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -47207,7 +47171,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 369
+          "source_line": 362
         }
       ]
     },
@@ -49185,7 +49149,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 349
+          "source_line": 345
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49194,7 +49158,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 360
+          "source_line": 356
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49203,7 +49167,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 371
+          "source_line": 367
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49212,7 +49176,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 382
+          "source_line": 378
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49221,7 +49185,7 @@
             "const MVec2dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 393
+          "source_line": 389
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49230,7 +49194,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 405
+          "source_line": 400
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49239,7 +49203,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 417
+          "source_line": 411
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49248,7 +49212,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 428
+          "source_line": 422
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49257,7 +49221,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 439
+          "source_line": 433
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -49266,7 +49230,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 450
+          "source_line": 444
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -49329,7 +49293,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 385
+          "source_line": 376
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -49338,7 +49302,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 395
+          "source_line": 386
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -49347,7 +49311,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 405
+          "source_line": 396
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -49356,7 +49320,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 416
+          "source_line": 407
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49365,7 +49329,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 427
+          "source_line": 417
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49374,7 +49338,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 438
+          "source_line": 428
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49383,7 +49347,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 449
+          "source_line": 439
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49392,7 +49356,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 460
+          "source_line": 450
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49401,7 +49365,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 471
+          "source_line": 461
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49410,7 +49374,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 485
+          "source_line": 474
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49419,7 +49383,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 499
+          "source_line": 486
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -49428,7 +49392,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 512
+          "source_line": 498
         },
         {
           "return_type": "Scalar_t<std::common_type_t<T, U>, Tag>",
@@ -50786,7 +50750,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 349
+          "source_line": 345
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50795,7 +50759,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 360
+          "source_line": 356
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50804,7 +50768,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 371
+          "source_line": 367
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50813,7 +50777,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 382
+          "source_line": 378
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50822,7 +50786,7 @@
             "const MVec2dp_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 393
+          "source_line": 389
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50831,7 +50795,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 405
+          "source_line": 400
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50840,7 +50804,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 417
+          "source_line": 411
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50849,7 +50813,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 428
+          "source_line": 422
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50858,7 +50822,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 439
+          "source_line": 433
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -50867,7 +50831,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 450
+          "source_line": 444
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -50930,7 +50894,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 385
+          "source_line": 376
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -50939,7 +50903,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 395
+          "source_line": 386
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -50948,7 +50912,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 405
+          "source_line": 396
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -50957,7 +50921,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 416
+          "source_line": 407
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -50966,7 +50930,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 427
+          "source_line": 417
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -50975,7 +50939,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 438
+          "source_line": 428
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -50984,7 +50948,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 449
+          "source_line": 439
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -50993,7 +50957,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 460
+          "source_line": 450
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -51002,7 +50966,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 471
+          "source_line": 461
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -51011,7 +50975,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 485
+          "source_line": 474
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -51020,7 +50984,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 499
+          "source_line": 486
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -51029,7 +50993,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 512
+          "source_line": 498
         },
         {
           "return_type": "Scalar_t<std::common_type_t<T, U>, Tag>",
@@ -52549,7 +52513,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 349
+          "source_line": 345
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52558,7 +52522,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 360
+          "source_line": 356
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52567,7 +52531,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 371
+          "source_line": 367
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52576,7 +52540,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 382
+          "source_line": 378
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52585,7 +52549,7 @@
             "const MVec2dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 393
+          "source_line": 389
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52594,7 +52558,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 405
+          "source_line": 400
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52603,7 +52567,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 417
+          "source_line": 411
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52612,7 +52576,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 428
+          "source_line": 422
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52621,7 +52585,7 @@
             "const MVec2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 439
+          "source_line": 433
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -52630,7 +52594,7 @@
             "const DualNum2dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum2dp.hpp",
-          "source_line": 450
+          "source_line": 444
         },
         {
           "return_type": "DualNum3dp<std::common_type_t<T, U>>",
@@ -52693,7 +52657,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 385
+          "source_line": 376
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -52702,7 +52666,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 395
+          "source_line": 386
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -52711,7 +52675,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 405
+          "source_line": 396
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -52720,7 +52684,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 416
+          "source_line": 407
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52729,7 +52693,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 427
+          "source_line": 417
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52738,7 +52702,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 438
+          "source_line": 428
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52747,7 +52711,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 449
+          "source_line": 439
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52756,7 +52720,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 460
+          "source_line": 450
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52765,7 +52729,7 @@
             "const MVec3dp_U<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 471
+          "source_line": 461
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52774,7 +52738,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 485
+          "source_line": 474
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52783,7 +52747,7 @@
             "const MVec3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 499
+          "source_line": 486
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -52792,7 +52756,7 @@
             "const DualNum3dp<U> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/type_t/ga_dualnum3dp.hpp",
-          "source_line": 512
+          "source_line": 498
         }
       ]
     },

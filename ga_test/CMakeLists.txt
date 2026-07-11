@@ -7,7 +7,7 @@ set(EXEC_NAME4 ga_appl3dp_test)
 set(EXEC_NAME5 ga_sta_test)
 set(EXEC_NAME6 ga_integrator_test)
 set(EXEC_NAME7 ga_stencil_test)
-# The maglev + grinding application bundles (formerly EXEC_NAME9/10) moved to the
+# The private application bundles (formerly EXEC_NAME9/10) moved to the
 # private repo; they are declared by ga_private/ga_test/private_targets.cmake via
 # the GA_PRIVATE_DIR hook at the end of this file.
 # ga_export_python_cases now lives in python_utilities/ (localized EXPORT_NAME)
@@ -119,8 +119,8 @@ add_subdirectory(utilities)
 #
 # When the private superset (ga_private) is present it sets GA_PRIVATE_DIR and
 # supplies ga_private/ga_test/private_targets.cmake, which declares the private
-# application test/bench targets (the maglev + grinding bundles and the
-# maglev_utilities/ benches, all now living in the private repo). Public-only
+# application test/bench targets (the private application bundles and their
+# benches, all now living in the private repo). Public-only
 # builds leave GA_PRIVATE_DIR unset -> nothing extra is added. Placed after
 # link_fmt_to_target() (defined above) so the overlay can use it.
 # ----------------------------------------------------------------------------

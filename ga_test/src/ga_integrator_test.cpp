@@ -11,10 +11,10 @@
 // timing case prints the active build mode. The same binary builds and runs on Windows
 // for cross-checking.
 //
-// Phase D.2d of the wafer-grinding plan (TODO/grinding.md): SIMPLE analytic cases UPFRONT
-// (the damped harmonic oscillator with a closed form) document the integrators' accuracy
-// and cost BEFORE the method is applied to the grinding loop and the full Tao model.
-// FIXED dt here; an adaptive-dt variant is layered on top later.
+// Motivated by an application force-loop that needs numerical integration: SIMPLE
+// analytic cases UPFRONT (the damped harmonic oscillator with a closed form) document the
+// integrators' accuracy and cost BEFORE the method is applied to the full application
+// model. FIXED dt here; an adaptive-dt variant is layered on top later.
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
@@ -152,8 +152,8 @@ TEST_SUITE("integrators: RK4 vs ABM2 (fixed dt)")
     // eval-count ratio (4 vs 2 rhs evaluations per step). LESSON: only trust the
     // integrator timing in Release; ABM2 wins ~2x per step there, but is 2nd order (vs
     // RK4's 4th), so for a target accuracy it needs a smaller dt -- the real trade-off
-    // the grinding loop will weigh. (Numbers are machine-specific; the qualitative
-    // Debug/Release split is the durable result.)
+    // the application force-loop will weigh. (Numbers are machine-specific; the
+    // qualitative Debug/Release split is the durable result.)
     TEST_CASE("timing: RK4 vs ABM2 wall-clock (Debug vs Release)")
     {
         fmt::println("");

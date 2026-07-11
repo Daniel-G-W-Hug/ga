@@ -1128,22 +1128,22 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         fmt::println("");
     }
 
-    TEST_CASE(
-        "pga3dp: applied wrench + time threading - Sommerfeld in-library (Phase A.2)")
+    TEST_CASE("pga3dp: applied wrench + time threading - forced response in-library "
+              "(Phase A.2)")
     {
         fmt::println(
-            "pga3dp: dynamic_system3dp - applied wrench / Sommerfeld (Phase A.2)");
+            "pga3dp: dynamic_system3dp - applied wrench / forced response (Phase A.2)");
 
         // Phase A.2: validate the time-varying applied-wrench force element folded into
         // tau (set_applied_wrench) + the RK4 sub-step time threading, by reproducing
-        // B.1's Sommerfeld forced response INSIDE the library. B.1's two radial axes are
-        // independent 1-DOF damped oscillators (Bisoi Eq. 2), so each is a single
-        // prismatic joint (mass m+M) with a spring/damper (Phase A.1) and a rotating
-        // unbalance force m*e*Omega^2 applied as a world-frame wrench wdg(O, F(t)). The
-        // steady-state amplitude must match the closed-form Eq. (4) -- the same gate as
-        // standalone B.1.
-        value_t const mt = 4.9 + 2.45;        // m + M [kg]
-        value_t const me = 4.9 * 0.008336;    // unbalance m*e [kg m] (Bisoi Table 1)
+        // the standalone rotating-unbalance forced response INSIDE the library. Its two
+        // radial axes are independent 1-DOF damped oscillators (closed-form reference),
+        // so each is a single prismatic joint (mass m+M) with a spring/damper (Phase A.1)
+        // and a rotating unbalance force m*e*Omega^2 applied as a world-frame wrench
+        // wdg(O, F(t)). The steady-state amplitude must match the closed-form reference
+        // -- the same gate as the standalone reference case.
+        value_t const mt = 4.9 + 2.45;     // m + M [kg]
+        value_t const me = 4.9 * 0.008336; // unbalance m*e [kg m] (reference parameters)
         value_t const Kx = 2000.0, Rx = 5.0;  // e2 (x) foundation
         value_t const Ky = 6000.0, Ry = 10.0; // e3 (y) foundation
 
@@ -1294,7 +1294,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
             "pga3dp: dynamic_system3dp - grounded spring stiffness emergence (C.1)");
 
         // Phase C.1: the grounded spatial spring/damper element (add_grounded_spring).
-        // Two analytic gates establish the mechanism the Tao spindle relies on -- that a
+        // Two analytic gates establish the mechanism the application relies on -- that a
         // single linear spring at a body-fixed point yields BOTH a translational and (via
         // its lever arm) a tilt stiffness, with no separate torsional spring.
 
@@ -1342,8 +1342,8 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         // body that tilts about e1 through the origin: tilting by theta moves the anchor
         // laterally by ~l*theta, and the lateral spring k produces a restoring moment
         // k l^2 theta. So a torsional stiffness k_theta = k l^2 EMERGES geometrically --
-        // exactly how Tao's tilt stiffness (k_x+k_y)(l1^2+l2^2) arises from the radial
-        // bearings at the spindle ends.
+        // exactly how the application's tilt stiffness (k_x+k_y)(l1^2+l2^2) arises from
+        // the radial springs at the rotor ends.
         {
             value_t const k = 1000.0, l = 0.1, th0 = 1.0e-4;
             auto const cube = make_cuboid_body(1.0, 0.05, 0.05, 0.4);

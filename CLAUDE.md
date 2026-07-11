@@ -56,8 +56,8 @@ When in doubt, leave the working tree for review and say it is ready.
   not found (see "Dependencies").
 - Source modules without a runtime binary: `ga/` (header-only library), `ga_bindgen/`
   (libclang scanner, run via its own venv — see "Python wrapper").
-- **This is the PUBLIC repo.** The visualization viewer (`ga_view`), the application test
-  bundles (wafer grinding, magnetic levitation), and the `ga_docu` LaTeX sources live in a
+- **This is the PUBLIC repo.** The visualization viewer (`ga_view`), specific application
+  test bundles, and the `ga_docu` LaTeX sources live in a
   private superset repo that embeds this one as a submodule; the public repo ships only the
   generic library, generators, bindings, generic tests, and a generated `ga_docu/ga_docu.pdf`.
 
@@ -1039,7 +1039,7 @@ with none attached the gravity/bias path is byte-unchanged):
   anisotropic world-axis stiffness `k` + isotropic damping `c`. Its restoring wrench
   `wdg(P, F)` is recomputed from the live pose/velocity each RK4 sub-step (NOT a function of
   time). Because it acts at a physical point, ONE spring yields both a translational
-  stiffness AND, via its lever arm, a tilt stiffness `k·l²` (e.g. spindle radial bearings at
+  stiffness AND, via its lever arm, a tilt stiffness `k·l²` (e.g. two radial springs at
   axial `±l` give the emergent tilt stiffness). Contributes its potential to
   `potential_energy()`.
 
@@ -1057,7 +1057,7 @@ body inertia loads the joints above it and its prescribed velocity feeds their N
 bias (so a driven spinning rotor produces the clamped gyroscopic/centrifugal dynamics).
 Refactoring the body list back to dof-joints-only **silently drops driven-joint inertia** →
 a singular mass matrix when a driven joint carries the only inertia below a dof joint (e.g. a
-motor-clamped spindle spin). Only indirectly tested (via a driven spinning rotor), so guard
+motor-clamped rotor spin). Only indirectly tested (via a driven spinning rotor), so guard
 it deliberately.
 
 ## Geometric Algebra Mathematical Foundations

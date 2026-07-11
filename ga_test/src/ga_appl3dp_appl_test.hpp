@@ -14,7 +14,7 @@ using namespace hd::ga::ega; // use specific operations of EGA
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // projective geometric algebra pga3dp application tests (generic PGA3DP geometry /
-// kinematics; the wafer-grinding and Cai cases now live in ga_grinding_test)
+// kinematics; specific application cases now live in a private test bundle)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_SUITE("PGA3DP: application tests")

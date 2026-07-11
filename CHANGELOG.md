@@ -59,7 +59,7 @@
 - 2025/09: enhanced documentation with metric signatures, bulk/weight concepts, and norms;
            added reverse commutator product (rcmt) consistently across EGA and PGA
            algebras in ga_prdxpr; implemented transwedge products for all algebras with
-           application tests; introduced grinding tool overlap calculation example;
+           application tests; introduced an application-specific overlap example;
            improved ga_lua with readline support, command-line option handling, and copy
            semantics for user-defined types; enhanced ga_view visualization with
            bivector/vector labels and force vector display; improved story-telling flow
@@ -74,8 +74,8 @@
            types, projective vs plane-based geometric algebra distinctions, and expanded
            literature database; added comprehensive demo scripts to ga_lua (contraction,
            reflection, rotation, inversion, expansion examples); further developed
-           grinding tool application with improved overlap calculations and enhanced
-           utility functions; test case added to show how to recover the perpendicular
+           an application-specific example with improved overlap calculations and
+           enhanced utility functions; test case added to show how to recover the perpendicular
            distance from a bivector created with the wedge product by applying the
            geometric product
 - 2025/11: added dynamic systems support with spring-mass system implementation in
