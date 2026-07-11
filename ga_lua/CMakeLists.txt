@@ -6,6 +6,17 @@ add_executable(${EXEC_NAME} src/ga_lua.cpp)   #dep: lua, sol2, ga
 
 target_include_directories(${EXEC_NAME} PRIVATE ${GA_ROOT})
 
+# Relative path from the ga_lua build directory to its source input/ directory, resolved
+# at configure time so it stays correct no matter where this repository is checked out or
+# how deeply it is nested (e.g. added via add_subdirectory from a larger enclosing build).
+# A standalone checkout resolves to ../../ga_lua/input; a more deeply nested one gets the
+# correspondingly longer path automatically. Kept relative (portable / Windows-safe);
+# consumed by get_script_directory() in ga_lua.cpp. Assumes ga_lua is run from its build
+# directory (the documented convention).
+file(RELATIVE_PATH GA_LUA_INPUT_REL
+     "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/input")
+target_compile_definitions(${EXEC_NAME} PRIVATE GA_LUA_INPUT_DIR="${GA_LUA_INPUT_REL}")
+
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
 

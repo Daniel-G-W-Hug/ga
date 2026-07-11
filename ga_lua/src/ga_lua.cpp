@@ -114,24 +114,34 @@ void run_interactive_shell(sol::state& lua)
     }
 }
 
-std::string get_default_script_path()
-{
-    // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
-#ifdef _WIN32
-    return "../../../ga_lua/input/ga_lua.lua";
-#else
-    return "../../ga_lua/input/ga_lua.lua"; // when running from build/ga_lua directory
+// GA_LUA_INPUT_DIR is the relative path from the ga_lua binary's *build* directory to
+// its source input/ directory, computed by CMake via file(RELATIVE_PATH) and injected as
+// a compile definition (see ga_lua/CMakeLists.txt). Computing it at configure time makes
+// it context-aware: it resolves correctly no matter where this repository is checked out
+// or how deeply it is nested (a standalone checkout yields ../../ga_lua/input; a more
+// deeply nested build gets the correspondingly longer path automatically). The path stays
+// relative (portable, works on Windows) and assumes ga_lua is run from its build
+// directory, as documented. The fallback below only applies to a non-CMake build.
+#ifndef GA_LUA_INPUT_DIR
+    #define GA_LUA_INPUT_DIR "../../ga_lua/input"
 #endif
-}
 
 std::string get_script_directory()
 {
-    // Return directory path for Lua scripts to use via dofile()
+    // Return directory path for Lua scripts to use via dofile().
 #ifdef _WIN32
-    return "../../../ga_lua/input/";
+    // MSVC multi-config puts the exe one level deeper (build/ga_lua/<Debug|Release>/),
+    // so prepend one extra level relative to the CMake-computed build-dir path.
+    return "../" GA_LUA_INPUT_DIR "/";
 #else
-    return "../../ga_lua/input/";
+    return GA_LUA_INPUT_DIR "/";
 #endif
+}
+
+std::string get_default_script_path()
+{
+    // Default demo script lives in the same input/ directory as the dofile() targets.
+    return get_script_directory() + "ga_lua.lua";
 }
 
 int main(int argc, char* argv[])
