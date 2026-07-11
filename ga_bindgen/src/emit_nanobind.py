@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -1422,6 +1424,32 @@ def emit_cmake_list(names: list[str], out_dir: Path) -> str:
     return "\n".join(lines)
 
 
+def clang_format_files(paths: list[Path]) -> None:
+    """Format the just-written generated C++ in place with clang-format.
+
+    The emitter's raw output does not match the repo style, so without this the
+    committed generated sources would drift on every regeneration (pure
+    formatting churn). clang-format discovers the repo-root `.clang-format` by
+    searching upward from each file, so the files must already live inside the
+    repo tree (they do). If no clang-format is on PATH the step is skipped with a
+    warning — the emitted code still compiles, it just won't be diff-clean
+    against the committed style until formatted manually.
+    """
+    cf = shutil.which("clang-format")
+    files = [str(p) for p in paths if p.exists()]
+    if not files:
+        return
+    if cf is None:
+        print(
+            "WARNING: clang-format not found on PATH — generated files left "
+            "unformatted. Run `clang-format -i` over them before committing.",
+            file=sys.stderr,
+        )
+        return
+    subprocess.run([cf, "-i", *files], check=True)
+    print(f"clang-format: formatted {len(files)} generated file(s) via {cf}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
@@ -1566,6 +1594,10 @@ def main() -> int:
             emit_cmake_list(list(type_to_sub), out_dir), encoding="utf-8"
         )
 
+        # Format all generated C++ so regeneration stays diff-clean vs. the
+        # committed sources (the emitter's raw output is not repo-styled).
+        clang_format_files(sorted(out_dir.glob("*.cpp")))
+
         # Print free-function summary
         n_total = sum(len(ovs) for sm in free_fns.values() for ovs in sm.values())
         filter_desc = (
@@ -1614,6 +1646,7 @@ def main() -> int:
     (out_dir / f"bindings_{target.name}.cpp").write_text(
         GENERATED_HEADER + "\n" + body, encoding="utf-8"
     )
+    clang_format_files([out_dir / f"bindings_{target.name}.cpp"])
     print(f"Generated: {out_dir / f'bindings_{target.name}.cpp'}")
     return 0
 
