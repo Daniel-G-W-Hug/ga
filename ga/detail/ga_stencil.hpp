@@ -275,8 +275,8 @@ inline void stencil_t::calc_stencil()
             }
         }
 
-        double const eps = 1.0e-6;
-        if (std::abs(sumte) > eps) {
+        double const order_tol = 1.0e-6;
+        if (std::abs(sumte) > order_tol) {
             trunc_err = sumte;
             if (lhs_t == stencil_lhs::f1) {
                 order = static_cast<int>(i) - 1;
