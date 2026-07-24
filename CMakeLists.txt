@@ -64,8 +64,10 @@ else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
   # add_compile_options(-Wall -Wextra -Wconversion -pedantic)
-  # add_compile_options(-Wall -Wextra -Wshadow -pedantic)
-  add_compile_options(-Wall -Wextra -pedantic)
+  # -Wshadow catches the same family MSVC's /W4 reports as C4456-4459 (local/parameter/
+  # member/global shadowing) -- enabled so a shadowing bug surfaces on every platform
+  # instead of only failing the MSVC /WX build.
+  add_compile_options(-Wall -Wextra -Wshadow -pedantic)
 endif()
 
 ### Extended testing for division by zero (optional, may cost speed)
