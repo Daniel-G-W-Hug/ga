@@ -340,3 +340,14 @@ def _sta_r_expand4ds(a, b):
 
 sta.l_expand4ds = _sta_l_expand4ds
 sta.r_expand4ds = _sta_r_expand4ds
+
+
+# ---------------------------------------------------------------------------
+# Pure-Python reconstruction of the stateful multibody system classes.
+# The C++ static_/kinematic_/dynamic_system3dp classes are not bound (by
+# design); `ga_py.systems` rebuilds them from the primitives above. Imported
+# last, since it depends on the `pga` submodule being fully set up.
+# ---------------------------------------------------------------------------
+from . import systems  # noqa: E402,F401
+
+__all__.append("systems")
