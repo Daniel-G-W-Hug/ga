@@ -32,6 +32,8 @@ frame name (string), unifying the C++ index/name overloads.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from . import pga
 
 # Sentinel: default parent is the previously added frame (mirrors
@@ -317,3 +319,486 @@ class KinematicSystem3dp(StaticSystem3dp):
             v = v + zeta
             a = a + zetadot + pga.rcmt(v, zeta)            # [V, zeta]
         return v, a
+
+
+# ---------------------------------------------------------------------------
+# Dynamic tier — inertia, force elements and forward dynamics.
+# Reconstruction of `dynamic_system3dp`.
+# ---------------------------------------------------------------------------
+
+# Joint kinds (mirror of the C++ `joint3dp` enum). Both 1-DOF kinds run through
+# the same exponential M(q) = rest ⟇ exp(½ q·screw) — only the screw differs.
+FREE = "free"
+REVOLUTE = "revolute"
+PRISMATIC = "prismatic"
+
+
+@dataclass
+class Body3dp:
+    """Rigid-body inertial properties of a frame (mirror of `body3dp`): the inertia map
+    `I` (body twist -> body momentum), its cached inverse `I_inv`, and the total mass.
+    """
+
+    I: "pga.inertia3dp"
+    I_inv: "pga.inertia3dp"
+    mass: float = 0.0
+
+
+@dataclass
+class JointState3dp:
+    """Per-frame joint state (mirror of `joint_state3dp`). `screw_b` is the body-frame
+    twist generator (a rotation-axis line for a revolute, an ideal line for a prismatic);
+    `rest` is the body->parent motor at q = 0. The optional spring/damper acts on the
+    generalised coordinate: tau += -stiffness·(q - q_rest) - damping·q̇.
+    """
+
+    type: str = FREE
+    screw_b: "pga.bivec3dp" = field(default=None)
+    rest: "pga.mvec3dp_e" = field(default=None)
+    phi: float = 0.0
+    omega: float = 0.0
+    stiffness: float = 0.0
+    damping: float = 0.0
+    q_rest: float = 0.0
+
+
+@dataclass
+class GroundedSpring3dp:
+    """A grounded spatial spring + damper (mirror of `grounded_spring3dp`): a body-fixed
+    point `anchor_b` tied to the inertial anchor `p0_world` by anisotropic world-axis
+    stiffness `k` + isotropic damping `c`. One element yields both translational and (via
+    its lever arm) tilt stiffness.
+    """
+
+    anchor_b: "pga.vec3dp"
+    p0_world: "pga.vec3dp"
+    k: "pga.vec3dp"
+    c: float = 0.0
+
+
+def _empty_inertia() -> "pga.inertia3dp":
+    return pga.inertia3dp()
+
+
+def make_cuboid_body(m: float, w: float, h: float, d: float) -> Body3dp:
+    """Body for a uniform cuboid (extents w,h,d along e1,e2,e3), origin at the cm."""
+    I = pga.get_cuboid_inertia(m, w, h, d)
+    return Body3dp(I, pga.get_inertia_inverse(I), m)
+
+
+class DynamicSystem3dp(KinematicSystem3dp):
+    """Forces/inertia tier on top of `KinematicSystem3dp`; reconstruction of
+    `dynamic_system3dp`.
+
+    1-DOF revolute/prismatic joints form a coupled chain integrated in reduced (joint)
+    coordinates by joint-space forward dynamics `M(q) q̈ = τ` (the shared `lu_solve`);
+    free 6-DOF bodies integrate independently by the se(3) Euler equation. Force elements
+    — joint spring/damper, time-varying applied wrench, grounded spatial spring, driven
+    (moving-base) joints — all feed the generalised force additively. A subclass injects
+    application-specific wrenches by overriding `extra_wrenches()`.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._body: list[Body3dp] = []
+        self._joint: list[JointState3dp] = []
+        self._grav = pga.vec3dp(0.0, -9.81, 0.0, 0.0)  # world direction (w = 0)
+        self._wrench: dict[int, "callable"] = {}       # frame -> fn(t) -> bivec3dp
+        self._driven: dict[int, tuple[float, float]] = {}  # frame -> (rate, q0)
+        self._springs: dict[int, list[GroundedSpring3dp]] = {}
+        self._time = 0.0
+
+    # -- extension seam (mirror of the protected virtual extra_wrenches) ---------------
+
+    def extra_wrenches(self) -> "list[tuple[int, pga.bivec3dp]]":
+        """Injection point for a subclass: return (frame_idx, world-wrench) pairs folded
+        onto each frame's supporting joints, evaluated every sub-step. The generic base
+        returns none.
+        """
+        return []
+
+    # -- construction ------------------------------------------------------------------
+
+    def add_frame(self, name: str, pose: "pga.pose3dp | None" = None,
+                  state: "pga.kin_state3dp | None" = None,
+                  parent_idx=PREV_FRAME) -> int:
+        idx = super().add_frame(name, pose, state, parent_idx)
+        self._body.append(Body3dp(_empty_inertia(), _empty_inertia(), 0.0))
+        self._joint.append(JointState3dp())
+        return idx
+
+    def add_body(self, name: str, body: Body3dp,
+                 state: "pga.kin_state3dp | None" = None,
+                 pose: "pga.pose3dp | None" = None, parent_idx=PREV_FRAME) -> int:
+        """Add a free (6-DOF) rigid body with inertial properties + initial state."""
+        idx = self.add_frame(name, pose, state, parent_idx)
+        self._body[idx] = body
+        return idx
+
+    def add_revolute_body(self, name: str, body: Body3dp, pivot_b: "pga.vec3dp",
+                          axis_b: "pga.vec3dp", phi0: float = 0.0, omega0: float = 0.0,
+                          pose: "pga.pose3dp | None" = None, parent_idx=PREV_FRAME) -> int:
+        """Add a 1-DOF hinge about the body-fixed axis line through `pivot_b` along unit
+        `axis_b`; the joint screw is the line wdg(pivot_b, axis_b).
+        """
+        return self._add_screw_joint(name, body, REVOLUTE, pga.wdg(pivot_b, axis_b),
+                                     phi0, omega0, pose, parent_idx)
+
+    def add_prismatic_body(self, name: str, body: Body3dp, direction: "pga.vec3dp",
+                           s0: float = 0.0, v0: float = 0.0,
+                           pose: "pga.pose3dp | None" = None, parent_idx=PREV_FRAME) -> int:
+        """Add a 1-DOF slider along body-fixed unit `direction`; the joint screw is the
+        translation generator (an ideal line).
+        """
+        screw = pga.bivec3dp(0.0, 0.0, 0.0, direction.x, direction.y, direction.z)
+        return self._add_screw_joint(name, body, PRISMATIC, screw, s0, v0, pose, parent_idx)
+
+    def _add_screw_joint(self, name, body, jtype, screw_b, q0, qdot0, pose,
+                         parent_idx) -> int:
+        idx = self.add_frame(name, pose, None, parent_idx)
+        self._body[idx] = body
+        js = JointState3dp(type=jtype, screw_b=screw_b,
+                           rest=pga.rrev(self.step_pos_trafo(idx)), phi=q0, omega=qdot0)
+        self._joint[idx] = js
+        self._apply_joint_state(idx)
+        return idx
+
+    # -- force elements & configuration ------------------------------------------------
+
+    def set_gravity(self, g: "pga.vec3dp") -> None:
+        self._grav = g
+
+    def gravity(self) -> "pga.vec3dp":
+        return self._grav
+
+    def set_joint_spring_damper(self, ref, k: float, c: float, q0: float = 0.0) -> None:
+        js = self._joint[self._resolve(ref)]
+        js.stiffness, js.damping, js.q_rest = k, c, q0
+
+    def set_applied_wrench(self, ref, fn) -> None:
+        """Attach a time-varying world wrench fn(t) -> bivec3dp to a frame (None clears)."""
+        idx = self._resolve(ref)
+        if fn is None:
+            self._wrench.pop(idx, None)
+        else:
+            self._wrench[idx] = fn
+
+    def set_driven_rate(self, ref, rate: float, q0: float = 0.0) -> None:
+        """Prescribe a 1-DOF joint at constant rate q(t) = q0 + rate·t (a moving base)."""
+        idx = self._resolve(ref)
+        self._driven[idx] = (rate, q0)
+        self._apply_driven_joints()
+
+    def clear_driven_joint(self, ref) -> None:
+        self._driven.pop(self._resolve(ref), None)
+
+    def is_driven(self, ref) -> bool:
+        return self._resolve(ref) in self._driven
+
+    def add_grounded_spring(self, ref, anchor_b: "pga.vec3dp", k: "pga.vec3dp",
+                            c: float = 0.0, p0_world: "pga.vec3dp | None" = None) -> None:
+        """Tie a body-fixed point `anchor_b` to an inertial anchor by anisotropic world
+        stiffness `k` + isotropic damping `c`. If `p0_world` is omitted the current world
+        position of the point is taken as the rest position.
+        """
+        idx = self._resolve(ref)
+        if p0_world is None:
+            p0_world = pga.unitize(pga.move3dp(anchor_b, self.get_pos_trafo(idx, 0)))
+        self._springs.setdefault(idx, []).append(
+            GroundedSpring3dp(anchor_b, p0_world, k, c))
+
+    def clear_grounded_springs(self, ref) -> None:
+        self._springs.pop(self._resolve(ref), None)
+
+    def time(self) -> float:
+        return self._time
+
+    def set_time(self, t: float) -> None:
+        self._time = t
+
+    def body_props(self, ref) -> Body3dp:
+        return self._body[self._resolve(ref)]
+
+    def joint_phi(self, ref) -> float:
+        return self._joint[self._resolve(ref)].phi
+
+    def joint_omega(self, ref) -> float:
+        return self._joint[self._resolve(ref)].omega
+
+    # -- forward dynamics & integration ------------------------------------------------
+
+    def joint_accel(self, ref) -> float:
+        """Current acceleration of a joint from the coupled forward dynamics (no step)."""
+        rj = self._dof_joints()
+        qdd = self._forward_dynamics(rj)
+        idx = self._resolve(ref)
+        for k, j in enumerate(rj):
+            if j == idx:
+                return qdd[k]
+        return 0.0
+
+    def sync_accelerations(self) -> None:
+        """Write the dynamic joint accelerations into the relative accel twists, so the
+        world accel queries return the actual accelerations (not just the bias)."""
+        rj = self._dof_joints()
+        qdd = self._forward_dynamics(rj)
+        for k, j in enumerate(rj):
+            self._rel_atwist[j] = qdd[k] * self._joint[j].screw_b
+
+    def step(self, dt: float) -> None:
+        """Advance the system by dt: the 1-DOF joints as a coupled RK4 chain, free bodies
+        independently. Threads the sub-step clock into any time-varying wrench / driven
+        joint, then prescribes the driven joints at t + dt.
+        """
+        rj = self._dof_joints()
+        if rj:
+            self._coupled_step(rj, dt)
+        for i in range(1, self.size()):
+            if self._joint[i].type == FREE and self._body[i].mass > 0.0:
+                self._step_free_body(i, dt)
+        self._time += dt
+        self._apply_driven_joints()
+
+    # -- energy / momentum diagnostics -------------------------------------------------
+
+    def kinetic_energy(self) -> float:
+        ke = 0.0
+        for i in range(1, self.size()):
+            minv = pga.rrev(self.get_pos_trafo(i, 0))          # world -> body i
+            vb = pga.move3dp(self.twist_world(i), minv)        # body twist
+            ke += 0.5 * self._spatial_dot(vb, self._body[i].I(vb))
+        return ke
+
+    def potential_energy(self) -> float:
+        pe = 0.0
+        g = self._grav
+        for i in range(1, self.size()):
+            cm = pga.move3dp(pga.O_3dp, self.get_pos_trafo(i, 0))
+            pe += -self._body[i].mass * (g.x * cm.x + g.y * cm.y + g.z * cm.z)
+            dq = self._joint[i].phi - self._joint[i].q_rest
+            pe += 0.5 * self._joint[i].stiffness * dq * dq
+        for fi, sps in self._springs.items():
+            m = self.get_pos_trafo(fi, 0)
+            for sp in sps:
+                p = pga.unitize(pga.move3dp(sp.anchor_b, m))
+                dx, dy, dz = p.x - sp.p0_world.x, p.y - sp.p0_world.y, p.z - sp.p0_world.z
+                pe += 0.5 * (sp.k.x * dx * dx + sp.k.y * dy * dy + sp.k.z * dz * dz)
+        return pe
+
+    def total_energy(self) -> float:
+        return self.kinetic_energy() + self.potential_energy()
+
+    def momentum_world(self, ref) -> "pga.bivec3dp":
+        """World-frame momentum bivector of a body (conserved for a torque-free body)."""
+        idx = self._resolve(ref)
+        m = self.get_pos_trafo(idx, 0)                       # body -> world
+        vb = pga.move3dp(self.twist_world(idx), pga.rrev(m))  # body twist
+        return pga.move3dp(self._body[idx].I(vb), m)          # momentum back to world
+
+    def mass_matrix(self) -> "list[float]":
+        """Joint-space mass matrix M(q) (n*n row-major) at the current configuration."""
+        rj = self._dof_joints()
+        n = len(rj)
+        S = [pga.move3dp(self._joint[rj[i]].screw_b, self.get_pos_trafo(rj[i], 0))
+             for i in range(n)]
+        minv = [pga.rrev(self.get_pos_trafo(rj[i], 0)) for i in range(n)]
+        mmat = [0.0] * (n * n)
+        for i in range(n):
+            I = self._body[rj[i]].I
+            for j in range(n):
+                if not self._is_ancestor(rj[j], rj[i]):
+                    continue
+                xj = pga.move3dp(S[j], minv[i])
+                for k in range(n):
+                    if not self._is_ancestor(rj[k], rj[i]):
+                        continue
+                    xk = pga.move3dp(S[k], minv[i])
+                    mmat[j * n + k] += self._spatial_dot(xj, I(xk))
+        return mmat
+
+    # -- internals ---------------------------------------------------------------------
+
+    @staticmethod
+    def _spatial_dot(xi: "pga.bivec3dp", mom: "pga.bivec3dp") -> float:
+        """Spatial (reciprocal) pairing twist x wrench -> scalar: -rwdg(xi, mom)."""
+        return -float(pga.rwdg(xi, mom))
+
+    def _joint_motor(self, idx: int, q: float) -> "pga.mvec3dp_e":
+        js = self._joint[idx]
+        return pga.rgpr(js.rest, pga.exp(0.5 * q * js.screw_b))
+
+    def _apply_joint_state(self, idx: int) -> None:
+        js = self._joint[idx]
+        self.set_pose(idx, pga.pose3dp_from_motor(self._joint_motor(idx, js.phi)))
+        self.set_twist(idx, js.omega * js.screw_b)  # rel twist = q̇·screw
+
+    def _apply_driven_joints(self) -> None:
+        for idx, (rate, q0) in self._driven.items():
+            self._joint[idx].phi = q0 + rate * self._time
+            self._joint[idx].omega = rate
+            self._apply_joint_state(idx)
+
+    def _dof_joints(self) -> "list[int]":
+        return [i for i in range(1, self.size())
+                if self._joint[i].type in (REVOLUTE, PRISMATIC) and i not in self._driven]
+
+    def _is_ancestor(self, jf: int, bf: int) -> bool:
+        n = bf
+        while True:
+            if n == jf:
+                return True
+            if self.parent(n) == n:
+                return False
+            n = self.parent(n)
+
+    def _assemble_mass_bias(self, rj: "list[int]") -> "tuple[list[float], list[float]]":
+        """Assemble M(q) and the generalised-force RHS for the chain `rj` (mirror of
+        assemble_mass_bias). SIDE EFFECT: runs the bias pass, zeroing the chain's relative
+        accel twists so the world accel queries return only the velocity-product bias.
+        """
+        n = len(rj)
+        z = self._zero_twist()
+        for j in rj:
+            self._rel_atwist[j] = z  # velocity-product (bias) pass
+
+        S = [pga.move3dp(self._joint[rj[j]].screw_b, self.get_pos_trafo(rj[j], 0))
+             for j in range(n)]
+
+        # inertia-bearing bodies: dof joints AND driven (moving-base) joints
+        bl = list(rj) + list(self._driven.keys())
+        nb = len(bl)
+        cm = [None] * nb
+        minv = [None] * nb
+        fbias = [None] * nb
+        mass = [0.0] * nb
+        for i in range(nb):
+            fb = bl[i]
+            m = self.get_pos_trafo(fb, 0)
+            cm[i] = pga.move3dp(pga.O_3dp, m)
+            minv[i] = pga.rrev(m)
+            mass[i] = self._body[fb].mass
+            vb = pga.move3dp(self.twist_world(fb), minv[i])
+            ab = pga.move3dp(self.accel_twist_world(fb), minv[i])  # rel_atwist = 0
+            I = self._body[fb].I
+            fbias[i] = I(ab) + pga.rcmt(vb, I(vb))  # I·A_bias + gyroscopic V ×* (I V)
+
+        g = self._grav
+        mmat = [0.0] * (n * n)
+        rhs = [0.0] * n
+        for j in range(n):
+            for i in range(nb):
+                if not self._is_ancestor(rj[j], bl[i]):
+                    continue
+                vj = self.velocity_field(S[j], cm[i])          # cm velocity, unit rate j
+                xj = pga.move3dp(S[j], minv[i])                # joint-j screw in body i
+                rhs[j] += mass[i] * (vj.x * g.x + vj.y * g.y + vj.z * g.z) \
+                    - self._spatial_dot(xj, fbias[i])
+                I = self._body[bl[i]].I
+                for k in range(n):
+                    if not self._is_ancestor(rj[k], bl[i]):
+                        continue
+                    xk = pga.move3dp(S[k], minv[i])
+                    mmat[j * n + k] += self._spatial_dot(xj, I(xk))
+
+        # joint spring/damper (additive, diagonal): τ_j += -k(q-q0) - c·q̇
+        for j in range(n):
+            js = self._joint[rj[j]]
+            rhs[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega
+
+        # applied wrenches (world, at the current clock)
+        for fi, fn in self._wrench.items():
+            if fn is None:
+                continue
+            w = fn(self._time)
+            for j in range(n):
+                if self._is_ancestor(rj[j], fi):
+                    rhs[j] += self._spatial_dot(S[j], w)
+
+        # grounded spatial springs/dampers (configuration-dependent)
+        for fi, sps in self._springs.items():
+            m = self.get_pos_trafo(fi, 0)
+            vw = self.twist_world(fi)
+            for sp in sps:
+                p = pga.unitize(pga.move3dp(sp.anchor_b, m))
+                v = self.velocity_field(vw, p)
+                fx = -sp.k.x * (p.x - sp.p0_world.x) - sp.c * v.x
+                fy = -sp.k.y * (p.y - sp.p0_world.y) - sp.c * v.y
+                fz = -sp.k.z * (p.z - sp.p0_world.z) - sp.c * v.z
+                w = pga.wdg(p, pga.vec3dp(fx, fy, fz, 0.0))
+                for j in range(n):
+                    if self._is_ancestor(rj[j], fi):
+                        rhs[j] += self._spatial_dot(S[j], w)
+
+        # subclass-provided wrenches (empty in the generic base)
+        for fi, w in self.extra_wrenches():
+            for j in range(n):
+                if self._is_ancestor(rj[j], fi):
+                    rhs[j] += self._spatial_dot(S[j], w)
+
+        return mmat, rhs
+
+    def _forward_dynamics(self, rj: "list[int]") -> "list[float]":
+        mmat, rhs = self._assemble_mass_bias(rj)
+        import ga_py
+        return ga_py.lu_solve(mmat, rhs, len(rj))
+
+    def _write_u(self, rj: "list[int]", u: "list[float]") -> None:
+        n = len(rj)
+        for k in range(n):
+            self._joint[rj[k]].phi = u[k]
+            self._joint[rj[k]].omega = u[n + k]
+            self._apply_joint_state(rj[k])
+
+    def _coupled_step(self, rj: "list[int]", dt: float) -> None:
+        n = len(rj)
+        dim = 2 * n
+        u0 = [self._joint[rj[k]].phi for k in range(n)] + \
+             [self._joint[rj[k]].omega for k in range(n)]
+        t0 = self._time
+
+        def f(t, u):
+            self._time = t
+            self._apply_driven_joints()
+            self._write_u(rj, u)
+            qdd = self._forward_dynamics(rj)
+            return [u[n + k] for k in range(n)] + qdd
+
+        k1 = f(t0, u0)
+        k2 = f(t0 + 0.5 * dt, [u0[i] + 0.5 * dt * k1[i] for i in range(dim)])
+        k3 = f(t0 + 0.5 * dt, [u0[i] + 0.5 * dt * k2[i] for i in range(dim)])
+        k4 = f(t0 + dt, [u0[i] + dt * k3[i] for i in range(dim)])
+        u = [u0[i] + dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) for i in range(dim)]
+        self._time = t0
+        self._write_u(rj, u)
+
+    def _step_free_body(self, idx: int, dt: float) -> None:
+        """RK4-integrate one free rigid body over dt on the Lie-algebra pair (B, Omega):
+        dB/dt = Omega, dOmega/dt = I⁻¹[W_body - rcmt(Omega, I(Omega))] (compute_omega_dot).
+        Pose evolves on the motor manifold M(t) = M0 ⟇ exp(½ B).
+        """
+        m0 = pga.rrev(self.step_pos_trafo(idx))  # current body -> parent motor
+        bd = self._body[idx]
+        I, I_inv, mass = bd.I, bd.I_inv, bd.mass
+        g = self._grav
+
+        def omega_dot(B, Om):
+            m = pga.rgpr(m0, pga.exp(0.5 * B))
+            f_world = pga.vec3dp(mass * g.x, mass * g.y, mass * g.z, 0.0)
+            w_w = pga.wdg(pga.move3dp(pga.O_3dp, m), f_world)  # gravity wrench (world)
+            w_b = pga.move3dp(w_w, pga.rrev(m))                # into the body frame
+            return pga.compute_omega_dot(I_inv, w_b, Om, I)
+
+        def deriv(B, Om):
+            return Om, omega_dot(B, Om)  # (dB/dt, dOmega/dt)
+
+        B0 = self._zero_twist()
+        Om0 = self.relative_twist(idx)
+        kB1, kO1 = deriv(B0, Om0)
+        kB2, kO2 = deriv(B0 + 0.5 * dt * kB1, Om0 + 0.5 * dt * kO1)
+        kB3, kO3 = deriv(B0 + 0.5 * dt * kB2, Om0 + 0.5 * dt * kO2)
+        kB4, kO4 = deriv(B0 + dt * kB3, Om0 + dt * kO3)
+        B = B0 + dt / 6.0 * (kB1 + 2 * kB2 + 2 * kB3 + kB4)
+        Om = Om0 + dt / 6.0 * (kO1 + 2 * kO2 + 2 * kO3 + kO4)
+
+        self.set_pose(idx, pga.pose3dp_from_motor(pga.rgpr(m0, pga.exp(0.5 * B))))
+        self.set_twist(idx, Om)
