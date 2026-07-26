@@ -81,6 +81,17 @@ nanobind_add_module(_ga_py
     ${GA_PY_GENERATED_SOURCES}
 )
 
+# nanobind_add_module pulls in nanobind's own vendored sources as the `nanobind-static`
+# target. Those are third-party and are not written against this project's warning
+# settings, which arrive as directory-scoped add_compile_options() from the top level and
+# are therefore inherited here. Under MSVC that combination is fatal rather than noisy:
+# /WX turns nanobind's C4459 (a local shadowing a global in its error.cpp) into
+# error C2220, so the extension cannot be built at all. Keep our warnings-as-errors on
+# our own code and lift it from the vendored target.
+if(MSVC AND TARGET nanobind-static)
+    target_compile_options(nanobind-static PRIVATE /WX-)
+endif()
+
 # Windows Debug-config caveat. A Debug-config extension links whatever Python
 # import lib FindPython selects for that config:
 #   * If a debug Python lib (python3XX_d.lib) is installed, Debug links it and

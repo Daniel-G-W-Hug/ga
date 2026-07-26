@@ -2,14 +2,19 @@
 
 This file is loaded automatically by pytest. It provides:
 
+  * Discovery of the built extension + the Python package, so no PYTHONPATH is needed.
   * A clear error if the test session was launched from the wrong venv.
   * Per-algebra / per-operation tolerance fixtures.
   * An `approx_eq()` helper that mirrors the C++ `is_congruent` relative-
     tolerance pattern (see CLAUDE.md "Critical Numerical Precision Lessons").
 
-Run from the wrapper venv:
+Run from the wrapper venv, from the project root:
     source ga_py/.venv/bin/activate
-    PYTHONPATH="build/ga_py:ga_py/python" pytest ga_py/tests/
+    pytest ga_py/tests/
+
+Setting PYTHONPATH is no longer required --- the bootstrap below locates the build
+tree and prepends it, which also means it takes precedence over any PYTHONPATH
+already pointing at a different checkout.
 
 Do NOT use ga_bindgen/.venv for tests --- that one is for ga_bindgen.
 See ga_py/README.md > "Two virtual environments".
@@ -17,9 +22,62 @@ See ga_py/README.md > "Two virtual environments".
 
 from __future__ import annotations
 
+import importlib.machinery
 import sys
+from pathlib import Path
 
 import pytest
+
+# --------------------------------------------------------------------------- #
+# Import bootstrap
+# --------------------------------------------------------------------------- #
+# The suite needs two directories on sys.path: the one holding the compiled
+# `_ga_py` extension, and `ga_py/python/` (the pure-Python package). Discover
+# them relative to this file instead of requiring PYTHONPATH, so that a plain
+# `pytest ga_py/tests/` works in a fresh checkout with no environment setup.
+#
+# The binary directory is conventionally `build/` beside the source root. When
+# this repository is configured as part of a larger enclosing build (added via
+# add_subdirectory), CMake mirrors the source layout underneath that build's
+# binary directory --- the artifacts then sit at `<ancestor>/build/<this root's
+# path relative to that ancestor>/ga_py`. Walking a few ancestors and deriving
+# that relative path covers both shapes without hardcoding either.
+#
+# Multi-config generators (Visual Studio, Xcode) additionally nest the artifact
+# in a per-configuration subdirectory; single-config ones (Ninja, Makefiles)
+# leave it in place. Both are probed, optimized configurations first.
+
+_ROOT = Path(__file__).resolve().parents[2]  # <root>/ga_py/tests -> <root>
+_ENCLOSING_LEVELS = 4  # how far up to look for an enclosing build tree
+
+# Match the module itself, not build-system scaffolding that shares its stem --- an
+# MSBuild tree keeps `_ga_py.dir/` and `_ga_py.vcxproj` next to the configuration
+# subdirectories, and a bare `_ga_py.*` glob happily matches those.
+_EXT_SUFFIXES = tuple(importlib.machinery.EXTENSION_SUFFIXES)  # .pyd / .so variants
+
+
+def _holds_extension(d: Path) -> bool:
+    return d.is_dir() and any(
+        f.is_file() and f.name.endswith(_EXT_SUFFIXES) for f in d.glob("_ga_py*")
+    )
+
+
+def _extension_dirs() -> list[Path]:
+    """Directories that actually contain a built `_ga_py`, in preference order."""
+    found = []
+    for ancestor in (_ROOT, *list(_ROOT.parents)[:_ENCLOSING_LEVELS]):
+        base = ancestor / "build" / _ROOT.relative_to(ancestor) / "ga_py"
+        for d in (base, base / "Release", base / "RelWithDebInfo", base / "Debug"):
+            if _holds_extension(d):
+                found.append(d)
+    return found
+
+
+# Prepended in reverse so the preference order above survives into sys.path.
+for _p in reversed([_ROOT / "ga_py" / "python", *_extension_dirs()]):
+    if _p.is_dir() and str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 
 # --------------------------------------------------------------------------- #
 # Venv sanity check
@@ -46,8 +104,12 @@ try:
     import ga_py  # noqa: F401  (import-only check)
 except ImportError as exc:  # pragma: no cover --- environment guard
     raise ImportError(
-        "ga_py is not importable. Did you forget to set PYTHONPATH?\n"
-        "    PYTHONPATH='build/ga_py:ga_py/python' pytest ga_py/tests/\n"
+        "ga_py is not importable. The bootstrap in conftest.py did not find a built\n"
+        "extension --- build it first:\n"
+        "    cmake --build build --target _ga_py\n"
+        "(configure with -D_GA_BUILD_PYTHON=ON if you have not already; on a\n"
+        "multi-config generator add --config Release).\n"
+        f"searched: {[str(d) for d in _extension_dirs()] or 'nothing found'}\n"
         f"sys.path = {sys.path}\n"
     ) from exc
 
