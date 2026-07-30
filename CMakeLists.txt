@@ -60,6 +60,15 @@ endif()
 if(MSVC)
   # warning level 4 and all warnings as errors
   add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8)
+  # C4702 (unreachable code) is raised inside fmt's headers, not our own: since fmt 12
+  # the trailing fallback in println() is statically dead wherever the utf-8 path is a
+  # compile-time constant, which is the case on Windows. It is emitted by the optimizer
+  # rather than the parser, so the external-header machinery cannot reach it -- neither
+  # /external:W0 nor /external:templates- suppresses it (both verified), even though
+  # CMake already passes third-party include dirs as /external:I. A targeted /wd4702 is
+  # the only option that keeps /WX in force for every other warning. Drop this again
+  # once fmt no longer trips it.
+  add_compile_options(/wd4702)
 else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
