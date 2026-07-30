@@ -70,13 +70,14 @@ if(MSVC)
   # once fmt no longer trips it.
   add_compile_options(/wd4702)
 else()
-  # lots of warnings and all warnings as errors
-  #add_compile_options(-Wall -Wextra -pedantic -Werror)
-  # add_compile_options(-Wall -Wextra -Wconversion -pedantic)
   # -Wshadow catches the same family MSVC's /W4 reports as C4456-4459 (local/parameter/
-  # member/global shadowing) -- enabled so a shadowing bug surfaces on every platform
-  # instead of only failing the MSVC /WX build.
-  add_compile_options(-Wall -Wextra -Wshadow -pedantic)
+  # member/global shadowing). -Werror makes every warning fatal, matching the /WX the
+  # MSVC branch above already carries -- so a warning fails the build on EVERY platform
+  # instead of surfacing on one and stopping only the other. Enabled after measuring a
+  # ZERO warning backlog across a full clean build with this exact flag set; third-party
+  # includes arrive via -isystem, so external headers cannot trip it.
+  # add_compile_options(-Wall -Wextra -Wconversion -pedantic)
+  add_compile_options(-Wall -Wextra -Wshadow -pedantic -Werror)
 endif()
 
 ### Extended testing for division by zero (optional, may cost speed)
