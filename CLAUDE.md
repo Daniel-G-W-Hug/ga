@@ -460,12 +460,13 @@ The Windows build uses a hybrid approach: vcpkg for most dependencies + direct s
 static linking. This avoids ABI compatibility issues between MSVC and different Lua
 implementations.
 
-**Build Command Sequence:**
+**Build Command Sequence** (PowerShell — the default Windows shell; in Git Bash use the
+POSIX equivalents `rm -rf build && mkdir build && cd build`):
 
-```bash
-cd "C:\Users\danie\prg\cpp\pj\ga"
-rm -rf build
-mkdir build && cd build
+```powershell
+cd <your checkout root>
+Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+mkdir build; cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake --build . --target ga_lua --config Debug
 ```
@@ -473,7 +474,7 @@ cmake --build . --target ga_lua --config Debug
 **Expected Success Indicators:**
 
 - ✅ `"Using system-installed Lua with static linking (no vcpkg)"`
-- ✅ `"✓ Found static system lua: headers at C:/Users/danie/AppData/Local/Programs/Lua/include, lib at C:/Users/danie/AppData/Local/Programs/Lua/lib/lua54.lib"`
+- ✅ `"✓ Found static system lua: headers at C:/Users/[USERNAME]/AppData/Local/Programs/Lua/include, lib at C:/Users/[USERNAME]/AppData/Local/Programs/Lua/lib/lua54.lib"`
 - ✅ `"ga_lua: Using sol2 headers from ...vcpkg_installed/x64-windows/include"`
 - ✅ `"ga_lua: Include order: Lua (...) then sol2 (...)"`
 - ✅ Final: `"ga_lua.vcxproj -> ...ga_lua.exe"` (NO DLL copying message)
