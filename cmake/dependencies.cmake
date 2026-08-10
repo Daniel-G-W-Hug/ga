@@ -78,21 +78,6 @@ function(setup_ga_dependencies)
         set(GA_HAS_READLINE FALSE PARENT_SCOPE)
     endif()
 
-    # Find required system dependencies (Qt6) - must be system installed
-    find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
-    if(Qt6_FOUND)
-        message(STATUS "✓ Found Qt6: ${Qt6_VERSION}")
-    else()
-        message(WARNING "Qt6 not found! Please install:")
-        if(APPLE)
-            message(STATUS "  macOS: brew install qt6")
-        elseif(WIN32)
-            message(STATUS "  Windows: Download from https://www.qt.io/download")
-        else()
-            message(STATUS "  Linux: sudo apt-get install qt6-base-dev qt6-tools-dev")
-        endif()
-    endif()
-
     # Handle flexible dependencies based on platform and options
     if(GA_FORCE_FETCH_CONTENT)
         message(STATUS "Forcing FetchContent for all supported dependencies")

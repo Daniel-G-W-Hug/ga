@@ -59,10 +59,10 @@ When in doubt, leave the working tree for review and say it is ready.
 - Source modules without a runtime binary: `ga/` (header-only library), `ga_bindgen/`
   (libclang scanner, run via its own venv — see "Python wrapper").
 - **Scope of this repository:** the generic library, generators, bindings, generic tests,
-  and a generated `ga_docu/ga_docu.pdf`. The visualization viewer (`ga_view`), application-
-  specific test bundles, and the `ga_docu` LaTeX sources are not part of it. An enclosing
-  build may attach modules of its own through the `GA_PRIVATE_DIR` overlay hook (see
-  `ga_test/CMakeLists.txt`); standalone builds simply leave it unset.
+  and a generated `ga_docu/ga_docu.pdf`. Application-specific test bundles and the
+  `ga_docu` LaTeX sources are not part of it. An enclosing build may attach modules of
+  its own through the `GA_PRIVATE_DIR` overlay hook (see `ga_test/CMakeLists.txt`);
+  standalone builds simply leave it unset.
 
 **File Path Rules for Code:**
 

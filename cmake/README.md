@@ -2,9 +2,9 @@
 
 This directory contains modular CMake scripts for flexible dependency management across Windows, macOS, and Linux.
 
-> This is the **public `ga` repository**: the header-only library, `ga_prdxpr`, `ga_lua`,
-> `ga_py`, and the test suite. It needs **no Qt6** — the Qt6 viewer lives in a private
-> superset repo that embeds this one as a submodule.
+The dependencies resolved here are fmt, doctest, and (for `ga_lua`) sol2 + Lua +
+readline. That is the complete set — every one of them is compiled against by code in
+this repository.
 
 ## Features
 

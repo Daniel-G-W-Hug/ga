@@ -126,34 +126,6 @@ if(_GA_USE_LUA)
     add_subdirectory(ga_lua)             # lua scripting for ga
 endif()
 
-# The Qt6 viewer is OPTIONAL and is looked up in two places, in order: a ga_view/
-# directory in this tree, or one supplied by an enclosing build through the
-# GA_PRIVATE_DIR overlay (the same mechanism ga_test/CMakeLists.txt uses for extra
-# targets). With neither present the viewer is simply not built, and nothing else in
-# this repository depends on it.
-#
-# Adding it from HERE (this scope) rather than from an enclosing build's own top-level
-# CMake is deliberate: the Qt6/fmt/doctest/ga dependency targets are created by this
-# project's dependency system in this scope and are not visible in a parent scope, so a
-# sibling add_subdirectory there cannot link them.
-#
-# Skip on macOS with GCC due to a Qt6 header incompatibility (Qt6 uses _Pragma in
-# function signatures which GCC rejects but Clang allows; may work on Linux).
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ga_view/CMakeLists.txt")
-    set(_GA_VIEW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ga_view")
-elseif(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_view/CMakeLists.txt")
-    set(_GA_VIEW_DIR "${GA_PRIVATE_DIR}/ga_view")
-endif()
-if(_GA_VIEW_DIR)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
-        message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
-        message(STATUS "         Use Clang to build ga_view, or build on Linux")
-    else()
-        # Binary dir is named so it works whether ga_view is in-tree or external.
-        add_subdirectory("${_GA_VIEW_DIR}" ga_view)   # qt-based viewer
-    endif()
-endif()
-
 add_subdirectory(ga_prdxpr)              # generate product expressions
 
 if(_GA_BUILD_PYTHON)
@@ -194,10 +166,5 @@ if(_GA_USE_LUA)
 else()
     message(STATUS "sol2: — Skipped (_GA_USE_LUA=OFF)")
     message(STATUS "Lua:  — Skipped (_GA_USE_LUA=OFF)")
-endif()
-if(TARGET Qt6::Core)
-    message(STATUS "Qt6: ✓ Available")
-else()
-    message(STATUS "Qt6: ✗ Missing")
 endif()
 message(STATUS "")

@@ -26,23 +26,6 @@ function(find_system_dependencies)
     # sol2 - header-only Lua binding (tier 1: system, tier 2: ../../include/, tier 3: FetchContent)
     find_sol2_tiered()
     
-    # Qt6 - must be system installed
-    find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
-    if(Qt6_FOUND)
-        message(STATUS "✓ Found Qt6: ${Qt6_VERSION}")
-        set(GA_HAS_QT6 TRUE PARENT_SCOPE)
-    else()
-        message(WARNING "Qt6 not found! Please install:")
-        if(APPLE)
-            message(STATUS "  macOS: brew install qt6")
-        elseif(WIN32)
-            message(STATUS "  Windows: Download from https://www.qt.io/download")
-        else()
-            message(STATUS "  Linux: sudo apt-get install qt6-base-dev qt6-tools-dev")
-        endif()
-        set(GA_HAS_QT6 FALSE PARENT_SCOPE)
-    endif()
-    
     # Lua - must be system installed
     find_package(Lua 5.1 QUIET)
     if(Lua_FOUND OR LUA_FOUND)

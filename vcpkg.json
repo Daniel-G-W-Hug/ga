@@ -1,7 +1,7 @@
 {
   "name": "ga-library",
   "version": "0.1.0",
-  "description": "Geometric Algebra Library with Lua Interface and Visualization",
+  "description": "Geometric Algebra Library with Lua and Python interfaces",
   "dependencies": [
     "doctest",
     "fmt",

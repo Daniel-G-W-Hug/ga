@@ -128,16 +128,4 @@ function(setup_vcpkg_dependencies)
         set(GA_HAS_READLINE FALSE PARENT_SCOPE)
     endif()
 
-    # System dependencies that must be installed separately
-    find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
-    if(Qt6_FOUND)
-        message(STATUS "✓ Found Qt6: ${Qt6_VERSION}")
-        set(GA_HAS_QT6 TRUE PARENT_SCOPE)
-    else()
-        message(WARNING "Qt6 not found! Please install Qt6 separately")
-        message(STATUS "  Windows: Download from https://www.qt.io/download")
-        set(GA_HAS_QT6 FALSE PARENT_SCOPE)
-    endif()
-
-
 endfunction()

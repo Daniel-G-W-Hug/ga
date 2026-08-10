@@ -15,9 +15,9 @@ This **public `ga` repository** holds the generic geometric-algebra library and 
 generic tooling: the header-only library, `ga_prdxpr`, `ga_lua`, `ga_py`/`ga_bindgen`, the
 test suite, and a generated documentation PDF (`ga_docu/ga_docu.pdf`).
 
-The Qt6 visualization viewer (`ga_view`) and application-specific cases are **not part of
-this repository**, and nothing here depends on them — this repo is self-contained and
-needs no Qt6. The build carries a generic overlay hook (`GA_PRIVATE_DIR`, see
+Application-specific cases are **not part of this repository**, and nothing here depends
+on them — this repo is self-contained. The build carries a generic overlay hook
+(`GA_PRIVATE_DIR`, see
 `ga_test/CMakeLists.txt`) so an enclosing build can attach modules of its own; standalone
 builds leave it unset and nothing extra is added.
 
