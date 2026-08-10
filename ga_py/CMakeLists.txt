@@ -84,12 +84,22 @@ nanobind_add_module(_ga_py
 # nanobind_add_module pulls in nanobind's own vendored sources as the `nanobind-static`
 # target. Those are third-party and are not written against this project's warning
 # settings, which arrive as directory-scoped add_compile_options() from the top level and
-# are therefore inherited here. Under MSVC that combination is fatal rather than noisy:
-# /WX turns nanobind's C4459 (a local shadowing a global in its error.cpp) into
-# error C2220, so the extension cannot be built at all. Keep our warnings-as-errors on
-# our own code and lift it from the vendored target.
-if(MSVC AND TARGET nanobind-static)
-    target_compile_options(nanobind-static PRIVATE /WX-)
+# are therefore inherited here. That combination is fatal rather than noisy on BOTH
+# branches, over the same nanobind line -- a local shadowing a global in its error.cpp:
+# MSVC's /WX turns C4459 into error C2220, and -Werror turns -Wshadow into an error the
+# same way. Either one makes the extension unbuildable. Keep warnings-as-errors on our
+# own code and lift it from the vendored target.
+#
+# The non-MSVC half is easy to miss because this whole subdirectory is opt-in
+# (-D_GA_BUILD_PYTHON=ON): a "clean build" that leaves it OFF compiles none of these
+# sources and reports a zero warning backlog it never measured. Build with the
+# extension ON before concluding a warning-flag change is green.
+if(TARGET nanobind-static)
+    if(MSVC)
+        target_compile_options(nanobind-static PRIVATE /WX-)
+    else()
+        target_compile_options(nanobind-static PRIVATE -Wno-error)
+    endif()
 endif()
 
 # Windows Debug-config caveat. A Debug-config extension links whatever Python

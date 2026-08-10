@@ -164,10 +164,10 @@
            (static_/kinematic_/dynamic_system{2,3}dp) with additive force elements
            (joint spring/damper, time-varying applied wrench, grounded spatial spring)
            and an opt-in closed_loop_system KKT constraint layer, all bound into
-           ga_py and ga_lua; reorganized the project into a PUBLIC generic library and a
-           PRIVATE application superset that embeds it as a git submodule -- the Qt6
-           viewer and the application-specific test/model bundles moved to the private
-           repo, the generic dynamic_system{2,3}dp gained a protected extra_wrenches()
-           subclass seam so an application can inject its own force elements without the
-           base knowing about them, and the ga_docu documentation now ships as a
-           generated PDF (the LaTeX sources are maintained in the private superset)
+           ga_py and ga_lua; reorganized the project down to a self-contained generic
+           library -- the Qt6 viewer and the application-specific test/model
+           bundles were moved out of this repository, the generic dynamic_system{2,3}dp
+           gained a protected extra_wrenches() subclass seam so an application can inject
+           its own force elements without the base knowing about them, and the ga_docu
+           documentation now ships as a generated PDF (its LaTeX sources are maintained
+           outside this repository)

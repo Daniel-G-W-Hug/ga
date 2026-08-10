@@ -10,6 +10,11 @@
 
 cmake_minimum_required(VERSION 3.28)
 
+# Prefer an installed LLVM/clang over the platform default. MUST precede project(),
+# which is where the compiler is resolved and cached; see the module for the rationale
+# and the (conservative) conditions under which it applies.
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/prefer_llvm_toolchain.cmake")
+
 #
 # for trial of new features, libs or system values"
 #
@@ -20,9 +25,9 @@ project(
 
 # Root of THIS (public `ga`) source tree. Use GA_ROOT -- not CMAKE_SOURCE_DIR -- for the
 # repo-root include path and exporter paths in the sub-CMakeLists, so the build works both
-# standalone AND when this repo is added as a subdirectory of a superproject (the private
-# `ga_private` superset adds it as the `external/ga` submodule, where CMAKE_SOURCE_DIR is
-# the superproject root, not this one). CMAKE_CURRENT_SOURCE_DIR here is always this repo's
+# standalone AND when this repo is added as a subdirectory of a larger enclosing build (no
+# matter how deeply it is nested there, where CMAKE_SOURCE_DIR is that build's root, not
+# this one). CMAKE_CURRENT_SOURCE_DIR here is always this repo's
 # root. Propagates to all add_subdirectory descendants as a normal variable.
 set(GA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -121,15 +126,16 @@ if(_GA_USE_LUA)
     add_subdirectory(ga_lua)             # lua scripting for ga
 endif()
 
-# ga_view is a private module (it moved to ga_private). The public repo has no
-# ga_view/ of its own; the private superset supplies it at ${GA_PRIVATE_DIR}/ga_view
-# and attaches it through the GA_PRIVATE_DIR overlay below. The local-directory
-# branch is kept for a checkout that still carries ga_view/ (e.g. before the move).
+# The Qt6 viewer is OPTIONAL and is looked up in two places, in order: a ga_view/
+# directory in this tree, or one supplied by an enclosing build through the
+# GA_PRIVATE_DIR overlay (the same mechanism ga_test/CMakeLists.txt uses for extra
+# targets). With neither present the viewer is simply not built, and nothing else in
+# this repository depends on it.
 #
-# Adding the private viewer from HERE (this scope) rather than from the superset's
-# own top-level CMake is deliberate: the Qt6/fmt/doctest/ga dependency targets are
-# created by this project's dependency system in this scope and are not visible in
-# the parent superset scope, so a sibling add_subdirectory there cannot link them.
+# Adding it from HERE (this scope) rather than from an enclosing build's own top-level
+# CMake is deliberate: the Qt6/fmt/doctest/ga dependency targets are created by this
+# project's dependency system in this scope and are not visible in a parent scope, so a
+# sibling add_subdirectory there cannot link them.
 #
 # Skip on macOS with GCC due to a Qt6 header incompatibility (Qt6 uses _Pragma in
 # function signatures which GCC rejects but Clang allows; may work on Linux).

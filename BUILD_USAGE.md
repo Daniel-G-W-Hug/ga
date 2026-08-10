@@ -2,9 +2,8 @@
 
 > **This is the public `ga` repository** — the header-only geometric-algebra library, the
 > `ga_prdxpr` code generator, the `ga_lua` scripting shell, the `ga_py` Python wrapper, and
-> the test suite. The Qt6 visualization viewer and specific application bundles live in a
-> private superset repo that embeds this one as a submodule,
-> so **nothing here needs Qt6**.
+> the test suite. The Qt6 visualization viewer and application-specific bundles are not
+> part of this repository, so **nothing here needs Qt6**.
 
 ## Quick Start
 

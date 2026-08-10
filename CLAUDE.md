@@ -15,19 +15,21 @@ When in doubt, leave the working tree for review and say it is ready.
 
 **CRITICAL PATH INFORMATION:**
 
-- **Project Root**: `/Users/hud3bh/prg/cpp/pj/ga/` (absolute path)
-- **Build Directory**: `/Users/hud3bh/prg/cpp/pj/ga/build/` (absolute path)
+- **Project Root**: the repo checkout, written `<repo>/` below. Checkout locations
+  differ per machine and per OS, so paths here are always repo-relative -- do not
+  hardcode one. Derive an absolute path from the session's working directory or from
+  `git rev-parse --show-toplevel` when a tool needs one.
+- **Build Directory**: `<repo>/build/`
 - **Working Directory**: Always work from the build directory when running executables or
   when creating temporary files
-- **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or
-  `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_prdxpr/`
+- **Source Files**: Always in `<repo>/[module]/src/` or `<repo>/ga_prdxpr/src_prdxpr/`
 - **File Organization**: Keep all temporary/debug files in the build directory (`build/`)
   rather than the source tree to maintain clean project organization.
 
 **Build Directory Structure:**
 
 ```text
-/Users/hud3bh/prg/cpp/pj/ga/build/                  # Main build directory (working directory)
+<repo>/build/                                       # Main build directory (working directory)
 ├── ga_lua/ga_lua                                   # Lua interface executable
 ├── ga_test/                                        # doctest-based test suite
 │   ├── ga_ega_test                                 #   Euclidean GA tests (2D/3D)
@@ -56,17 +58,18 @@ When in doubt, leave the working tree for review and say it is ready.
   not found (see "Dependencies").
 - Source modules without a runtime binary: `ga/` (header-only library), `ga_bindgen/`
   (libclang scanner, run via its own venv — see "Python wrapper").
-- **This is the PUBLIC repo.** The visualization viewer (`ga_view`), specific application
-  test bundles, and the `ga_docu` LaTeX sources live in a
-  private superset repo that embeds this one as a submodule; the public repo ships only the
-  generic library, generators, bindings, generic tests, and a generated `ga_docu/ga_docu.pdf`.
+- **Scope of this repository:** the generic library, generators, bindings, generic tests,
+  and a generated `ga_docu/ga_docu.pdf`. The visualization viewer (`ga_view`), application-
+  specific test bundles, and the `ga_docu` LaTeX sources are not part of it. An enclosing
+  build may attach modules of its own through the `GA_PRIVATE_DIR` overlay hook (see
+  `ga_test/CMakeLists.txt`); standalone builds simply leave it unset.
 
 **File Path Rules for Code:**
 
 - When reading source files from executables: `../[module]/src/filename` (relative to
   build directory)
 - NEVER guess paths - use these established patterns
-- All executables run from `/Users/hud3bh/prg/cpp/pj/ga/build/` directory
+- All executables run from the `<repo>/build/` directory
 
 This project uses CMake (minimum version 3.28) with C++23 standard.
 
@@ -95,7 +98,7 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 
 **Build Workflow:**
 
-1. Always start from project root directory (`/Users/hud3bh/prg/cpp/pj/ga/`)
+1. Always start from the project root directory (`<repo>/`)
 2. Ensure `build/` directory exists: `mkdir -p build`
 3. Navigate to build directory: `cd build`
 4. Configure: `cmake ..`

@@ -7,9 +7,9 @@ set(EXEC_NAME4 ga_appl3dp_test)
 set(EXEC_NAME5 ga_sta_test)
 set(EXEC_NAME6 ga_integrator_test)
 set(EXEC_NAME7 ga_stencil_test)
-# The private application bundles (formerly EXEC_NAME9/10) moved to the
-# private repo; they are declared by ga_private/ga_test/private_targets.cmake via
-# the GA_PRIVATE_DIR hook at the end of this file.
+# Application-specific bundles (formerly EXEC_NAME9/10) are not part of this
+# repository; an enclosing build can declare its own through the GA_PRIVATE_DIR
+# overlay hook at the end of this file.
 # ga_export_python_cases now lives in python_utilities/ (localized EXPORT_NAME)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
@@ -115,13 +115,12 @@ link_fmt_to_target(${EXEC_NAME7})
 add_subdirectory(utilities)
 
 # ----------------------------------------------------------------------------
-# Private application overlay (opt-in).
+# Application overlay (opt-in extension point).
 #
-# When the private superset (ga_private) is present it sets GA_PRIVATE_DIR and
-# supplies ga_private/ga_test/private_targets.cmake, which declares the private
-# application test/bench targets (the private application bundles and their
-# benches, all now living in the private repo). Public-only
-# builds leave GA_PRIVATE_DIR unset -> nothing extra is added. Placed after
+# An enclosing build may set GA_PRIVATE_DIR and supply a
+# ${GA_PRIVATE_DIR}/ga_test/private_targets.cmake, which is included here and can
+# declare additional test/bench targets of its own. Standalone builds leave
+# GA_PRIVATE_DIR unset -> nothing extra is added. Placed after
 # link_fmt_to_target() (defined above) so the overlay can use it.
 # ----------------------------------------------------------------------------
 if(GA_PRIVATE_DIR AND EXISTS "${GA_PRIVATE_DIR}/ga_test/private_targets.cmake")

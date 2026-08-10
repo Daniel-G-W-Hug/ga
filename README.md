@@ -15,11 +15,11 @@ This **public `ga` repository** holds the generic geometric-algebra library and 
 generic tooling: the header-only library, `ga_prdxpr`, `ga_lua`, `ga_py`/`ga_bindgen`, the
 test suite, and a generated documentation PDF (`ga_docu/ga_docu.pdf`).
 
-The Qt6 visualization viewer (`ga_view`) and the application-specific cases are maintained
-in a **separate private superset repository** that embeds this repo as a git submodule and
-builds it together with those additional modules. You only need the private repo if you
-work on the viewer or the application cases — for everything else this repo is
-self-contained. Contributors doing application work will be pointed to that repo directly.
+The Qt6 visualization viewer (`ga_view`) and application-specific cases are **not part of
+this repository**, and nothing here depends on them — this repo is self-contained and
+needs no Qt6. The build carries a generic overlay hook (`GA_PRIVATE_DIR`, see
+`ga_test/CMakeLists.txt`) so an enclosing build can attach modules of its own; standalone
+builds leave it unset and nothing extra is added.
 
 **Branches:** `develop` is the active development branch; `main` is the stable baseline.
 Base your work on `develop`.

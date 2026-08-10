@@ -97,7 +97,7 @@ set(HEADERS
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)
 
 # Root-relative includes ("ga/ga_ega.hpp") resolve against the PARENT of this dir (the
-# public repo root). Export it as an INTERFACE include so every target that links `ga`
-# gets it automatically -- crucially cross-scope, e.g. the private ga_view built from the
-# ga_private superset (where a GA_ROOT set inside external/ga is not visible).
+# repo root). Export it as an INTERFACE include so every target that links `ga` gets it
+# automatically -- crucially cross-scope, e.g. a target added by an enclosing build, where
+# a GA_ROOT set inside this repository is not visible.
 target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/..)
