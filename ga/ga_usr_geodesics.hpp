@@ -9,7 +9,9 @@
 #include <stdexcept> // std::invalid_argument
 #include <string>    // std::string
 
+#include "ga_ega2d_ops.hpp"     // normalize, operator*(vec, I_2d), ... for the 2D frame
 #include "ga_ega3d_ops.hpp"     // wdg, dual, normalize, ... for the direction frame
+#include "ga_pga2dp_ops.hpp"    // get_motor, move2dp, unitize, ... for the 2D case
 #include "ga_pga3dp_ops.hpp"    // get_motor, move3dp, unitize, ... for points/motors
 #include "ga_usr_consts.hpp"    // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
 #include "ga_usr_types.hpp"     // vec3d, vec3dp, mvec3dp_e
@@ -59,6 +61,12 @@
 // - dms2rad()                 : the same, in rad
 // - to_geo_pos()              : geo_pos_dms -> geo_pos (the explicit conversion above)
 // - distance_from_geocenter() : the position's "total radius" [m], derived
+// - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
+//                               to_geo_pos() and distance_from_geocenter() overload on
+//                               them
+// - detail::meridian_from_geodetic() / geodetic_from_meridian() : the shared core both
+//                               dimensions are built on -- 3D is this map plus one
+//                               rotation by the longitude
 //
 // provides in namespace hd::ga::pga:
 //
@@ -73,6 +81,17 @@
 // - enu_to_ecef_motor()  : motor taking ENU coordinates to ECEF coordinates (its rrev is
 //                          the ECEF -> ENU direction)
 // - enu_motor_at()       : the same motor for a station given as an ECEF point
+//
+// and the two-dimensional counterparts, for a position in the meridian section:
+//
+// - geo_to_ecef() / ecef_to_geo()  : overloads on geo_pos2dp / vec2dp
+// - un_frame / un_at()   : the local frame, in the order (UP, NORTH) -- forced, since
+//                          (north, up) is negatively oriented and no motor could carry
+//                          the reference axes onto it. No degenerate case but the
+//                          geocenter: the 3D pole degeneracy comes from the longitude.
+// - un_basis_at()        : the same frame from the angle, as the cross-check
+// - un_to_ecef_motor()   : ONE rotation -- and it is the latitude itself
+// - un_motor_at()        : the same motor for a station given as a point
 /////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
@@ -145,6 +164,98 @@ struct ellipsoid {
 // a millimetre on the earth's surface
 inline ellipsoid const wgs84{6378137.0, 6356752.314245179};
 inline ellipsoid const grs80{6378137.0, 6356752.314140356};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// the meridian section -- the core both dimensions are built on
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// All of the ellipsoid's geometry lives in ONE plane. Cut the ellipsoid of revolution
+// along a meridian and what remains is an ellipse with the same two radii, in which a
+// position is described by the geodetic latitude and a height along the normal:
+//
+//     r = (N + h) cos(lat)              distance from the polar axis
+//     z = (N (1 - e^2) + h) sin(lat)    distance along it
+//
+// The three-dimensional case is this map plus a rotation by the longitude about the
+// polar axis -- geo_to_ecef() below is literally these two lines with r resolved into
+// (r cos(lon), r sin(lon)). The two-dimensional case IS the meridian section, so it uses
+// them unchanged. Sharing them is therefore not code reuse for its own sake: it is the
+// statement that 3D geodesy is 2D geodesy plus one rotation.
+
+namespace detail {
+
+struct meridian_rz {
+    value_t r; // distance from the polar axis [m]
+    value_t z; // distance along the polar axis [m]
+};
+
+struct meridian_lat_h {
+    value_t lat;    // geodetic latitude [rad]
+    value_t height; // height above the ellipsoid, along its normal [m]
+};
+
+// geodetic (lat, height) -> the meridian-plane coordinates (r, z)
+inline meridian_rz meridian_from_geodetic(ellipsoid const& el, value_t lat,
+                                          value_t height)
+{
+    value_t const N = el.N(lat);
+
+    return meridian_rz{(N + height) * std::cos(lat),
+                       (N * (1.0 - el.e_sq()) + height) * std::sin(lat)};
+}
+
+// (r, z) -> geodetic (lat, height), via Bowring's closed-form solution (1976): the
+// auxiliary (parametric) latitude theta = atan2(z a, r b) turns the implicit relation
+// between geodetic latitude and height into an explicit one.
+//
+// It is a SINGLE pass, not an iteration, so its accuracy depends on the height -- the
+// approximation is built around a point near the surface. Measured round-trip error at
+// latitude 45 deg:
+//
+//     height        latitude error      height error
+//     0             2e-11"              4e-11 m       (exact, to double precision)
+//     1 km          3e-10"              1e-08 m
+//     100 km        3e-06"              9e-05 m
+//     1000 km       2e-04"              7e-03 m
+//     36000 km      1e-03"              0.26 m        (geostationary)
+//
+// So it is exact for anything on or near the ground and still good to a metre out at
+// geostationary altitude -- but the sub-millimetre claim holds only up to roughly
+// 100 km. Iterate (feed the result back through) if a satellite altitude is needed to
+// better than that.
+//
+// r < 0 is not meaningful (it is a distance from the axis); on the axis itself, r == 0,
+// the latitude is +/- 90 deg and the height follows from z alone.
+inline meridian_lat_h geodetic_from_meridian(ellipsoid const& el, value_t r, value_t z)
+{
+    value_t const a = el.r_equator;
+    value_t const b = el.r_pole;
+    value_t const e2 = el.e_sq();
+    value_t const ep2 = e2 / ((1.0 - el.flattening()) * (1.0 - el.flattening()));
+
+    if (r < eps * a) { // on the polar axis
+        return meridian_lat_h{(z >= 0.0) ? 0.5 * pi : -0.5 * pi, std::abs(z) - b};
+    }
+
+    value_t const theta = std::atan2(z * a, r * b);
+    value_t const st = std::sin(theta);
+    value_t const ct = std::cos(theta);
+
+    value_t const lat = std::atan2(z + ep2 * b * st * st * st, r - e2 * a * ct * ct * ct);
+
+    value_t const N = el.N(lat);
+    value_t const sp = std::sin(lat);
+
+    // near the poles r -> 0 makes h = r/cos(lat) - N ill-conditioned; switch to the
+    // z-based form there (each is well-conditioned where the other is not)
+    value_t const h =
+        (std::abs(sp) > 0.5) ? z / sp - N * (1.0 - e2) : r / std::cos(lat) - N;
+
+    return meridian_lat_h{lat, h};
+}
+
+} // namespace detail
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +564,48 @@ inline geo_pos to_geo_pos(geo_pos_dms const& p, value_t geoid_undulation = 0.0)
                    dms2rad(p.lon, geo_angle::longitude), p.height + geoid_undulation};
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// the two-dimensional case: a position in the meridian section
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// Same ellipse, same geodetic latitude, same height along the normal -- only the
+// longitude is gone, because a meridian section has no second angle. The position types
+// below are therefore the three-dimensional ones minus one field, and they feed the same
+// detail::meridian_* core.
+//
+// Coverage: a geodetic latitude runs over [-90, +90] deg, which sweeps the HALF ellipse
+// with r >= 0 -- one meridian. The other half (r < 0) is the 180-degree meridian, which
+// in three dimensions is reached by the longitude and here has no representation.
+
+// a position as the user provides it: one angle in dms notation plus an elevation
+struct geo_pos_dms2dp {
+
+    std::string lat;  // latitude in dms notation, e.g. "52°31'12\"N"
+    value_t height{}; // elevation [m] above sea level, as quoted
+};
+
+// the same position ready to calculate with (see geo_pos for what the two conventions
+// commit to -- they are identical here, longitude aside)
+struct geo_pos2dp {
+
+    value_t lat{};    // geodetic latitude [rad], positive towards north
+    value_t height{}; // [m] above the reference ellipsoid, along the ellipsoid normal
+};
+
+// the explicit conversion, with the same optional geoid undulation as its 3D counterpart
+inline geo_pos2dp to_geo_pos(geo_pos_dms2dp const& p, value_t geoid_undulation = 0.0)
+{
+    return geo_pos2dp{dms2rad(p.lat, geo_angle::latitude), p.height + geoid_undulation};
+}
+
+// distance of the position from the geocenter [m] -- see the 3D overload
+inline value_t distance_from_geocenter(geo_pos2dp const& p, ellipsoid const& el = wgs84)
+{
+    auto const m = detail::meridian_from_geodetic(el, p.lat, p.height);
+    return std::sqrt(m.r * m.r + m.z * m.z);
+}
+
 } // namespace hd::ga
 
 
@@ -473,69 +626,28 @@ namespace hd::ga::pga {
 // height h enters all three components alike because it runs along the ellipsoid normal.
 inline vec3dp geo_to_ecef(geo_pos const& p, ellipsoid const& el = wgs84)
 {
-    value_t const sp = std::sin(p.lat);
-    value_t const cp = std::cos(p.lat);
-    value_t const sl = std::sin(p.lon);
-    value_t const cl = std::cos(p.lon);
+    auto const m = detail::meridian_from_geodetic(el, p.lat, p.height);
 
-    value_t const N = el.N(p.lat);
-
-    return vec3dp{(N + p.height) * cp * cl, (N + p.height) * cp * sl,
-                  (N * (1.0 - el.e_sq()) + p.height) * sp, 1.0};
+    // the meridian section, turned to the position's longitude about the polar axis
+    return vec3dp{m.r * std::cos(p.lon), m.r * std::sin(p.lon), m.z, 1.0};
 }
 
-// ECEF point -> geodetic position, via Bowring's closed-form solution (1976): the
-// auxiliary (parametric) latitude theta = atan2(Z a, r b) turns the implicit relation
-// between geodetic latitude and height into an explicit one.
+// ECEF point -> geodetic position: undo the longitude rotation, then solve the meridian
+// section (see detail::geodetic_from_meridian, which carries Bowring's method and its
+// accuracy-versus-height table).
 //
-// It is a SINGLE pass, not an iteration, so its accuracy depends on the height -- the
-// approximation is built around a point near the surface. Measured round-trip error of
-// ecef_to_geo(geo_to_ecef(p)) at latitude 45 deg:
-//
-//     height        latitude error      height error
-//     0             2e-11"              4e-11 m       (exact, to double precision)
-//     1 km          3e-10"              1e-08 m
-//     100 km        3e-06"              9e-05 m
-//     1000 km       2e-04"              7e-03 m
-//     36000 km      1e-03"              0.26 m        (geostationary)
-//
-// So it is exact for anything on or near the ground and still good to a metre out at
-// geostationary altitude -- but the sub-millimetre claim holds only up to roughly
-// 100 km. Iterate (feed the result back through) if a satellite altitude is needed to
-// better than that.
+// On the polar axis the longitude is undefined and is taken as 0 by convention -- the
+// same choice enu_at(vec3dp) makes for the frame there.
 inline geo_pos ecef_to_geo(vec3dp const& P, ellipsoid const& el = wgs84)
 {
     auto const p = unitize(P);
 
-    value_t const a = el.r_equator;
-    value_t const b = el.r_pole;
-    value_t const e2 = el.e_sq();
-    value_t const ep2 = e2 / ((1.0 - el.flattening()) * (1.0 - el.flattening()));
-
     value_t const r = std::sqrt(p.x * p.x + p.y * p.y); // distance from the polar axis
+    value_t const lon = (r < eps * el.r_equator) ? 0.0 : std::atan2(p.y, p.x);
 
-    if (r < eps * a) { // on the polar axis: the longitude is undefined, take 0
-        value_t const lat = (p.z >= 0.0) ? 0.5 * pi : -0.5 * pi;
-        return geo_pos{lat, 0.0, std::abs(p.z) - b};
-    }
+    auto const g = detail::geodetic_from_meridian(el, r, p.z);
 
-    value_t const theta = std::atan2(p.z * a, r * b);
-    value_t const st = std::sin(theta);
-    value_t const ct = std::cos(theta);
-
-    value_t const lat =
-        std::atan2(p.z + ep2 * b * st * st * st, r - e2 * a * ct * ct * ct);
-    value_t const lon = std::atan2(p.y, p.x);
-
-    value_t const N = el.N(lat);
-    value_t const sp = std::sin(lat);
-
-    // near the poles r -> 0 makes h = r/cos(lat) - N ill-conditioned; switch to the
-    // Z-based form there (each is well-conditioned where the other is not)
-    value_t const h =
-        (std::abs(sp) > 0.5) ? p.z / sp - N * (1.0 - e2) : r / std::cos(lat) - N;
-
-    return geo_pos{lat, lon, h};
+    return geo_pos{g.lat, lon, g.height};
 }
 
 
@@ -721,6 +833,140 @@ inline mvec3dp_e enu_to_ecef_motor(geo_pos const& p, ellipsoid const& el = wgs84
 inline mvec3dp_e enu_motor_at(vec3dp const& P, ellipsoid const& el = wgs84)
 {
     return enu_to_ecef_motor(ecef_to_geo(P, el), el);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// the two-dimensional case: ECEF section <-> geodetic, and the local frame
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// The frame here is the meridian-plane section of ECEF, drawn the way one draws it:
+//
+//     e1 -> towards the equator (the prime meridian's direction)
+//     e2 -> along the polar axis, towards the north pole
+//
+// which is exactly what geo_to_ecef() produces in three dimensions once the longitude
+// rotation is stripped off: (r, z) becomes (e1, e2).
+
+// geodetic position -> the meridian section, as a unitized pga2dp point [m]
+inline vec2dp geo_to_ecef(geo_pos2dp const& p, ellipsoid const& el = wgs84)
+{
+    auto const m = hd::ga::detail::meridian_from_geodetic(el, p.lat, p.height);
+
+    return vec2dp{m.r, m.z, 1.0};
+}
+
+// the meridian section -> geodetic position (see detail::geodetic_from_meridian for the
+// method and its accuracy against height).
+//
+// A point with e1 < 0 lies on the far half of the ellipse -- the 180-degree meridian --
+// which has no geodetic latitude in [-90, +90] and so no representation here; in three
+// dimensions that half is reached by the longitude instead. It is refused rather than
+// folded onto a wrong latitude.
+inline geo_pos2dp ecef_to_geo(vec2dp const& P, ellipsoid const& el = wgs84)
+{
+    auto const p = unitize(P);
+
+    if (p.x < -eps * el.r_equator) {
+        throw std::invalid_argument(
+            "ecef_to_geo: a point with e1 < 0 is on the 180-degree meridian, which a "
+            "single meridian section does not represent (use the 3D overload)");
+    }
+
+    auto const g =
+        hd::ga::detail::geodetic_from_meridian(el, std::max(p.x, value_t(0.0)), p.y);
+
+    return geo_pos2dp{g.lat, g.height};
+}
+
+
+// The local frame in the meridian plane, expressed in the section's own coordinates
+// (unit directions, i.e. points at infinity with w = 0).
+//
+// The order is (UP, NORTH), vertical first, and that is forced rather than chosen: with
+// e1 towards the equator and e2 towards the pole, north = (-sin lat, cos lat) and
+// up = (cos lat, sin lat) give
+//
+//     north ^ up = -e12      but      up ^ north = +e12
+//
+// so the pair (north, up) is NEGATIVELY oriented. A motor is a rotation, so no motor
+// could ever carry (e1, e2) onto (north, up) -- that map is a reflection. Taken in the
+// order (up, north) the frame is a proper rotation, and a particularly simple one: it is
+// the rotation by the latitude itself, since at latitude zero the vertical IS e1.
+struct un_frame {
+
+    vec2dp up;
+    vec2dp north;
+};
+
+// The frame from the geometry of the position alone. In two dimensions this needs no
+// meridian plane -- there is no longitude to lose -- so it is simply the ellipse normal
+// and its quarter turn, and unlike the 3D case it has NO degenerate configuration except
+// the geocenter. The pole is unremarkable here: the 3D pole degeneracy comes from the
+// longitude, which does not exist in a meridian section.
+//
+//     up    = grad of the ellipse through the position, normalized
+//     north = up * I_2d      a quarter turn towards the pole (the ega2d pseudoscalar
+//                            rotates a vector by +90 degrees)
+inline un_frame un_at(vec2dp const& P, ellipsoid const& el = wgs84)
+{
+    auto const p = unitize(P);
+
+    if (p.x * p.x + p.y * p.y < eps) {
+        throw std::invalid_argument("un_at: no local frame at the geocenter");
+    }
+
+    value_t const aa = el.r_equator * el.r_equator;
+    value_t const bb = el.r_pole * el.r_pole;
+
+    // ega names must be qualified: unqualified lookup from inside hd::ga::pga finds the
+    // pga overload set first and stops there
+    auto const u = ega::normalize(vec2d{p.x / aa, p.y / bb});
+    auto const n = ega::operator*(u, ega::I_2d);
+
+    return un_frame{vec2dp{u.x, u.y, 0.0}, vec2dp{n.x, n.y, 0.0}};
+}
+
+inline un_frame un_at(geo_pos2dp const& p, ellipsoid const& el = wgs84)
+{
+    // on the surface the gradient IS the normal, so evaluate it there and stay exact
+    return un_at(geo_to_ecef(geo_pos2dp{p.lat, 0.0}, el), el);
+}
+
+// The same frame written out from the angle instead -- the conventional form, kept
+// alongside un_at() so the two cross-check, exactly as enu_basis_at() does in 3D.
+inline un_frame un_basis_at(geo_pos2dp const& p,
+                            [[maybe_unused]] ellipsoid const& el = wgs84)
+{
+    value_t const s = std::sin(p.lat);
+    value_t const c = std::cos(p.lat);
+
+    return un_frame{vec2dp{c, s, 0.0}, vec2dp{-s, c, 0.0}};
+}
+
+// Motor taking local (up, north) coordinates to the meridian section (body -> world):
+//
+//     M = T(P0) (x) R(lat)
+//
+// ONE rotation, where the 3D motor needs two -- the longitude rotation has nothing to
+// turn. And the remaining rotation is the latitude itself, unmodified: it is already the
+// angle of the ellipse normal, which is what up is.
+//
+// The inverse map, section -> local, is the regressive reverse rrev(M).
+inline mvec2dp_u un_to_ecef_motor(geo_pos2dp const& p, ellipsoid const& el = wgs84)
+{
+    auto const P0 = geo_to_ecef(p, el);
+
+    auto const M_tra = get_motor(vec2dp{P0.x, P0.y, 0.0});
+    auto const M_rot = get_motor(O_2dp, p.lat); // about the geocenter
+
+    return rgpr(M_tra, M_rot); // rotate first, then translate
+}
+
+// the same motor for a station given as a point -- companion to un_at(vec2dp)
+inline mvec2dp_u un_motor_at(vec2dp const& P, ellipsoid const& el = wgs84)
+{
+    return un_to_ecef_motor(ecef_to_geo(P, el), el);
 }
 
 } // namespace hd::ga::pga

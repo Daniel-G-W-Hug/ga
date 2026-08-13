@@ -4122,3 +4122,190 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     }
 
 } // TEST_SUITE("PGA2DP: physics tests implementation")
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Geodetic coordinates in the meridian section (the 2D case of ga_usr_geodesics.hpp)
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA2DP: geodesics in the meridian section")
+{
+
+    TEST_CASE("pga2dp: meridian section vs. the 3D case at longitude zero")
+    {
+        fmt::println("pga2dp: meridian section vs. the 3D case at longitude zero");
+
+        auto const near2 = [](vec2dp const& a, vec2dp const& b, value_t tol) {
+            return std::abs(a.x - b.x) < tol && std::abs(a.y - b.y) < tol &&
+                   std::abs(a.z - b.z) < tol;
+        };
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the claim the shared core rests on: 3D geodesy IS 2D geodesy plus a rotation
+        /////////////////////////////////////////////////////////////////////////////////
+        //
+        // Set the longitude to zero in three dimensions and the meridian plane is the
+        // e1-e3 plane. Everything the 2D case computes must then reproduce the 3D result
+        // component for component, with (e1, e2) standing for (X, Z).
+
+        for (int ilat = -90; ilat <= 90; ilat += 5) {
+            for (auto const h : {0.0, 250.0, 8848.0}) {
+
+                auto const p2 = geo_pos2dp{deg2rad(double(ilat)), h};
+                auto const p3 = geo_pos{deg2rad(double(ilat)), 0.0, h};
+
+                auto const P2 = geo_to_ecef(p2);
+                auto const P3 = geo_to_ecef(p3);
+
+                // the position: (r, z) is (X, Z), and Y vanishes on the prime meridian
+                CHECK(P2.x == doctest::Approx(P3.x).epsilon(1e-13));
+                CHECK(P2.y == doctest::Approx(P3.z).epsilon(1e-13));
+                CHECK(std::abs(P3.y) < 1e-9);
+
+                // ... and so does the distance from the geocenter
+                CHECK(distance_from_geocenter(p2) ==
+                      doctest::Approx(distance_from_geocenter(p3)).epsilon(1e-13));
+
+                // the local frame: 2D up/north are the 3D up/north with Y dropped
+                auto const F2 = un_at(p2);
+                auto const F3 = enu_at(p3);
+
+                CHECK(F2.up.x == doctest::Approx(F3.up.x).scale(1.0).epsilon(1e-12));
+                CHECK(F2.up.y == doctest::Approx(F3.up.z).scale(1.0).epsilon(1e-12));
+                CHECK(F2.north.x ==
+                      doctest::Approx(F3.north.x).scale(1.0).epsilon(1e-12));
+                CHECK(F2.north.y ==
+                      doctest::Approx(F3.north.z).scale(1.0).epsilon(1e-12));
+                CHECK(std::abs(F3.up.y) < 1e-12);    // the 3D frame's out-of-plane
+                CHECK(std::abs(F3.north.y) < 1e-12); // components vanish here
+            }
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the position, pinned against an independently computed reference
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const Berlin = to_geo_pos(geo_pos_dms2dp{"52°31'12\"N", 35});
+
+        CHECK(Berlin.lat == doctest::Approx(deg2rad(52.52)).epsilon(1e-14));
+        CHECK(Berlin.height == 35.0);
+
+        auto const P_B = geo_to_ecef(Berlin);
+        CHECK(P_B.x == doctest::Approx(3889225.181433).epsilon(1e-11));
+        CHECK(P_B.y == doctest::Approx(5038246.874625).epsilon(1e-11));
+        CHECK(P_B.z == 1.0); // a point, not a direction
+        CHECK(distance_from_geocenter(Berlin) ==
+              doctest::Approx(6364746.977026).epsilon(1e-13));
+
+        // the two analytic pins: the equator is the equatorial radius along e1, the pole
+        // the polar radius along e2
+        CHECK(near2(geo_to_ecef(geo_pos2dp{0.0, 0.0}), vec2dp{wgs84.r_equator, 0.0, 1.0},
+                    1e-9));
+        CHECK(near2(geo_to_ecef(geo_pos2dp{0.5 * pi, 0.0}),
+                    vec2dp{0.0, wgs84.r_pole, 1.0}, 1e-6));
+
+        // the inverse inverts, poles included
+        for (int ilat = -90; ilat <= 90; ilat += 5) {
+            auto const p = geo_pos2dp{deg2rad(double(ilat)), 250.0};
+            auto const q = ecef_to_geo(geo_to_ecef(p));
+            CHECK(q.lat == doctest::Approx(p.lat).scale(1.0).epsilon(1e-12));
+            CHECK(q.height == doctest::Approx(p.height).scale(1.0).epsilon(1e-9));
+        }
+
+        // the far half of the ellipse is the 180-degree meridian and is refused rather
+        // than folded onto a wrong latitude
+        CHECK_THROWS_AS(ecef_to_geo(vec2dp{-6.0e6, 1.0e6, 1.0}), std::invalid_argument);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the local frame -- and why its axis order is (up, north)
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const F = un_at(Berlin);
+
+        CHECK(near2(F.up, vec2dp{0.608484459368082, 0.793565789778978, 0.0}, 1e-14));
+        CHECK(near2(F.north, vec2dp{-0.793565789778978, 0.608484459368082, 0.0}, 1e-14));
+
+        // the geometric and the trigonometric construction agree everywhere. Note the
+        // sweep runs to the poles: unlike 3D there is NO degenerate configuration here,
+        // because the degeneracy in 3D comes from the longitude, which does not exist in
+        // a meridian section.
+        for (int ilat = -90; ilat <= 90; ilat += 5) {
+            auto const p = geo_pos2dp{deg2rad(double(ilat)), 0.0};
+            CHECK(near2(un_at(p).up, un_basis_at(p).up, 1e-13));
+            CHECK(near2(un_at(p).north, un_basis_at(p).north, 1e-13));
+        }
+        CHECK_THROWS_AS(un_at(vec2dp{0.0, 0.0, 1.0}), std::invalid_argument);
+
+        // orthonormal, and ORIENTED: (up, north) is the positive pair, (north, up) the
+        // negative one. That is what forces the axis order -- a motor is a rotation, so
+        // it could never carry (e1, e2) onto (north, up), which is a reflection.
+        auto const u2 = vec2d{F.up.x, F.up.y};
+        auto const n2 = vec2d{F.north.x, F.north.y};
+        CHECK(nrm(u2) == doctest::Approx(1.0).epsilon(1e-14));
+        CHECK(nrm(n2) == doctest::Approx(1.0).epsilon(1e-14));
+        CHECK(dot(u2, n2) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(value_t(wdg(u2, n2)) == doctest::Approx(1.0).epsilon(1e-14));  // +e12
+        CHECK(value_t(wdg(n2, u2)) == doctest::Approx(-1.0).epsilon(1e-14)); // -e12
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the motor: one rotation, and it is the latitude itself
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const M = un_to_ecef_motor(Berlin);
+
+        CHECK(near2(unitize(move2dp(O_2dp, M)), P_B, 1e-6));
+        CHECK(near2(move2dp(x_dir_2dp, M), F.up, 1e-13));    // local e1 -> up
+        CHECK(near2(move2dp(y_dir_2dp, M), F.north, 1e-13)); // local e2 -> north
+
+        // the rotation part IS the rotation by the latitude about the geocenter
+        CHECK(is_same_motion(rgpr(get_motor(vec2dp{-P_B.x, -P_B.y, 0.0}), M),
+                             get_motor(O_2dp, Berlin.lat), 1e-9));
+
+        auto const M_inv = rrev(M);
+        CHECK(near2(unitize(move2dp(P_B, M_inv)), O_2dp, 1e-6));
+
+        // a point 100 m straight up sits at (0, 100) locally
+        auto const P_up = vec2dp{P_B.x + 100.0 * F.up.x, P_B.y + 100.0 * F.up.y, 1.0};
+        CHECK(near2(unitize(move2dp(P_up, M_inv)), vec2dp{100.0, 0.0, 1.0}, 1e-6));
+
+        // ... which is the LOCAL x-axis, since up is the first axis here
+        CHECK(near2(unitize(move2dp(geo_to_ecef(geo_pos2dp{Berlin.lat, 135.0}), M_inv)),
+                    vec2dp{100.0, 0.0, 1.0}, 1e-6));
+
+        // the point-based motor agrees with the position-based one over the sweep
+        for (int ilat = -90; ilat <= 90; ilat += 10) {
+            auto const p = geo_pos2dp{deg2rad(double(ilat)), 250.0};
+            CHECK(is_same_motion(un_motor_at(geo_to_ecef(p)), un_to_ecef_motor(p), 1e-9));
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the same station read in 2D and in 3D
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // a second station in the same meridian, seen from Berlin: the local coordinates
+        // must match the 3D answer at longitude zero, component for component
+        {
+            auto const Cairo2 = to_geo_pos(geo_pos_dms2dp{"30°02'N", 23});
+            auto const Cairo3 = geo_pos{Cairo2.lat, 0.0, Cairo2.height};
+            auto const Berlin3 = geo_pos{Berlin.lat, 0.0, Berlin.height};
+
+            auto const q2 = unitize(move2dp(geo_to_ecef(Cairo2), M_inv));
+            auto const q3 =
+                unitize(move3dp(geo_to_ecef(Cairo3), rrev(enu_to_ecef_motor(Berlin3))));
+
+            // 2D (up, north) against 3D (east, north, up): up <-> z, north <-> y
+            CHECK(q2.x == doctest::Approx(q3.z).epsilon(1e-9));
+            CHECK(q2.y == doctest::Approx(q3.y).epsilon(1e-9));
+            CHECK(std::abs(q3.x) < 1e-6); // nothing to the east, same meridian
+
+            fmt::println("   Cairo seen from Berlin, meridian section (up, north) ="
+                         " ({:.1f}, {:.1f}) km",
+                         q2.x / 1e3, q2.y / 1e3);
+            fmt::println("   the 3D answer at lon 0 (east, north, up)          ="
+                         " ({:.1f}, {:.1f}, {:.1f}) km",
+                         q3.x / 1e3, q3.y / 1e3, q3.z / 1e3);
+        }
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA2DP: geodesics in the meridian section")
