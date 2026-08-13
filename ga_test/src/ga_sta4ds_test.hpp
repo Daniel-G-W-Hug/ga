@@ -2172,4 +2172,36 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("");
     }
 
+
+    TEST_CASE("sta4ds: is_close and is_same_transform")
+    {
+        fmt::println("sta4ds: is_close and is_same_transform");
+
+        auto const big = vec4ds{1.0e6, 2.0e6, 3.0e6, 4.0e6};
+        auto const big_1ulp = vec4ds{std::nextafter(big.x, 1e9), big.y, big.z, big.w};
+        CHECK(big != big_1ulp);
+        CHECK(is_close(big, big_1ulp));
+        CHECK(!is_close(big, vec4ds{big.x * (1.0 + 1e-9), big.y, big.z, big.w}));
+
+        // An STA rotor double-covers its transformation just as a Euclidean one does --
+        // and it covers BOOSTS as well as spatial rotations, which is why the function
+        // is named transform rather than rotation (matching the transform() sandwich).
+        auto const R_rot = get_rotor(g12_4ds, 0.7); // spatial rotation
+        auto const R_bst = get_boost(g14_4ds, 0.5); // boost
+
+        for (auto const& R : {R_rot, R_bst}) {
+            auto const R_neg = mvec4ds_e{-R};
+            CHECK(R != R_neg);                  // representations differ ...
+            CHECK(is_same_transform(R, R_neg)); // ... the transformation does not
+            CHECK(transform(g1_4ds, R) == transform(g1_4ds, R_neg));
+            CHECK(transform(g4_4ds, R) == transform(g4_4ds, R_neg));
+        }
+
+        // a rotation and a boost of the same parameter are NOT the same transformation
+        CHECK(!is_same_transform(R_rot, R_bst));
+        CHECK(!is_same_transform(R_bst, get_boost(g14_4ds, 0.6)));
+
+        fmt::println("");
+    }
+
 } // STA 3D Tests

@@ -22,7 +22,11 @@ namespace hd::ga::ega {
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
+//
 // - is_congruent()                 -> Same up to a scalar factor (is same subspace)
+// - is_close()                     -> Same value within a RELATIVE tolerance
+// - is_same_rotation()             -> Do two rotors describe the same rotation?
+//                                     (rotors double-cover the rotations)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -394,6 +398,78 @@ bool is_congruent(PScalar2d<T> a, PScalar2d<U> b, value_t tolerance = eps)
 
     // All non-zero pseudoscalars in 2D are congruent (represent the full 2D space)
     return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// is_close(): equality within a RELATIVE tolerance
+////////////////////////////////////////////////////////////////////////////////
+//
+// Same question as operator==, but with the threshold scaled by the operands (see
+// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
+// operator== measures against an absolute eps, which cannot resolve anything once
+// coordinates grow large, where a single ulp already exceeds it.
+//
+// Distinct from is_congruent(), which allows an arbitrary scale factor between the
+// operands and so answers "same subspace", not "same value".
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Scalar2d<T> a, Scalar2d<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Vec2d<T> const& a, Vec2d<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<2>({value_t(a.x), value_t(a.y)},
+                                   {value_t(b.x), value_t(b.y)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(PScalar2d<T> a, PScalar2d<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec2d_E<T> const& a, MVec2d_E<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<2>({value_t(a.c0), value_t(a.c1)},
+                                   {value_t(b.c0), value_t(b.c1)}, rel_tol);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// is_same_rotation(): do two rotors describe the same rotation?
+////////////////////////////////////////////////////////////////////////////////
+//
+// NOT the same question as R1 == R2. Rotors DOUBLE-COVER the rotations: the sandwich
+//
+//     X -> R (x) X (x) rev(R)
+//
+// is quadratic in R, so R and -R act identically on every object while comparing unequal
+// component by component. A rotation by 2*pi returns -1 rather than 1 for exactly this
+// reason, and a rotor obtained by a different route (an exp/log round trip, a chain of
+// compositions, a sqrt) routinely comes back negated. Testing rotors with operator==
+// therefore asks about the REPRESENTATION; this asks about the transformation itself.
+//
+// It is decided by what the rotors DO -- where they send the basis directions, which
+// together pin the transformation uniquely -- rather than by comparing coefficients up
+// to a sign. That also keeps the answer right for rotors that are not unit: the sandwich
+// scales by |R|^2, so a scaled rotor stretches what it acts on and is NOT the same
+// rotation; the comparisons below say so.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_same_rotation(MVec2d_E<T> const& R1, MVec2d_E<U> const& R2,
+                      value_t rel_tol = eps_congruent)
+{
+    return is_close(rotate(e1_2d, R1), rotate(e1_2d, R2), rel_tol) &&
+           is_close(rotate(e2_2d, R1), rotate(e2_2d, R2), rel_tol);
 }
 
 } // namespace hd::ga::ega

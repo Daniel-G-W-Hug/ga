@@ -33,7 +33,11 @@ namespace hd::ga::pga {
 // - sup()                                -> point on line/plane that is nearest to origin
 // - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
+//
 // - is_congruent()                       -> Same up to a scalar factor (is same subspace)
+// - is_close()                           -> Same value within a RELATIVE tolerance
+// - is_same_motion()                     -> Do two motors describe the same rigid
+//                                           motion? (motors double-cover them)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1229,6 +1233,112 @@ bool is_congruent(PScalar3dp<T> a, PScalar3dp<U> b, value_t tolerance = eps)
 
     // All non-zero pseudoscalars in 3DP are congruent (represent the full 4D space)
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// is_close(): equality within a RELATIVE tolerance
+////////////////////////////////////////////////////////////////////////////////
+//
+// Same question as operator==, but with the threshold scaled by the operands (see
+// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
+// operator== measures against an absolute eps, which cannot resolve anything once
+// coordinates reach the order of, say, an earth radius, where one ulp is already ~1e-10.
+//
+// Distinct from is_congruent(), which allows an arbitrary scale factor between the
+// operands and so answers "same subspace", not "same value".
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Scalar3dp<T> a, Scalar3dp<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Vec3dp<T> const& a, Vec3dp<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.x), value_t(a.y), value_t(a.z), value_t(a.w)},
+        {value_t(b.x), value_t(b.y), value_t(b.z), value_t(b.w)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(BiVec3dp<T> const& a, BiVec3dp<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<6>({value_t(a.vx), value_t(a.vy), value_t(a.vz),
+                                    value_t(a.mx), value_t(a.my), value_t(a.mz)},
+                                   {value_t(b.vx), value_t(b.vy), value_t(b.vz),
+                                    value_t(b.mx), value_t(b.my), value_t(b.mz)},
+                                   rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(TriVec3dp<T> const& a, TriVec3dp<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.x), value_t(a.y), value_t(a.z), value_t(a.w)},
+        {value_t(b.x), value_t(b.y), value_t(b.z), value_t(b.w)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(PScalar3dp<T> a, PScalar3dp<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec3dp_E<T> const& a, MVec3dp_E<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<8>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7)},
+        rel_tol);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// is_same_motion(): do two motors describe the same rigid motion?
+////////////////////////////////////////////////////////////////////////////////
+//
+// NOT the same question as M1 == M2. Motors DOUBLE-COVER the rigid motions: the sandwich
+//
+//     X -> M (x) X (x) rrev(M)
+//
+// is quadratic in M, so M and -M move every object identically while comparing unequal
+// component by component. A rotation by 2*pi returns -1 rather than 1 for exactly this
+// reason, and a motor obtained by a different route (a log/exp round trip, a chain of
+// compositions, a frame tree walk) routinely comes back negated. Testing motors with
+// operator== therefore asks about the REPRESENTATION; this asks about the MOTION.
+//
+// It is decided by what the motors DO -- where they send the origin and the three axis
+// directions, which together pin a rigid motion uniquely -- rather than by comparing
+// coefficients up to a sign. That keeps the answer right for motors that are not unit:
+// a scaled motor leaves points where they were (the sandwich scales by |M|^2, which
+// unitize divides out again) but stretches directions, so it is NOT the same motion, and
+// the direction comparisons below say so.
+//
+// Tolerances are relative (is_close), since the origin's image carries whatever physical
+// scale the translation has while the axis images are of order one.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_same_motion(MVec3dp_E<T> const& M1, MVec3dp_E<U> const& M2,
+                    value_t rel_tol = eps_congruent)
+{
+    if (!is_close(unitize(move3dp(O_3dp, M1)), unitize(move3dp(O_3dp, M2)), rel_tol)) {
+        return false;
+    }
+    return is_close(move3dp(x_dir_3dp, M1), move3dp(x_dir_3dp, M2), rel_tol) &&
+           is_close(move3dp(y_dir_3dp, M1), move3dp(y_dir_3dp, M2), rel_tol) &&
+           is_close(move3dp(z_dir_3dp, M1), move3dp(z_dir_3dp, M2), rel_tol);
 }
 
 } // namespace hd::ga::pga

@@ -3062,4 +3062,28 @@ TEST_SUITE("EGA 2D Tests")
         CHECK((ps * I_2d) * inv(I_2d) == pscalar2d{4.0});
     }
 
+
+    TEST_CASE("ega2d: is_close and is_same_rotation")
+    {
+        fmt::println("ega2d: is_close and is_same_rotation");
+
+        auto const big = vec2d{1.0e6, 2.0e6};
+        CHECK(big != vec2d{std::nextafter(big.x, 1e9), big.y});
+        CHECK(is_close(big, vec2d{std::nextafter(big.x, 1e9), big.y}));
+        CHECK(!is_close(big, vec2d{big.x * (1.0 + 1e-9), big.y}));
+
+        // rotors double-cover the rotations here too
+        auto const R = exp(-e12_2d * 0.6);
+        auto const R_neg = mvec2d_e{-R};
+        auto const v = vec2d{1.0, 2.0};
+
+        CHECK(R != R_neg);
+        CHECK(is_same_rotation(R, R_neg));
+        CHECK(rotate(v, R) == rotate(v, R_neg));
+        CHECK(is_same_rotation(exp(-e12_2d * pi), mvec2d_e{Scalar2d<double>(1.0)}));
+        CHECK(!is_same_rotation(R, exp(-e12_2d * 0.7)));
+
+        fmt::println("");
+    }
+
 } // EGA 2D Tests

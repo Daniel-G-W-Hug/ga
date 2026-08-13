@@ -286,7 +286,7 @@ function; it is the authoritative per-file index. The split:
 | ---- | ----------------------------------- |
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
-| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent` |
+| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA) |
 | `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), and the `extra_wrenches()` subclass hook for application-specific wrenches |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
 
@@ -302,7 +302,7 @@ the whole tree or hand-rolling a helper:
 
 | File | Provides |
 | ---- | -------- |
-| `ga/ga_value_t.hpp` | the scalar type `value_t` (float/double switch); `eps` (equality) and `eps_congruent`; `is_congruent` + `detail::coeffs_congruent` |
+| `ga/ga_value_t.hpp` | the scalar type `value_t` (float/double switch); `eps` (equality) and `eps_congruent` (both derived from `value_t`'s machine epsilon, so they follow the float/double switch); the coefficient comparators `detail::coeffs_congruent` (equal up to a scale factor) and `detail::coeffs_close` (equal within a relative tolerance) |
 | `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
 | `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
 | `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
@@ -951,18 +951,47 @@ scalar — scalar multiples, **regardless of sign or magnitude**.
 
 - **Relative**, not absolute — scale the per-component threshold by the operands
   (`rel_tol * max(|components|, 1)`), since absolute `eps` is meaningless across magnitudes.
-- **The default is `eps_congruent` (1e-12), not machine `eps`.** Congruence is almost always
+- **The default is `eps_congruent`, not machine `eps`.** Congruence is almost always
   asked of two *independently computed* quantities (results of wedge/dual/motor chains)
   whose difference has accumulated error far beyond a single rounding; machine `eps`
-  (~1.11e-15) rejects geometrically-identical operands. `1e-12` is still ~12 orders below any
-  real geometric signal. Pass a tighter/looser `tolerance` only for a specific reason.
+  (~1.11e-15) rejects geometrically-identical operands. Pass a tighter/looser `tolerance`
+  only for a specific reason.
+- **`eps_congruent` is `4.5e3 * numeric_limits<value_t>::epsilon()`, NOT a literal.** The
+  factor is the error budget (~4500 roundings, i.e. 3-4 significant digits given up to
+  accumulation); for `double` it evaluates to 9.99e-13, the historical `1e-12`. It must
+  stay expressed in machine epsilons because `value_t` is a switch: as a literal, `1e-12`
+  sits 1e5 times *below* `float`'s machine epsilon, so one ulp of rounding already exceeds
+  it and `is_congruent`/`is_close` would answer "different" for every independently
+  computed pair.
+- **`is_close(a, b, rel_tol)` is the `k == 1` sibling** (`detail::coeffs_close`): same
+  relative-tolerance machinery, but asking for the same *value* rather than the same
+  subspace. Use it wherever operands carry a physical scale — `operator==` compares
+  against an absolute `eps` and cannot resolve anything once coordinates are large (at an
+  earth radius one ulp is already ~5e-10). Provided for the PGA graded types + motors.
 
 **Notes:**
 
 - Use type-specific overloads with `requires`, not generic templates — same-grade
   high-order wedges are undefined (e.g. `wdg(BiVec3d, BiVec3d)` → grade 4 in 3D).
-- Provided per graded type in every algebra (EGA2D/3D, PGA2DP/3DP), as the grade
-  structure allows.
+- Provided per graded type in every algebra (EGA2D/3D, PGA2DP/3DP, STA4DS), as the grade
+  structure allows. `is_close` mirrors that same coverage.
+- **The versor-equality test is a third, distinct question: do two versors describe the
+  same transformation?** Provided in every algebra, named after that algebra's
+  sandwich verb, because the transformation each covers differs: `is_same_rotation`
+  (EGA2D/3D, `rotate`), `is_same_motion` (PGA2DP/3DP, `move{2,3}dp` -- a rigid
+  motion, i.e. rotation *and* translation), `is_same_transform` (STA4DS,
+  `transform` -- a Lorentz transformation, so boosts too). Versors **double-cover**
+  the transformations — the
+  sandwich is quadratic in `M`, so `M` and `-M` move every object identically while
+  comparing unequal component by component (a 2π turn returns `-1`, and a versor coming
+  back from a log/exp round trip, a composition chain or a frame-tree walk routinely
+  arrives negated). `operator==` therefore asks about the *representation*; this asks
+  about the *motion*. It is decided by ACTION — where the origin and the axis directions
+  land — not by comparing coefficients up to a sign, which keeps it right for non-unit
+  motors: a scaled motor leaves points where they were (`unitize` divides the `|M|²` back
+  out) but stretches directions, so it is correctly reported as a different motion. The
+  EGA/STA forms compare where the basis directions land; the PGA form also compares the
+  origin's image, since a motion translates.
 
 ## Inverses: `inv()` (geometric) vs `rinv()` (regressive)
 

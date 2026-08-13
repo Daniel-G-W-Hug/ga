@@ -3635,4 +3635,49 @@ TEST_SUITE("EGA 3D Tests")
         CHECK((ps * I_3d) * inv(I_3d) == pscalar3d{4.0}); // theirs, backward -> ps
     }
 
+
+    TEST_CASE("ega3d: is_close and is_same_rotation")
+    {
+        fmt::println("ega3d: is_close and is_same_rotation");
+
+        // is_close: equality within a RELATIVE tolerance, where operator== cannot help.
+        // At coordinates of order 1e6 one ulp already exceeds the absolute eps that
+        // operator== measures against, so values agreeing to every digit compare unequal.
+        auto const big = vec3d{1.0e6, 2.0e6, 3.0e6};
+        auto const big_1ulp = vec3d{std::nextafter(big.x, 1e9), big.y, big.z};
+        CHECK(big != big_1ulp);
+        CHECK(is_close(big, big_1ulp));
+
+        // not merely permissive: a relative 1e-9 is still rejected at the default
+        CHECK(!is_close(big, vec3d{big.x * (1.0 + 1e-9), big.y, big.z}));
+
+        // and distinct from is_congruent, which allows an arbitrary scale factor
+        CHECK(is_congruent(vec3d{1.0, 2.0, 3.0}, vec3d{2.0, 4.0, 6.0}));
+        CHECK(!is_close(vec3d{1.0, 2.0, 3.0}, vec3d{2.0, 4.0, 6.0}));
+
+        // is_same_rotation: rotors DOUBLE-COVER the rotations, so R and -R rotate
+        // identically while comparing unequal component by component
+        auto const R = exp(-e12_3d * 0.6);
+        auto const R_neg = mvec3d_e{-R};
+        auto const v = vec3d{1.0, 2.0, 3.0};
+
+        CHECK(R != R_neg);                 // representations differ ...
+        CHECK(is_same_rotation(R, R_neg)); // ... the rotation does not
+        CHECK(rotate(v, R) == rotate(v, R_neg));
+
+        // a 2*pi turn is the identity rotation but returns the NEGATED rotor
+        auto const R_2pi = exp(-e12_3d * pi);
+        CHECK(is_same_rotation(R_2pi, mvec3d_e{Scalar3d<double>(1.0)}));
+        CHECK(rotate(v, R_2pi) == v);
+
+        // it still separates rotations that really differ
+        CHECK(!is_same_rotation(R, exp(-e12_3d * 0.7)));
+        CHECK(!is_same_rotation(exp(-e12_3d * 0.6), exp(-e23_3d * 0.6)));
+
+        // a scaled rotor is not the same rotation -- the sandwich scales by |R|^2
+        CHECK(!is_same_rotation(R, mvec3d_e{2.0 * R}));
+
+        fmt::println("");
+    }
+
 } // EGA 3D Tests

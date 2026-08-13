@@ -203,7 +203,11 @@ namespace hd::ga::sta {
 //   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
 //   - project_onto() / reject_from()  -> projection / rejection (onto vector or bivector)
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
+//
 //   - is_congruent()                  -> same subspace up to a scalar factor
+//   - is_close()                      -> same value within a RELATIVE tolerance
+//   - is_same_transform()             -> do two rotors describe the same Lorentz
+//                                        transformation? (rotors double-cover them)
 //
 // exp() / log() / sqrt() handle general (non-simple) rotors -- a Lorentz boost and a
 // spatial rotation combined in dual planes -- via the invariant bivector decomposition
@@ -920,6 +924,111 @@ bool is_congruent(PScalar4ds<T> a, PScalar4ds<U> b, value_t tolerance = eps)
 
     // All non-zero pseudoscalars in 4ds are congruent (represent the full 4D space)
     return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// is_close(): equality within a RELATIVE tolerance
+////////////////////////////////////////////////////////////////////////////////
+//
+// Same question as operator==, but with the threshold scaled by the operands (see
+// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
+// operator== measures against an absolute eps, which cannot resolve anything once
+// coordinates grow large, where a single ulp already exceeds it.
+//
+// Distinct from is_congruent(), which allows an arbitrary scale factor between the
+// operands and so answers "same subspace", not "same value".
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Scalar4ds<T> a, Scalar4ds<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(Vec4ds<T> const& a, Vec4ds<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.x), value_t(a.y), value_t(a.z), value_t(a.w)},
+        {value_t(b.x), value_t(b.y), value_t(b.z), value_t(b.w)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(BiVec4ds<T> const& a, BiVec4ds<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<6>({value_t(a.vx), value_t(a.vy), value_t(a.vz),
+                                    value_t(a.mx), value_t(a.my), value_t(a.mz)},
+                                   {value_t(b.vx), value_t(b.vy), value_t(b.vz),
+                                    value_t(b.mx), value_t(b.my), value_t(b.mz)},
+                                   rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(TriVec4ds<T> const& a, TriVec4ds<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.x), value_t(a.y), value_t(a.z), value_t(a.w)},
+        {value_t(b.x), value_t(b.y), value_t(b.z), value_t(b.w)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(PScalar4ds<T> a, PScalar4ds<U> b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<1>({value_t(a)}, {value_t(b)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec4ds_E<T> const& a, MVec4ds_E<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<8>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7)},
+        rel_tol);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// is_same_transform(): do two rotors describe the same Lorentz transformation?
+////////////////////////////////////////////////////////////////////////////////
+//
+// NOT the same question as R1 == R2. Rotors DOUBLE-COVER the Lorentz transformations: the
+// sandwich
+//
+//     X -> R (x) X (x) rev(R)
+//
+// is quadratic in R, so R and -R act identically on every object while comparing unequal
+// component by component. A rotation by 2*pi returns -1 rather than 1 for exactly this
+// reason, and a rotor obtained by a different route (an exp/log round trip, a chain of
+// compositions, a sqrt) routinely comes back negated. Testing rotors with operator==
+// therefore asks about the REPRESENTATION; this asks about the transformation itself.
+//
+// It is decided by what the rotors DO -- where they send the basis directions, which
+// together pin the transformation uniquely -- rather than by comparing coefficients up
+// to a sign. That also keeps the answer right for rotors that are not unit: the sandwich
+// scales by |R|^2, so a scaled rotor stretches what it acts on and is NOT the same
+// Lorentz transformation; the comparisons below say so.
+//
+// Named transform rather than motion or rotation: an STA rotor covers boosts as well
+// as spatial rotations, matching this algebra's transform() sandwich verb.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_same_transform(MVec4ds_E<T> const& R1, MVec4ds_E<U> const& R2,
+                       value_t rel_tol = eps_congruent)
+{
+    return is_close(transform(g1_4ds, R1), transform(g1_4ds, R2), rel_tol) &&
+           is_close(transform(g2_4ds, R1), transform(g2_4ds, R2), rel_tol) &&
+           is_close(transform(g3_4ds, R1), transform(g3_4ds, R2), rel_tol) &&
+           is_close(transform(g4_4ds, R1), transform(g4_4ds, R2), rel_tol);
 }
 
 } // namespace hd::ga::sta
