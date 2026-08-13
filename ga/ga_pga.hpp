@@ -48,5 +48,8 @@
 // mechanics convenience aliases (after the mechanics ops headers they depend on)
 #include "ga_usr_types_mechanics.hpp" // inertia2dp / inertia3dp (value_t-based)
 
+// geodetic coordinates on a reference ellipsoid (after the pga3dp ops it builds on)
+#include "ga_usr_geodesics.hpp" // ellipsoid, geo_pos, ECEF <-> ENU
+
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

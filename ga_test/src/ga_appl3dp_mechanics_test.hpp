@@ -1599,3 +1599,1285 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
     }
 
 } // TEST_SUITE("PGA3DP: closed_loop_system3dp")
+
+TEST_SUITE("PGA3DP: coordinate transformation")
+{
+
+    TEST_CASE("pga3dp: coordinate transformation ECEF to ENU")
+    {
+        fmt::println("pga3dp: coordinate transformation ECEF to ENU");
+
+        // ECEF: Earth-Centered, Earth-Fixed
+        // -> cs rotates with earth, point fixed on earth surface has fixed coordinates
+        // -> origin of cs in center of mass of earth (geocenter) at (0,0,0,1)
+        // -> e1 axis (X) in equatorial plane through prime meridian (0° longitude)
+        // -> e2 axis (Y) in equatorial plane 90° east of e1 (90° East longitude)
+        // -> e3 axis (Z) aligns with the earth's mean rotational axis, pointing north
+        //
+        //
+        // ENU: East-North-Up
+        // -> cs local Cartesian system representing a each point on earth
+        // -> e1 axis (X) points locally east
+        // -> e2 axis (Y) points locally north
+        // -> e3 axis (Z) points locally upwards
+
+        // HINT 1: both systems are right handed systems
+        // HINT 2: this also works directly in EGA3D if only directions are relevant
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the input form: what a user copies out of an encyclopedia entry
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // the spellings a user might realistically paste in; each is only an EXAMPLE of a
+        // notation, they are not all meant to name the same spot
+        geo_pos_dms Berlin0 = {"52°31'12.0\"N", "13°24'36.0\"E", 35};
+        geo_pos_dms Berlin1 = {"52°31'12\"N", "13°24'36\"E", 35};
+        geo_pos_dms Berlin3 = {"52°31'N", "13°24'E", 35};
+        geo_pos_dms Berlin4 = {"52°31' N", "13°24' E", 35};
+        geo_pos_dms Berlin5 = {"52.51667N", "13.4E", 35};
+        geo_pos_dms Berlin6 = {"52.15167N", "13.4E", 35};
+
+        // nothing is parsed on construction -- the strings are kept as given, and
+        // to_geo_pos() below is the one place the conversion happens
+        CHECK(Berlin0.lat == "52°31'12.0\"N");
+        CHECK(Berlin0.height == 35.0);
+
+        // what the parser has to reproduce:
+        //
+        //     Berlin0,1  : 52°31'12" N, 13°24'36" E  (with seconds)  -> 52.52   , 13.41
+        //     Berlin3,4,5: 52°31'    N, 13°24'    E  (no seconds)    -> 52.51666, 13.4
+        //     Berlin6    : decimal degrees, approximate              -> 52.15167, 13.4
+        //
+        // dropping the 12" moves the position by ~370 m, so the first two groups differ;
+        // Berlin6 is a deliberately approximate value and lands elsewhere again.
+
+        CHECK(dms2deg(Berlin0.lat, geo_angle::latitude) ==
+              doctest::Approx(52.52).epsilon(1e-12));
+        CHECK(dms2deg(Berlin0.lon, geo_angle::longitude) ==
+              doctest::Approx(13.41).epsilon(1e-12));
+
+        CHECK(dms2deg(Berlin1.lat, geo_angle::latitude) == // seconds w/o decimal point
+              dms2deg(Berlin0.lat, geo_angle::latitude));
+        CHECK(dms2deg(Berlin1.lon, geo_angle::longitude) ==
+              dms2deg(Berlin0.lon, geo_angle::longitude));
+
+        CHECK(dms2deg(Berlin3.lat, geo_angle::latitude) ==
+              doctest::Approx(52.0 + 31.0 / 60.0).epsilon(1e-12));
+        CHECK(dms2deg(Berlin4.lat, geo_angle::latitude) == // blank before the letter
+              dms2deg(Berlin3.lat, geo_angle::latitude));
+        CHECK(dms2deg(Berlin4.lon, geo_angle::longitude) ==
+              dms2deg(Berlin3.lon, geo_angle::longitude));
+
+        // decimal degrees, no delimiter at all -- the same position as Berlin3/4 to the
+        // five decimals given (~1 m)
+        CHECK(dms2deg(Berlin5.lat, geo_angle::latitude) ==
+              doctest::Approx(dms2deg(Berlin3.lat, geo_angle::latitude)).epsilon(1e-7));
+        CHECK(dms2deg(Berlin6.lat, geo_angle::latitude) ==
+              doctest::Approx(52.15167).epsilon(1e-12));
+        CHECK(dms2deg(Berlin6.lon, geo_angle::longitude) ==
+              doctest::Approx(13.4).epsilon(1e-12));
+
+        // The German 'O' ("Ost") is deliberately NOT accepted -- only N/S/E/W. 'O' reads
+        // as "Ouest" (= West) in French, so accepting it would silently flip the sign for
+        // some users; the parser fails loudly instead of guessing.
+        CHECK_THROWS_AS(dms2deg("13°24'36\"O", geo_angle::longitude),
+                        std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("13°24'O", geo_angle::longitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("13°24' O", geo_angle::longitude), std::invalid_argument);
+
+        // signed decimal degrees are accepted as well, but not together with a
+        // hemisphere letter; the hemisphere letter must match the angle asked for
+        CHECK(dms2deg("-33°51'54\"", geo_angle::latitude) ==
+              doctest::Approx(-(33.0 + 51.0 / 60.0 + 54.0 / 3600.0)).epsilon(1e-12));
+        CHECK(dms2deg("151°12'36\"E", geo_angle::longitude) ==
+              doctest::Approx(151.0 + 12.0 / 60.0 + 36.0 / 3600.0).epsilon(1e-12));
+        CHECK(dms2rad("90°N", geo_angle::latitude) ==
+              doctest::Approx(0.5 * pi).epsilon(1e-14));
+        CHECK_THROWS_AS(dms2deg("-52°31'N", geo_angle::latitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("52°31'E", geo_angle::latitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("52°31'N", geo_angle::longitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("52°70'N", geo_angle::latitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("95°N", geo_angle::latitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("52'31°N", geo_angle::latitude), std::invalid_argument);
+        CHECK_THROWS_AS(dms2deg("north", geo_angle::latitude), std::invalid_argument);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the reference ellipsoid
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // the radius runs from the equatorial to the polar radius, and is monotone in
+        // between -- the two radii ARE the bases the shape is built on
+        CHECK(wgs84.radius(0.0) == doctest::Approx(wgs84.r_equator).epsilon(1e-15));
+        CHECK(wgs84.radius(0.5 * pi) == doctest::Approx(wgs84.r_pole).epsilon(1e-15));
+        CHECK(wgs84.radius(deg2rad(45.0)) < wgs84.radius(deg2rad(30.0)));
+        CHECK(wgs84.radius(deg2rad(60.0)) < wgs84.radius(deg2rad(45.0)));
+        CHECK(wgs84.radius(deg2rad(-52.52)) == // symmetric about the equator
+              doctest::Approx(wgs84.radius(deg2rad(52.52))).epsilon(1e-15));
+
+        CHECK(wgs84.flattening() == doctest::Approx(1.0 / 298.257223563).epsilon(1e-12));
+        CHECK(wgs84.e_sq() == doctest::Approx(0.00669437999014132).epsilon(1e-12));
+
+        // geodetic vs geocentric latitude: equal at the equator and the pole, and
+        // furthest apart in between (~11.5' at 45°)
+        CHECK(wgs84.geocentric_lat(0.0) ==
+              doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(wgs84.geocentric_lat(0.5 * pi) == doctest::Approx(0.5 * pi).epsilon(1e-14));
+        CHECK(rad2deg(deg2rad(45.0) - wgs84.geocentric_lat(deg2rad(45.0))) * 60.0 ==
+              doctest::Approx(11.5).epsilon(2e-2)); // in arc minutes
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the calculation form
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const B0 = to_geo_pos(Berlin0);
+
+        CHECK(B0.lat == doctest::Approx(deg2rad(52.52)).epsilon(1e-14));
+        CHECK(B0.lon == doctest::Approx(deg2rad(13.41)).epsilon(1e-14));
+        CHECK(B0.height == 35.0); // passed through unchanged, along the normal
+
+        // the "total radius" is derived, not stored: adding the height to the ellipsoid
+        // radius is only exact ON the surface, because off it the height runs along the
+        // normal rather than along the geocentric ray (0.18 mm apart already at 35 m)
+        CHECK(distance_from_geocenter(B0) ==
+              doctest::Approx(6364746.977026).epsilon(1e-13));
+        CHECK(distance_from_geocenter(geo_pos{B0.lat, B0.lon, 0.0}) ==
+              doctest::Approx(wgs84.radius(B0.lat)).epsilon(1e-13));
+        CHECK(std::abs(distance_from_geocenter(B0) - (wgs84.radius(B0.lat) + B0.height)) <
+              1e-3); // the naive sum, off by well under a millimetre at this height
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // geodetic -> ECEF
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // component-wise comparison with an EXPLICIT tolerance -- operator== compares
+        // against an absolute eps, which is meaningless once coordinates are of the
+        // order of the earth's radius (3.8e6 m: one ulp is already ~5e-10 m)
+        auto const near = [](vec3dp const& a, vec3dp const& b, value_t tol) {
+            return std::abs(a.x - b.x) < tol && std::abs(a.y - b.y) < tol &&
+                   std::abs(a.z - b.z) < tol && std::abs(a.w - b.w) < tol;
+        };
+
+        // two positions where the ellipsoid fixes the answer analytically: on the
+        // equator at the prime meridian the point is the equatorial radius, at the north
+        // pole it is the polar radius
+        auto const P_equ = geo_to_ecef(geo_pos{0.0, 0.0, 0.0});
+        CHECK(near(P_equ, vec3dp{wgs84.r_equator, 0.0, 0.0, 1.0}, 1e-9));
+
+        auto const P_pole = geo_to_ecef(geo_pos{0.5 * pi, 0.0, 0.0});
+        CHECK(near(P_pole, vec3dp{0.0, 0.0, wgs84.r_pole, 1.0}, 1e-6));
+
+        // Berlin0 against an independently computed reference [m] (pinned to the tenth
+        // of a millimetre, i.e. ~1.5e-11 relative)
+        auto const P_B0 = geo_to_ecef(B0);
+        CHECK(P_B0.x == doctest::Approx(3783187.073822).epsilon(1e-11));
+        CHECK(P_B0.y == doctest::Approx(901980.086455).epsilon(1e-11));
+        CHECK(P_B0.z == doctest::Approx(5038246.874625).epsilon(1e-11));
+        CHECK(P_B0.w == 1.0); // a point, not a direction
+
+        CHECK(std::sqrt(P_B0.x * P_B0.x + P_B0.y * P_B0.y + P_B0.z * P_B0.z) ==
+              doctest::Approx(distance_from_geocenter(B0)).epsilon(1e-13));
+
+        // ecef_to_geo (Bowring) inverts it -- a genuine cross-check, since the two are
+        // computed by different closed-form expressions
+        for (auto const& p : {B0, to_geo_pos(Berlin6), geo_pos{0.0, 0.0, 0.0},
+                              to_geo_pos(geo_pos_dms{"33°51'54\"S", "151°12'36\"E", 58}),
+                              to_geo_pos(geo_pos_dms{"45°N", "179°54'W", 4000}),
+                              geo_pos{deg2rad(89.999), deg2rad(-120.0), 4000.0}}) {
+            auto const q = ecef_to_geo(geo_to_ecef(p));
+            CHECK(q.lat == doctest::Approx(p.lat).scale(1.0).epsilon(1e-12));
+            CHECK(q.lon == doctest::Approx(p.lon).scale(1.0).epsilon(1e-12));
+            CHECK(q.height == doctest::Approx(p.height).scale(1.0).epsilon(1e-8));
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the local ENU frame -- built from the geometry, and cross-checked by trig
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // enu_at() derives the frame from the meridian plane N = wdg(e3, g) alone, with
+        // g the ellipsoid gradient at the position: up = g, north = (g << N),
+        // east = dual(N). Up is the ELLIPSOID NORMAL, i.e. the local vertical.
+        auto const F = enu_at(B0);
+
+        // the same frame written out from the angles -- an independent implementation,
+        // so agreement between the two is a real cross-check, not a tautology
+        auto const G = enu_basis_at(B0);
+
+        CHECK(near(F.east, G.east, 1e-14));
+        CHECK(near(F.north, G.north, 1e-14));
+        CHECK(near(F.up, G.up, 1e-14));
+
+        // and both against an independently computed reference
+        CHECK(
+            near(F.east, vec3dp{-0.231917681383160, 0.972735415753872, 0.0, 0.0}, 1e-14));
+        CHECK(near(F.north,
+                   vec3dp{-0.771929548448704, -0.184041937990537, 0.608484459368082, 0.0},
+                   1e-14));
+        CHECK(near(F.up,
+                   vec3dp{0.591894383563182, 0.141118304974331, 0.793565789778978, 0.0},
+                   1e-14));
+
+        // up is the ellipsoid NORMAL, not the ray from the geocenter: it is parallel to
+        // the surface gradient 2*(x/a^2, y/a^2, z/b^2) at the foot point ...
+        {
+            auto const S = geo_to_ecef(geo_pos{B0.lat, B0.lon, 0.0});
+            auto const aa = wgs84.r_equator * wgs84.r_equator;
+            auto const bb = wgs84.r_pole * wgs84.r_pole;
+            CHECK(is_congruent(vec3dp{S.x / aa, S.y / aa, S.z / bb, 0.0}, F.up));
+        }
+
+        // ... and it is measurably NOT the station ray -- 11.2' apart at this latitude,
+        // which is the whole reason the normal is the one used in practice
+        {
+            auto const ray = vec3dp{P_B0.x, P_B0.y, P_B0.z, 0.0};
+            auto const r = std::sqrt(ray.x * ray.x + ray.y * ray.y + ray.z * ray.z);
+            auto const cos_a = (ray.x * F.up.x + ray.y * F.up.y + ray.z * F.up.z) / r;
+            auto const arcmin = rad2deg(std::acos(std::min(1.0, cos_a))) * 60.0;
+            CHECK(arcmin == doctest::Approx(11.2).epsilon(2e-2));
+        }
+
+        // taking the gradient AT the position instead of at its foot point is exact on
+        // the surface, and drifts only slowly with height (see enu_at)
+        {
+            auto const p0 = geo_pos{B0.lat, B0.lon, 0.0};
+            CHECK(near(enu_at(geo_to_ecef(p0)).up, enu_basis_at(p0).up, 1e-15));
+
+            auto const p1 = geo_pos{B0.lat, B0.lon, 1000.0};
+            CHECK(near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-6));
+            CHECK(!near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-9));
+        }
+
+        // orthonormal and right-handed: east x north = up (the EGA3D cross product,
+        // reachable here because only directions are involved -- HINT 2 above)
+        auto const e3d = vec3d{F.east.x, F.east.y, F.east.z};
+        auto const n3d = vec3d{F.north.x, F.north.y, F.north.z};
+        auto const u3d = vec3d{F.up.x, F.up.y, F.up.z};
+        CHECK(nrm(e3d) == doctest::Approx(1.0).epsilon(1e-14));
+        CHECK(nrm(n3d) == doctest::Approx(1.0).epsilon(1e-14));
+        CHECK(nrm(u3d) == doctest::Approx(1.0).epsilon(1e-14));
+        CHECK(dot(e3d, n3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(dot(n3d, u3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(dot(u3d, e3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(cross(e3d, n3d) == u3d);
+
+        // The frame must hold up over the whole latitude range, not just at the one
+        // station pinned above. The degeneracy guards are the fragile part: the gradient
+        // carries a 1/a^2 factor, so a guard written against an absolute eps starts
+        // rejecting perfectly ordinary high-latitude positions long before the pole.
+        // Swept on the surface, where the gradient IS the normal, so the two forms may be
+        // held to full precision (off the surface they part by the documented drift --
+        // checked separately above).
+        for (int i = -89; i <= 89; ++i) {
+            auto const p = geo_pos{deg2rad(double(i)), deg2rad(0.37 * double(i)), 0.0};
+            auto const Fi = enu_at(geo_to_ecef(p));
+            auto const Gi = enu_basis_at(p);
+            CHECK(near(Fi.east, Gi.east, 1e-13));
+            CHECK(near(Fi.north, Gi.north, 1e-13));
+            CHECK(near(Fi.up, Gi.up, 1e-13));
+        }
+
+        // The MOTOR is what every later transformation runs on, and so far it has only
+        // been exercised at one northern station. The frame sweep above cannot cover it:
+        // a wrong sign in Rz(lon + 90°) or Rx(90° - lat) lives in enu_to_ecef_motor
+        // alone. So sweep the motor against the frame over both hemispheres and all four
+        // longitude quadrants -- if the two agree everywhere, no sign is left to guess.
+        // the poles are included: the geo_pos overload has no degenerate case, since it
+        // builds the meridian plane from the longitude rather than from the position
+        for (int ilat = -90; ilat <= 90; ilat += 5) {
+            for (int ilon = -180; ilon < 180; ilon += 15) {
+
+                auto const p =
+                    geo_pos{deg2rad(double(ilat)), deg2rad(double(ilon)), 250.0};
+                auto const Mi = enu_to_ecef_motor(p);
+                auto const Fi = enu_basis_at(p);
+
+                CHECK(near(move3dp(x_dir_3dp, Mi), Fi.east, 1e-13));
+                CHECK(near(move3dp(y_dir_3dp, Mi), Fi.north, 1e-13));
+                CHECK(near(move3dp(z_dir_3dp, Mi), Fi.up, 1e-13));
+
+                // the GA construction agrees with both, poles included
+                auto const Gi = enu_at(p);
+                CHECK(near(Gi.east, Fi.east, 1e-13));
+                CHECK(near(Gi.north, Fi.north, 1e-13));
+                CHECK(near(Gi.up, Fi.up, 1e-13));
+
+                // the motor puts the ENU origin on the station ...
+                CHECK(near(unitize(move3dp(O_3dp, Mi)), geo_to_ecef(p), 1e-6));
+                // ... and its inverse brings the station back to the ENU origin
+                CHECK(near(unitize(move3dp(geo_to_ecef(p), rrev(Mi))), O_3dp, 1e-6));
+            }
+        }
+
+        // AT THE POLE only one axis is determined. Up is the polar axis, but every
+        // horizontal direction is south (north pole), so the frame is free to rotate
+        // about up -- and the right-hand rule cannot close that gap, since it fixes the
+        // third axis only once a horizontal one is given. Which frame comes out is
+        // therefore a matter of WHICH MERIDIAN the pole is approached along, and the two
+        // overloads differ in what they can know about it:
+        {
+            // a geo_pos names a meridian, so the frame follows it continuously ...
+            for (auto const lon_deg : {0.0, 45.0, 90.0, -90.0, 180.0}) {
+                auto const at_pole = geo_pos{0.5 * pi, deg2rad(lon_deg), 0.0};
+                auto const nearly = geo_pos{deg2rad(89.999999), deg2rad(lon_deg), 0.0};
+
+                CHECK(near(enu_at(at_pole).east, enu_at(nearly).east, 1e-7));
+                CHECK(near(enu_at(at_pole).north, enu_at(nearly).north, 1e-7));
+                CHECK(near(enu_at(at_pole).up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));
+
+                // still an orthonormal right-handed triad, exactly at the pole
+                auto const Fp = enu_at(at_pole);
+                CHECK(cross(vec3d{Fp.east.x, Fp.east.y, Fp.east.z},
+                            vec3d{Fp.north.x, Fp.north.y, Fp.north.z}) ==
+                      vec3d{Fp.up.x, Fp.up.y, Fp.up.z});
+            }
+
+            // ... whereas a bare ECEF point on the axis carries no longitude, so the
+            // prime meridian is taken by convention -- the same choice ecef_to_geo makes
+            // when it reports lon == 0 there
+            auto const F_np = enu_at(P_pole);
+            CHECK(near(F_np.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));   // +e2
+            CHECK(near(F_np.north, vec3dp{-1.0, 0.0, 0.0, 0.0}, 1e-13)); // -e1
+            CHECK(near(F_np.up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));     // +e3
+            CHECK(near(F_np.east, enu_at(geo_pos{0.5 * pi, 0.0, 0.0}).east, 1e-13));
+
+            auto const F_sp = enu_at(geo_to_ecef(geo_pos{-0.5 * pi, 0.0, 0.0}));
+            CHECK(near(F_sp.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));  // +e2
+            CHECK(near(F_sp.north, vec3dp{1.0, 0.0, 0.0, 0.0}, 1e-13)); // +e1
+            CHECK(near(F_sp.up, vec3dp{0.0, 0.0, -1.0, 0.0}, 1e-13));   // -e3
+        }
+
+        // enu_motor_at(): the motor for a station given as an ECEF point. It must agree
+        // with the geo_pos form everywhere -- including lon = 90 deg, where the tempting
+        // "build the motor by aligning the reference frame onto the local one"
+        // construction collapses (that rotation is by pi there, so its axis is
+        // undetermined). See the note at enu_motor_at.
+        for (int ilat = -80; ilat <= 80; ilat += 10) {
+            for (int ilon = -180; ilon < 180; ilon += 15) {
+                auto const p =
+                    geo_pos{deg2rad(double(ilat)), deg2rad(double(ilon)), 250.0};
+                auto const Mp = enu_motor_at(geo_to_ecef(p));
+                CHECK(is_same_motion(Mp, enu_to_ecef_motor(p), 1e-9));
+            }
+        }
+
+        // The poles are excluded above on purpose, and this is the reason: a point ON
+        // the axis carries no longitude, so the point-based form can only produce the
+        // prime-meridian frame -- the same convention enu_at(vec3dp) takes, and the same
+        // one ecef_to_geo takes when it reports lon == 0 there. It therefore agrees with
+        // the geo_pos form only for a station whose longitude IS zero.
+        for (auto const lat : {0.5 * pi, -0.5 * pi}) {
+            auto const at_zero = geo_pos{lat, 0.0, 250.0};
+            CHECK(is_same_motion(enu_motor_at(geo_to_ecef(at_zero)),
+                                 enu_to_ecef_motor(at_zero), 1e-9));
+
+            auto const at_90 = geo_pos{lat, 0.5 * pi, 250.0};
+            CHECK(!is_same_motion(enu_motor_at(geo_to_ecef(at_90)),
+                                  enu_to_ecef_motor(at_90), 1e-9));
+            // ... and what it does produce is the lon == 0 motor
+            CHECK(is_same_motion(enu_motor_at(geo_to_ecef(at_90)),
+                                 enu_to_ecef_motor(at_zero), 1e-9));
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the height datum: a quoted elevation is orthometric, geo_pos is ellipsoidal
+        /////////////////////////////////////////////////////////////////////////////////
+
+        {
+            geo_pos_dms const town = {"52°31'12\"N", "13°24'36\"E", 35};
+
+            value_t const N_geoid = 45.0; // geoid undulation around Berlin [m]
+            auto const plain = to_geo_pos(town);
+            auto const corrected = to_geo_pos(town, N_geoid);
+
+            // h = H + N: only the height moves, the angles are untouched, so the local
+            // frame's orientation is unaffected
+            CHECK(corrected.height == doctest::Approx(35.0 + N_geoid).epsilon(1e-14));
+            CHECK(corrected.lat == plain.lat);
+            CHECK(corrected.lon == plain.lon);
+            CHECK(near(enu_at(corrected).up, enu_at(plain).up, 1e-15));
+            CHECK(near(enu_at(corrected).east, enu_at(plain).east, 1e-15));
+
+            // and the position moves by exactly N along the local vertical -- which is
+            // what "measured along the ellipsoid normal" means
+            auto const P0 = geo_to_ecef(plain);
+            auto const P1 = geo_to_ecef(corrected);
+            auto const up = enu_at(plain).up;
+            CHECK(near(P1,
+                       vec3dp{P0.x + N_geoid * up.x, P0.y + N_geoid * up.y,
+                              P0.z + N_geoid * up.z, 1.0},
+                       1e-6));
+
+            // read back in the uncorrected station's own ENU frame it is straight up
+            auto const q = unitize(move3dp(P1, rrev(enu_to_ecef_motor(plain))));
+            CHECK(near(q, vec3dp{0.0, 0.0, N_geoid, 1.0}, 1e-6));
+
+            // the default really is zero, i.e. the quoted number passes through
+            CHECK(plain.height == 35.0);
+        }
+
+        // The geocenter is the one case that CANNOT be resolved by a convention: there
+        // is no local vertical there either, so no axis of the frame is determined -- a
+        // different situation from the pole, where one axis survives. It stays a throw.
+        CHECK_THROWS_AS(enu_at(vec3dp{0.0, 0.0, 0.0, 1.0}), std::invalid_argument);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the ECEF <-> ENU motor
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // the motor must reproduce that frame: it takes the ENU origin to the station
+        // point and the ENU axis directions to east/north/up
+        auto const M = enu_to_ecef_motor(B0);
+
+        // 1e-6 m = one micrometre, i.e. ~1.5e-13 relative on the earth's radius and
+        // roughly 3 ulp of the coordinates involved
+        CHECK(near(unitize(move3dp(O_3dp, M)), P_B0, 1e-6));
+        CHECK(near(move3dp(x_dir_3dp, M), F.east, 1e-14));
+        CHECK(near(move3dp(y_dir_3dp, M), F.north, 1e-14));
+        CHECK(near(move3dp(z_dir_3dp, M), F.up, 1e-14));
+
+        // and the inverse direction ECEF -> ENU is rrev(M)
+        auto const M_inv = rrev(M);
+
+        // the station is the ENU origin
+        CHECK(near(unitize(move3dp(P_B0, M_inv)), O_3dp, 1e-6));
+
+        // a point 100 m straight up over the station has ENU coordinates (0, 0, 100)
+        auto const P_up = vec3dp{P_B0.x + 100.0 * F.up.x, P_B0.y + 100.0 * F.up.y,
+                                 P_B0.z + 100.0 * F.up.z, 1.0};
+        CHECK(near(unitize(move3dp(P_up, M_inv)), vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
+
+        // the same station quoted 100 m higher sits at the same ENU spot -- this is the
+        // height being measured along the ellipsoid normal, i.e. along ENU's up
+        CHECK(near(unitize(move3dp(
+                       geo_to_ecef(geo_pos{B0.lat, B0.lon, B0.height + 100.0}), M_inv)),
+                   vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // a second station seen from the first
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // a rigid motion preserves distances: the ENU coordinates of a second station
+        // must have the same length as the ECEF chord between the two stations
+        {
+            geo_pos_dms Madrid_dms = {"40°25'N", "3°43'W", 650};
+            auto const Madrid = to_geo_pos(Madrid_dms);
+            auto const P_M = geo_to_ecef(Madrid);
+            auto const Q_M = unitize(move3dp(P_M, M_inv)); // Madrid in Berlin's ENU
+
+            auto const dx = P_M.x - P_B0.x;
+            auto const dy = P_M.y - P_B0.y;
+            auto const dz = P_M.z - P_B0.z;
+            auto const chord = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+            CHECK(std::sqrt(Q_M.x * Q_M.x + Q_M.y * Q_M.y + Q_M.z * Q_M.z) ==
+                  doctest::Approx(chord).epsilon(1e-12));
+
+            // Madrid is south-west of Berlin and, being far around the curve, well below
+            // the local horizon plane
+            CHECK(Q_M.x < 0.0); // west
+            CHECK(Q_M.y < 0.0); // south
+            CHECK(Q_M.z < 0.0); // below the local horizon plane
+
+            fmt::println("   Madrid seen from Berlin in ENU: ({:.1f}, {:.1f}, {:.1f}) m,"
+                         " chord = {:.1f} m",
+                         Q_M.x, Q_M.y, Q_M.z, chord);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the types print
+        /////////////////////////////////////////////////////////////////////////////////
+
+        CHECK(fmt::format("{}", Berlin0) ==
+              "geo_pos_dms(lat = 52°31'12.0\"N, lon = 13°24'36.0\"E, height = 35 m)");
+        CHECK(fmt::format("{:.3f}", wgs84) ==
+              "ellipsoid(r_equator = 6378137.000, r_pole = 6356752.314)");
+        CHECK(fmt::format("{:.4f}", B0) ==
+              "geo_pos(lat = 0.9166 rad, lon = 0.2340 rad, height = 35.0000 m)");
+        CHECK(fmt::format("{:.3f}", F).starts_with("enu_frame(east = Vec3dp("));
+
+        fmt::println("   {}", Berlin0);
+        fmt::println("   {:.6f}", B0);
+        fmt::println("   {:.6f}", F);
+
+        fmt::println("");
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Satellites seen from the ground: ECEF and the two local ENU frames
+    /////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ORBIT MODEL (stated up front, because it fixes every number below).
+    //
+    // Each orbit is treated as a CIRCLE FIXED IN ECEF, sampled geometrically at 60 points
+    // around it. The earth is not advanced between samples: the sweep walks the orbit's
+    // geometry, it is not a time history. That is what makes the sweep useful for
+    // catching sign errors -- it visits all 60 orientations of every orbit -- and it is
+    // why the polar satellite stays in the lon = 0° plane throughout, as specified.
+    //
+    // The VELOCITY at each sampled point is nevertheless the physical one. A body on a
+    // circular orbit of radius r runs at the mean motion n = sqrt(mu/r^3) in the INERTIAL
+    // frame, so its ECEF velocity carries the frame-rotation term:
+    //
+    //     v_inertial = n * (h x p)                h = orbit normal, p = position
+    //     v_ecef     = v_inertial - omega x p     omega = earth rotation rate about e3
+    //
+    // Equivalently the whole configuration rotates rigidly in ECEF at
+    //
+    //     Omega_ecef = n * h - omega * e3
+    //
+    // which is the form the frame-tree block below hands to kinematic_system3dp.
+    //
+    // Two consequences worth watching, both asserted below:
+    //
+    // - the geostationary ring has n == omega, so v_ecef vanishes at EVERY sampled point
+    // --
+    //   the satellite stands still over the ground, which is the definition;
+    // - the polar satellite's POSITION stays in the lon = 0° plane while its ECEF
+    // VELOCITY
+    //   does not: the earth turning underneath adds a westward component. A real polar
+    //   orbit would precess out of that plane over time; here the earth is frozen, so the
+    //   plane is the orbit's orientation at the sampled instant.
+    //
+    // The satellite body frame is as specified: x along the flight direction, z towards
+    // the geocenter (nadir), y completing a right-handed triad, i.e. y = z x x. "Flight
+    // direction" is the INERTIAL velocity -- for the geostationary satellite the ECEF
+    // velocity is zero and would not define a direction at all.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    // WGS84 gravitational parameter and earth rotation rate
+    inline value_t const mu_earth = 3.986004418e14;  // [m^3/s^2]
+    inline value_t const omega_earth = 7.2921150e-5; // [rad/s]
+
+    // a circular orbit as an earth-fixed circle: the plane is spanned by the orthonormal
+    // pair (u0, u1) and the body runs from u0 towards u1
+    struct circular_orbit {
+        value_t r;    // radius from the geocenter [m]
+        vec3d u0, u1; // orthonormal spanning pair, motion runs u0 -> u1
+        value_t n;    // mean motion [rad/s]
+    };
+
+    inline circular_orbit make_orbit(value_t r, vec3d const& u0, vec3d const& u1)
+    {
+        return circular_orbit{r, u0, u1, std::sqrt(mu_earth / (r * r * r))};
+    }
+
+    // full state at orbit angle t, plus the body frame (x = flight, z = nadir, y = z x x)
+    struct sat_state {
+        vec3dp pos;        // ECEF position (w = 1)
+        vec3dp v_ecef;     // ECEF velocity (w = 0)
+        vec3dp v_in;       // inertial velocity (w = 0)
+        vec3dp bx, by, bz; // body axes in ECEF (w = 0)
+        vec3dp Omega;      // ECEF angular velocity of the whole configuration (w = 0)
+    };
+
+    inline vec3dp as_dir(vec3d const& d) { return vec3dp{d.x, d.y, d.z, 0.0}; }
+    inline vec3d as_vec3d(vec3dp const& d) { return vec3d{d.x, d.y, d.z}; }
+
+    inline sat_state state_at(circular_orbit const& o, value_t t)
+    {
+        auto const c = std::cos(t);
+        auto const s = std::sin(t);
+
+        auto const p = o.r * (c * o.u0 + s * o.u1);
+        auto const vi = (o.n * o.r) * (-s * o.u0 + c * o.u1);
+
+        // the frame-rotation term: omega x p with omega = omega_earth * e3
+        auto const wxp = cross(omega_earth * e3_3d, p);
+
+        auto const bz = normalize(-p); // nadir
+        auto const bx = normalize(vi); // flight direction (inertial)
+        auto const by = cross(bz, bx); // right-handed completion
+
+        auto const h = cross(o.u0, o.u1);              // orbit normal
+        auto const Om = o.n * h - omega_earth * e3_3d; // ECEF angular velocity
+
+        return sat_state{vec3dp{p.x, p.y, p.z, 1.0},
+                         as_dir(vi - wxp),
+                         as_dir(vi),
+                         as_dir(bx),
+                         as_dir(by),
+                         as_dir(bz),
+                         as_dir(Om)};
+    }
+
+    // look angles of a satellite read straight off its ENU coordinates
+    inline value_t elevation_deg(vec3dp const& q)
+    {
+        return rad2deg(std::asin(q.z / std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z)));
+    }
+
+    inline value_t azimuth_deg(vec3dp const& q)
+    {
+        auto const a = rad2deg(std::atan2(q.x, q.y)); // from north, towards east
+        return (a < 0.0) ? a + 360.0 : a;
+    }
+
+    // The body->parent motor of a frame given by its origin and two of its axes: rotate
+    // e1 onto ex, then turn about ex until e2 lands on ey, then translate out to the
+    // origin. Both steps are ordinary get_motor() rotations about a line through the
+    // origin.
+    inline mvec3dp_e motor_from_frame(vec3dp const& origin, vec3d const& ex,
+                                      vec3d const& ey)
+    {
+        auto const line_through_origin = [](vec3d const& d) {
+            return wdg(O_3dp, vec3dp{d.x, d.y, d.z, 0.0});
+        };
+
+        // step 1: e1 -> ex
+        mvec3dp_e R1 = I_3dp_mv_e;
+        auto const c1 = cross(e1_3d, ex);
+        if (nrm_sq(c1) > eps) {
+            R1 = get_motor(line_through_origin(normalize(c1)), angle(e1_3d, ex));
+        }
+        else if (dot(e1_3d, ex) < 0.0) { // antiparallel: any perpendicular axis will do
+            R1 = get_motor(line_through_origin(e3_3d), pi);
+        }
+
+        // step 2: turn about ex until the carried e2 lands on ey (signed angle about ex)
+        auto const y1 = as_vec3d(move3dp(y_dir_3dp, R1));
+        auto const R2 =
+            get_motor(line_through_origin(ex),
+                      std::atan2(value_t(dot(cross(y1, ey), ex)), value_t(dot(y1, ey))));
+
+        auto const T = get_motor(vec3dp{origin.x, origin.y, origin.z, 0.0});
+        return rgpr(T, rgpr(R2, R1)); // rotate first, then translate
+    }
+
+    // the three orbits, shared by both blocks below
+    inline std::vector<std::pair<char const*, circular_orbit>> the_orbits()
+    {
+        value_t const r_leo = wgs84.r_equator + 360.0e3;
+
+        // the geostationary radius follows from the definition n == omega_earth, giving a
+        // height of ~35786 km ("about 36000 km")
+        value_t const r_geo = std::cbrt(mu_earth / (omega_earth * omega_earth));
+
+        return {
+            // 1) equatorial, eastward, currently at lon 0: the circle runs e1 -> e2
+            {"LEO equatorial 360 km", make_orbit(r_leo, e1_3d, e2_3d)},
+            // 2) geostationary, same plane and sense, at the geostationary radius
+            {"geostationary 35786 km", make_orbit(r_geo, e1_3d, e2_3d)},
+            // 3) polar, in the plane containing lon 0° (the ECEF e1-e3 plane), running
+            //    north over lon 0: the circle runs e1 -> e3
+            {"LEO polar 360 km", make_orbit(r_leo, e1_3d, e3_3d)}};
+    }
+
+    inline size_t const n_samples = 60;
+
+
+    TEST_CASE("pga3dp: satellites in ECEF and local ENU -- direct transformation")
+    {
+        fmt::println("pga3dp: satellites in ECEF and local ENU -- direct transformation");
+
+        auto const Berlin = to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 35});
+        auto const Madrid = to_geo_pos(geo_pos_dms{"40°25'N", "3°43'W", 650});
+
+        auto const M_B = enu_to_ecef_motor(Berlin); // Berlin ENU -> ECEF
+        auto const M_M = enu_to_ecef_motor(Madrid); // Madrid ENU -> ECEF
+        auto const B_inv = rrev(M_B);               // ECEF -> Berlin ENU
+        auto const M_inv = rrev(M_M);               // ECEF -> Madrid ENU
+
+        auto const P_B = geo_to_ecef(Berlin);
+        auto const P_M = geo_to_ecef(Madrid);
+
+        auto const orbits = the_orbits();
+
+        value_t const r_leo = orbits[0].second.r;
+        value_t const r_geo = orbits[1].second.r;
+
+        CHECK(r_leo == doctest::Approx(6738137.0).epsilon(1e-15));
+        CHECK(r_geo == doctest::Approx(42164172.931157).epsilon(1e-12));
+        CHECK((r_geo - wgs84.r_equator) / 1000.0 ==
+              doctest::Approx(35786.036).epsilon(1e-6)); // ~36000 km, as specified
+        CHECK(orbits[1].second.n == doctest::Approx(omega_earth).epsilon(1e-12));
+        CHECK(orbits[0].second.n * r_leo == doctest::Approx(7691.286152).epsilon(1e-10));
+
+        // ---- the sweep: 60 points around each orbit -----------------------------------
+
+        for (auto const& [name, orbit] : orbits) {
+
+            for (size_t k = 0; k < n_samples; ++k) {
+
+                value_t const t = 2.0 * pi * double(k) / double(n_samples);
+                auto const S = state_at(orbit, t);
+
+                // ---- the body frame is a right-handed orthonormal triad ---------------
+                auto const bx = as_vec3d(S.bx), by = as_vec3d(S.by), bz = as_vec3d(S.bz);
+                CHECK(nrm(bx) == doctest::Approx(1.0).epsilon(1e-14));
+                CHECK(nrm(by) == doctest::Approx(1.0).epsilon(1e-14));
+                CHECK(nrm(bz) == doctest::Approx(1.0).epsilon(1e-14));
+                CHECK(dot(bx, by) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(dot(by, bz) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(dot(bz, bx) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(cross(bx, by) == bz); // right-handed
+
+                // z points at the geocenter, x is perpendicular to the radius (circular)
+                CHECK(is_congruent(S.bz, vec3dp{-S.pos.x, -S.pos.y, -S.pos.z, 0.0}));
+                CHECK(dot(bx, vec3d{S.pos.x, S.pos.y, S.pos.z}) ==
+                      doctest::Approx(0.0).scale(orbit.r).epsilon(1e-14));
+
+                // the rigid ECEF rotation reproduces the velocity: v = Omega x p
+                CHECK(value_t(bulk_nrm(S.v_ecef - as_dir(cross(as_vec3d(S.Omega),
+                                                               vec3d{S.pos.x, S.pos.y,
+                                                                     S.pos.z})))) < 1e-8);
+
+                // ---- transformation into the two local frames -------------------------
+                auto const qB = unitize(move3dp(S.pos, B_inv)); // position in Berlin ENU
+                auto const qM = unitize(move3dp(S.pos, M_inv)); // position in Madrid ENU
+
+                auto const vB = move3dp(S.v_ecef, B_inv); // velocity in Berlin ENU
+                auto const vM = move3dp(S.v_ecef, M_inv); // velocity in Madrid ENU
+
+                // ECEF and both ENU frames are earth-fixed and differ by a rigid motion,
+                // so the speed is the SAME number in all three systems
+                CHECK(value_t(bulk_nrm(vB)) ==
+                      doctest::Approx(value_t(bulk_nrm(S.v_ecef)))
+                          .scale(1.0)
+                          .epsilon(1e-11));
+                CHECK(value_t(bulk_nrm(vM)) ==
+                      doctest::Approx(value_t(bulk_nrm(S.v_ecef)))
+                          .scale(1.0)
+                          .epsilon(1e-11));
+
+                // ... and so is the distance from each station to the satellite
+                auto const d_ecef = [&](vec3dp const& S0) {
+                    return std::sqrt((S.pos.x - S0.x) * (S.pos.x - S0.x) +
+                                     (S.pos.y - S0.y) * (S.pos.y - S0.y) +
+                                     (S.pos.z - S0.z) * (S.pos.z - S0.z));
+                };
+                CHECK(value_t(bulk_nrm(qB)) ==
+                      doctest::Approx(d_ecef(P_B)).epsilon(1e-11));
+                CHECK(value_t(bulk_nrm(qM)) ==
+                      doctest::Approx(d_ecef(P_M)).epsilon(1e-11));
+
+                // the body axes carry over as directions (rotation only, length kept)
+                CHECK(value_t(bulk_nrm(move3dp(S.bx, B_inv))) ==
+                      doctest::Approx(1.0).epsilon(1e-13));
+                CHECK(cross(as_vec3d(move3dp(S.bx, B_inv)),
+                            as_vec3d(move3dp(S.by, B_inv))) ==
+                      as_vec3d(move3dp(S.bz, B_inv))); // still right-handed locally
+
+                // round trip back to ECEF
+                CHECK(std::abs(unitize(move3dp(qB, M_B)).x - S.pos.x) < 1e-6);
+                CHECK(std::abs(unitize(move3dp(qB, M_B)).z - S.pos.z) < 1e-6);
+            }
+        }
+
+        // ---- per-orbit invariants that make the sweep worth running
+        // --------------------
+
+        for (size_t k = 0; k < n_samples; ++k) {
+
+            value_t const t = 2.0 * pi * double(k) / double(n_samples);
+
+            // 1) equatorial: stays in the equatorial plane, purely eastward ground track
+            // at
+            //    the ground-relative speed (n - omega) * r
+            auto const S1 = state_at(orbits[0].second, t);
+            CHECK(std::abs(S1.pos.z) < 1e-6);
+            CHECK(std::abs(S1.v_ecef.z) < 1e-9);
+            CHECK(value_t(bulk_nrm(S1.v_ecef)) ==
+                  doctest::Approx((orbits[0].second.n - omega_earth) * r_leo)
+                      .epsilon(1e-11));
+            CHECK(value_t(bulk_nrm(S1.v_ecef)) ==
+                  doctest::Approx(7199.933453).epsilon(1e-10));
+
+            // 2) geostationary: motionless over the ground at EVERY sampled point -- the
+            //    inertial orbital motion is exactly cancelled by the earth's rotation
+            auto const S2 = state_at(orbits[1].second, t);
+            CHECK(value_t(bulk_nrm(S2.v_ecef)) < 1e-8);
+            CHECK(value_t(bulk_nrm(S2.v_in)) ==
+                  doctest::Approx(3074.659979).epsilon(1e-10));
+            CHECK(std::abs(S2.pos.z) < 1e-6); // equatorial
+
+            // 3) polar: the POSITION stays in the lon 0° plane (y == 0) ...
+            auto const S3 = state_at(orbits[2].second, t);
+            CHECK(std::abs(S3.pos.y) < 1e-6);
+
+            //    ... while the ECEF VELOCITY leaves it: the earth turning eastward under
+            //    the orbit shows up as a westward component -omega * x
+            CHECK(S3.v_ecef.y == doctest::Approx(-omega_earth * S3.pos.x).epsilon(1e-10));
+            CHECK(value_t(bulk_nrm(S3.v_in)) ==
+                  doctest::Approx(7691.286152).epsilon(1e-10));
+
+            // over the poles the radius is parallel to the earth's axis, so the rotation
+            // term vanishes and the ECEF speed equals the inertial one
+            if (std::abs(S3.pos.x) < 1e-6) {
+                CHECK(value_t(bulk_nrm(S3.v_ecef)) ==
+                      doctest::Approx(value_t(bulk_nrm(S3.v_in))).epsilon(1e-11));
+            }
+        }
+
+        // ---- the geostationary look angles, against an independent reference
+        // ------------
+
+        {
+            auto const S = state_at(orbits[1].second, 0.0); // at lon 0°
+            auto const qB = unitize(move3dp(S.pos, B_inv));
+            auto const qM = unitize(move3dp(S.pos, M_inv));
+
+            // classic spherical-earth formula for a geostationary look angle:
+            //     el = atan((cos(gamma) - Re/r) / sin(gamma)),
+            //     cos(gamma) = cos(lat) cos(lon_sat - lon_station)
+            // It ignores the flattening, so it agrees only to a few hundredths of a
+            // degree
+            // -- which is precisely why it is an independent check on the ellipsoidal
+            // result.
+            auto const el_spherical = [&](geo_pos const& g) {
+                auto const cg = std::cos(g.lat) * std::cos(0.0 - g.lon);
+                auto const gamma = std::acos(cg);
+                return rad2deg(
+                    std::atan((cg - wgs84.r_equator / r_geo) / std::sin(gamma)));
+            };
+
+            CHECK(elevation_deg(qB) == doctest::Approx(28.6956).epsilon(1e-5));
+            CHECK(azimuth_deg(qB) == doctest::Approx(196.7323).epsilon(1e-5));
+            CHECK(elevation_deg(qB) ==
+                  doctest::Approx(el_spherical(Berlin)).epsilon(2e-3));
+
+            CHECK(elevation_deg(qM) == doctest::Approx(43.1320).epsilon(1e-5));
+            CHECK(azimuth_deg(qM) == doctest::Approx(174.2741).epsilon(1e-5));
+            CHECK(elevation_deg(qM) ==
+                  doctest::Approx(el_spherical(Madrid)).epsilon(2e-3));
+
+            // Both stations so far are NORTHERN, where a geostationary satellite always
+            // sits to the south -- so a flipped north axis would show up merely as an
+            // azimuth mirrored about due south, and both stations would agree on the lie.
+            // Southern and equatorial stations break that symmetry: the same satellite is
+            // then to the NORTH, and near the equator the north component is what almost
+            // the whole azimuth is made of.
+            {
+                struct station {
+                    char const* name;
+                    geo_pos_dms pos;
+                    value_t el, az; // independently computed reference [deg]
+                    bool visible;   // is it above this station's horizon?
+                };
+
+                std::vector<station> const southern{
+                    // southern, east of Greenwich: the satellite sits to the north-WEST
+                    {"Cape Town",
+                     {"33°55'S", "18°25'E", 25},
+                     45.920953204,
+                     329.150962372,
+                     true},
+                    // 0.2° south of the equator and 78° west, at 2850 m: almost due EAST
+                    // and barely above the horizon
+                    {"Quito",
+                     {"0°13'S", "78°31'W", 2850},
+                     2.789244143,
+                     89.956208300,
+                     true},
+                    // 151° east: the satellite is on the far side of the earth
+                    {"Sydney",
+                     {"33°52'S", "151°13'E", 58},
+                     -52.018583403,
+                     224.564204018,
+                     false}};
+
+                for (auto const& st : southern) {
+                    auto const g = to_geo_pos(st.pos);
+                    auto const q = unitize(move3dp(S.pos, rrev(enu_to_ecef_motor(g))));
+
+                    CHECK(elevation_deg(q) == doctest::Approx(st.el).epsilon(1e-8));
+                    CHECK(azimuth_deg(q) == doctest::Approx(st.az).epsilon(1e-8));
+                    CHECK((q.z > 0.0) == st.visible);
+
+                    // The visibility test IS the scalar product of the local up with the
+                    // line of sight -- expressing that line in ENU coordinates makes its
+                    // third component exactly dot(up, los), because up IS the third ENU
+                    // axis. So q.z already carries the test; computing the scalar
+                    // product separately is the same number, as pinned here.
+                    auto const P_st = geo_to_ecef(g);
+                    auto const los =
+                        vec3d{S.pos.x - P_st.x, S.pos.y - P_st.y, S.pos.z - P_st.z};
+                    CHECK(value_t(dot(as_vec3d(enu_at(g).up), los)) ==
+                          doctest::Approx(q.z).epsilon(1e-12));
+
+                    // (this is the geometric horizon of the local tangent plane; a
+                    // station at altitude actually sees slightly further, since its true
+                    // horizon dips below horizontal by ~1.7° at Quito's 2850 m)
+
+                    // For a southern station that can SEE it, the satellite lies to the
+                    // north -- the sign simply unavailable from a northern station, where
+                    // it is always to the south. Sydney is 151° of longitude away and
+                    // would be looking through the earth, so its line of sight points
+                    // south instead; that asymmetry is worth pinning too.
+                    if (st.visible) {
+                        CHECK(q.y > 0.0);
+                    }
+                    else {
+                        CHECK(q.y < 0.0);
+                    }
+
+                    fmt::println("   {:<10} sees the geostationary satellite at"
+                                 " el = {:7.3f}°, az = {:8.3f}°  ({})",
+                                 st.name, elevation_deg(q), azimuth_deg(q),
+                                 (q.z > 0.0) ? "above the horizon" : "BELOW the horizon");
+                }
+
+                // Cape Town looks north-west, Quito almost due east, Sydney cannot see it
+                auto const q_cpt = unitize(
+                    move3dp(S.pos, rrev(enu_to_ecef_motor(to_geo_pos(southern[0].pos)))));
+                auto const q_uio = unitize(
+                    move3dp(S.pos, rrev(enu_to_ecef_motor(to_geo_pos(southern[1].pos)))));
+                auto const q_syd = unitize(
+                    move3dp(S.pos, rrev(enu_to_ecef_motor(to_geo_pos(southern[2].pos)))));
+
+                CHECK(q_cpt.x < 0.0); // west
+                CHECK(q_cpt.z > 0.0); // above the horizon
+                CHECK(q_uio.x > 0.0); // east
+                CHECK(q_uio.z > 0.0);
+                CHECK(std::abs(q_uio.y) < 0.01 * q_uio.x); // nearly on the equator
+                CHECK(q_syd.z < 0.0); // below the horizon, as it must be
+            }
+
+            // Berlin (13.4°E) sees it south-west, Madrid (3.7°W) south-east and higher up
+            CHECK(qB.x < 0.0);                            // west
+            CHECK(qB.y < 0.0);                            // south
+            CHECK(qM.x > 0.0);                            // east
+            CHECK(qM.y < 0.0);                            // south
+            CHECK(elevation_deg(qM) > elevation_deg(qB)); // Madrid is nearer the equator
+        }
+
+        // ---- report
+        // --------------------------------------------------------------------
+
+        fmt::println("");
+        for (auto const& [name, orbit] : orbits) {
+            fmt::println(
+                "   {} : r = {:.3f} km, period = {:.1f} min, v_inertial = {:.3f} m/s",
+                name, orbit.r / 1000.0, 2.0 * pi / orbit.n / 60.0, orbit.n * orbit.r);
+
+            for (auto const t : {0.0, 0.5 * pi, pi, 1.5 * pi}) {
+                auto const S = state_at(orbit, t);
+                auto const qB = unitize(move3dp(S.pos, B_inv));
+                auto const qM = unitize(move3dp(S.pos, M_inv));
+                auto const vB = move3dp(S.v_ecef, B_inv);
+                auto const vM = move3dp(S.v_ecef, M_inv);
+
+                fmt::println("     u = {:5.1f}°", rad2deg(t));
+                fmt::println("       ECEF   p = ({:11.1f},{:11.1f},{:11.1f}) km"
+                             "  v = ({:9.3f},{:9.3f},{:9.3f}) |v| = {:8.3f} m/s",
+                             S.pos.x / 1e3, S.pos.y / 1e3, S.pos.z / 1e3, S.v_ecef.x,
+                             S.v_ecef.y, S.v_ecef.z, value_t(bulk_nrm(S.v_ecef)));
+                fmt::println("       Berlin p = ({:11.1f},{:11.1f},{:11.1f}) km"
+                             "  v = ({:9.3f},{:9.3f},{:9.3f}) |v| = {:8.3f} m/s",
+                             qB.x / 1e3, qB.y / 1e3, qB.z / 1e3, vB.x, vB.y, vB.z,
+                             value_t(bulk_nrm(vB)));
+                fmt::println("       Madrid p = ({:11.1f},{:11.1f},{:11.1f}) km"
+                             "  v = ({:9.3f},{:9.3f},{:9.3f}) |v| = {:8.3f} m/s",
+                             qM.x / 1e3, qM.y / 1e3, qM.z / 1e3, vM.x, vM.y, vM.z,
+                             value_t(bulk_nrm(vM)));
+                if (qB.z > 0.0 || qM.z > 0.0) {
+                    fmt::println(
+                        "       above the horizon: Berlin el = {:6.2f}° az = {:6.2f}°"
+                        "  |  Madrid el = {:6.2f}° az = {:6.2f}°",
+                        elevation_deg(qB), azimuth_deg(qB), elevation_deg(qM),
+                        azimuth_deg(qM));
+                }
+            }
+            fmt::println("");
+        }
+    }
+
+
+    TEST_CASE("pga3dp: satellites via static_system3dp / kinematic_system3dp")
+    {
+        fmt::println("pga3dp: satellites via static_system3dp / kinematic_system3dp");
+
+        // The same three orbits, but nothing is transformed by hand. The scene is
+        // declared as a frame tree hanging off ECEF,
+        //
+        //     ECEF (root)
+        //      +-- Berlin   pose = the ENU motor of the station
+        //      +-- Madrid   pose = the ENU motor of the station
+        //      +-- Sat      pose = position + body attitude,  state = its ECEF motion
+        //
+        // and every quantity the direct block computed is then READ OFF the tree:
+        // get_pos_trafo(a, b) is the transformation between any two of the frames, and
+        // point_velocity() is the velocity of the satellite as a point of the moving
+        // frame. The two blocks must agree to rounding -- that is the point of running
+        // both.
+
+        auto const Berlin = to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 35});
+        auto const Madrid = to_geo_pos(geo_pos_dms{"40°25'N", "3°43'W", 650});
+
+        auto const M_B = enu_to_ecef_motor(Berlin);
+        auto const M_M = enu_to_ecef_motor(Madrid);
+
+        // the stations enter the tree as poses -- the ENU motor decoded into origin +
+        // axis times angle, which is what a static_frame3dp carries
+        auto const pose_B = pose3dp_from_motor(M_B);
+        auto const pose_M = pose3dp_from_motor(M_M);
+
+        kinematic_system3dp sys;
+        sys.add_frame(static_frame3dp("ECEF")); // root, index 0
+        sys.add_frame(static_frame3dp("Berlin", pose_B.origin, pose_B.rot), 0);
+        sys.add_frame(static_frame3dp("Madrid", pose_M.origin, pose_M.rot), 0);
+        sys.add_frame(static_frame3dp("Sat"), kin_state3dp{}, 0); // re-posed per sample
+
+        size_t const i_sat = sys.index_of("Sat");
+
+        // The tree reproduces the motors the direct block used. Two motors are compared
+        // by what they DO, not with operator== : a motor's translation lives in
+        // components of order 1e6 here, where an absolute-eps equality cannot resolve
+        // anything. A rigid motion is fixed by where it sends the origin and the axes.
+        // is_same_motion() now lives in the library (ga_pga3dp_ops.hpp) -- motors
+        // double-cover the rigid motions, so operator== compares representations while
+        // this compares motions.
+
+        CHECK(is_same_motion(sys.get_pos_trafo("Berlin", "ECEF"), M_B));
+        CHECK(is_same_motion(sys.get_pos_trafo("ECEF", "Berlin"), rrev(M_B)));
+        CHECK(is_same_motion(sys.get_pos_trafo("Madrid", "ECEF"), M_M));
+
+        // and the comparison is not vacuous -- it separates the two stations
+        CHECK(!is_same_motion(sys.get_pos_trafo("Berlin", "ECEF"), M_M));
+
+        // Berlin and Madrid seen from each other -- a frame-to-frame transformation that
+        // never mentions ECEF at the call site
+        {
+            auto const M_BM = sys.get_pos_trafo("Berlin", "Madrid");
+            auto const B_in_M =
+                unitize(move3dp(O_3dp, M_BM)); // Berlin's origin, in Madrid
+            auto const M_in_B =
+                unitize(move3dp(O_3dp, sys.get_pos_trafo("Madrid", "Berlin")));
+
+            CHECK(value_t(bulk_nrm(B_in_M)) ==
+                  doctest::Approx(value_t(bulk_nrm(M_in_B))).epsilon(1e-12));
+            CHECK(B_in_M.y > 0.0); // Berlin is north-east of Madrid
+            CHECK(B_in_M.x > 0.0);
+            CHECK(M_in_B.y < 0.0); // and Madrid south-west of Berlin
+            CHECK(M_in_B.x < 0.0);
+
+            fmt::println("");
+            fmt::println("   Berlin seen from Madrid (ENU): ({:.1f}, {:.1f}, {:.1f}) km",
+                         B_in_M.x / 1e3, B_in_M.y / 1e3, B_in_M.z / 1e3);
+            fmt::println("   Madrid seen from Berlin (ENU): ({:.1f}, {:.1f}, {:.1f}) km",
+                         M_in_B.x / 1e3, M_in_B.y / 1e3, M_in_B.z / 1e3);
+        }
+
+        auto const orbits = the_orbits();
+
+        for (auto const& [name, orbit] : orbits) {
+
+            for (size_t k = 0; k < n_samples; ++k) {
+
+                value_t const t = 2.0 * pi * double(k) / double(n_samples);
+                auto const S = state_at(orbit, t);
+
+                // ---- put the satellite into the tree ----------------------------------
+                //
+                // pose: its ECEF position with the body axes as orientation
+                auto const M_sat =
+                    motor_from_frame(S.pos, as_vec3d(S.bx), as_vec3d(S.by));
+                sys.set_pose(i_sat, pose3dp_from_motor(M_sat));
+
+                // the motor really does carry the body frame
+                CHECK(value_t(bulk_nrm(move3dp(x_dir_3dp, M_sat) - S.bx)) < 1e-12);
+                CHECK(value_t(bulk_nrm(move3dp(y_dir_3dp, M_sat) - S.by)) < 1e-12);
+                CHECK(value_t(bulk_nrm(move3dp(z_dir_3dp, M_sat) - S.bz)) < 1e-12);
+                CHECK(value_t(bulk_nrm(unitize(move3dp(O_3dp, M_sat)) - S.pos)) < 1e-6);
+
+                // state: the configuration rotates rigidly at Omega_ecef about the
+                // geocenter, expressed in the satellite's own axes (a relative twist is
+                // carried in body coordinates)
+                auto const Om = as_vec3d(S.Omega);
+                auto const bx = as_vec3d(S.bx), by = as_vec3d(S.by), bz = as_vec3d(S.bz);
+                auto const v = as_vec3d(S.v_ecef);
+
+                sys.set_state(
+                    i_sat, kin_state3dp{vec3dp{value_t(dot(v, bx)), value_t(dot(v, by)),
+                                               value_t(dot(v, bz)), 0.0},
+                                        vec3dp{0.0, 0.0, 0.0, 0.0},
+                                        vec3dp{value_t(dot(Om, bx)), value_t(dot(Om, by)),
+                                               value_t(dot(Om, bz)), 0.0},
+                                        vec3dp{0.0, 0.0, 0.0, 0.0}});
+
+                // ---- read everything off the tree -------------------------------------
+
+                auto const M_sat_to_B = sys.get_pos_trafo("Sat", "Berlin");
+                auto const M_sat_to_M = sys.get_pos_trafo("Sat", "Madrid");
+
+                // the satellite's position is its own origin, seen in the station's frame
+                auto const qB_sys = unitize(move3dp(O_3dp, M_sat_to_B));
+                auto const qM_sys = unitize(move3dp(O_3dp, M_sat_to_M));
+
+                // the direct block's answer, for comparison
+                auto const qB_dir = unitize(move3dp(S.pos, rrev(M_B)));
+                auto const qM_dir = unitize(move3dp(S.pos, rrev(M_M)));
+
+                CHECK(value_t(bulk_nrm(qB_sys - qB_dir)) < 1e-6);
+                CHECK(value_t(bulk_nrm(qM_sys - qM_dir)) < 1e-6);
+
+                // the body axes in the station frames agree too
+                CHECK(value_t(bulk_nrm(move3dp(x_dir_3dp, M_sat_to_B) -
+                                       move3dp(S.bx, rrev(M_B)))) < 1e-12);
+                CHECK(value_t(bulk_nrm(move3dp(z_dir_3dp, M_sat_to_B) -
+                                       move3dp(S.bz, rrev(M_B)))) < 1e-12);
+
+                // ---- the velocity comes out of the kinematic layer
+                // ---------------------
+                //
+                // point_velocity gives the world velocity of the satellite as a point of
+                // the moving frame; it must reproduce v_ecef, earth-rotation term
+                // included
+                auto const v_sys = sys.point_velocity(S.pos, i_sat);
+                CHECK(value_t(bulk_nrm(v_sys - S.v_ecef)) < 1e-8);
+
+                // and in the station frames (a pure rotation, so the magnitude is kept)
+                auto const vB_sys = move3dp(v_sys, rrev(M_B));
+                auto const vM_sys = move3dp(v_sys, rrev(M_M));
+                CHECK(value_t(bulk_nrm(vB_sys)) ==
+                      doctest::Approx(value_t(bulk_nrm(S.v_ecef)))
+                          .scale(1.0)
+                          .epsilon(1e-9));
+                CHECK(value_t(bulk_nrm(vM_sys)) ==
+                      doctest::Approx(value_t(bulk_nrm(S.v_ecef)))
+                          .scale(1.0)
+                          .epsilon(1e-9));
+                CHECK(value_t(bulk_nrm(vB_sys - move3dp(S.v_ecef, rrev(M_B)))) < 1e-8);
+
+                // the geostationary satellite is at rest in the tree as well
+                if (std::abs(orbit.n - omega_earth) < 1e-12) {
+                    CHECK(value_t(bulk_nrm(v_sys)) < 1e-7);
+                }
+            }
+        }
+
+        // ---- report: the same table, produced entirely through the frame tree
+        // -----------
+
+        fmt::println("");
+        for (auto const& [name, orbit] : orbits) {
+            fmt::println("   {} (via the frame tree)", name);
+
+            for (auto const t : {0.0, 0.5 * pi}) {
+                auto const S = state_at(orbit, t);
+                sys.set_pose(i_sat, pose3dp_from_motor(motor_from_frame(
+                                        S.pos, as_vec3d(S.bx), as_vec3d(S.by))));
+
+                auto const Om = as_vec3d(S.Omega);
+                auto const bx = as_vec3d(S.bx), by = as_vec3d(S.by), bz = as_vec3d(S.bz);
+                auto const v = as_vec3d(S.v_ecef);
+                sys.set_state(
+                    i_sat, kin_state3dp{vec3dp{value_t(dot(v, bx)), value_t(dot(v, by)),
+                                               value_t(dot(v, bz)), 0.0},
+                                        vec3dp{0.0, 0.0, 0.0, 0.0},
+                                        vec3dp{value_t(dot(Om, bx)), value_t(dot(Om, by)),
+                                               value_t(dot(Om, bz)), 0.0},
+                                        vec3dp{0.0, 0.0, 0.0, 0.0}});
+
+                auto const qB =
+                    unitize(move3dp(O_3dp, sys.get_pos_trafo("Sat", "Berlin")));
+                auto const qM =
+                    unitize(move3dp(O_3dp, sys.get_pos_trafo("Sat", "Madrid")));
+                auto const vw = sys.point_velocity(S.pos, i_sat);
+                auto const vB = move3dp(vw, rrev(M_B));
+                auto const vM = move3dp(vw, rrev(M_M));
+
+                fmt::println("     u = {:5.1f}°", rad2deg(t));
+                fmt::println("       Berlin p = ({:11.1f},{:11.1f},{:11.1f}) km"
+                             "  v = ({:9.3f},{:9.3f},{:9.3f}) |v| = {:8.3f} m/s",
+                             qB.x / 1e3, qB.y / 1e3, qB.z / 1e3, vB.x, vB.y, vB.z,
+                             value_t(bulk_nrm(vB)));
+                fmt::println("       Madrid p = ({:11.1f},{:11.1f},{:11.1f}) km"
+                             "  v = ({:9.3f},{:9.3f},{:9.3f}) |v| = {:8.3f} m/s",
+                             qM.x / 1e3, qM.y / 1e3, qM.z / 1e3, vM.x, vM.y, vM.z,
+                             value_t(bulk_nrm(vM)));
+            }
+            fmt::println("");
+        }
+    }
+
+
+    TEST_CASE("pga3dp: is_close and is_same_motion")
+    {
+        fmt::println("pga3dp: is_close and is_same_motion");
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // is_close: relative equality, where operator== cannot resolve anything
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // at coordinates of the order of an earth radius one ulp is already ~5e-10 m, so
+        // operator== (absolute eps) rejects values that agree to every digit a double
+        // carries, while is_close accepts them
+        auto const big = vec3dp{3783187.073822, 901980.086455, 5038246.874625, 1.0};
+        auto const big_1ulp =
+            vec3dp{std::nextafter(big.x, 1e9), std::nextafter(big.y, 1e9),
+                   std::nextafter(big.z, 1e9), 1.0};
+
+        CHECK(big != big_1ulp);         // operator== says they differ ...
+        CHECK(is_close(big, big_1ulp)); // ... is_close says they agree, correctly
+
+        // and it is not merely permissive: a millimetre apart at that magnitude is a
+        // relative 1.6e-10, far above the 1e-12 default, so it is still rejected
+        auto const big_mm = vec3dp{big.x + 1.0e-3, big.y, big.z, 1.0};
+        CHECK(!is_close(big, big_mm));
+        CHECK(is_close(big, big_mm, 1e-9)); // ... unless the tolerance says otherwise
+
+        // near zero the floor of 1 keeps the test absolute, so a component that should
+        // vanish is still measured against rel_tol and not against nothing
+        CHECK(is_close(vec3dp{0.0, 0.0, 0.0, 0.0}, vec3dp{1e-15, 0.0, 0.0, 0.0}));
+        CHECK(!is_close(vec3dp{0.0, 0.0, 0.0, 0.0}, vec3dp{1e-6, 0.0, 0.0, 0.0}));
+
+        // distinct from is_congruent, which allows an arbitrary scale factor
+        auto const dir = vec3dp{1.0, 2.0, 3.0, 0.0};
+        CHECK(is_congruent(dir, vec3dp{2.0, 4.0, 6.0, 0.0})); // same subspace ...
+        CHECK(!is_close(dir, vec3dp{2.0, 4.0, 6.0, 0.0})); // ... but not the same value
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // is_same_motion: motors double-cover the rigid motions
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const M =
+            enu_to_ecef_motor(to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 35}));
+        auto const M_neg = mvec3dp_e{-M};
+
+        // THE point of the function: -M is the very same motion, and operator== does not
+        // know it. Every object is moved identically by the two.
+        CHECK(M != M_neg);               // representations differ ...
+        CHECK(is_same_motion(M, M_neg)); // ... the motion does not
+        CHECK(is_close(move3dp(x_dir_3dp, M), move3dp(x_dir_3dp, M_neg)));
+        CHECK(is_close(unitize(move3dp(O_3dp, M)), unitize(move3dp(O_3dp, M_neg))));
+
+        // a 2*pi turn is the identity motion but returns the NEGATED motor -- the
+        // textbook case where comparing representations gives the wrong answer
+        auto const R_2pi = get_motor(z_axis_3dp, 2.0 * pi);
+        CHECK(is_same_motion(R_2pi, I_3dp_mv_e));
+        CHECK(is_same_motion(get_motor(z_axis_3dp, 4.0 * pi), I_3dp_mv_e));
+
+        // it still separates motions that really differ
+        CHECK(!is_same_motion(M, get_motor(z_axis_3dp, deg2rad(1.0))));
+        CHECK(!is_same_motion(get_motor(z_axis_3dp, deg2rad(30.0)),
+                              get_motor(z_axis_3dp, deg2rad(-30.0))));
+        CHECK(!is_same_motion(get_motor(vec3dp{1.0, 0.0, 0.0, 0.0}),
+                              get_motor(vec3dp{0.0, 1.0, 0.0, 0.0})));
+
+        // a SCALED motor is not the same motion: points land where they were (the
+        // sandwich scales by |M|^2, which unitize divides out) but directions stretch
+        auto const M_scaled = mvec3dp_e{2.0 * M};
+        CHECK(is_close(unitize(move3dp(O_3dp, M)), unitize(move3dp(O_3dp, M_scaled))));
+        CHECK(!is_same_motion(M, M_scaled));
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the same two properties in pga2dp
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // translate by (3,4), then turn 35 degrees about the origin
+        auto const R2 = get_motor(O_2dp, deg2rad(35.0));
+        auto const M2 = rgpr(get_motor(vec2dp{3.0, 4.0, 0.0}), R2);
+        auto const M2_neg = mvec2dp_u{-M2};
+
+        CHECK(M2 != M2_neg);
+        CHECK(is_same_motion(M2, M2_neg));
+        CHECK(!is_same_motion(M2, R2));
+        CHECK(is_same_motion(get_motor(O_2dp, 2.0 * pi), I_2dp_mv_u));
+
+        CHECK(
+            is_close(vec2dp{1e6, 2e6, 1.0}, vec2dp{std::nextafter(1e6, 1e9), 2e6, 1.0}));
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: coordinate transformation")
