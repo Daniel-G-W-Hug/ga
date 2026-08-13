@@ -1984,7 +1984,9 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         {
             geo_pos_dms const town = {"52°31'12\"N", "13°24'36\"E", 35};
 
-            value_t const N_geoid = 45.0; // geoid undulation around Berlin [m]
+            // an illustrative undulation for central Europe [m]; the real field is
+            // measured and depends on longitude too, which is why it is supplied
+            value_t const N_geoid = 45.0;
             auto const plain = to_geo_pos(town);
             auto const corrected = to_geo_pos(town, N_geoid);
 
@@ -2876,6 +2878,470 @@ TEST_SUITE("PGA3DP: coordinate transformation")
 
         CHECK(
             is_close(vec2dp{1e6, 2e6, 1.0}, vec2dp{std::nextafter(1e6, 1e9), 2e6, 1.0}));
+
+        fmt::println("");
+    }
+
+
+    TEST_CASE("pga3dp: the line of sight, computed locally and compared across frames")
+    {
+        fmt::println("pga3dp: the line of sight, computed locally and compared "
+                     "across frames");
+
+        // The question this answers: "what is the line from my location to the
+        // satellite?" -- and, more to the point, whether the line a user computes IN
+        // THEIR OWN FRAME (the only thing they can measure directly) is the same object
+        // as the line another frame computes. In PGA a line is a first-class element, so
+        // the comparison is between two bivectors, not between six numbers that have to
+        // be re-derived per frame.
+
+        auto const Berlin = to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 35});
+        auto const Madrid = to_geo_pos(geo_pos_dms{"40°25'N", "3°43'W", 650});
+
+        auto const M_B = enu_to_ecef_motor(Berlin);
+        auto const M_M = enu_to_ecef_motor(Madrid);
+
+        auto const P_B = geo_to_ecef(Berlin);
+        auto const P_M = geo_to_ecef(Madrid);
+
+        // the geostationary satellite of the previous case, at longitude 0
+        value_t const r_geo = std::cbrt(mu_earth / (omega_earth * omega_earth));
+        auto const P_S = vec3dp{r_geo, 0.0, 0.0, 1.0};
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the same line, built in two different frames
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // in ECEF: join the two points
+        auto const L_ecef = join(P_B, P_S);
+
+        // in Berlin's OWN frame: the satellite as Berlin sees it, joined with Berlin's
+        // own origin -- no knowledge of ECEF enters this line at all
+        auto const S_in_B = unitize(move3dp(P_S, rrev(M_B)));
+        auto const L_local = join(O_3dp, S_in_B);
+
+        // carrying the local line out to ECEF must reproduce the ECEF line. join() does
+        // not normalize, so the two agree up to weight -- which is what is_congruent
+        // asks, and after unitize() they agree as values.
+        CHECK(is_congruent(move3dp(L_local, M_B), L_ecef));
+        CHECK(is_close(unitize(move3dp(L_local, M_B)), unitize(L_ecef), 1e-9));
+
+        // both endpoints lie on the line: joining a point already on a line with that
+        // line gives no plane. With the line unitized the residual is metres-scale
+        // rounding on coordinates of order 4e7.
+        // A line is compared to a LINE, not probed with an incidence test: join() was
+        // what built L_ecef out of these very points, so join(join(A,B), A) is the
+        // repeated-factor identity and vanishes for any A and B. It could only ever have
+        // measured cancellation on the coordinate products, never the geometry.
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // what the line tells the user, read in the local frame
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // the line's ATTITUDE is the direction of sight; from the local origin it is
+        // just the direction to the satellite
+        auto const d_local = att(L_local);
+        auto const F = enu_at(Berlin);
+
+        CHECK(is_congruent(d_local, vec3dp{S_in_B.x, S_in_B.y, S_in_B.z, 0.0}));
+
+        // the elevation is the angle the line makes with the local horizon, i.e. 90 deg
+        // minus the angle against the local vertical -- and it must be the same number
+        // the previous case pinned from the coordinates
+        auto const dir = ega::normalize(vec3d{d_local.x, d_local.y, d_local.z});
+        auto const up = vec3d{F.up.x, F.up.y, F.up.z}; // = e3 in Berlin's own frame
+        value_t const elev =
+            90.0 - rad2deg(std::acos(std::clamp(value_t(dot(dir, vec3d{0.0, 0.0, 1.0})),
+                                                value_t(-1.0), value_t(1.0))));
+        CHECK(elev == doctest::Approx(28.6956).epsilon(1e-5));
+        CHECK(nrm(up) == doctest::Approx(1.0).epsilon(1e-14));
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the same line seen by somebody else
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // Madrid can express BERLIN's line of sight in its own frame -- it needs only
+        // the motor between the frames, not a re-derivation
+        auto const L_in_M = move3dp(L_ecef, rrev(M_M));
+
+        // and Madrid could equally build it from the two endpoints as IT sees them
+        auto const B_in_M = unitize(move3dp(P_B, rrev(M_M)));
+        auto const S_in_M = unitize(move3dp(P_S, rrev(M_M)));
+        CHECK(is_close(unitize(L_in_M), unitize(join(B_in_M, S_in_M)), 1e-9));
+
+        // Berlin's line is NOT Madrid's line of sight -- different lines to the same
+        // satellite, meeting only at the satellite itself
+        auto const L_M_own = join(P_M, P_S);
+        CHECK(!is_congruent(L_ecef, L_M_own));
+
+        // the comparison discriminates: Madrid does not lie on Berlin's line of sight,
+        // and neither station's line is the other's
+        CHECK(!is_congruent(L_ecef, join(P_M, P_S)));
+        CHECK(!is_congruent(unitize(L_ecef), unitize(L_M_own)));
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // and the same, obtained through the frame tree instead of by hand
+        /////////////////////////////////////////////////////////////////////////////////
+
+        {
+            auto const pose_B = pose3dp_from_motor(M_B);
+            auto const pose_M = pose3dp_from_motor(M_M);
+
+            static_system3dp sys;
+            sys.add_frame(static_frame3dp("ECEF"));
+            sys.add_frame(static_frame3dp("Berlin", pose_B.origin, pose_B.rot), 0);
+            sys.add_frame(static_frame3dp("Madrid", pose_M.origin, pose_M.rot), 0);
+
+            // a line transforms exactly like a point does -- same motor, same call
+            auto const L_tree = move3dp(L_local, sys.get_pos_trafo("Berlin", "ECEF"));
+            CHECK(is_close(unitize(L_tree), unitize(L_ecef), 1e-9));
+
+            auto const L_tree_M = move3dp(L_local, sys.get_pos_trafo("Berlin", "Madrid"));
+            CHECK(is_close(unitize(L_tree_M), unitize(L_in_M), 1e-9));
+        }
+
+        fmt::println("   line of sight Berlin -> geostationary satellite");
+        fmt::println("     in Berlin's own frame : att = ({:.6f}, {:.6f}, {:.6f}),"
+                     " elevation = {:.3f}°",
+                     dir.x, dir.y, dir.z, elev);
+        fmt::println("     the same line in ECEF : {:.3e}", unitize(L_ecef));
+        fmt::println("");
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // Paths on the ellipsoid: the planar curve, and the true geodesic
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // On a SPHERE the shortest path is a plane section -- the plane through the two
+    // points and the centre cuts a great circle -- so the whole problem is incidence and
+    // GA states it in one join. On an oblate ellipsoid that collapses: geodesics are not
+    // plane curves at all. Both are computed here so the difference is visible rather
+    // than asserted.
+    //
+    // THE PLANAR CURVE (great ellipse). Still pure GA: the plane through the geocenter
+    // and the two points is join(join(A, B), O), and the curve in it is swept by a ROTOR
+    // built from that plane's own bivector -- exp(-B_hat t/2) carried the start direction
+    // round to the end direction. Each swept direction is pushed out to the surface along
+    // its ray. It is a genuine curve on the ellipsoid; it is simply not the shortest one.
+    //
+    // THE GEODESIC. Writing the ellipsoid as the quadratic form G = diag(1/a^2, 1/a^2,
+    // 1/b^2)
+    // -- the surface is P.(G P) = 1 and its gradient is G P -- the geodesic condition is
+    // that the tangent turns ONLY towards the surface normal, never within the surface:
+    //
+    //     dP/ds = T
+    //     dT/ds = kappa * U,     U = normalize(G P),   kappa = -(T.(G T)) / |G P|
+    //
+    // No auxiliary sphere, no meridian/prime-vertical radii, no series: the ellipsoid
+    // enters only through G, and U is the same gradient enu_at() already uses for "up".
+    // On a sphere (a == b == R) the expression reduces to kappa = -1/R, the familiar
+    // great-circle result. Integrated with the library's own rk4_step; the A -> B
+    // boundary value problem is solved by shooting on the initial azimuth.
+    //
+    // Clairaut's relation r*sin(alpha) = const is the conserved quantity of the
+    // ellipsoid's rotational symmetry -- the ONLY thing that survives of "the constant
+    // plane" -- and is checked along the integrated path.
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    // the ellipsoid as a quadratic form: G v = (v.x/a^2, v.y/a^2, v.z/b^2)
+    inline vec3d ell_G(vec3d const& v, ellipsoid const& el)
+    {
+        value_t const aa = el.r_equator * el.r_equator;
+        value_t const bb = el.r_pole * el.r_pole;
+        return vec3d{v.x / aa, v.y / aa, v.z / bb};
+    }
+
+    // push a direction from the geocenter out to the surface along its own ray
+    inline vec3d ell_project(vec3d const& d, ellipsoid const& el)
+    {
+        return d * (1.0 / std::sqrt(value_t(dot(d, ell_G(d, el)))));
+    }
+
+    inline vec3d ell_normal(vec3d const& P, ellipsoid const& el)
+    {
+        return normalize(ell_G(P, el));
+    }
+
+    inline vec3d ecef3(vec3dp const& P) { return vec3d{P.x, P.y, P.z}; }
+
+    // the azimuth of a surface direction T at surface point P [rad, from north towards
+    // east]
+    inline value_t azimuth_at(vec3d const& P, vec3d const& T)
+    {
+        auto const F = enu_at(vec3dp{P.x, P.y, P.z, 1.0});
+        auto const e = vec3d{F.east.x, F.east.y, F.east.z};
+        auto const n = vec3d{F.north.x, F.north.y, F.north.z};
+        return std::atan2(value_t(dot(T, e)), value_t(dot(T, n)));
+    }
+
+    // wrap an angle in degrees into [0, 360)
+    inline value_t deg_wrap360(value_t deg)
+    {
+        return std::fmod(std::fmod(deg, 360.0) + 360.0, 360.0);
+    }
+
+    // Clairaut's invariant r * sin(alpha) at a point of a surface path
+    inline value_t clairaut(vec3d const& P, vec3d const& T)
+    {
+        return std::sqrt(P.x * P.x + P.y * P.y) * std::sin(azimuth_at(P, T));
+    }
+
+    // ---- the planar curve
+    // -----------------------------------------------------------------
+
+    // arc length of the great ellipse from A to B, swept by a rotor in the plane's
+    // bivector
+    inline value_t great_ellipse_length(vec3dp const& A, vec3dp const& B, size_t n_seg,
+                                        ellipsoid const& el = wgs84)
+    {
+        auto const ua = normalize(ecef3(A));
+        auto const ub = normalize(ecef3(B));
+
+        auto const Bpl = wdg(ua, ub);                      // the plane, as a bivector
+        auto const Bhat = Bpl * (1.0 / value_t(nrm(Bpl))); // its unit bivector
+        value_t const theta = angle(ua, ub);
+
+        auto prev = ell_project(ua, el);
+        value_t L = 0.0;
+        for (size_t i = 1; i <= n_seg; ++i) {
+            value_t const t = theta * value_t(i) / value_t(n_seg);
+            auto const d = rotate(ua, exp(-Bhat * (0.5 * t))); // the rotor sweep
+            auto const P = ell_project(d, el);
+            L += value_t(nrm(P - prev));
+            prev = P;
+        }
+        return L;
+    }
+
+    // ---- the geodesic
+    // ---------------------------------------------------------------------
+
+    // one RK4 step of dP/ds = T, dT/ds = kappa U, followed by a projection back onto the
+    // surface (the constraint is not enforced by the ODE, so it is restored each step)
+    inline void geodesic_step(vec3d & P, vec3d & T, value_t ds, ellipsoid const& el)
+    {
+        std::vector<vec3d> u_mem{P, T};
+        std::vector<vec3d> uh_mem(4);
+        std::vector<vec3d> rhs_mem(2);
+
+        auto u = mdspan<vec3d, dextents<size_t, 1>>(u_mem.data(), 2);
+        auto uh = mdspan<vec3d, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+        auto rhs = mdspan<vec3d const, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+        for (size_t rk = 1; rk <= 4; ++rk) {
+            auto const g = ell_G(u_mem[0], el);
+            value_t const ng = value_t(nrm(g));
+            rhs_mem[0] = u_mem[1];
+            rhs_mem[1] = g * (-value_t(dot(u_mem[1], ell_G(u_mem[1], el))) / (ng * ng));
+            rk4_step(u, uh, rhs, ds, rk);
+        }
+
+        P = ell_project(u_mem[0], el); // back onto the surface ...
+        auto const U = ell_normal(P, el);
+        T = normalize(u_mem[1] -
+                      U * value_t(dot(u_mem[1], U))); // ... and tangent into it
+    }
+
+    struct geodesic_shot {
+        value_t length; // arc length at closest approach, corrected along the tangent [m]
+        value_t side;   // signed cross-track miss (left of the path positive) [m]
+        value_t miss;   // closest approach distance [m]
+        vec3d P_end;    // the point of closest approach
+        vec3d T_end;    // the tangent there
+        value_t clairaut_spread; // max - min of r*sin(alpha) along the path [m]
+    };
+
+    // integrate from A on the given initial azimuth and record the closest approach to B
+    inline geodesic_shot geodesic_shoot(vec3d const& A, vec3d const& B, value_t az,
+                                        value_t ds, ellipsoid const& el = wgs84)
+    {
+        auto const F = enu_at(vec3dp{A.x, A.y, A.z, 1.0});
+        auto const e = vec3d{F.east.x, F.east.y, F.east.z};
+        auto const n = vec3d{F.north.x, F.north.y, F.north.z};
+
+        vec3d P = A;
+        vec3d T = normalize(n * std::cos(az) + e * std::sin(az));
+
+        value_t s = 0.0;
+        value_t cl_min = clairaut(P, T), cl_max = cl_min;
+        geodesic_shot best{0.0, 0.0, 1e30, P, T, 0.0};
+
+        value_t const s_max = 4.0e7;
+        while (s < s_max) {
+            geodesic_step(P, T, ds, el);
+            s += ds;
+
+            value_t const cl = clairaut(P, T);
+            cl_min = std::min(cl_min, cl);
+            cl_max = std::max(cl_max, cl);
+
+            value_t const d = value_t(nrm(P - B));
+            if (d < best.miss) {
+                best = geodesic_shot{s, 0.0, d, P, T, 0.0};
+            }
+            else if (d > best.miss + 5.0e3) {
+                break; // past the closest approach
+            }
+        }
+
+        auto const U = ell_normal(best.P_end, el);
+        auto const left = cross(U, best.T_end);
+        best.side = value_t(dot(B - best.P_end, left));
+        // the last fraction of a step, along the tangent
+        best.length += value_t(dot(B - best.P_end, best.T_end));
+        best.clairaut_spread = cl_max - cl_min;
+        return best;
+    }
+
+    // solve A -> B by bisecting the initial azimuth on the signed cross-track miss
+    inline geodesic_shot geodesic_solve(vec3d const& A, vec3d const& B, value_t az_guess,
+                                        value_t ds_final, ellipsoid const& el = wgs84)
+    {
+        value_t lo = az_guess - deg2rad(5.0);
+        value_t hi = az_guess + deg2rad(5.0);
+        value_t f_lo = geodesic_shoot(A, B, lo, 1000.0, el).side;
+
+        for (int i = 0; i < 45; ++i) {
+            value_t const mid = 0.5 * (lo + hi);
+            value_t const f_mid = geodesic_shoot(A, B, mid, 1000.0, el).side;
+            if ((f_mid < 0.0) == (f_lo < 0.0)) {
+                lo = mid;
+                f_lo = f_mid;
+            }
+            else {
+                hi = mid;
+            }
+        }
+
+        auto out = geodesic_shoot(A, B, 0.5 * (lo + hi), ds_final, el);
+        out.side = 0.5 * (lo + hi); // report the converged azimuth here
+        return out;
+    }
+
+
+    TEST_CASE("pga3dp: Berlin to Madrid -- the planar curve and the true geodesic")
+    {
+        fmt::println(
+            "pga3dp: Berlin to Madrid -- the planar curve and the true geodesic");
+
+        // both endpoints ON the ellipsoid (height 0): a path along the surface
+        auto const A = ecef3(geo_to_ecef(
+            geo_pos{to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 0}).lat,
+                    to_geo_pos(geo_pos_dms{"52°31'12\"N", "13°24'36\"E", 0}).lon, 0.0}));
+        auto const Bm = ecef3(geo_to_ecef(
+            geo_pos{to_geo_pos(geo_pos_dms{"40°25'N", "3°43'W", 0}).lat,
+                    to_geo_pos(geo_pos_dms{"40°25'N", "3°43'W", 0}).lon, 0.0}));
+
+        auto const Ap = vec3dp{A.x, A.y, A.z, 1.0};
+        auto const Bp = vec3dp{Bm.x, Bm.y, Bm.z, 1.0};
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the rotor sweep really is a curve from A to B on the surface
+        /////////////////////////////////////////////////////////////////////////////////
+
+        {
+            auto const ua = normalize(A);
+            auto const ub = normalize(Bm);
+            auto const Bpl = wdg(ua, ub);
+            auto const Bhat = Bpl * (1.0 / value_t(nrm(Bpl)));
+            value_t const theta = angle(ua, ub);
+
+            // at t = theta the rotor has carried the start direction onto the end one
+            CHECK(rotate(ua, exp(-Bhat * (0.5 * theta))) == ub);
+            CHECK(rotate(ua, exp(-Bhat * 0.0)) == ua);
+
+            // and the plane is the one PGA joins out of the two points and the geocenter
+            auto const plane = join(join(Ap, Bp), O_3dp);
+            auto const nrm_dir = vec3d{plane.x, plane.y, plane.z};
+            CHECK(std::abs(value_t(dot(normalize(nrm_dir), ua))) < 1e-12);
+            CHECK(std::abs(value_t(dot(normalize(nrm_dir), ub))) < 1e-12);
+
+            // every swept point lies ON the ellipsoid: P.(G P) == 1
+            for (int i = 0; i <= 10; ++i) {
+                value_t const t = theta * value_t(i) / 10.0;
+                auto const P = ell_project(rotate(ua, exp(-Bhat * (0.5 * t))), wgs84);
+                CHECK(value_t(dot(P, ell_G(P, wgs84))) ==
+                      doctest::Approx(1.0).epsilon(1e-14));
+            }
+        }
+
+        // the length converges as the sweep is refined
+        value_t const L_planar = great_ellipse_length(Ap, Bp, 200000);
+        CHECK(L_planar ==
+              doctest::Approx(great_ellipse_length(Ap, Bp, 100000)).epsilon(1e-10));
+        CHECK(L_planar == doctest::Approx(1872384.247).epsilon(1e-8));
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the geodesic, integrated
+        /////////////////////////////////////////////////////////////////////////////////
+
+        auto const g = geodesic_solve(A, Bm, deg2rad(231.0), 25.0);
+        value_t const az_start = deg_wrap360(rad2deg(g.side));
+
+        // against Vincenty's inverse solution for WGS84
+        CHECK(g.length == doctest::Approx(1872384.2).epsilon(1e-7));
+        CHECK(az_start == doctest::Approx(230.8862).epsilon(1e-5));
+        CHECK(g.miss < 30.0); // the sampled closest approach, before the tangent step
+
+        value_t const az_end = deg_wrap360(rad2deg(azimuth_at(g.P_end, g.T_end)));
+        CHECK(az_end == doctest::Approx(218.3559).epsilon(1e-5));
+
+        // CLAIRAUT: the conserved quantity of the ellipsoid's rotational symmetry. It is
+        // what survives of "the constant plane" once the sphere is left behind, and it
+        // holds to a fraction of a micrometre over 1872 km of integration.
+        CHECK(g.clairaut_spread < 1.0e-5);
+
+        // the integrated path stays ON the surface (the projection each step is what
+        // keeps it there -- the ODE alone does not enforce the constraint)
+        CHECK(value_t(dot(g.P_end, ell_G(g.P_end, wgs84))) ==
+              doctest::Approx(1.0).epsilon(1e-12));
+        CHECK(std::abs(value_t(dot(g.T_end, ell_normal(g.P_end, wgs84)))) < 1e-12);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // the difference, which is the point of computing both
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // the geodesic is SHORTER -- it must be, it is the shortest path
+        CHECK(g.length < L_planar);
+        CHECK(L_planar - g.length == doctest::Approx(0.036).epsilon(0.3));
+
+        fmt::println("   Berlin -> Madrid");
+        fmt::println("     great ellipse (planar, rotor-swept) : {:15.3f} m", L_planar);
+        fmt::println("     geodesic      (integrated)          : {:15.3f} m", g.length);
+        fmt::println("     planar longer by                    : {:15.3f} m",
+                     L_planar - g.length);
+        fmt::println("     azimuth {:.4f}° at Berlin, {:.4f}° arriving; Clairaut spread"
+                     " {:.2e} m",
+                     az_start, az_end, g.clairaut_spread);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // a route where the planar curve is visibly wrong
+        /////////////////////////////////////////////////////////////////////////////////
+
+        // Berlin -> Sydney: at 16000 km the two curves part by tens of metres, where at
+        // Berlin -> Madrid they agree to a few centimetres. The planar approximation is
+        // not "wrong at continental range" -- it is wrong at range.
+        {
+            auto const S = to_geo_pos(geo_pos_dms{"33°52'S", "151°13'E", 0});
+            auto const Sy = ecef3(geo_to_ecef(geo_pos{S.lat, S.lon, 0.0}));
+            auto const Sp = vec3dp{Sy.x, Sy.y, Sy.z, 1.0};
+
+            value_t const L2 = great_ellipse_length(Ap, Sp, 200000);
+            auto const g2 = geodesic_solve(A, Sy, deg2rad(78.0), 25.0);
+
+            CHECK(g2.length == doctest::Approx(16088403.8).epsilon(1e-6));
+            CHECK(g2.length < L2);
+            CHECK(L2 - g2.length == doctest::Approx(24.28).epsilon(0.2));
+            CHECK(g2.clairaut_spread < 1.0e-4);
+
+            fmt::println("   Berlin -> Sydney");
+            fmt::println("     great ellipse (planar, rotor-swept) : {:15.3f} m", L2);
+            fmt::println("     geodesic      (integrated)          : {:15.3f} m",
+                         g2.length);
+            fmt::println("     planar longer by                    : {:15.3f} m",
+                         L2 - g2.length);
+        }
 
         fmt::println("");
     }

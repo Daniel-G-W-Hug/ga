@@ -142,3 +142,94 @@ template <> struct fmt::formatter<hd::ga::pga::enu_frame> {
         return fmt::format_to(out, ")");
     }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// geo_pos_dms2dp - meridian-section position as the user provides it
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::geo_pos_dms2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::geo_pos_dms2dp const& p, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "geo_pos_dms2dp(lat = {}, height = ", p.lat);
+        out = fmt::format_to(out, fmt::runtime(child), p.height);
+        return fmt::format_to(out, " m)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// geo_pos2dp - meridian-section position, ready to calculate with
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::geo_pos2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::geo_pos2dp const& p, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "geo_pos2dp(lat = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.lat);
+        out = fmt::format_to(out, " rad, height = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.height);
+        return fmt::format_to(out, " m)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// un_frame - the local (up, north) directions of the meridian section
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::un_frame> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::un_frame const& p, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "un_frame(up = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.up);
+        out = fmt::format_to(out, ", north = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.north);
+        return fmt::format_to(out, ")");
+    }
+};

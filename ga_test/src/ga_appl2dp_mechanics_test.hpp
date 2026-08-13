@@ -4305,6 +4305,45 @@ TEST_SUITE("PGA2DP: geodesics in the meridian section")
                          q3.x / 1e3, q3.y / 1e3, q3.z / 1e3);
         }
 
+        /////////////////////////////////////////////////////////////////////////////////
+        // the types print, and dms output closes the parser's round trip
+        /////////////////////////////////////////////////////////////////////////////////
+
+        geo_pos_dms2dp const Berlin_dms{"52°31'12\"N", 35};
+
+        CHECK(fmt::format("{}", Berlin_dms) ==
+              "geo_pos_dms2dp(lat = 52°31'12\"N, height = 35 m)");
+        CHECK(fmt::format("{:.4f}", Berlin) ==
+              "geo_pos2dp(lat = 0.9166 rad, height = 35.0000 m)");
+        CHECK(fmt::format("{:.3f}", F).starts_with("un_frame(up = Vec2dp("));
+
+        // deg2dms is the inverse of dms2deg: what was read can be written back
+        CHECK(deg2dms(52.52, geo_angle::latitude) == "52°31'12.0\"N");
+        CHECK(deg2dms(-(33.0 + 52.0 / 60.0), geo_angle::latitude, 0) == "33°52'00\"S");
+        CHECK(deg2dms(-(3.0 + 43.0 / 60.0), geo_angle::longitude, 0) == "3°43'00\"W");
+        CHECK(rad2dms(deg2rad(13.41), geo_angle::longitude) == "13°24'36.0\"E");
+
+        // and the round trip holds to the requested resolution, both ways
+        for (auto const& str :
+             {"52°31'12.0\"N", "0°00'00.0\"N", "89°59'59.9\"N", "33°52'00.0\"S"}) {
+            CHECK(deg2dms(dms2deg(str, geo_angle::latitude), geo_angle::latitude) == str);
+        }
+        for (value_t d = -89.0; d <= 89.0; d += 7.3) {
+            auto const round =
+                dms2deg(deg2dms(d, geo_angle::latitude, 4), geo_angle::latitude);
+            CHECK(round == doctest::Approx(d).scale(1.0).epsilon(1e-11));
+        }
+
+        // rounding carries instead of printing an impossible 60"
+        CHECK(deg2dms(52.0 + 59.0 / 60.0 + 59.99 / 3600.0, geo_angle::latitude, 1) ==
+              "53°00'00.0\"N");
+
+        fmt::println("   {}", Berlin_dms);
+        fmt::println("   {:.6f}", Berlin);
+        fmt::println("   written back out: {} / {}",
+                     rad2dms(Berlin.lat, geo_angle::latitude, 3),
+                     rad2dms(deg2rad(13.41), geo_angle::longitude, 3));
+
         fmt::println("");
     }
 

@@ -5,6 +5,7 @@
 
 #include <cctype>    // std::isspace, std::toupper
 #include <cmath>     // std::sin, std::cos, std::sqrt, std::atan2, std::abs
+#include <cstdio>    // std::snprintf (deg2dms)
 #include <cstdlib>   // std::strtod
 #include <stdexcept> // std::invalid_argument
 #include <string>    // std::string
@@ -59,6 +60,8 @@
 //                               height along the ellipsoid normal)
 // - dms2deg()                 : parse one dms-notation angle into decimal degrees
 // - dms2rad()                 : the same, in rad
+// - deg2dms() / rad2dms()     : the inverse -- write an angle back out in dms
+//                               notation, closing the parser's round trip
 // - to_geo_pos()              : geo_pos_dms -> geo_pos (the explicit conversion above)
 // - distance_from_geocenter() : the position's "total radius" [m], derived
 // - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
@@ -476,6 +479,47 @@ inline value_t dms2rad(std::string const& s, geo_angle which)
     return deg2rad(dms2deg(s, which));
 }
 
+// Emit an angle in degree/minute/second notation -- the inverse of dms2deg(), so that a
+// position can be written back in the form it was read in. Round-trips exactly:
+// dms2deg(deg2dms(x, w), w) == x to the precision requested.
+//
+// sec_decimals fixes the resolution: 0 gives whole seconds (~31 m of latitude), the
+// default 1 gives ~3 m, 3 gives ~3 cm. Rounding is applied to the TOTAL seconds before
+// the value is split, so a value that rounds up through 60 carries into the minutes (and
+// on into the degrees) instead of printing an impossible 60".
+inline std::string deg2dms(value_t deg, geo_angle which, int sec_decimals = 1)
+{
+    if (sec_decimals < 0 || sec_decimals > 9) {
+        throw std::invalid_argument("deg2dms: sec_decimals must lie in [0, 9]");
+    }
+
+    bool const negative = (deg < 0.0);
+
+    value_t const scale = std::pow(value_t(10.0), value_t(sec_decimals));
+    value_t total_sec = std::round(std::abs(deg) * 3600.0 * scale) / scale;
+
+    int const d = static_cast<int>(total_sec / 3600.0);
+    total_sec -= value_t(d) * 3600.0;
+    int const m = static_cast<int>(total_sec / 60.0);
+    value_t const s = total_sec - value_t(m) * 60.0;
+
+    char const hemi =
+        (which == geo_angle::latitude) ? (negative ? 'S' : 'N') : (negative ? 'W' : 'E');
+
+    int const width = (sec_decimals > 0) ? sec_decimals + 3 : 2;
+
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%d°%02d'%0*.*f\"%c", d, m, width, sec_decimals, s,
+                  hemi);
+    return std::string(buf);
+}
+
+// the same, from radians
+inline std::string rad2dms(value_t rad, geo_angle which, int sec_decimals = 1)
+{
+    return deg2dms(rad2deg(rad), which, sec_decimals);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // geodetic position
@@ -515,9 +559,20 @@ struct geo_pos_dms {
 //
 //     h = H + N
 //
-// N is the separation of the two surfaces. It is a measured field, not derivable from
-// lat/lon by any formula, and reaches some tens of metres -- about +45 m around Berlin,
-// about +50 m over Madrid, and roughly -30 m over the Indian Ocean. See to_geo_pos(),
+// N is the separation of the two surfaces: a MEASURED field, not derivable from any
+// formula, and -- unlike every other quantity in this header -- a function of BOTH
+// latitude AND longitude. Globally it runs from about -106 m at the Indian Ocean geoid
+// low, south of India, to about +85 m near New Guinea; Europe sits a few tens of metres
+// positive.
+//
+// That longitude dependence is exactly why N is supplied rather than computed, and why
+// it is not a member of ellipsoid: the reference ellipsoid is a surface of REVOLUTION,
+// so everything derived from it -- radius(), N(), geocentric_lat() -- is a function of
+// latitude alone, and a longitude argument would have nothing to do. Modelling the geoid
+// instead means a spherical-harmonic expansion (EGM2008 runs to degree 2190), which is a
+// data table, a different kind of object from the two radii this header is built on.
+//
+// See to_geo_pos(),
 // which takes N as an optional argument and defaults it to zero: with the default, an
 // encyclopedia elevation is passed through unchanged and the position is right relative
 // to the ELLIPSOID, which is what keeps the type usable with data anyone can look up.
