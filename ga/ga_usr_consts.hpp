@@ -19,6 +19,7 @@
 #include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
 
+#include "detail/type_t/ga_mvec2dc.hpp" // MVec2dc<T> and subtypes
 #include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
@@ -440,3 +441,71 @@ inline constexpr auto sta4ds_metric_view()
 }
 
 } // namespace hd::ga::sta
+
+namespace hd::ga::cga {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// 2dc constants (conformal algebra of 2d Euclidean space)
+//
+// basis vectors: e1, e2 Euclidean; e3 projective (w); e4 round (u).
+// The null pair satisfies e3*e3 = e4*e4 = 0 and e3.e4 = -1 — a non-orthogonal
+// metric (G(3,1,0) after diagonalization). A normalized point embeds as
+//
+//     q = x*e1 + y*e2 + e3 + 0.5*(x^2 + y^2)*e4        (q is null: q ⟑ q = 0)
+//
+// Vec2dc stores (x, y, w, u) in the fields named (x, y, z, w) — positional
+// field reuse, see detail/type_t/ga_type2dc.hpp.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+auto const e1_2dc = Vec2dc<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e2_2dc = Vec2dc<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e3_2dc = Vec2dc<value_t>{0.0, 0.0, 1.0, 0.0}; // projective (w), null vector
+auto const e4_2dc = Vec2dc<value_t>{0.0, 0.0, 0.0, 1.0}; // round (u), null vector
+
+auto const e1_2dc_mv = MVec2dc<value_t>{e1_2dc}; // e1_2dc as multivector
+auto const e2_2dc_mv = MVec2dc<value_t>{e2_2dc}; // e2_2dc as multivector
+auto const e3_2dc_mv = MVec2dc<value_t>{e3_2dc}; // e3_2dc as multivector
+auto const e4_2dc_mv = MVec2dc<value_t>{e4_2dc}; // e4_2dc as multivector
+
+// bivector basis: {e31, e32, e12, e14, e24, e34} in fields (vx, vy, vz, mx, my, mz)
+auto const e31_2dc = BiVec2dc<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e3,e1)
+auto const e32_2dc = BiVec2dc<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e3,e2)
+auto const e12_2dc = BiVec2dc<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}; // = wdg(e1,e2)
+auto const e14_2dc = BiVec2dc<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // = wdg(e1,e4)
+auto const e24_2dc = BiVec2dc<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0}; // = wdg(e2,e4)
+auto const e34_2dc = BiVec2dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}; // = wdg(e3,e4)
+
+auto const e31_2dc_mv = MVec2dc<value_t>{e31_2dc}; // e31_2dc as multivector
+auto const e32_2dc_mv = MVec2dc<value_t>{e32_2dc}; // e32_2dc as multivector
+auto const e12_2dc_mv = MVec2dc<value_t>{e12_2dc}; // e12_2dc as multivector
+auto const e14_2dc_mv = MVec2dc<value_t>{e14_2dc}; // e14_2dc as multivector
+auto const e24_2dc_mv = MVec2dc<value_t>{e24_2dc}; // e24_2dc as multivector
+auto const e34_2dc_mv = MVec2dc<value_t>{e34_2dc}; // e34_2dc as multivector
+
+auto const e31_2dc_mv_e = MVec2dc_E<value_t>{e31_2dc}; // e31_2dc as even multivector
+auto const e32_2dc_mv_e = MVec2dc_E<value_t>{e32_2dc}; // e32_2dc as even multivector
+auto const e12_2dc_mv_e = MVec2dc_E<value_t>{e12_2dc}; // e12_2dc as even multivector
+auto const e14_2dc_mv_e = MVec2dc_E<value_t>{e14_2dc}; // e14_2dc as even multivector
+auto const e24_2dc_mv_e = MVec2dc_E<value_t>{e24_2dc}; // e24_2dc as even multivector
+auto const e34_2dc_mv_e = MVec2dc_E<value_t>{e34_2dc}; // e34_2dc as even multivector
+
+// trivector basis: {e314, e324, e124, e321} in fields (x, y, z, w)
+auto const e314_2dc = TriVec2dc<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e324_2dc = TriVec2dc<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e124_2dc = TriVec2dc<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const e321_2dc = TriVec2dc<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const e314_2dc_mv = MVec2dc<value_t>{e314_2dc}; // e314_2dc as multivector
+auto const e324_2dc_mv = MVec2dc<value_t>{e324_2dc}; // e324_2dc as multivector
+auto const e124_2dc_mv = MVec2dc<value_t>{e124_2dc}; // e124_2dc as multivector
+auto const e321_2dc_mv = MVec2dc<value_t>{e321_2dc}; // e321_2dc as multivector
+
+auto const e314_2dc_mv_u = MVec2dc_U<value_t>{e314_2dc}; // e314_2dc as odd multivector
+auto const e324_2dc_mv_u = MVec2dc_U<value_t>{e324_2dc}; // e324_2dc as odd multivector
+auto const e124_2dc_mv_u = MVec2dc_U<value_t>{e124_2dc}; // e124_2dc as odd multivector
+auto const e321_2dc_mv_u = MVec2dc_U<value_t>{e321_2dc}; // e321_2dc as odd multivector
+
+auto const e1234_2dc = PScalar2dc<value_t>(1.0);
+auto const I_2dc = e1234_2dc; // the pseudoscalar of cga2dc
+
+} // namespace hd::ga::cga

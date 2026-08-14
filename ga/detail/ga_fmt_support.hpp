@@ -3,6 +3,7 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "fmt/ga_fmt_cga.hpp"       // CGA type formatters
 #include "fmt/ga_fmt_core.hpp"      // Core infrastructure
 #include "fmt/ga_fmt_ega.hpp"       // EGA type formatters
 #include "fmt/ga_fmt_mechanics.hpp" // Mechanics type formatters (Inertia)
