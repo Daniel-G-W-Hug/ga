@@ -53,6 +53,16 @@ class ConfigurableGenerator {
     prd_table get_basis_table_for_product(AlgebraData const& algebra,
                                           std::string const& product_name);
 
+    // Non-orthogonal metrics: the geometric product of basis blades is
+    // multi-term, so its basis table is an mt_table and case generation goes
+    // through get_mv_from_mt_tab. These mirror the single-term path.
+    static bool uses_mt_basis_table(AlgebraData const& algebra,
+                                    std::string const& product_name);
+    mt_table get_mt_basis_table_for_product(AlgebraData const& algebra,
+                                            std::string const& product_name);
+    void generate_single_case_mt(AlgebraData const& algebra, ProductConfig const& config,
+                                 OutputCase const& case_def, mt_table const& mt_tab);
+
     // Helper to get filter based on algebra dimension
     filter_2d get_filter_2d(AlgebraData const& algebra, std::string const& filter_name);
     filter_3d get_filter_3d(AlgebraData const& algebra, std::string const& filter_name);

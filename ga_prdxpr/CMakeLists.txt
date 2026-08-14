@@ -28,11 +28,13 @@ set(SOURCES
     src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp_config.cpp
     src_prdxpr/algebras/ga_prdxpr_sta4ds_config.cpp
+    src_prdxpr/algebras/ga_prdxpr_cga2dc_config.cpp
     src_prdxpr/algebras/ga_prdxpr_ega2d.cpp
     src_prdxpr/algebras/ga_prdxpr_ega3d.cpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp.cpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp.cpp
     src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp
+    src_prdxpr/algebras/ga_prdxpr_cga2dc.cpp
     # Sandwich product transformation pipeline
     src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.cpp
     src_prdxpr/sandwich/ga_prdxpr_sandwich_simplifier.cpp
@@ -63,11 +65,13 @@ set(HEADERS
     src_prdxpr/algebras/ga_prdxpr_pga2dp.hpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp.hpp
     src_prdxpr/algebras/ga_prdxpr_sta4ds.hpp
+    src_prdxpr/algebras/ga_prdxpr_cga2dc.hpp
     src_prdxpr/algebras/ga_prdxpr_ega2d_config.hpp
     src_prdxpr/algebras/ga_prdxpr_ega3d_config.hpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp_config.hpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp_config.hpp
     src_prdxpr/algebras/ga_prdxpr_sta4ds_config.hpp
+    src_prdxpr/algebras/ga_prdxpr_cga2dc_config.hpp
     # Sandwich pipeline
     src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.hpp
     src_prdxpr/sandwich/ga_prdxpr_sandwich_simplifier.hpp

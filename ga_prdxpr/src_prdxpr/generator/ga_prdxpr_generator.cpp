@@ -16,6 +16,7 @@
 #include <string_view>
 
 // Include mathematical definitions
+#include "algebras/ga_prdxpr_cga2dc.hpp"
 #include "algebras/ga_prdxpr_ega2d.hpp"
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
@@ -456,6 +457,30 @@ mvec_coeff compute_prd_mv_for_validation(AlgebraData const& algebra,
     return {};
 }
 
+// Multi-term variant of compute_prd_mv_for_validation (non-orthogonal metrics;
+// only defined for 4-basis-vector algebras, the only mt users so far).
+mvec_coeff compute_prd_mv_for_validation_mt(AlgebraData const& algebra,
+                                            OutputCase const& case_def,
+                                            mt_table const& mt_tab)
+{
+    auto const left_it = algebra.coefficients.find(case_def.left_coeff_name);
+    auto const right_it = algebra.coefficients.find(case_def.right_coeff_name);
+    if (left_it == algebra.coefficients.end() || right_it == algebra.coefficients.end()) {
+        return {};
+    }
+    if (!filter_name_known(algebra, case_def.left_filter_name) ||
+        !filter_name_known(algebra, case_def.right_filter_name)) {
+        return {};
+    }
+    if (algebra.dimension != 4) {
+        return {};
+    }
+    auto const lf = algebra.filters_4d.at(case_def.left_filter_name);
+    auto const rf = algebra.filters_4d.at(case_def.right_filter_name);
+    return get_mv_from_mt_tab(mt_tab, left_it->second, right_it->second, algebra.basis,
+                              get_coeff_filter(lf), get_coeff_filter(rf));
+}
+
 } // namespace
 
 void configurable::print_validation_summary()
@@ -576,6 +601,51 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
                            !options.should_show_tables() &&
                            !options.should_show_metrics();
     if (code_only && config.product_name.find("alternative") != std::string::npos) {
+        return;
+    }
+
+    // Non-orthogonal metrics: the geometric product's basis table is
+    // multi-term — run the parallel mt path (validation, table print, case
+    // generation) and return. C++ code emission for mt products is not
+    // implemented yet and is skipped with a note.
+    if (uses_mt_basis_table(algebra, config.product_name)) {
+        auto const mt_tab = get_mt_basis_table_for_product(algebra, config.product_name);
+
+        if (!config.is_sandwich_product) {
+            for (auto const& case_def : config.cases) {
+                if (case_def.is_two_step) continue;
+                auto const prd_mv =
+                    compute_prd_mv_for_validation_mt(algebra, case_def, mt_tab);
+                validate_case(algebra, config, case_def, prd_mv);
+            }
+        }
+
+        if (config.show_basis_table && options.should_show_tables()) {
+            // format the multi-term cells, then reuse the standard table printer
+            // (the sym/asym display split is a single-term string operation and
+            // is not offered for mt tables)
+            prd_table formatted(algebra.basis.size(), mvec_coeff(algebra.basis.size()));
+            for (size_t i = 0; i < algebra.basis.size(); ++i) {
+                for (size_t j = 0; j < algebra.basis.size(); ++j) {
+                    formatted[i][j] = prd_terms_to_string(mt_tab[i][j]);
+                }
+            }
+            print_basis_table(algebra, config, formatted, false);
+            fmt::println("");
+        }
+
+        if (options.should_show_coeffs()) {
+            for (auto const& case_def : config.cases) {
+                if (case_def.is_two_step) continue; // sandwich path: not yet for mt
+                generate_single_case_mt(algebra, config, case_def, mt_tab);
+            }
+        }
+
+        if (options.should_show_code()) {
+            fmt::println("// SKIP {} {} -- code emission for multi-term products not "
+                         "implemented yet",
+                         algebra.name, config.product_name);
+        }
         return;
     }
 
@@ -2820,10 +2890,92 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
     }
 
+    else if (algebra.name == "cga2dc") {
+
+        // NOTE: the geometric product of cga2dc is MULTI-TERM (null-pair
+        // metric) and does not fit prd_table — it goes through
+        // get_mt_basis_table_for_product / uses_mt_basis_table instead.
+        if (product_name == "gpr") {
+            throw std::invalid_argument(
+                "cga2dc::gpr is multi-term — handled by the mt basis-table path");
+        }
+
+        else if (product_name == "wdg") {
+            return apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(mv2dc_basis, mv2dc_basis, wdg_str()),
+                wdg_cga2dc_rules);
+        }
+
+        else if (product_name == "dot") {
+            // Inner product (=dot product); off-diagonal metric-partner pairs
+            // are non-zero for the null-basis metric
+            return apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(mv2dc_basis, mv2dc_basis, mul_str()),
+                dot_cga2dc_rules);
+        }
+    }
+
     // Add other algebras as needed...
     // For now, throw an error for unimplemented combinations
     throw std::invalid_argument("Unsupported product: " + algebra.name +
                                 "::" + product_name);
+}
+
+bool ConfigurableGenerator::uses_mt_basis_table(AlgebraData const& algebra,
+                                                std::string const& product_name)
+{
+    // multi-term basis tables exist wherever a non-orthogonal metric makes the
+    // geometric product of basis blades multi-term; so far that is cga2dc::gpr
+    return algebra.name == "cga2dc" && product_name == "gpr";
+}
+
+mt_table
+ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra,
+                                                      std::string const& product_name)
+{
+    if (algebra.name == "cga2dc" && product_name == "gpr") {
+        return build_mt_basis_table(mv2dc_basis, mv2dc_basis, gpr_cga2dc_rules_mt,
+                                    mul_str());
+    }
+    throw std::invalid_argument("Unsupported mt product: " + algebra.name +
+                                "::" + product_name);
+}
+
+void ConfigurableGenerator::generate_single_case_mt(AlgebraData const& algebra,
+                                                    ProductConfig const& config,
+                                                    OutputCase const& case_def,
+                                                    mt_table const& mt_tab)
+{
+    // Get coefficients from algebra data (maps to existing coefficient objects)
+    auto left_coeff_it = algebra.coefficients.find(case_def.left_coeff_name);
+    auto right_coeff_it = algebra.coefficients.find(case_def.right_coeff_name);
+
+    if (left_coeff_it == algebra.coefficients.end()) {
+        throw std::invalid_argument("Unknown left coefficient: " +
+                                    case_def.left_coeff_name);
+    }
+    if (right_coeff_it == algebra.coefficients.end()) {
+        throw std::invalid_argument("Unknown right coefficient: " +
+                                    case_def.right_coeff_name);
+    }
+
+    if (algebra.dimension != 4) {
+        throw std::invalid_argument("Multi-term case generation is only provided for "
+                                    "4-basis-vector algebras (got dimension " +
+                                    std::to_string(algebra.dimension) + ")");
+    }
+
+    auto left_filter = get_filter_4d(algebra, case_def.left_filter_name);
+    auto right_filter = get_filter_4d(algebra, case_def.right_filter_name);
+
+    auto prd_mv = get_mv_from_mt_tab(
+        mt_tab, left_coeff_it->second, right_coeff_it->second, algebra.basis,
+        get_coeff_filter(left_filter), get_coeff_filter(right_filter));
+
+    // Format output to match reference implementation exactly
+    print_case_header(algebra, config, case_def.case_name);
+    print_case_result(prd_mv, algebra.basis);
+    fmt::println("");
 }
 
 filter_2d ConfigurableGenerator::get_filter_2d(AlgebraData const& algebra,

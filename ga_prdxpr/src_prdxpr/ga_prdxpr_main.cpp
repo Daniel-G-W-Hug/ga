@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 // Complete configurable GA product expression generator for all four algebras
 
+#include "algebras/ga_prdxpr_cga2dc_config.hpp"
 #include "algebras/ga_prdxpr_ega2d_config.hpp"
 #include "algebras/ga_prdxpr_ega3d_config.hpp"
 #include "algebras/ga_prdxpr_pga2dp_config.hpp"
@@ -233,6 +234,20 @@ int main(int argc, char const* argv[])
                 get_sta4ds_sandwich_gpr_config()};
 
             generate_algebra_products(generator, sta4ds_configs, sta4ds_algebra, true,
+                                      options);
+        }
+
+        // CGA2DC (non-orthogonal null-basis metric; the geometric product goes
+        // through the multi-term basis-table path inside the generator)
+        if (options.should_generate_algebra("cga2dc") &&
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
+            auto cga2dc_algebra = create_cga2dc_algebra_data();
+            std::vector<ProductConfig> cga2dc_configs = {get_cga2dc_gpr_config(),
+                                                         get_cga2dc_wdg_config(),
+                                                         get_cga2dc_dot_config()};
+
+            generate_algebra_products(generator, cga2dc_configs, cga2dc_algebra, true,
                                       options);
         }
 
