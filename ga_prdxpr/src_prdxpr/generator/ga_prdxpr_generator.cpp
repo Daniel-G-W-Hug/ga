@@ -2913,6 +2913,62 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 mv_coeff_to_coeff_prd_tab(mv2dc_basis, mv2dc_basis, mul_str()),
                 dot_cga2dc_rules);
         }
+
+        else if (product_name == "l_contract") {
+            // A << B = rwdg(l_dual(A), B) =
+            // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv2dc_basis, l_dual_cga2dc_rules), r_cmpl_cga2dc_rules);
+            auto rhs = apply_rules_to_mv(mv2dc_basis, r_cmpl_cga2dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga2dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga2dc_rules);
+        }
+
+        else if (product_name == "r_contract") {
+            // A >> B = rwdg(A, r_dual(B)) = l_cmpl(wdg(r_cmpl(A),
+            // r_cmpl(r_dual(B))))
+            auto lhs = apply_rules_to_mv(mv2dc_basis, r_cmpl_cga2dc_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv2dc_basis, r_dual_cga2dc_rules), r_cmpl_cga2dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga2dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga2dc_rules);
+        }
+
+        else if (product_name == "l_expand") {
+            // Left expansion: l_expand(A,B) = wdg(l_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv2dc_basis, l_dual_cga2dc_rules);
+            auto rhs = mv2dc_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_cga2dc_rules);
+        }
+
+        else if (product_name == "r_expand") {
+            // Right expansion: r_expand(A,B) = wdg(A, r_dual(B))
+            auto lhs = mv2dc_basis;
+            auto rhs = apply_rules_to_mv(mv2dc_basis, r_dual_cga2dc_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_cga2dc_rules);
+        }
+
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2dc_basis, r_cmpl_cga2dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_cga2dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga2dc_rules);
+        }
+
+        else if (product_name == "rdot") {
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2dc_basis, r_cmpl_cga2dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_cga2dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga2dc_rules);
+        }
     }
 
     // Add other algebras as needed...
@@ -2925,17 +2981,38 @@ bool ConfigurableGenerator::uses_mt_basis_table(AlgebraData const& algebra,
                                                 std::string const& product_name)
 {
     // multi-term basis tables exist wherever a non-orthogonal metric makes the
-    // geometric product of basis blades multi-term; so far that is cga2dc::gpr
-    return algebra.name == "cga2dc" && product_name == "gpr";
+    // geometric product of basis blades multi-term; that covers the whole gpr
+    // family (gpr, its commutator, and the regressive counterparts)
+    return algebra.name == "cga2dc" && (product_name == "gpr" || product_name == "cmt" ||
+                                        product_name == "rgpr" || product_name == "rcmt");
 }
 
 mt_table
 ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra,
                                                       std::string const& product_name)
 {
-    if (algebra.name == "cga2dc" && product_name == "gpr") {
-        return build_mt_basis_table(mv2dc_basis, mv2dc_basis, gpr_cga2dc_rules_mt,
-                                    mul_str());
+    if (algebra.name == "cga2dc") {
+        if (product_name == "gpr") {
+            return build_mt_basis_table(mv2dc_basis, mv2dc_basis, gpr_cga2dc_rules_mt,
+                                        mul_str());
+        }
+        else if (product_name == "cmt") {
+            // Commutator product (=asymmetric part of the geometric product)
+            return get_mt_tab_asym(build_mt_basis_table(mv2dc_basis, mv2dc_basis,
+                                                        gpr_cga2dc_rules_mt, mul_str()));
+        }
+        else if (product_name == "rgpr") {
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
+            return build_mt_basis_table_cmpl_conjugated(mv2dc_basis, gpr_cga2dc_rules_mt,
+                                                        r_cmpl_cga2dc_rules,
+                                                        l_cmpl_cga2dc_rules, mul_str());
+        }
+        else if (product_name == "rcmt") {
+            // Regressive commutator: rcmt(A,B) = asym(rgpr(A,B))
+            return get_mt_tab_asym(build_mt_basis_table_cmpl_conjugated(
+                mv2dc_basis, gpr_cga2dc_rules_mt, r_cmpl_cga2dc_rules,
+                l_cmpl_cga2dc_rules, mul_str()));
+        }
     }
     throw std::invalid_argument("Unsupported mt product: " + algebra.name +
                                 "::" + product_name);

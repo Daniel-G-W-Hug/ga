@@ -1208,3 +1208,131 @@ void print_mt_tab(mt_table const& tab)
         fmt::println(" ]");
     }
 }
+
+prd_terms apply_rules_to_mt_terms(prd_terms const& terms, prd_rules const& rules)
+{
+    prd_terms result;
+    for (auto const& t : terms) {
+        auto const it = rules.find(t.blade);
+        if (it == rules.end()) {
+            throw std::runtime_error("apply_rules_to_mt_terms: missing rule for '" +
+                                     t.blade + "'");
+        }
+        std::string value = it->second;
+        if (value == zero_str()) continue;
+
+        int coeff = t.coeff;
+        if (value.starts_with(minus_str())) {
+            coeff = -coeff;
+            value = value.substr(1, value.size() - 1);
+        }
+        result.push_back(prd_term{coeff, value});
+    }
+    return result;
+}
+
+mt_table build_mt_basis_table_cmpl_conjugated(mvec_coeff const& basis,
+                                              prd_rules_mt const& rules,
+                                              prd_rules const& r_cmpl_rules,
+                                              prd_rules const& l_cmpl_rules,
+                                              std::string const& operator_str)
+{
+    // regressive product construction at the basis-table level:
+    //     result[i][j] = l_cmpl( rules( r_cmpl(basis[i]), r_cmpl(basis[j]) ) )
+    // the complements are signed bijections, so each side contributes one
+    // signed blade and the term count of each cell is preserved
+
+    // signed complement lookup: blade -> (sign, blade')
+    auto signed_cmpl = [&](std::string const& blade) {
+        auto const it = r_cmpl_rules.find(blade);
+        if (it == r_cmpl_rules.end()) {
+            throw std::runtime_error(
+                "build_mt_basis_table_cmpl_conjugated: missing r_cmpl rule for '" +
+                blade + "'");
+        }
+        std::string value = it->second;
+        int sign = 1;
+        if (value.starts_with(minus_str())) {
+            sign = -1;
+            value = value.substr(1, value.size() - 1);
+        }
+        return std::pair{sign, value};
+    };
+
+    mt_table tab(basis.size(), std::vector<prd_terms>(basis.size()));
+    for (size_t i = 0; i < basis.size(); ++i) {
+        auto const [sign_i, blade_i] = signed_cmpl(basis[i]);
+        for (size_t j = 0; j < basis.size(); ++j) {
+            auto const [sign_j, blade_j] = signed_cmpl(basis[j]);
+
+            std::string const key =
+                blade_i + space_str() + operator_str + space_str() + blade_j;
+            auto const it = rules.find(key);
+            if (it == rules.end()) {
+                throw std::runtime_error("build_mt_basis_table_cmpl_conjugated: "
+                                         "missing rule for key '" +
+                                         key + "'");
+            }
+
+            prd_terms cell = apply_rules_to_mt_terms(it->second, l_cmpl_rules);
+            if (sign_i * sign_j == -1) {
+                for (auto& t : cell) {
+                    t.coeff = -t.coeff;
+                }
+            }
+            tab[i][j] = std::move(cell);
+        }
+    }
+    return tab;
+}
+
+mt_table get_mt_tab_asym(mt_table const& tab)
+{
+    //
+    // a*b = 0.5*(a*b + b*a) + 0.5*(a*b - b*a) = (a*b)_sym + (a*b)_asym
+    //
+    // provide the asymmetric part 0.5*(T[i][j] - T[j][i]) per cell; for basis
+    // blades every per-blade coefficient difference is even, so the result
+    // stays integral (verified, throws otherwise)
+    //
+
+    for (size_t i = 0; i < tab.size(); ++i) {
+        if (tab[i].size() != tab.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+
+    mt_table asym(tab.size(), std::vector<prd_terms>(tab.size()));
+    for (size_t i = 0; i < tab.size(); ++i) {
+        for (size_t j = 0; j < tab.size(); ++j) {
+
+            // accumulate per-blade coefficients of T[i][j] - T[j][i], keeping
+            // the first-appearance order of blades for stable printing
+            std::vector<std::string> order;
+            std::map<std::string, int> acc;
+            for (auto const& t : tab[i][j]) {
+                if (acc.find(t.blade) == acc.end()) order.push_back(t.blade);
+                acc[t.blade] += t.coeff;
+            }
+            for (auto const& t : tab[j][i]) {
+                if (acc.find(t.blade) == acc.end()) order.push_back(t.blade);
+                acc[t.blade] -= t.coeff;
+            }
+
+            prd_terms cell;
+            for (auto const& blade : order) {
+                int const diff = acc[blade];
+                if (diff == 0) continue;
+                if (diff % 2 != 0) {
+                    throw std::runtime_error(
+                        "get_mt_tab_asym: odd coefficient difference for blade '" +
+                        blade + "' — asymmetric part would not be integral");
+                }
+                cell.push_back(prd_term{diff / 2, blade});
+            }
+            asym[i][j] = std::move(cell);
+        }
+    }
+    return asym;
+}

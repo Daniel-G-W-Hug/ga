@@ -27,7 +27,20 @@ AlgebraData create_cga2dc_algebra_data();
 // cga2dc product configurations (initial set: the literature-reviewed
 // products; further products follow the established per-product workflow)
 ProductConfig get_cga2dc_gpr_config(); // geometric product (multi-term rules)
+ProductConfig get_cga2dc_cmt_config(); // commutator product (multi-term rules)
 ProductConfig get_cga2dc_wdg_config(); // wedge product
 ProductConfig get_cga2dc_dot_config(); // inner product
+
+ProductConfig get_cga2dc_l_contract_config(); // left contraction
+ProductConfig get_cga2dc_r_contract_config(); // right contraction
+
+// Expansions are the regressive versions of the corresponding contractions.
+ProductConfig get_cga2dc_l_expand_config(); // left expansion
+ProductConfig get_cga2dc_r_expand_config(); // right expansion
+
+ProductConfig get_cga2dc_rgpr_config(); // regressive geometric product (multi-term)
+ProductConfig get_cga2dc_rcmt_config(); // regressive commutator product (multi-term)
+ProductConfig get_cga2dc_rwdg_config(); // regressive wedge product
+ProductConfig get_cga2dc_rdot_config(); // regressive inner product
 
 } // namespace configurable

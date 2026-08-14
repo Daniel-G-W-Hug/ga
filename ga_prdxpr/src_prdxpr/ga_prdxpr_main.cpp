@@ -243,9 +243,16 @@ int main(int argc, char const* argv[])
             (options.should_show_coeffs() || options.should_show_tables() ||
              options.should_show_code())) {
             auto cga2dc_algebra = create_cga2dc_algebra_data();
-            std::vector<ProductConfig> cga2dc_configs = {get_cga2dc_gpr_config(),
-                                                         get_cga2dc_wdg_config(),
-                                                         get_cga2dc_dot_config()};
+            std::vector<ProductConfig> cga2dc_configs = {
+                get_cga2dc_gpr_config(),        get_cga2dc_cmt_config(),
+                get_cga2dc_wdg_config(),        get_cga2dc_dot_config(),
+
+                get_cga2dc_l_contract_config(), get_cga2dc_r_contract_config(),
+
+                get_cga2dc_l_expand_config(),   get_cga2dc_r_expand_config(),
+
+                get_cga2dc_rgpr_config(),       get_cga2dc_rcmt_config(),
+                get_cga2dc_rwdg_config(),       get_cga2dc_rdot_config()};
 
             generate_algebra_products(generator, cga2dc_configs, cga2dc_algebra, true,
                                       options);

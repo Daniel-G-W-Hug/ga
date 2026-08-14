@@ -219,6 +219,22 @@ mvec_coeff get_mv_from_mt_tab(mt_table const& mt_tab, mvec_coeff const& mv_lcoef
 // print a multi-term basis product table (cells formatted via prd_terms_to_string)
 void print_mt_tab(mt_table const& tab);
 
+// apply single-term rules (e.g. complements) to every term of an mt cell;
+// "0"-valued rules drop the term, leading minus signs fold into the coefficient
+prd_terms apply_rules_to_mt_terms(prd_terms const& terms, prd_rules const& rules);
+
+// complement-conjugated mt basis table (regressive product construction):
+// result[i][j] = l_cmpl( rules( r_cmpl(basis[i]), r_cmpl(basis[j]) ) )
+mt_table build_mt_basis_table_cmpl_conjugated(mvec_coeff const& basis,
+                                              prd_rules_mt const& rules,
+                                              prd_rules const& r_cmpl_rules,
+                                              prd_rules const& l_cmpl_rules,
+                                              std::string const& operator_str);
+
+// asymmetric part 0.5*(T[i][j] - T[j][i]) of an mt basis table (commutator);
+// stays integral for basis blades (throws if not)
+mt_table get_mt_tab_asym(mt_table const& tab);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // printing
