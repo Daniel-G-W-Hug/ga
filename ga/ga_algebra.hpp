@@ -80,6 +80,15 @@ struct algebra {
                     "  g24", "  g34", "  g23", "  g31", "  g12", " g234",
                     " g314", " g124", " g123", "g1234"};
         }
+        //
+        // cga2dc:  algebra<3,1,0> (conformal 2d) — STORED in the null basis
+        // {e1, e2, e3, e4} with e3*e3 = e4*e4 = 0 and e3.e4 = -1; the signature
+        // G(3,1,0) refers to the diagonalized form of that metric
+        if constexpr (dim_space() == 4 && (p() == 3 && n() == 1 && z() == 0)) {
+            return {"    1", "   e1", "   e2", "   e3", "   e4", "  e31",
+                    "  e32", "  e12", "  e14", "  e24", "  e34", " e314",
+                    " e324", " e124", " e321", "e1234"};
+        }
     }();
 };
 
