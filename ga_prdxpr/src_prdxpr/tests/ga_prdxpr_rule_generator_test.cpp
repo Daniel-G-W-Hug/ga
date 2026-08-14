@@ -1,6 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "algebras/ga_prdxpr_cga2dc.hpp"
+#include "algebras/ga_prdxpr_cga2dc_config.hpp"
 #include "algebras/ga_prdxpr_ega2d.hpp"
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
@@ -33,6 +35,32 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
             auto it = rules.find(key);
             if (it != rules.end()) {
                 fmt::println("    {{\"{}\", \"{}\"}},", key, it->second);
+            }
+        }
+    }
+}
+
+// Helper function to print multi-term rules (non-orthogonal metrics) in
+// grade-ordered way, e.g. "e3 * e4" -> "-1 + e34"
+void print_all_rules_mt(const prd_rules_mt& rules, const std::string& title,
+                        const mvec_coeff& basis_order,
+                        const std::string& algebra_name = "")
+{
+    if (!algebra_name.empty()) {
+        fmt::println("\n{} {}", algebra_name, title);
+    }
+    else {
+        fmt::println("\n=== {} ===", title);
+    }
+
+    // Print in grade order by iterating through basis in order
+    for (const auto& a : basis_order) {
+        for (const auto& b : basis_order) {
+            std::string key = a + " * " + b;
+            auto it = rules.find(key);
+            if (it != rules.end()) {
+                fmt::println("    {{\"{}\", \"{}\"}},", key,
+                             prd_terms_to_string(it->second));
             }
         }
     }
@@ -122,9 +150,16 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
                  : algebra_name.find("sta4ds") != std::string::npos ? "space-time 3d"
+                 : algebra_name.find("cga2dc") != std::string::npos ? "conformal 2d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
+    if (config.has_metric_matrix()) {
+        fmt::println("metric matrix (non-orthogonal basis):");
+        for (auto const& row : config.metric_matrix) {
+            fmt::println("    [{}]", fmt::join(row, ", "));
+        }
+    }
 
     // Generate all rules
     auto generated_rules = generate_algebra_rules(config);
@@ -177,12 +212,17 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
     }
 
-    // Detect PGA algebras (have degenerate dimensions with metric signature 0)
+    // Detect PGA algebras (have degenerate dimensions with metric signature 0).
+    // Signature-based detection applies to orthogonal metrics only: a full
+    // metric matrix may carry diagonal zeros (null vectors) while being
+    // non-degenerate overall (validated in generate_algebra_rules).
     bool is_pga = false;
-    for (int metric_val : config.metric_signature) {
-        if (metric_val == 0) {
-            is_pga = true;
-            break;
+    if (!config.has_metric_matrix()) {
+        for (int metric_val : config.metric_signature) {
+            if (metric_val == 0) {
+                is_pga = true;
+                break;
+            }
         }
     }
 
@@ -250,13 +290,52 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
         }
     }
 
-    // Print all generated rules clearly with algebra prefix
-    print_all_rules(generated_rules.geometric_product, "geometric product rules",
-                    generated_rules.basis, algebra_name);
+    // Print all generated rules clearly with algebra prefix. Non-orthogonal
+    // metrics carry the geometric product in the multi-term rule set.
+    if (config.has_metric_matrix()) {
+        print_all_rules_mt(generated_rules.geometric_product_mt,
+                           "geometric product rules (multi-term)", generated_rules.basis,
+                           algebra_name);
+    }
+    else {
+        print_all_rules(generated_rules.geometric_product, "geometric product rules",
+                        generated_rules.basis, algebra_name);
+    }
     print_all_rules(generated_rules.wedge_product, "wedge product rules",
                     generated_rules.basis, algebra_name);
     print_all_rules(generated_rules.dot_product, "dot product rules",
                     generated_rules.basis, algebra_name);
+
+    // For non-orthogonal algebras additionally print the grid-layout product
+    // tables (rows x columns with basis headers, as ga_prdxpr prints them) —
+    // the form most convenient for comparison against printed references.
+    if (config.has_metric_matrix()) {
+        auto const& basis = generated_rules.basis;
+
+        // gpr: format the multi-term cells, then reuse the standard grid printer
+        auto const mt_tab = build_mt_basis_table(
+            basis, basis, generated_rules.geometric_product_mt, mul_str());
+        prd_table gpr_tab(basis.size(), mvec_coeff(basis.size()));
+        for (size_t i = 0; i < basis.size(); ++i) {
+            for (size_t j = 0; j < basis.size(); ++j) {
+                gpr_tab[i][j] = prd_terms_to_string(mt_tab[i][j]);
+            }
+        }
+        fmt::println("\n{} geometric product table (multi-term cells):", algebra_name);
+        print_prd_tab_with_headers(gpr_tab, basis);
+
+        auto const wdg_tab =
+            apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(basis, basis, wdg_str()),
+                               generated_rules.wedge_product);
+        fmt::println("\n{} wedge product table:", algebra_name);
+        print_prd_tab_with_headers(wdg_tab, basis);
+
+        auto const dot_tab =
+            apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(basis, basis, mul_str()),
+                               generated_rules.dot_product);
+        fmt::println("\n{} dot product table:", algebra_name);
+        print_prd_tab_with_headers(dot_tab, basis);
+    }
 
     // Print complement rules based on algebra dimensionality in grade order
     size_t num_basis_vectors = config.basis_vectors.size();
@@ -799,6 +878,41 @@ int main(int argc, char* argv[])
             display_algebra_rules(sta4ds_config, "sta4ds");
         }
 
+        // Configure and test CGA2DC algebra (non-orthogonal null-basis metric —
+        // the geometric product rules are multi-term, so consistency testing
+        // compares the rule sets directly instead of via test_algebra)
+        AlgebraConfig cga2dc_config = get_cga2dc_algebra_config();
+
+        if (test_consistency) {
+            auto fresh = generate_algebra_rules(cga2dc_config);
+            bool cga2dc_success = (fresh.geometric_product_mt == gpr_cga2dc_rules_mt) &&
+                                  (fresh.wedge_product == wdg_cga2dc_rules) &&
+                                  (fresh.dot_product == dot_cga2dc_rules) &&
+                                  (fresh.l_cmpl == l_cmpl_cga2dc_rules) &&
+                                  (fresh.r_cmpl == r_cmpl_cga2dc_rules) &&
+                                  (fresh.l_dual == l_dual_cga2dc_rules) &&
+                                  (fresh.r_dual == r_dual_cga2dc_rules);
+            fmt::println("\n=== Complete cga2dc Validation ===");
+            fmt::println("  gpr (multi-term), wdg, dot, l/r cmpl, l/r dual: {}",
+                         cga2dc_success ? "✓ PERFECT MATCH (static init == fresh)"
+                                        : "✗ DIFFERENCES");
+            test_results.push_back(cga2dc_success);
+        }
+        else {
+            display_algebra_rules(cga2dc_config, "cga2dc");
+
+            // REVIEW AID: the same algebra with the multivector basis in the
+            // order used by the printed reference tables (round-first blade
+            // order and orientations), so the generated metric matrix and
+            // product tables can be compared against the literature 1:1 by
+            // eye. The canonical library order is the section above.
+            AlgebraConfig cga2dc_bookview = cga2dc_config;
+            cga2dc_bookview.multivector_basis = {
+                "1",   "e1",  "e2",  "e3",   "e4",   "e23",  "e31",  "e12",
+                "e41", "e42", "e43", "e321", "e423", "e431", "e412", "e1234"};
+            display_algebra_rules(cga2dc_bookview, "cga2dc (reference basis order)");
+        }
+
         if (test_consistency) {
             // Overall summary for test mode
             std::string separator(80, '=');
@@ -815,6 +929,8 @@ int main(int argc, char* argv[])
                          test_results[3] ? "✓ PERFECT" : "✗ FAILED");
             fmt::println("sta4ds (G(1,3,0)): {}",
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
+            fmt::println("cga2dc (G(3,1,0), null basis): {}",
+                         test_results[5] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),
                                            [](bool b) { return b; });

@@ -329,3 +329,16 @@ from `build/ga_prdxpr/`). The C++ code
 generator is independently validated by piping `--output=code` through `clang-format` and
 diffing against the matching `ga/*_ops_products.hpp` (see [Validating against existing
 source](#validating-against-existing-source)).
+
+The non-orthogonal metric machinery (`metric_matrix`, multi-term geometric product
+rules) is covered by `ga_prdxpr_metric_matrix_test` (doctest), and the generated cga2dc
+rule tables are pinned against a literature-reviewed reference,
+`reference_output/ga_prdxpr_rulegen_cga2dc.txt` (both the canonical basis order and the
+reference-literature basis order). Re-verify after any generator or config change (run
+from `build/ga_prdxpr/`):
+
+```bash
+./ga_prdxpr_rule_generator_test | \
+  awk '/^=== cga2dc algebra rules ===/{f=1} f&&/^RULE DISPLAY COMPLETE$/{exit} f' | \
+  diff - ../../ga_prdxpr/src_prdxpr/reference_output/ga_prdxpr_rulegen_cga2dc.txt
+```

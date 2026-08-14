@@ -103,11 +103,13 @@ set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/tests/ga_prdxpr_rule_generator_test.c
             src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp
             src_prdxpr/algebras/ga_prdxpr_pga3dp_config.cpp
             src_prdxpr/algebras/ga_prdxpr_sta4ds_config.cpp
+            src_prdxpr/algebras/ga_prdxpr_cga2dc_config.cpp
             src_prdxpr/algebras/ga_prdxpr_ega2d.cpp
             src_prdxpr/algebras/ga_prdxpr_ega3d.cpp
             src_prdxpr/algebras/ga_prdxpr_pga2dp.cpp
             src_prdxpr/algebras/ga_prdxpr_pga3dp.cpp
-            src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp)
+            src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp
+            src_prdxpr/algebras/ga_prdxpr_cga2dc.cpp)
 
 # Non-orthogonal metric (metric_matrix) machinery test — doctest-based; uses a
 # hand-rolled null-basis config, so no per-algebra sources are needed.
