@@ -144,6 +144,30 @@ std::map<std::string, TypeInfo> build_sta4ds()
     return m;
 }
 
+// CGA2DC: basis = {1, e1, e2, e3, e4, e31, e32, e12, e14, e24, e34, e314, e324,
+//                  e124, e321, e1234} (16 elements) — same layout shape as PGA3DP:
+// scalar + 4-vec + 6-bivec + 4-trivec + ps, so MVec2dc_E composes {s, bivec, ps}
+// and MVec2dc_U composes {vec, trivec}.
+//
+// BiVec2dc components: (vx, vy, vz, mx, my, mz) following pga3dp's naming;
+// TriVec2dc components: (x, y, z, w), matching the svBtps coefficient layout in
+// algebras/ga_prdxpr_cga2dc.hpp. The emitted code targets the (planned) cga
+// library type layer, which reuses the existing 16-component templates.
+std::map<std::string, TypeInfo> build_cga2dc()
+{
+    std::map<std::string, TypeInfo> m;
+    m["s"] = make_single("Scalar2dc", 0);
+    m["vec"] = make_named("Vec2dc", {1, 2, 3, 4});
+    m["bivec"] = make_named("BiVec2dc", {5, 6, 7, 8, 9, 10});
+    m["trivec"] = make_named("TriVec2dc", {11, 12, 13, 14});
+    m["ps"] = make_single("PScalar2dc", 15);
+    m["mv_e"] = make_composite("MVec2dc_E", {"s", "bivec", "ps"}, m);
+    m["mv_u"] = make_composite("MVec2dc_U", {"vec", "trivec"}, m);
+    m["mv"] =
+        make_indexed("MVec2dc", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    return m;
+}
+
 } // namespace
 
 TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_name)
@@ -162,6 +186,9 @@ TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_n
     }
     else if (algebra_name == "sta4ds") {
         types_ = build_sta4ds();
+    }
+    else if (algebra_name == "cga2dc") {
+        types_ = build_cga2dc();
     }
     else {
         throw std::invalid_argument("TypeRegistry: no registry available for algebra '" +

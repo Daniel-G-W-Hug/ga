@@ -641,10 +641,11 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
             }
         }
 
-        if (options.should_show_code()) {
-            fmt::println("// SKIP {} {} -- code emission for multi-term products not "
-                         "implemented yet",
-                         algebra.name, config.product_name);
+        if (options.should_show_code() && !config.is_sandwich_product) {
+            for (auto const& case_def : config.cases) {
+                if (case_def.is_two_step) continue;
+                emit_single_case_code_mt(algebra, config, case_def, mt_tab);
+            }
         }
         return;
     }
@@ -857,6 +858,13 @@ std::vector<UnaryOp> unary_ops_for(std::string const& alg)
                 {"r_cmpl", "r_cmpl", &r_cmpl_sta4ds_rules},
                 {"l_dual", "l_dual", &l_dual_sta4ds_rules},
                 {"r_dual", "r_dual", &r_dual_sta4ds_rules}};
+    if (alg == "cga2dc")
+        return {{"l_cmpl", "l_cmpl", &l_cmpl_cga2dc_rules},
+                {"r_cmpl", "r_cmpl", &r_cmpl_cga2dc_rules},
+                {"l_dual", "l_dual", &l_dual_cga2dc_rules},
+                {"r_dual", "r_dual", &r_dual_cga2dc_rules},
+                {"l_antidual", "l_antidual", &l_antidual_cga2dc_rules},
+                {"r_antidual", "r_antidual", &r_antidual_cga2dc_rules}};
     return {};
 }
 
@@ -870,6 +878,7 @@ mvec_coeff const& canonical_mv_coeff(std::string const& alg)
     if (alg == "pga2dp") return mv2dp_coeff_svBps;
     if (alg == "pga3dp") return mv3dp_coeff_svBtps;
     if (alg == "sta4ds") return mvsta4ds_coeff_svBtps;
+    if (alg == "cga2dc") return mv2dc_coeff_svBtps;
     throw std::runtime_error("canonical_mv_coeff: unsupported algebra '" + alg + "'");
 }
 
@@ -3052,6 +3061,63 @@ void ConfigurableGenerator::generate_single_case_mt(AlgebraData const& algebra,
     // Format output to match reference implementation exactly
     print_case_header(algebra, config, case_def.case_name);
     print_case_result(prd_mv, algebra.basis);
+    fmt::println("");
+}
+
+void ConfigurableGenerator::emit_single_case_code_mt(AlgebraData const& algebra,
+                                                     ProductConfig const& config,
+                                                     OutputCase const& case_def,
+                                                     mt_table const& mt_tab)
+{
+    // Mirror of emit_single_case_code for multi-term basis tables: only the
+    // coefficient extraction differs (get_mv_from_mt_tab); the emitter itself
+    // consumes the extracted expression strings unchanged.
+    static std::map<std::string, codegen::TypeRegistry> registries;
+    auto reg_it = registries.find(algebra.name);
+    if (reg_it == registries.end()) {
+        try {
+            reg_it = registries.emplace(algebra.name, codegen::TypeRegistry(algebra.name))
+                         .first;
+        }
+        catch (std::exception const& e) {
+            fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, config.product_name,
+                         case_def.case_name, e.what());
+            return;
+        }
+    }
+    auto const& registry = reg_it->second;
+
+    auto left_coeff_it = algebra.coefficients.find(case_def.left_coeff_name);
+    auto right_coeff_it = algebra.coefficients.find(case_def.right_coeff_name);
+    if (left_coeff_it == algebra.coefficients.end() ||
+        right_coeff_it == algebra.coefficients.end()) {
+        fmt::println("// SKIP {} {} :: {} -- unknown coefficient", algebra.name,
+                     config.product_name, case_def.case_name);
+        return;
+    }
+
+    if (algebra.dimension != 4) {
+        fmt::println("// SKIP {} {} :: {} -- unsupported dimension {}", algebra.name,
+                     config.product_name, case_def.case_name, algebra.dimension);
+        return;
+    }
+
+    auto lf = get_filter_4d(algebra, case_def.left_filter_name);
+    auto rf = get_filter_4d(algebra, case_def.right_filter_name);
+    auto prd_mv =
+        get_mv_from_mt_tab(mt_tab, left_coeff_it->second, right_coeff_it->second,
+                           algebra.basis, get_coeff_filter(lf), get_coeff_filter(rf));
+
+    std::string skip_reason;
+    auto rendered =
+        codegen::emit_function(algebra, config, case_def, prd_mv, registry, &skip_reason);
+    if (!rendered) {
+        fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, config.product_name,
+                     case_def.case_name, skip_reason);
+        return;
+    }
+    fmt::println("// {} {} :: {}", algebra.name, config.product_name, case_def.case_name);
+    fmt::print("{}", *rendered);
     fmt::println("");
 }
 
