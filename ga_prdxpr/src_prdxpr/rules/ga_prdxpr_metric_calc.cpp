@@ -119,8 +119,27 @@ int compute_integer_determinant(
 // Vector Metric and Gram Matrix Computation
 ////////////////////////////////////////////////////////////////////////////////
 
+// find the slot of the basis vector named "<prefix><digit>" (-1 if unknown)
+static int vector_slot(int digit, AlgebraConfig const& config)
+{
+    std::string const name = config.basis_prefix + std::to_string(digit);
+    auto it = std::find(config.basis_vectors.begin(), config.basis_vectors.end(), name);
+    if (it == config.basis_vectors.end()) return -1;
+    return static_cast<int>(std::distance(config.basis_vectors.begin(), it));
+}
+
 int get_vector_metric(int index_i, int index_j, AlgebraConfig const& config)
 {
+    // Full metric matrix (non-orthogonal basis, e.g. a conformal null pair):
+    // look up M[slot_i, slot_j] — both digits mapped to slots by name.
+    if (config.has_metric_matrix()) {
+        int const slot_i = vector_slot(index_i, config);
+        int const slot_j = vector_slot(index_j, config);
+        if (slot_i < 0 || slot_j < 0) return 0;
+        return config
+            .metric_matrix[static_cast<size_t>(slot_i)][static_cast<size_t>(slot_j)];
+    }
+
     // Same vector: slot-keyed diagonal lookup via vector_metric_value, which
     // finds the basis vector by name in config.basis_vectors and indexes
     // config.metric_signature at that slot. A basis reordering is then
@@ -130,8 +149,6 @@ int get_vector_metric(int index_i, int index_j, AlgebraConfig const& config)
     }
 
     // Different vectors: orthogonal-basis assumption (off-diagonal = 0).
-    // TODO: When AlgebraConfig gains a full metric matrix (e.g. for CGA's
-    // null basis), look up M[slot_i, slot_j] here instead.
     return 0;
 }
 
@@ -208,6 +225,24 @@ std::vector<int> calculate_extended_metric_matrix_full(AlgebraConfig const& conf
     // Create mdspan view with square bracket access: G[i,j]
     std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> G{
         matrix_data.data(), n, n};
+
+    // Non-orthogonal metric: every entry (including the diagonal) comes from the
+    // Gram-determinant path — the orthogonal diagonal shortcut used below
+    // (product of vector metrics) is wrong on null pairs, e.g.
+    // ⟨e_w∧e_u, e_w∧e_u⟩ = det[[0,-1],[-1,0]] = -1, not 0*0.
+    // (calculate_extended_metric delegates HERE for these configs, so this
+    // branch must not call it back.)
+    if (config.has_metric_matrix()) {
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = i; j < n; ++j) { // Upper triangular (symmetric matrix)
+                int const metric_value =
+                    compute_blade_inner_product(basis[i], basis[j], config);
+                G[i, j] = metric_value;
+                G[j, i] = metric_value; // Symmetric: G[j,i] = G[i,j]
+            }
+        }
+        return matrix_data;
+    }
 
     // Get the correct diagonal values from calculate_extended_metric()
     // This uses the STA4D special case logic and is known to be correct

@@ -3,6 +3,7 @@ set(EXEC_NAME ga_prdxpr)
 set(EXEC2_NAME ga_prdxpr_viscmp)
 set(EXEC3_NAME ga_prdxpr_parser_test)
 set(EXEC4_NAME ga_prdxpr_rule_generator_test)
+set(EXEC5_NAME ga_prdxpr_metric_matrix_test)
 
 # Source files
 set(SOURCES
@@ -108,11 +109,20 @@ set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/tests/ga_prdxpr_rule_generator_test.c
             src_prdxpr/algebras/ga_prdxpr_pga3dp.cpp
             src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp)
 
+# Non-orthogonal metric (metric_matrix) machinery test — doctest-based; uses a
+# hand-rolled null-basis config, so no per-algebra sources are needed.
+set(SOURCES_METRIC_MATRIX_TEST src_prdxpr/tests/ga_prdxpr_metric_matrix_test.cpp
+            src_prdxpr/core/ga_prdxpr_common.cpp
+            src_prdxpr/rules/ga_prdxpr_rule_generator.cpp
+            src_prdxpr/rules/ga_prdxpr_metric_calc.cpp
+            src_prdxpr/rules/ga_prdxpr_dual_calc.cpp)
+
 # Create executables
 add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})  #dep: fmt
 add_executable(${EXEC2_NAME} ${SOURCES_VISUAL_COMPARISON_TEST})  #dep: fmt
 add_executable(${EXEC3_NAME} ${SOURCES_PARSER_TEST})  #dep: fmt, doctest
 add_executable(${EXEC4_NAME} ${SOURCES_RULE_GENERATOR_TEST})  #dep: fmt
+add_executable(${EXEC5_NAME} ${SOURCES_METRIC_MATRIX_TEST})  #dep: fmt, doctest
 
 # Include directories.
 # Project root is needed for "ga/..." headers; src_prdxpr/ is needed for the
@@ -124,6 +134,8 @@ target_include_directories(${EXEC2_NAME} PRIVATE ${GA_ROOT}
 target_include_directories(${EXEC3_NAME} PRIVATE ${GA_ROOT}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 target_include_directories(${EXEC4_NAME} PRIVATE ${GA_ROOT}
+                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
+target_include_directories(${EXEC5_NAME} PRIVATE ${GA_ROOT}
                                                  ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
@@ -149,10 +161,12 @@ link_fmt_to_target(${EXEC_NAME})
 link_fmt_to_target(${EXEC2_NAME})
 link_fmt_to_target(${EXEC4_NAME})
 
-# For EXEC3_NAME, also link doctest
+# For EXEC3_NAME and EXEC5_NAME, also link doctest
 if(TARGET doctest::doctest)
     target_link_libraries(${EXEC3_NAME} PRIVATE doctest::doctest)
     link_fmt_to_target(${EXEC3_NAME})
+    target_link_libraries(${EXEC5_NAME} PRIVATE doctest::doctest)
+    link_fmt_to_target(${EXEC5_NAME})
 else()
     message(FATAL_ERROR "doctest not found - dependency system may not be working correctly")
 endif()
@@ -162,9 +176,11 @@ target_compile_definitions(${EXEC_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDS
 target_compile_definitions(${EXEC2_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
 target_compile_definitions(${EXEC3_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
 target_compile_definitions(${EXEC4_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
+target_compile_definitions(${EXEC5_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
 
 # Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
 target_compile_options(${EXEC3_NAME} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+target_compile_options(${EXEC5_NAME} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
 
 # Compiler-specific options
 if(MSVC)

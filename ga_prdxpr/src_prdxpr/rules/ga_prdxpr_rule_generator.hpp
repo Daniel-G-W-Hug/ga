@@ -86,24 +86,47 @@
 struct AlgebraConfig {
     std::vector<std::string> basis_vectors; // {"e1", "e2", "e3"}
     std::vector<int> metric_signature;      // {+1, +1, +1} or {+1, -1, -1, -1}
-                                            // LIMITATION: Diagonal metric only!
-                                            // For CGA, need full metric matrix
+                                            // for non-orthogonal metrics: the DIAGONAL
+                                            // of metric_matrix (validated to match)
     mvec_coeff
         multivector_basis; // {"1", "e1", "e2", "e12"} - complete basis in canonical order
     std::string scalar_name = one_str(); // Use consistent "1" from common
     std::string basis_prefix = "e";
 
-    // FUTURE CGA EXTENSION:
-    // std::vector<std::vector<int>> metric_matrix; // Full n×n metric matrix
-    //   - Would replace metric_signature for non-orthogonal algebras
-    //   - metric_matrix[i][j] = e_i · e_j (dot product of basis vectors)
-    //   - For orthogonal algebras: metric_matrix[i][j] = 0 for i≠j
-    //   - For CGA: non-zero off-diagonal elements (e.g., e₊·e₋ = -1)
+    // Non-orthogonal metric support (e.g. a conformal null-vector basis).
+    //
+    // metric_matrix: full n×n Gram matrix, metric_matrix[i][j] = e_i · e_j.
+    // Empty (the default) means an ORTHOGONAL basis — all current algebras — and
+    // every code path then behaves exactly as before. When non-empty, the
+    // geometric product of basis blades becomes multi-term (see prd_rules_mt)
+    // and is generated via generate_geometric_product_rules_mt().
+    std::vector<std::vector<int>> metric_matrix{};
+
+    // Diagonalization of a non-orthogonal metric (required iff metric_matrix is
+    // set): each row of basis_change expands one basis vector in an internal
+    // ORTHOGONAL basis whose signature is diag_signature; basis_change_inv is
+    // the inverse expansion (validated: basis_change * basis_change_inv = I).
+    // Entries are dyadic rationals (powers of two), exact in double.
+    // Products are computed in the diagonal basis and transformed back; the
+    // direct non-orthogonal rewrite is used as an independent cross-check.
+    std::vector<std::vector<double>> basis_change{};
+    std::vector<std::vector<double>> basis_change_inv{};
+    std::vector<int> diag_signature{};
+
+    bool has_metric_matrix() const { return !metric_matrix.empty(); }
 };
+
+// Validate a non-orthogonal config: metric_matrix square + symmetric, its diagonal
+// equal to metric_signature, basis_change/basis_change_inv mutually inverse, and
+// metric_matrix = basis_change * diag(diag_signature) * basis_change^T.
+// Throws std::runtime_error with a specific message on any violation.
+// No-op for orthogonal configs (metric_matrix empty).
+void validate_metric_matrix_config(AlgebraConfig const& config);
 
 struct ProductRules {
     mvec_coeff basis;
-    prd_rules geometric_product;
+    prd_rules geometric_product;       // empty for non-orthogonal metrics (use ..._mt)
+    prd_rules_mt geometric_product_mt; // set for non-orthogonal metrics only
     prd_rules wedge_product;
     prd_rules dot_product;
     // Complement rules - generated based on algebra dimensionality
@@ -172,6 +195,22 @@ prd_rules generate_ordered_rules(
                                               AlgebraConfig const&)>
         multiply_func);
 prd_rules generate_geometric_product_rules(AlgebraConfig const& config);
+
+// Multi-term geometric product for non-orthogonal metrics (metric_matrix set).
+//
+// multiply_basis_elements_general: direct rewrite in the non-orthogonal basis via
+//   e_i e_j = 2*G[i,j] - e_j e_i (i != j) and e_i e_i = G[i,i].
+// multiply_basis_elements_via_diagonal: expand both blades in the internal
+//   orthogonal basis (config.basis_change), multiply there, transform back
+//   (config.basis_change_inv). All coefficients are dyadic rationals, exact in
+//   double; the result is asserted to be integral.
+// generate_geometric_product_rules_mt: computes every pair BOTH ways and throws
+//   on any mismatch (always-on transcription gate), returning the shared result.
+prd_terms multiply_basis_elements_general(std::string const& a, std::string const& b,
+                                          AlgebraConfig const& config);
+prd_terms multiply_basis_elements_via_diagonal(std::string const& a, std::string const& b,
+                                               AlgebraConfig const& config);
+prd_rules_mt generate_geometric_product_rules_mt(AlgebraConfig const& config);
 std::pair<std::string, int> multiply_basis_elements_wedge(std::string const& a,
                                                           std::string const& b,
                                                           AlgebraConfig const& config);

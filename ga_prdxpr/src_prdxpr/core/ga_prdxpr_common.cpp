@@ -1042,3 +1042,169 @@ void print_product_tables_by_grade(std::vector<prd_table> const& tables,
         fmt::println("");
     }
 }
+////////////////////////////////////////////////////////////////////////////////
+// multi-term basis product tables (non-orthogonal metrics)
+////////////////////////////////////////////////////////////////////////////////
+
+std::string prd_terms_to_string(prd_terms const& terms)
+{
+    if (terms.empty()) {
+        return zero_str();
+    }
+
+    std::string result;
+    for (size_t k = 0; k < terms.size(); ++k) {
+        auto const& t = terms[k];
+        int const mag = (t.coeff < 0) ? -t.coeff : t.coeff;
+        bool const negative = (t.coeff < 0);
+
+        if (k == 0) {
+            if (negative) result += minus_str();
+        }
+        else {
+            result += space_str() + (negative ? minus_str() : plus_str()) + space_str();
+        }
+
+        if (mag != 1) {
+            result += fmt::format("{} ", mag);
+        }
+        result += t.blade;
+    }
+    return result;
+}
+
+mt_table build_mt_basis_table(mvec_coeff const& lbasis, mvec_coeff const& rbasis,
+                              prd_rules_mt const& rules, std::string const& operator_str)
+{
+    mt_table tab(lbasis.size(), std::vector<prd_terms>(rbasis.size()));
+
+    for (size_t i = 0; i < lbasis.size(); ++i) {
+        for (size_t j = 0; j < rbasis.size(); ++j) {
+            std::string const key =
+                lbasis[i] + space_str() + operator_str + space_str() + rbasis[j];
+            auto const it = rules.find(key);
+            if (it == rules.end()) {
+                throw std::runtime_error("build_mt_basis_table: missing rule for key '" +
+                                         key + "'");
+            }
+            tab[i][j] = it->second;
+        }
+    }
+    return tab;
+}
+
+mvec_coeff get_mv_from_mt_tab(mt_table const& mt_tab, mvec_coeff const& mv_lcoeff,
+                              mvec_coeff const& mv_rcoeff, mvec_coeff const& mv_basis,
+                              mvec_coeff_filter const& lcoeff_filter,
+                              mvec_coeff_filter const& rcoeff_filter, brace_switch brsw)
+{
+    // make sure sizes match as required
+    if ((mt_tab.size() != mv_basis.size()) || (mv_lcoeff.size() != mv_basis.size()) ||
+        (mv_rcoeff.size() != mv_basis.size()) ||
+        (mv_basis.size() != lcoeff_filter.size()) ||
+        (mv_basis.size() != rcoeff_filter.size())) {
+        throw std::runtime_error("Multivector size of product table, coefficients and "
+                                 "multivector basis size must match.");
+    }
+    for (size_t i = 0; i < mt_tab.size(); ++i) {
+        if (mt_tab[i].size() != mv_basis.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+
+    // reserve a full multivector for output
+    mvec_coeff mv_prd(mv_basis.size());
+
+    for (size_t b = 0; b < mv_basis.size(); ++b) {
+        // for each basis element sum-up all contributions to that basis element
+
+        auto const& basis_element = mv_basis[b];
+
+        for (size_t i = 0; i < mt_tab.size(); ++i) {
+            if (lcoeff_filter[i] == 0) continue; // skip filtered elements on lhs
+
+            for (size_t j = 0; j < mt_tab.size(); ++j) {
+                if (rcoeff_filter[j] == 0) continue; // skip filtered elements on rhs
+
+                for (auto const& term : mt_tab[i][j]) {
+                    if (term.blade != basis_element || term.coeff == 0) continue;
+
+                    // strip signs off the coefficient pair (same toggle logic as
+                    // mv_coeff_to_coeff_prd_tab) and fold them into the term sign
+                    bool is_negative = (term.coeff < 0);
+                    std::string lhs{mv_lcoeff[i]};
+                    std::string rhs{mv_rcoeff[j]};
+
+                    if (lhs.starts_with(minus_str())) {
+                        toggle_bool(is_negative);
+                        lhs = lhs.substr(1, lhs.size() - 1);
+                    }
+                    if (rhs.starts_with(minus_str())) {
+                        toggle_bool(is_negative);
+                        rhs = rhs.substr(1, rhs.size() - 1);
+                    }
+
+                    if (lhs == zero_str() || rhs == zero_str()) {
+                        continue; // zero coefficient contributes nothing
+                    }
+
+                    int const mag = (term.coeff < 0) ? -term.coeff : term.coeff;
+                    std::string contribution;
+                    if (mag != 1) {
+                        contribution = fmt::format("{}.0 * ", mag);
+                    }
+                    contribution += lhs + space_str() + mul_str() + space_str() + rhs;
+
+                    if (mv_prd[b] == empty_str()) {
+                        // first entry keeps a leading minus sign, if negative
+                        if (is_negative) {
+                            mv_prd[b] = minus_str() + contribution;
+                        }
+                        else {
+                            mv_prd[b] = contribution;
+                        }
+                    }
+                    else {
+                        // 2nd and following entries joined with " + " / " - "
+                        mv_prd[b] += space_str() +
+                                     (is_negative ? minus_str() : plus_str()) +
+                                     space_str() + contribution;
+                    }
+                }
+            }
+        }
+        // replace remaining empty elements by zero_str()
+        if (mv_prd[b] == empty_str()) {
+            mv_prd[b] = zero_str();
+        }
+        // add braces for non-empty elements, if requested
+        if (brsw == brace_switch::use_braces && mv_prd[b] != zero_str()) {
+            mv_prd[b] = brace_open_str() + mv_prd[b] + brace_close_str();
+        }
+    }
+    return mv_prd;
+}
+
+void print_mt_tab(mt_table const& tab)
+{
+    // format all cells first to compute a common width
+    std::vector<std::vector<std::string>> cells(tab.size());
+    size_t max_width = 0;
+    for (size_t i = 0; i < tab.size(); ++i) {
+        cells[i].resize(tab[i].size());
+        for (size_t j = 0; j < tab[i].size(); ++j) {
+            cells[i][j] = prd_terms_to_string(tab[i][j]);
+            if (cells[i][j].size() > max_width) max_width = cells[i][j].size();
+        }
+    }
+
+    for (size_t i = 0; i < cells.size(); ++i) {
+        fmt::print("[ ");
+        for (size_t j = 0; j < cells[i].size(); ++j) {
+            fmt::print("{:>{w}}", cells[i][j], fmt::arg("w", max_width));
+            if (j + 1 < cells[i].size()) fmt::print(", ");
+        }
+        fmt::println(" ]");
+    }
+}

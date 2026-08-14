@@ -25,6 +25,25 @@ using mvec_rules = std::map<std::string, std::string>;
 // rules to simplify product mappings in tables
 using prd_rules = std::map<std::string, std::string>;
 
+// one term of a (possibly multi-term) basis product: integer coefficient and basis
+// element ("1" = scalar). Needed for non-orthogonal metrics, where the geometric
+// product of two basis blades is a linear combination of basis blades (e.g. in a
+// null-vector basis: e3 * e4 = -1 + e34) with integer coefficients that may exceed 1
+// in magnitude. Orthogonal (diagonal) metrics always produce single-term results and
+// keep using prd_rules unchanged.
+struct prd_term {
+    int coeff{};       // integer coefficient, != 0 for stored terms
+    std::string blade; // basis element name ("1" for the scalar part)
+
+    bool operator==(prd_term const&) const = default;
+};
+using prd_terms = std::vector<prd_term>; // empty vector = zero result
+using prd_rules_mt =
+    std::map<std::string, prd_terms>; // multi-term rules, same "a * b" keys as prd_rules
+
+// format a prd_terms value for printing, e.g. "-1 + e34" or "2 e1 - e145" ("0" if empty)
+std::string prd_terms_to_string(prd_terms const& terms);
+
 // use braces when creating product (needed for generating sandwich products with
 // composite basis coeffs)
 enum class brace_switch { no_braces, use_braces };
@@ -171,6 +190,34 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
                      mvec_coeff_filter const& rcoeff_filter,
                      brace_switch brsw = brace_switch::no_braces);
+
+////////////////////////////////////////////////////////////////////////////////
+// multi-term basis product tables (non-orthogonal metrics)
+////////////////////////////////////////////////////////////////////////////////
+
+// basis product table for multi-term rules: cell [i][j] holds the terms of
+// lbasis[i] ∘ rbasis[j]. The string-cell prd_table machinery (extractor,
+// combine_coeff_and_basis_prd_tabs, sym/asym) assumes single-term cells and must
+// not be used for these tables.
+using mt_table = std::vector<std::vector<prd_terms>>;
+
+// build the basis product table from multi-term rules; keys are formed as
+// "lbasis[i] operator_str rbasis[j]", mirroring mv_coeff_to_coeff_prd_tab
+mt_table build_mt_basis_table(mvec_coeff const& lbasis, mvec_coeff const& rbasis,
+                              prd_rules_mt const& rules, std::string const& operator_str);
+
+// fused combine+extract for multi-term tables: for each output basis element sum
+// all cell contributions sign(c) * [|c| * ] lcoeff[i] * rcoeff[j] over all (i,j)
+// whose cell contains a term with that basis element. Replaces the
+// get_prd_tab + extractor chain (which is single-term only).
+mvec_coeff get_mv_from_mt_tab(mt_table const& mt_tab, mvec_coeff const& mv_lcoeff,
+                              mvec_coeff const& mv_rcoeff, mvec_coeff const& mv_basis,
+                              mvec_coeff_filter const& lcoeff_filter,
+                              mvec_coeff_filter const& rcoeff_filter,
+                              brace_switch brsw = brace_switch::no_braces);
+
+// print a multi-term basis product table (cells formatted via prd_terms_to_string)
+void print_mt_tab(mt_table const& tab);
 
 
 ////////////////////////////////////////////////////////////////////////////////

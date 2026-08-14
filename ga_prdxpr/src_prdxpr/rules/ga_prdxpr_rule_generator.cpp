@@ -5,6 +5,7 @@
 #include "rules/ga_prdxpr_dual_calc.hpp"
 #include "rules/ga_prdxpr_metric_calc.hpp"
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <mdspan>
 #include <numeric>
@@ -189,6 +190,18 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
     auto const& basis = config.multivector_basis;
     auto const& metric = config.metric_signature;
     std::vector<int> extended_metric(basis.size(), 0);
+
+    // Non-orthogonal metric: the orthogonal shortcuts below (product of vector
+    // metrics; signature product for the pseudoscalar) are wrong on null pairs —
+    // take the diagonal of the full Gram-determinant matrix instead.
+    if (config.has_metric_matrix()) {
+        auto const full = calculate_extended_metric_matrix_full(config);
+        size_t const n = basis.size();
+        for (size_t i = 0; i < n; ++i) {
+            extended_metric[i] = full[i * n + i];
+        }
+        return extended_metric;
+    }
 
     // Scalar always has metric value 1
     extended_metric[0] = 1;
@@ -534,6 +547,12 @@ prd_rules generate_ordered_rules(
 
 prd_rules generate_geometric_product_rules(AlgebraConfig const& config)
 {
+    if (config.has_metric_matrix()) {
+        // the single-term pair-cancellation in multiply_basis_elements assumes an
+        // orthogonal basis and would silently produce wrong rules here
+        throw std::runtime_error("generate_geometric_product_rules: non-orthogonal "
+                                 "metric — use generate_geometric_product_rules_mt");
+    }
     return generate_ordered_rules(config, mul_str(), multiply_basis_elements);
 }
 
@@ -573,6 +592,25 @@ std::pair<std::string, int> multiply_basis_elements_dot(std::string const& a,
         return {zero_str(), 0};
     }
 
+    // Non-orthogonal metric: the dot product of two basis blades is the extended
+    // metric matrix entry — off-diagonal pairs can be non-zero (metric partners,
+    // e.g. a null-vector pair). Computed via the Gram determinant.
+    if (config.has_metric_matrix()) {
+        int const metric_value = compute_blade_inner_product(a, b, config);
+        if (metric_value == 0) {
+            return {zero_str(), 0};
+        }
+        if (metric_value != 1 && metric_value != -1) {
+            // generate_ordered_rules encodes results as (element, sign) with
+            // sign in {+1,-1}; larger magnitudes would be silently dropped
+            throw std::runtime_error("multiply_basis_elements_dot: extended metric "
+                                     "value with |value| > 1 is not representable in "
+                                     "prd_rules for '" +
+                                     a + "' * '" + b + "'");
+        }
+        return {config.scalar_name, metric_value};
+    }
+
     // Dot product is only non-zero when both elements are identical
     if (a != b) {
         return {zero_str(), 0};
@@ -610,6 +648,578 @@ prd_rules generate_wedge_product_rules(AlgebraConfig const& config)
 prd_rules generate_dot_product_rules(AlgebraConfig const& config)
 {
     return generate_ordered_rules(config, mul_str(), multiply_basis_elements_dot);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Multi-Term Geometric Product (non-orthogonal metrics) Implementation
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+// map a basis-vector digit to its slot in config.basis_vectors (-1 if unknown)
+int digit_to_slot(int digit, AlgebraConfig const& config)
+{
+    std::string const name = config.basis_prefix + std::to_string(digit);
+    auto it = std::find(config.basis_vectors.begin(), config.basis_vectors.end(), name);
+    if (it == config.basis_vectors.end()) return -1;
+    return static_cast<int>(std::distance(config.basis_vectors.begin(), it));
+}
+
+// map a slot in config.basis_vectors back to its digit (-1 if unparsable)
+int slot_to_digit(int slot, AlgebraConfig const& config)
+{
+    auto const digits = parse_indices(config.basis_vectors[static_cast<size_t>(slot)],
+                                      config.basis_prefix);
+    if (digits.size() != 1) return -1;
+    return digits[0];
+}
+
+// find the canonical basis element carrying exactly the given digit set (any
+// order, no repeats) and the permutation sign relating the given order to the
+// canonical listed order. Returns (position in multivector_basis, sign);
+// position -1 if no canonical element matches. Empty digits -> scalar.
+std::pair<int, int> canonical_from_digits(std::vector<int> const& digits,
+                                          AlgebraConfig const& config)
+{
+    if (digits.empty()) {
+        return {0, 1}; // scalar is always at position 0
+    }
+
+    for (size_t pos = 0; pos < config.multivector_basis.size(); ++pos) {
+        std::string const& canonical = config.multivector_basis[pos];
+        if (canonical == config.scalar_name) continue;
+
+        auto canonical_digits = parse_indices(canonical, config.basis_prefix);
+        if (canonical_digits.size() != digits.size()) continue;
+
+        std::vector<int> sorted_given = digits;
+        std::vector<int> sorted_canonical = canonical_digits;
+        std::sort(sorted_given.begin(), sorted_given.end());
+        std::sort(sorted_canonical.begin(), sorted_canonical.end());
+        if (sorted_given != sorted_canonical) continue;
+
+        // count swaps needed to transform digits into canonical_digits
+        std::vector<int> temp = digits;
+        int swaps = 0;
+        for (size_t i = 0; i < canonical_digits.size(); ++i) {
+            auto it = std::find(temp.begin() + static_cast<long>(i), temp.end(),
+                                canonical_digits[i]);
+            if (it != temp.begin() + static_cast<long>(i)) {
+                std::swap(temp[i], *it);
+                ++swaps;
+            }
+        }
+        int const sign = (swaps % 2 == 0) ? 1 : -1;
+        return {static_cast<int>(pos), sign};
+    }
+    return {-1, 0};
+}
+
+// collect (basis position -> integer coefficient) into an ordered prd_terms
+prd_terms terms_from_position_map(std::map<int, int> const& by_position,
+                                  AlgebraConfig const& config)
+{
+    prd_terms terms;
+    for (auto const& [pos, coeff] : by_position) {
+        if (coeff == 0) continue;
+        terms.push_back(
+            prd_term{coeff, config.multivector_basis[static_cast<size_t>(pos)]});
+    }
+    return terms;
+}
+
+// wedge-multilinear expansion: expand the wedge of the given source vectors
+// (rows of M, indexed by source slot, over target slots) into canonicalized
+// (sorted, sign-folded) target index sequences with double coefficients.
+// M[s][m] = coefficient of target vector m in source vector s.
+std::map<std::vector<int>, double> wedge_expand(std::vector<int> const& source_slots,
+                                                std::vector<std::vector<double>> const& M)
+{
+    std::vector<std::pair<double, std::vector<int>>> terms{{1.0, {}}};
+
+    for (int s : source_slots) {
+        auto const& row = M[static_cast<size_t>(s)];
+        std::vector<std::pair<double, std::vector<int>>> next;
+        for (auto const& [c, seq] : terms) {
+            for (size_t m = 0; m < row.size(); ++m) {
+                if (row[m] == 0.0) continue;
+                if (std::find(seq.begin(), seq.end(), static_cast<int>(m)) != seq.end()) {
+                    continue; // wedge: repeated vector annihilates the term
+                }
+                auto seq2 = seq;
+                seq2.push_back(static_cast<int>(m));
+                next.emplace_back(c * row[m], seq2);
+            }
+        }
+        terms = std::move(next);
+    }
+
+    // canonicalize: sort each sequence ascending, folding the permutation sign
+    std::map<std::vector<int>, double> acc;
+    for (auto& [c, seq] : terms) {
+        int sign = 1;
+        for (size_t i = 0; i + 1 < seq.size(); ++i) {
+            for (size_t j = 0; j + 1 < seq.size() - i; ++j) {
+                if (seq[j] > seq[j + 1]) {
+                    std::swap(seq[j], seq[j + 1]);
+                    sign = -sign;
+                }
+            }
+        }
+        acc[seq] += sign * c;
+    }
+    std::erase_if(acc, [](auto const& kv) { return kv.second == 0.0; });
+    return acc;
+}
+
+// geometric product of two ORTHOGONAL-basis blades given as strictly sorted
+// slot sequences; sig holds the diagonal signature per slot. Returns
+// (integer factor, sorted merged sequence); factor 0 means annihilation.
+std::pair<int, std::vector<int>> diag_blade_gpr(std::vector<int> const& a,
+                                                std::vector<int> const& b,
+                                                std::vector<int> const& sig)
+{
+    std::vector<int> seq = a;
+    seq.insert(seq.end(), b.begin(), b.end());
+    int sign = 1;
+
+    // cancel repeated slots (each appears at most twice) with the metric factor
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (size_t i = 0; i < seq.size() && !changed; ++i) {
+            for (size_t j = i + 1; j < seq.size(); ++j) {
+                if (seq[i] == seq[j]) {
+                    sign *= sig[static_cast<size_t>(seq[i])];
+                    if ((j - i - 1) % 2 == 1) sign = -sign;
+                    seq.erase(seq.begin() + static_cast<long>(j));
+                    seq.erase(seq.begin() + static_cast<long>(i));
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (sign == 0) return {0, {}};
+    }
+
+    // sort the remaining distinct slots, folding the permutation sign
+    for (size_t i = 0; i + 1 < seq.size(); ++i) {
+        for (size_t j = 0; j + 1 < seq.size() - i; ++j) {
+            if (seq[j] > seq[j + 1]) {
+                std::swap(seq[j], seq[j + 1]);
+                sign = -sign;
+            }
+        }
+    }
+    return {sign, seq};
+}
+
+// parse a basis element into basis-vector slots (throws on unknown digits)
+std::vector<int> blade_slots(std::string const& blade, AlgebraConfig const& config)
+{
+    std::vector<int> slots;
+    for (int d : parse_indices(blade, config.basis_prefix)) {
+        int const s = digit_to_slot(d, config);
+        if (s < 0) {
+            throw std::runtime_error("unknown basis vector digit in blade '" + blade +
+                                     "'");
+        }
+        slots.push_back(s);
+    }
+    return slots;
+}
+
+} // namespace
+
+void validate_metric_matrix_config(AlgebraConfig const& config)
+{
+    if (!config.has_metric_matrix()) return;
+
+    size_t const n = config.basis_vectors.size();
+    auto const& G = config.metric_matrix;
+    auto const& T = config.basis_change;
+    auto const& Tinv = config.basis_change_inv;
+    auto const& sig = config.diag_signature;
+
+    auto require = [](bool cond, std::string const& msg) {
+        if (!cond) throw std::runtime_error("metric matrix config invalid: " + msg);
+    };
+
+    require(G.size() == n, "metric_matrix must be n x n (row count)");
+    for (auto const& row : G) {
+        require(row.size() == n, "metric_matrix must be n x n (column count)");
+    }
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            require(G[i][j] == G[j][i], "metric_matrix must be symmetric");
+        }
+    }
+    require(config.metric_signature.size() == n,
+            "metric_signature must have one entry per basis vector");
+    for (size_t i = 0; i < n; ++i) {
+        require(config.metric_signature[i] == G[i][i],
+                "metric_signature must equal the metric_matrix diagonal");
+    }
+
+    // Non-degeneracy, checked EXACTLY via the integer cofactor determinant
+    // (compute_integer_determinant, n <= 5). The PGA (degenerate-metric)
+    // classification is signature-based and deliberately skipped for matrix
+    // configs — a degenerate full-matrix metric would silently take the wrong
+    // dual path, so it is rejected here: degenerate algebras must be
+    // configured via the orthogonal metric_signature path instead.
+    {
+        std::vector<int> G_flat(n * n, 0);
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                G_flat[i * n + j] = G[i][j];
+            }
+        }
+        std::mdspan<int const,
+                    std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const
+            G_view{G_flat.data(), n, n};
+        require(compute_integer_determinant(G_view, static_cast<int>(n)) != 0,
+                "metric_matrix is degenerate (det = 0) — degenerate algebras must use "
+                "the orthogonal metric_signature path");
+    }
+
+    require(T.size() == n && Tinv.size() == n && sig.size() == n,
+            "basis_change, basis_change_inv and diag_signature must be provided "
+            "(n rows each) together with metric_matrix");
+    for (auto const& row : T) {
+        require(row.size() == n, "basis_change must be n x n");
+    }
+    for (auto const& row : Tinv) {
+        require(row.size() == n, "basis_change_inv must be n x n");
+    }
+
+    // basis_change * basis_change_inv = I (dyadic rationals: exact in double)
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            double sum = 0.0;
+            for (size_t k = 0; k < n; ++k) {
+                sum += T[i][k] * Tinv[k][j];
+            }
+            require(sum == (i == j ? 1.0 : 0.0),
+                    "basis_change * basis_change_inv must be the identity");
+        }
+    }
+
+    // metric_matrix = basis_change * diag(diag_signature) * basis_change^T
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            double sum = 0.0;
+            for (size_t k = 0; k < n; ++k) {
+                sum += T[i][k] * sig[k] * T[j][k];
+            }
+            require(sum == static_cast<double>(G[i][j]),
+                    "metric_matrix must equal basis_change * diag(diag_signature) "
+                    "* basis_change^T");
+        }
+    }
+}
+
+// A linear combination of strictly ascending slot SEQUENCES, each denoting a
+// GEOMETRIC PRODUCT of basis vectors (NOT a wedge blade — for non-orthogonal
+// metrics the two differ from grade 2 upward, e.g. e_w e_u = -1 + e_w∧e_u).
+// Coefficients are dyadic rationals, exact in double.
+using seq_combo = std::map<std::vector<int>, double>;
+
+namespace {
+
+// accumulate coeff * (normal-ordered form of the vector product sequence seq)
+// into acc, using the non-orthogonal rewrite rules
+//
+//     e_i e_i = G[i,i]
+//     e_i e_j = 2*G[i,j] - e_j e_i        (i != j)
+//
+// the worklist shrinks in (length, inversions), so the rewriting terminates
+void normal_order_into(seq_combo& acc, double coeff, std::vector<int> seq,
+                       AlgebraConfig const& config)
+{
+    auto const& G = config.metric_matrix;
+
+    struct term_t {
+        double c;
+        std::vector<int> s;
+    };
+    std::vector<term_t> worklist{{coeff, std::move(seq)}};
+
+    while (!worklist.empty()) {
+        term_t t = std::move(worklist.back());
+        worklist.pop_back();
+
+        // find first adjacent violation of strict ascending order
+        size_t p = 0;
+        bool violation = false;
+        for (; p + 1 < t.s.size(); ++p) {
+            if (t.s[p] >= t.s[p + 1]) {
+                violation = true;
+                break;
+            }
+        }
+
+        if (!violation) {
+            acc[t.s] += t.c;
+            continue;
+        }
+
+        int const i = t.s[p];
+        int const j = t.s[p + 1];
+        if (i == j) {
+            // contract with the diagonal metric entry
+            int const g = G[static_cast<size_t>(i)][static_cast<size_t>(i)];
+            if (g != 0) {
+                term_t t2{t.c * g, t.s};
+                t2.s.erase(t2.s.begin() + static_cast<long>(p),
+                           t2.s.begin() + static_cast<long>(p) + 2);
+                worklist.push_back(std::move(t2));
+            }
+        }
+        else {
+            // swap term: -(e_j e_i)
+            term_t t1{-t.c, t.s};
+            std::swap(t1.s[p], t1.s[p + 1]);
+            worklist.push_back(std::move(t1));
+
+            // contraction term: 2*G[i,j] with both slots removed
+            int const g = G[static_cast<size_t>(i)][static_cast<size_t>(j)];
+            if (g != 0) {
+                term_t t2{t.c * 2 * g, t.s};
+                t2.s.erase(t2.s.begin() + static_cast<long>(p),
+                           t2.s.begin() + static_cast<long>(p) + 2);
+                worklist.push_back(std::move(t2));
+            }
+        }
+    }
+}
+
+// express the wedge BLADE over the strictly ascending slot set as a combination
+// of ordered product sequences, via the Riesz recursion
+//
+//     blade(S) = v ∧ blade(S\{v})
+//     v ∧ A_k  = 1/2 * (v ⟑ A_k + (-1)^k A_k ⟑ v)        [A_k of grade k]
+//
+// unitriangular by grade: blade(S) = seq(S) + (strictly lower-grade sequences),
+// which makes the inverse conversion a simple top-down elimination
+seq_combo blade_to_seq_combo(std::vector<int> const& slots, AlgebraConfig const& config)
+{
+    seq_combo res;
+    if (slots.size() <= 1) {
+        res[slots] = 1.0;
+        return res;
+    }
+
+    int const v = slots.front();
+    std::vector<int> const rest(slots.begin() + 1, slots.end());
+    auto const inner = blade_to_seq_combo(rest, config);
+
+    // (-1)^k with k = grade of blade(rest) = slots.size() - 1
+    double const sign = ((slots.size() - 1) % 2 == 0) ? 1.0 : -1.0;
+
+    for (auto const& [s, c] : inner) {
+        std::vector<int> vs{v};
+        vs.insert(vs.end(), s.begin(), s.end());
+        normal_order_into(res, 0.5 * c, std::move(vs), config);
+
+        std::vector<int> sv{s};
+        sv.push_back(v);
+        normal_order_into(res, 0.5 * c * sign, std::move(sv), config);
+    }
+    std::erase_if(res, [](auto const& kv) { return kv.second == 0.0; });
+    return res;
+}
+
+} // namespace
+
+prd_terms multiply_basis_elements_general(std::string const& a, std::string const& b,
+                                          AlgebraConfig const& config)
+{
+    // scalar shortcuts
+    if (a == config.scalar_name && b == config.scalar_name) {
+        return {prd_term{1, config.scalar_name}};
+    }
+    if (a == config.scalar_name) return {prd_term{1, b}};
+    if (b == config.scalar_name) return {prd_term{1, a}};
+
+    // sort each blade's slots ascending, folding the permutation sign (the
+    // blade named in the basis may list its indices in any order)
+    auto sorted_slots_with_sign = [&](std::string const& blade) {
+        auto slots = blade_slots(blade, config);
+        double sign = 1.0;
+        for (size_t i = 0; i + 1 < slots.size(); ++i) {
+            for (size_t j = 0; j + 1 < slots.size() - i; ++j) {
+                if (slots[j] > slots[j + 1]) {
+                    std::swap(slots[j], slots[j + 1]);
+                    sign = -sign;
+                }
+            }
+        }
+        return std::pair{slots, sign};
+    };
+
+    auto const [slots_a, sign_a] = sorted_slots_with_sign(a);
+    auto const [slots_b, sign_b] = sorted_slots_with_sign(b);
+
+    // blade -> product-sequence combos, multiply pairwise, normal-order
+    auto const combo_a = blade_to_seq_combo(slots_a, config);
+    auto const combo_b = blade_to_seq_combo(slots_b, config);
+
+    seq_combo prod;
+    for (auto const& [sa, ca] : combo_a) {
+        for (auto const& [sb, cb] : combo_b) {
+            std::vector<int> seq{sa};
+            seq.insert(seq.end(), sb.begin(), sb.end());
+            normal_order_into(prod, sign_a * sign_b * ca * cb, std::move(seq), config);
+        }
+    }
+    std::erase_if(prod, [](auto const& kv) { return kv.second == 0.0; });
+
+    // convert the product-sequence combo back to blade coefficients by top-down
+    // elimination (longest sequences first; blade(U) = seq(U) + lower terms)
+    std::map<std::vector<int>, double> blades; // ascending slot set -> coefficient
+    while (!prod.empty()) {
+        auto longest = prod.begin();
+        for (auto it = prod.begin(); it != prod.end(); ++it) {
+            if (it->first.size() > longest->first.size()) longest = it;
+        }
+        auto const seq = longest->first;
+        double const c = longest->second;
+
+        auto const bc = blade_to_seq_combo(seq, config);
+
+        // unitriangularity invariant: blade(U) = 1*seq(U) + lower-grade terms.
+        // If it fails, the subtraction below would not eliminate seq(U) and the
+        // loop would never terminate — fail loudly instead (guards against
+        // implementation bugs in the blade/sequence conversion).
+        auto const self = bc.find(seq);
+        if (self == bc.end() || self->second != 1.0) {
+            throw std::runtime_error("multiply_basis_elements_general: blade/sequence "
+                                     "conversion lost unitriangularity for '" +
+                                     a + "' * '" + b + "'");
+        }
+
+        blades[seq] += c;
+        for (auto const& [s, sc] : bc) {
+            prod[s] -= c * sc;
+        }
+        std::erase_if(prod, [](auto const& kv) { return kv.second == 0.0; });
+    }
+
+    // map onto canonical basis elements; coefficients must come out integral
+    std::map<int, int> by_position;
+    for (auto const& [seq, c] : blades) {
+        if (c == 0.0) continue;
+        double const rounded = std::round(c);
+        if (c != rounded) {
+            throw std::runtime_error("multiply_basis_elements_general: non-integer "
+                                     "coefficient for a product term of '" +
+                                     a + "' * '" + b + "'");
+        }
+        std::vector<int> digits;
+        for (int s : seq) {
+            digits.push_back(slot_to_digit(s, config));
+        }
+        auto const [pos, sign] = canonical_from_digits(digits, config);
+        if (pos < 0) {
+            throw std::runtime_error("multiply_basis_elements_general: no canonical "
+                                     "basis element for a product term of '" +
+                                     a + "' * '" + b + "'");
+        }
+        by_position[pos] += static_cast<int>(rounded) * sign;
+    }
+    return terms_from_position_map(by_position, config);
+}
+
+prd_terms multiply_basis_elements_via_diagonal(std::string const& a, std::string const& b,
+                                               AlgebraConfig const& config)
+{
+    // scalar shortcuts
+    if (a == config.scalar_name && b == config.scalar_name) {
+        return {prd_term{1, config.scalar_name}};
+    }
+    if (a == config.scalar_name) return {prd_term{1, b}};
+    if (b == config.scalar_name) return {prd_term{1, a}};
+
+    // expand both blades in the internal orthogonal (diagonal) basis
+    auto const ea = wedge_expand(blade_slots(a, config), config.basis_change);
+    auto const eb = wedge_expand(blade_slots(b, config), config.basis_change);
+
+    // multiply in the diagonal basis (single-term per blade pair)
+    std::map<std::vector<int>, double> res_diag;
+    for (auto const& [seq_a, ca] : ea) {
+        for (auto const& [seq_b, cb] : eb) {
+            auto const [factor, seq] =
+                diag_blade_gpr(seq_a, seq_b, config.diag_signature);
+            if (factor != 0) {
+                res_diag[seq] += ca * cb * factor;
+            }
+        }
+    }
+
+    // transform the result back into the non-orthogonal basis
+    std::map<std::vector<int>, double> res_null;
+    for (auto const& [seq, c] : res_diag) {
+        if (c == 0.0) continue;
+        for (auto const& [nseq, nc] : wedge_expand(seq, config.basis_change_inv)) {
+            res_null[nseq] += c * nc;
+        }
+    }
+
+    // map onto canonical basis elements; coefficients must come out integral
+    // (all arithmetic is dyadic-rational and therefore exact in double)
+    std::map<int, int> by_position;
+    for (auto const& [seq, c] : res_null) {
+        if (c == 0.0) continue;
+        double const rounded = std::round(c);
+        if (c != rounded) {
+            throw std::runtime_error(
+                "multiply_basis_elements_via_diagonal: non-integer coefficient for "
+                "a product term of '" +
+                a + "' * '" + b + "'");
+        }
+        std::vector<int> digits;
+        for (int s : seq) {
+            digits.push_back(slot_to_digit(s, config));
+        }
+        auto const [pos, sign] = canonical_from_digits(digits, config);
+        if (pos < 0) {
+            throw std::runtime_error("multiply_basis_elements_via_diagonal: no "
+                                     "canonical basis element for a product term of '" +
+                                     a + "' * '" + b + "'");
+        }
+        by_position[pos] += static_cast<int>(rounded) * sign;
+    }
+    return terms_from_position_map(by_position, config);
+}
+
+prd_rules_mt generate_geometric_product_rules_mt(AlgebraConfig const& config)
+{
+    if (!config.has_metric_matrix()) {
+        throw std::runtime_error("generate_geometric_product_rules_mt requires a "
+                                 "metric_matrix (use generate_geometric_product_rules "
+                                 "for orthogonal metrics)");
+    }
+    validate_metric_matrix_config(config);
+
+    prd_rules_mt rules;
+    for (auto const& a : config.multivector_basis) {
+        for (auto const& b : config.multivector_basis) {
+            // compute each pair via BOTH routes: the diagonal-basis detour is the
+            // primary computation; the direct non-orthogonal rewrite must agree
+            // (always-on transcription gate for the generator itself)
+            auto const detour = multiply_basis_elements_via_diagonal(a, b, config);
+            auto const direct = multiply_basis_elements_general(a, b, config);
+            if (detour != direct) {
+                throw std::runtime_error(fmt::format(
+                    "generate_geometric_product_rules_mt: diagonal-detour "
+                    "and direct-rewrite results disagree for '{} * {}': "
+                    "'{}' vs '{}'",
+                    a, b, prd_terms_to_string(detour), prd_terms_to_string(direct)));
+            }
+            rules[a + space_str() + mul_str() + space_str() + b] = detour;
+        }
+    }
+    return rules;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1047,7 +1657,15 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
 
     ProductRules result;
     result.basis = generate_basis(config);
-    result.geometric_product = generate_geometric_product_rules(config);
+    if (config.has_metric_matrix()) {
+        // non-orthogonal metric: the geometric product of basis blades is
+        // multi-term — generated (and cross-checked) via the mt path; the
+        // single-term slot stays empty
+        result.geometric_product_mt = generate_geometric_product_rules_mt(config);
+    }
+    else {
+        result.geometric_product = generate_geometric_product_rules(config);
+    }
     result.wedge_product = generate_wedge_product_rules(config);
     result.dot_product = generate_dot_product_rules(config);
 
@@ -1058,12 +1676,20 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
     size_t num_basis_vectors = config.basis_vectors.size();
     bool is_even_dimensional = (num_basis_vectors % 2 == 0);
 
-    // Detect PGA algebras (have degenerate dimensions with metric signature 0)
+    // Detect PGA algebras (have degenerate dimensions with metric signature 0).
+    // Only meaningful for orthogonal metrics: a full metric matrix may carry
+    // zeros on its diagonal (null vectors) while being non-degenerate overall
+    // (e.g. a conformal null pair, det != 0) — those algebras get the regular
+    // (non-PGA) dual path. validate_metric_matrix_config() REJECTS degenerate
+    // full-matrix metrics (exact integer determinant), so this branch cannot
+    // misclassify one.
     bool is_pga = false;
-    for (int metric_val : config.metric_signature) {
-        if (metric_val == 0) {
-            is_pga = true;
-            break;
+    if (!config.has_metric_matrix()) {
+        for (int metric_val : config.metric_signature) {
+            if (metric_val == 0) {
+                is_pga = true;
+                break;
+            }
         }
     }
 
