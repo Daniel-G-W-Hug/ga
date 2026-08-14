@@ -635,9 +635,15 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
         }
 
         if (options.should_show_coeffs()) {
-            for (auto const& case_def : config.cases) {
-                if (case_def.is_two_step) continue; // sandwich path: not yet for mt
-                generate_single_case_mt(algebra, config, case_def, mt_tab);
+            if (config.is_sandwich_product) {
+                // complete two-step sandwich process (mirrors the single-term path)
+                generate_sandwich_case_mt(algebra, config, mt_tab);
+            }
+            else {
+                for (auto const& case_def : config.cases) {
+                    if (case_def.is_two_step) continue;
+                    generate_single_case_mt(algebra, config, case_def, mt_tab);
+                }
             }
         }
 
@@ -2992,8 +2998,9 @@ bool ConfigurableGenerator::uses_mt_basis_table(AlgebraData const& algebra,
     // multi-term basis tables exist wherever a non-orthogonal metric makes the
     // geometric product of basis blades multi-term; that covers the whole gpr
     // family (gpr, its commutator, and the regressive counterparts)
-    return algebra.name == "cga2dc" && (product_name == "gpr" || product_name == "cmt" ||
-                                        product_name == "rgpr" || product_name == "rcmt");
+    return algebra.name == "cga2dc" &&
+           (product_name == "gpr" || product_name == "cmt" || product_name == "rgpr" ||
+            product_name == "rcmt" || product_name == "sandwich_rgpr");
 }
 
 mt_table
@@ -3010,8 +3017,9 @@ ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra
             return get_mt_tab_asym(build_mt_basis_table(mv2dc_basis, mv2dc_basis,
                                                         gpr_cga2dc_rules_mt, mul_str()));
         }
-        else if (product_name == "rgpr") {
-            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
+        else if (product_name == "rgpr" || product_name == "sandwich_rgpr") {
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)));
+            // the regressive sandwich uses the same basis table for both steps
             return build_mt_basis_table_cmpl_conjugated(mv2dc_basis, gpr_cga2dc_rules_mt,
                                                         r_cmpl_cga2dc_rules,
                                                         l_cmpl_cga2dc_rules, mul_str());
@@ -3119,6 +3127,86 @@ void ConfigurableGenerator::emit_single_case_code_mt(AlgebraData const& algebra,
     fmt::println("// {} {} :: {}", algebra.name, config.product_name, case_def.case_name);
     fmt::print("{}", *rendered);
     fmt::println("");
+}
+
+void ConfigurableGenerator::generate_sandwich_case_mt(AlgebraData const& algebra,
+                                                      ProductConfig const& config,
+                                                      mt_table const& mt_tab)
+{
+    // Two-step regressive sandwich for multi-term basis tables, mirroring the
+    // single-term pga3dp path: step 1 rgpr(M, X) with braced intermediate
+    // coefficients, step 2 rgpr(tmp, rrev(M)). Only cga2dc uses this so far.
+    std::string prd_name = algebra.name + " " + config.display_name;
+
+    if (algebra.name != "cga2dc") {
+        throw std::invalid_argument("generate_sandwich_case_mt: unsupported algebra '" +
+                                    algebra.name + "'");
+    }
+
+    auto const mv_e_filter = get_coeff_filter(filter_4d::mv_e);
+    auto const mv_u_filter = get_coeff_filter(filter_4d::mv_u);
+    auto const vec_filter = get_coeff_filter(filter_4d::vec);
+    auto const bivec_filter = get_coeff_filter(filter_4d::bivec);
+    auto const trivec_filter = get_coeff_filter(filter_4d::trivec);
+
+    //// Vector case
+
+    // First product rgpr(M, v) with braced intermediate coefficients
+    fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, vec) -> mv_u_tmp");
+    auto mv_u_tmp =
+        get_mv_from_mt_tab(mt_tab, mv2dc_coeff_R_even, mv2dc_coeff_svBtps, algebra.basis,
+                           mv_e_filter, vec_filter, brace_switch::use_braces);
+    fmt::println("mv_u_tmp:");
+    print_mvec(mv_u_tmp, algebra.basis);
+    fmt::println("");
+
+    // Second product rgpr(mv_u_tmp, rrev(M))
+    fmt::println("{}:",
+                 prd_name + space_str() + "rgpr(mv_u_tmp, rrev(mv_e)) -> mv_u_res");
+    auto mv_u_res_v = get_mv_from_mt_tab(mt_tab, mv_u_tmp, mv2dc_coeff_R_rrev_even,
+                                         algebra.basis, mv_u_filter, mv_e_filter);
+    print_mvec(mv_u_res_v, algebra.basis);
+    fmt::println("");
+
+    print_transformed_result(mv_u_res_v, algebra.basis, algebra, config);
+
+    //// Bivector case
+
+    fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, bivec) -> mv_e_tmp");
+    auto mv_e_tmp =
+        get_mv_from_mt_tab(mt_tab, mv2dc_coeff_R_even, mv2dc_coeff_svBtps, algebra.basis,
+                           mv_e_filter, bivec_filter, brace_switch::use_braces);
+    fmt::println("mv_e_tmp:");
+    print_mvec(mv_e_tmp, algebra.basis);
+    fmt::println("");
+
+    fmt::println("{}:",
+                 prd_name + space_str() + "rgpr(mv_e_tmp, rrev(mv_e)) -> mv_e_res");
+    auto mv_e_res_B = get_mv_from_mt_tab(mt_tab, mv_e_tmp, mv2dc_coeff_R_rrev_even,
+                                         algebra.basis, mv_e_filter, mv_e_filter);
+    print_mvec(mv_e_res_B, algebra.basis);
+    fmt::println("");
+
+    print_transformed_result(mv_e_res_B, algebra.basis, algebra, config);
+
+    //// Trivector case
+
+    fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, trivec) -> mv_u_tmp_t");
+    auto mv_u_tmp_t =
+        get_mv_from_mt_tab(mt_tab, mv2dc_coeff_R_even, mv2dc_coeff_svBtps, algebra.basis,
+                           mv_e_filter, trivec_filter, brace_switch::use_braces);
+    fmt::println("mv_u_tmp_t:");
+    print_mvec(mv_u_tmp_t, algebra.basis);
+    fmt::println("");
+
+    fmt::println("{}:",
+                 prd_name + space_str() + "rgpr(mv_u_tmp_t, rrev(mv_e)) -> mv_u_res_t");
+    auto mv_u_res_t = get_mv_from_mt_tab(mt_tab, mv_u_tmp_t, mv2dc_coeff_R_rrev_even,
+                                         algebra.basis, mv_u_filter, mv_e_filter);
+    print_mvec(mv_u_res_t, algebra.basis);
+    fmt::println("");
+
+    print_transformed_result(mv_u_res_t, algebra.basis, algebra, config);
 }
 
 filter_2d ConfigurableGenerator::get_filter_2d(AlgebraData const& algebra,
@@ -3278,6 +3366,9 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
     }
     else if (algebra_name == "sta4ds") {
         patterns = GeometricVariablePatterns::createSTA4DSPatterns();
+    }
+    else if (algebra_name == "cga2dc") {
+        patterns = GeometricVariablePatterns::createCGA2DCPatterns();
     }
     else {
         // Default to PGA3DP patterns as fallback

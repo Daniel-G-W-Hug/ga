@@ -123,6 +123,7 @@ struct GeometricVariablePatterns {
     static GeometricVariablePatterns createEGA2DPatterns();
     static GeometricVariablePatterns createPGA2DPPatterns();
     static GeometricVariablePatterns createSTA4DSPatterns();
+    static GeometricVariablePatterns createCGA2DCPatterns();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

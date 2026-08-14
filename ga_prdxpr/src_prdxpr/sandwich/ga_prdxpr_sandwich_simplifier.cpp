@@ -625,6 +625,18 @@ GeometricVariablePatterns GeometricVariablePatterns::createSTA4DSPatterns()
     return patterns;
 }
 
+GeometricVariablePatterns GeometricVariablePatterns::createCGA2DCPatterns()
+{
+    // cga2dc uses the same 16-component svBtps layout as pga3dp/sta4ds
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "M.c";                   // Motors (rgpr sandwich)
+    patterns.vectors = {"v.x", "v.y", "v.z", "v.w"}; // 4 vector components
+    patterns.bivectors = {"B.vx", "B.vy", "B.vz",
+                          "B.mx", "B.my", "B.mz"};      // 6 bivector components
+    patterns.trivectors = {"t.x", "t.y", "t.z", "t.w"}; // 4 trivector components
+    return patterns;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // GAAlgebraRules implementation
 ///////////////////////////////////////////////////////////////////////////////

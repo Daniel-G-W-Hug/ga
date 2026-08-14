@@ -64,6 +64,8 @@ class ConfigurableGenerator {
                                  OutputCase const& case_def, mt_table const& mt_tab);
     void emit_single_case_code_mt(AlgebraData const& algebra, ProductConfig const& config,
                                   OutputCase const& case_def, mt_table const& mt_tab);
+    void generate_sandwich_case_mt(AlgebraData const& algebra,
+                                   ProductConfig const& config, mt_table const& mt_tab);
 
     // Helper to get filter based on algebra dimension
     filter_2d get_filter_2d(AlgebraData const& algebra, std::string const& filter_name);

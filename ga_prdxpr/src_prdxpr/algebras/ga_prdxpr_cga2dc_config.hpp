@@ -43,4 +43,6 @@ ProductConfig get_cga2dc_rcmt_config(); // regressive commutator product (multi-
 ProductConfig get_cga2dc_rwdg_config(); // regressive wedge product
 ProductConfig get_cga2dc_rdot_config(); // regressive inner product
 
+ProductConfig get_cga2dc_sandwich_rgpr_config(); // regressive sandwich product
+
 } // namespace configurable

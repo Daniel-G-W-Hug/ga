@@ -6,6 +6,7 @@
 
 // Pull in canonical per-algebra basis declarations so the sandwich configs
 // stay in sync with whatever ordering / naming the algebra headers use.
+#include "algebras/ga_prdxpr_cga2dc.hpp" // mv2dc_basis_kvec
 #include "algebras/ga_prdxpr_ega2d.hpp"  // mv2d_basis_kvec
 #include "algebras/ga_prdxpr_ega3d.hpp"  // mv3d_basis_kvec
 #include "algebras/ga_prdxpr_pga2dp.hpp" // mv2dp_basis_kvec
@@ -439,6 +440,9 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
     else if (algebra_type == "sta4ds") {
         return createSTA4DSConfig();
     }
+    else if (algebra_type == "cga2dc") {
+        return createCGA2DCConfig();
+    }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);
     }
@@ -480,6 +484,19 @@ SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
 {
     auto components = basis_kvec_grades(mv3dp_basis_kvec, {1});
     return {.name = "pga3dp",
+            .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
+            .result_components = components,
+            .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
+                                   "R.c7"},
+            .matrix_size = components.size()};
+}
+
+SandwichAlgebraConfig AlgebraRegistry::createCGA2DCConfig()
+{
+    // cga2dc motor sandwich (rgpr-based, like pga3dp): the transformed inputs
+    // are the grade-1 components; motors are even multivectors (8 coefficients)
+    auto components = basis_kvec_grades(mv2dc_basis_kvec, {1});
+    return {.name = "cga2dc",
             .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
             .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",

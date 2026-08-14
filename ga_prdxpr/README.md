@@ -55,12 +55,14 @@ maintainable configuration-driven architecture.
 
 ### CGA2DC (Conformal 2D, non-orthogonal null-basis metric)
 
-- 12 products: gpr, cmt, wdg, dot, rwdg, rdot, rgpr, rcmt, l_contract, r_contract,
-  l_expand, r_expand. The gpr family (gpr, cmt, rgpr, rcmt) uses MULTI-TERM basis
-  products — the null-pair metric makes `e3 * e4 = -1 + e34` — routed through the
-  generator's mt basis-table path. The generated rule tables are pinned against a
-  literature-reviewed reference (`reference_output/ga_prdxpr_rulegen_cga2dc.txt`).
-  Still open: the sandwich product and `--output=code` for the multi-term products.
+- 13 products: gpr, cmt, wdg, dot, rwdg, rdot, rgpr, rcmt, l_contract, r_contract,
+  l_expand, r_expand, and the regressive sandwich (motor) product. The gpr family
+  (gpr, cmt, rgpr, rcmt, sandwich) uses MULTI-TERM basis products — the null-pair
+  metric makes `e3 * e4 = -1 + e34` — routed through the generator's mt basis-table
+  path. The generated rule tables are pinned against a literature-reviewed reference
+  (`reference_output/ga_prdxpr_rulegen_cga2dc.txt`), and `--output=code` emits the
+  full set incl. the multi-term products, complements, duals and ANTIDUALS (the
+  negated duals, verified against the metric anti-exomorphism).
 
 All five algebras also expose the **complements** (`l_cmpl`/`r_cmpl`, or `cmpl` in odd
 dimension) and **duals** (`l_dual`/`r_dual`, or `dual`; degenerate PGA: `bulk_dual` /
@@ -92,10 +94,10 @@ cd ga_prdxpr
 
 ### Verification
 
-The bare invocation must produce a stable 33803-line reference:
+The bare invocation must produce a stable 33990-line reference:
 
 ```bash
-./ga_prdxpr | wc -l   # 33803
+./ga_prdxpr | wc -l   # 33990
 ```
 
 A round-trip byte-identity check against the C++ source (`ga/*_ops_products.hpp`) is
@@ -230,7 +232,7 @@ ga_prdxpr --output=all                                   # everything
 | `--output=code`        | —      | —      | —       | ✓    |
 | `--output=coeffs,code` | ✓      | —      | —       | ✓    |
 
-The bare invocation produces the canonical 33803-line searchable
+The bare invocation produces the canonical 33990-line searchable
 reference (coeffs + tables + metrics). `code` is opt-in only so the
 default output stays stable; ask for it explicitly when you want C++
 implementations.
