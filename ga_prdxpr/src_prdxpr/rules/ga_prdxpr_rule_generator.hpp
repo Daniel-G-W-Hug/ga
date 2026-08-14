@@ -139,6 +139,13 @@ struct ProductRules {
     prd_rules l_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
     prd_rules dual;   // For odd Euclidean algebras (EGA3D)
 
+    // Antidual rules (dual w.r.t. the metric anti-exomorphism 𝔾 = C·G·Cᵀ).
+    // Generated for non-orthogonal (metric_matrix) algebras only, where the
+    // verified identity 𝔾 = -G makes them the negated duals. Empty otherwise.
+    prd_rules l_antidual; // even-dimensional matrix algebras
+    prd_rules r_antidual; // even-dimensional matrix algebras
+    prd_rules antidual;   // odd-dimensional matrix algebras
+
     // PGA-specific dual rules (for projective algebras with degenerate dimensions)
     // Odd-dimensional PGA (PGA2DP): single bulk_dual and weight_dual
     prd_rules bulk_dual;   // For PGA2DP (odd-dimensional)

@@ -53,6 +53,11 @@ extern const prd_rules r_cmpl_cga2dc_rules;
 extern const prd_rules l_dual_cga2dc_rules;
 extern const prd_rules r_dual_cga2dc_rules;
 
+// antiduals (dual w.r.t. the anti-exomorphism 𝔾 = -G, i.e. the negated duals;
+// the identity is verified at rule-generation time)
+extern const prd_rules l_antidual_cga2dc_rules;
+extern const prd_rules r_antidual_cga2dc_rules;
+
 ////////////////////////////////////////////////////////////////////////////////
 // coefficients needed to create a multivector = [coeff]^T [mv2dc_basis]
 //

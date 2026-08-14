@@ -366,6 +366,14 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                              generated_rules.basis, algebra_name);
             print_cmpl_rules(generated_rules.r_dual, "right dual rules",
                              generated_rules.basis, algebra_name);
+
+            // Antiduals (non-orthogonal metrics only; negated duals, 𝔾 = -G)
+            if (config.has_metric_matrix()) {
+                print_cmpl_rules(generated_rules.l_antidual, "left antidual rules",
+                                 generated_rules.basis, algebra_name);
+                print_cmpl_rules(generated_rules.r_antidual, "right antidual rules",
+                                 generated_rules.basis, algebra_name);
+            }
         }
     }
     else {
@@ -891,9 +899,11 @@ int main(int argc, char* argv[])
                                   (fresh.l_cmpl == l_cmpl_cga2dc_rules) &&
                                   (fresh.r_cmpl == r_cmpl_cga2dc_rules) &&
                                   (fresh.l_dual == l_dual_cga2dc_rules) &&
-                                  (fresh.r_dual == r_dual_cga2dc_rules);
+                                  (fresh.r_dual == r_dual_cga2dc_rules) &&
+                                  (fresh.l_antidual == l_antidual_cga2dc_rules) &&
+                                  (fresh.r_antidual == r_antidual_cga2dc_rules);
             fmt::println("\n=== Complete cga2dc Validation ===");
-            fmt::println("  gpr (multi-term), wdg, dot, l/r cmpl, l/r dual: {}",
+            fmt::println("  gpr (multi-term), wdg, dot, l/r cmpl, l/r dual/antidual: {}",
                          cga2dc_success ? "✓ PERFECT MATCH (static init == fresh)"
                                         : "✗ DIFFERENCES");
             test_results.push_back(cga2dc_success);

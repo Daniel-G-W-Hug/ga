@@ -1693,6 +1693,45 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
         }
     }
 
+    // Antidual support for non-orthogonal (matrix) algebras: the antidual is
+    // the dual w.r.t. the metric anti-exomorphism 𝔾 = C·G·Cᵀ. For the
+    // conformal null-basis metrics G is a symmetric signed permutation with
+    // G·G = I and det G = -1, which makes 𝔾 = -G and hence
+    // antidual(u) = -dual(u). The identity is VERIFIED here (throws on
+    // violation) rather than assumed, so the shortcut cannot silently be
+    // applied to an algebra where it does not hold.
+    auto verify_antimetric_is_negated_metric = [&](prd_rules const& cmpl_rules) {
+        auto const G_ext = calculate_extended_metric_matrix_full(config);
+        auto const G_anti =
+            calculate_regressive_extended_metric_matrix_full(config, cmpl_rules);
+        if (G_ext.size() != G_anti.size()) {
+            throw std::runtime_error("antidual generation: metric matrix size mismatch");
+        }
+        for (size_t k = 0; k < G_ext.size(); ++k) {
+            if (G_anti[k] != -G_ext[k]) {
+                throw std::runtime_error(
+                    "antidual generation: anti-exomorphism is not the negated "
+                    "extended metric for this algebra -- the antidual(u) = -dual(u) "
+                    "shortcut does not apply");
+            }
+        }
+    };
+    auto negate_rules = [](prd_rules const& rules) {
+        prd_rules negated;
+        for (auto const& [key, value] : rules) {
+            if (value == zero_str()) {
+                negated[key] = value;
+            }
+            else if (value.starts_with(minus_str())) {
+                negated[key] = value.substr(1, value.size() - 1);
+            }
+            else {
+                negated[key] = minus_str() + value;
+            }
+        }
+        return negated;
+    };
+
     if (is_even_dimensional) {
         // Generate both left and right complements for even algebras
         result.l_cmpl = generate_l_cmpl_rules(config, result.wedge_product);
@@ -1702,6 +1741,13 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
         if (!is_pga) {
             result.l_dual = generate_l_dual_rules(config, result.l_cmpl);
             result.r_dual = generate_r_dual_rules(config, result.r_cmpl);
+        }
+
+        // Antiduals for non-orthogonal metrics (verified 𝔾 = -G, see above)
+        if (config.has_metric_matrix()) {
+            verify_antimetric_is_negated_metric(result.r_cmpl);
+            result.l_antidual = negate_rules(result.l_dual);
+            result.r_antidual = negate_rules(result.r_dual);
         }
 
         // For even-dimensional PGA, generate bulk and weight duals
@@ -1719,6 +1765,12 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
         // Generate dual rules from complement (only for non-PGA)
         if (!is_pga) {
             result.dual = generate_dual_rules(config, result.complement);
+        }
+
+        // Antidual for non-orthogonal metrics (verified 𝔾 = -G, see above)
+        if (config.has_metric_matrix()) {
+            verify_antimetric_is_negated_metric(result.complement);
+            result.antidual = negate_rules(result.dual);
         }
 
         // For odd-dimensional PGA, generate bulk and weight duals

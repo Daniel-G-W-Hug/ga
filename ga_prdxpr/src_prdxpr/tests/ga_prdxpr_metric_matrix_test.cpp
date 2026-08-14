@@ -324,6 +324,20 @@ TEST_SUITE("non-orthogonal metric machinery")
                 CHECK(value.find(' ') == std::string::npos);
             }
         }
+
+        // antiduals (dual w.r.t. the anti-exomorphism, which the generator
+        // verifies to be -G): antidual(u) == -dual(u), per blade
+        CHECK(rules.l_antidual.size() == config.multivector_basis.size());
+        CHECK(rules.r_antidual.size() == config.multivector_basis.size());
+        auto negated = [](std::string const& v) {
+            return v.starts_with("-") ? v.substr(1) : ("-" + v);
+        };
+        for (auto const& [key, value] : rules.l_dual) {
+            CHECK(rules.l_antidual.at(key) == negated(value));
+        }
+        for (auto const& [key, value] : rules.r_dual) {
+            CHECK(rules.r_antidual.at(key) == negated(value));
+        }
     }
 
     TEST_CASE("mt basis table build and fused coefficient extraction")

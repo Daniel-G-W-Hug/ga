@@ -35,3 +35,8 @@ const prd_rules r_cmpl_cga2dc_rules = cga2dc_generated_rules.r_cmpl;
 // metric matrix; non-degenerate metric -> regular l/r duals)
 const prd_rules l_dual_cga2dc_rules = cga2dc_generated_rules.l_dual;
 const prd_rules r_dual_cga2dc_rules = cga2dc_generated_rules.r_dual;
+
+// Stage 5: Initialize antidual rules (negated duals; 𝔾 = -G verified during
+// generation)
+const prd_rules l_antidual_cga2dc_rules = cga2dc_generated_rules.l_antidual;
+const prd_rules r_antidual_cga2dc_rules = cga2dc_generated_rules.r_antidual;
