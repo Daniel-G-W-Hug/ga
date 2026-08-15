@@ -505,6 +505,83 @@ TEST_SUITE("CGA 2dc Tests")
         }
     }
 
+    TEST_CASE("cga2dc: inv and rinv")
+    {
+        fmt::println("cga2dc: inv and rinv");
+
+        // pinned values (non-degenerate metric: BOTH pseudoscalar inv and
+        // scalar rinv exist, unlike in the degenerate pga algebras)
+        CHECK(inv(scalar2dc(2.0)) == scalar2dc(0.5));
+        CHECK(inv(I_2dc) == pscalar2dc(-1.0));          // I * I = -1
+        CHECK(rinv(scalar2dc(1.0)) == scalar2dc(-1.0)); // rgpr(1, -1) = I
+        CHECK(is_close(rgpr(scalar2dc(1.0), rinv(scalar2dc(1.0))), pscalar2dc(1.0)));
+
+        // null elements are not invertible -- including every embedded point
+        CHECK_THROWS(inv(e3_2dc));
+        CHECK_THROWS(inv(e4_2dc));
+        CHECK_THROWS(inv(point2dc(3.0, 4.0)));
+
+        // gate: u * inv(u) = 1 for random (generically non-null) elements
+        auto const one_e = mvec2dc_e(scalar2dc(1.0));
+        auto const one_m = mvec2dc(scalar2dc(1.0));
+        auto const I_e = mvec2dc_e(pscalar2dc(1.0));
+        auto const I_m = mvec2dc(pscalar2dc(1.0));
+        for (int i = 0; i < 3; ++i) {
+            auto v = rnd_vec();
+            auto B = rnd_bivec();
+            auto t = rnd_trivec();
+            auto Me = mvec2dc_e(rnd_bivec()) + mvec2dc_e(scalar2dc(rnd_int()));
+            auto Mu = mvec2dc_u(rnd_vec(), rnd_trivec());
+            auto M = rnd_mv();
+            CHECK(is_close(v * inv(v), one_e));
+            CHECK(is_close(inv(v) * v, one_e));
+            CHECK(is_close(B * inv(B), one_e));
+            CHECK(is_close(inv(B) * B, one_e));
+            CHECK(is_close(t * inv(t), one_e));
+            CHECK(is_close(inv(t) * t, one_e));
+            CHECK(is_close(Me * inv(Me), one_e));
+            CHECK(is_close(Mu * inv(Mu), one_e));
+            CHECK(is_close(M * inv(M), one_m));
+            CHECK(is_close(inv(M) * M, one_m));
+
+            // gate: rgpr(u, rinv(u)) = I (the rgpr identity element)
+            CHECK(is_close(rgpr(v, rinv(v)), I_e));
+            CHECK(is_close(rgpr(rinv(v), v), I_e));
+            CHECK(is_close(rgpr(B, rinv(B)), I_e));
+            CHECK(is_close(rgpr(t, rinv(t)), I_e));
+            CHECK(is_close(rgpr(M, rinv(M)), I_m));
+            CHECK(is_close(rgpr(rinv(M), M), I_m));
+        }
+    }
+
+    TEST_CASE("cga2dc: congruence and closeness")
+    {
+        fmt::println("cga2dc: congruence and closeness");
+
+        auto v = vec2dc(1.0, -2.0, 3.0, 0.5);
+        auto B = bivec2dc(1.0, 0.0, -2.0, 3.0, 0.0, 1.5);
+        auto t = trivec2dc(-1.0, 2.0, 0.0, 4.0);
+
+        // congruent: same subspace up to any non-zero scale (sign included)
+        CHECK(is_congruent(v, vec2dc(2.0 * v)));
+        CHECK(is_congruent(v, vec2dc(-3.0 * v)));
+        CHECK(is_congruent(B, bivec2dc(-0.5 * B)));
+        CHECK(is_congruent(t, trivec2dc(7.0 * t)));
+        CHECK_FALSE(is_congruent(v, e1_2dc));
+        CHECK_FALSE(is_congruent(B, e12_2dc));
+        CHECK(is_congruent(scalar2dc(2.0), scalar2dc(-5.0)));
+        CHECK(is_congruent(I_2dc, pscalar2dc(-3.0)));
+
+        // embedded points scale-normalize to the same round point
+        auto p = point2dc(3.0, 4.0);
+        CHECK(is_congruent(p, vec2dc(2.5 * p)));
+
+        // is_close: same value within a relative tolerance
+        CHECK(is_close(v, v));
+        CHECK_FALSE(is_close(v, vec2dc(2.0 * v)));
+        CHECK(is_close(mvec2dc(v, t), mvec2dc(v, t)));
+    }
+
     TEST_CASE("cga2dc: fmt printing")
     {
         fmt::println("cga2dc: fmt printing");

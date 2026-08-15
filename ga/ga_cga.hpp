@@ -31,9 +31,11 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // CGA-specific operations are in namespace hd::ga::cga
-// (ga_cga2dc_ops.hpp with the geometric operations follows as the ops layer grows)
 #include "ga_cga2dc_ops_basics.hpp"   // involutions, complements, duals, antiduals
-#include "ga_cga2dc_ops_products.hpp" // products (dot, wdg, contractions, gpr, rgpr, ...)
+#include "ga_cga2dc_ops_products.hpp" // products (dot, wdg, contractions, gpr, rgpr,
+                                      // inv, rinv, ...)
+#include "ga_cga2dc_ops.hpp"          // geometric operations (is_congruent, is_close;
+                                      // layer under construction)
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

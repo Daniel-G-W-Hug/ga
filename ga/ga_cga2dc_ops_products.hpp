@@ -5,6 +5,8 @@
 
 #include "ga_cga2dc_ops_basics.hpp"
 
+#include "detail/ga_error_handling.hpp" // inv()/rinv() null checks
+
 
 namespace hd::ga::cga {
 
@@ -32,7 +34,11 @@ namespace hd::ga::cga {
 // - l_expand2dc()           -> left expansion
 // - r_expand2dc()           -> right expansion
 //
-// inv() and rinv() are added together with the geometric operations layer
+// - inv()                   -> inversion operation (w.r.t. geometric product)
+// - rinv()                  -> inversion operation (w.r.t. regressive geometric
+//                              product; full type coverage, see the inverses
+//                              section: the metric is non-degenerate, so neither
+//                              of the pga exclusions applies)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -8255,6 +8261,210 @@ constexpr PScalar2dc<std::common_type_t<T, U>> rgpr(Scalar2dc<T> s1, Scalar2dc<U
     using ctype = std::common_type_t<T, U>;
     return PScalar2dc<ctype>(-ctype(s1) * ctype(s2));
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// multiplicative inverses of scalars, blades and multivectors w.r.t. the
+// geometric product: u * inv(u) = inv(u) * u = 1
+//
+// The cga2dc metric is non-degenerate (det G = -1), so every element with
+// non-zero geometric square is invertible. NULL elements are not -- and in a
+// conformal algebra these are geometrically meaningful, not exotic: every
+// embedded point q satisfies q * q = 0, so inv() of a round point (and of the
+// null basis vectors e3, e4 themselves) throws. Invert only elements known to
+// be non-null (e.g. versors).
+//
+// for k-blades:  A^(-1) = rev(A) / <A rev(A)>_0
+//   - scalar / vector: rev = +A, so A^(-1) = A / gr0(A A)
+//   - bivector / trivector and the mixed-grade multivectors: closed-form
+//     inverse of Hitzer & Sangwine, "Multivector and multivector matrix
+//     inverses in real Clifford algebras" (2016) -- A^(-1) = conj(A) * map /
+//     <A conj(A) map>_0 with the dim-4 grade-sign maps. The formula is an
+//     algebraic identity in the algebra's own geometric product, so it holds
+//     for the non-orthogonal null-basis metric unchanged.
+//
+// The squared norm is SIGNED here (e.g. I_2dc * I_2dc = -1), so the null check
+// uses std::abs(denominator): it rejects only (near-)null elements, never
+// merely negative squares.
+////////////////////////////////////////////////////////////////////////////////
+// HINT: inv() cannot be constexpr due to the checks for division by zero
+//       which might throw
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Scalar2dc<T> inv(Scalar2dc<T> s)
+{
+    T sq_n = T(s) * T(s);
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "scalar");
+    return Scalar2dc<T>(T(s) / sq_n);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2dc<T> inv(Vec2dc<T> const& v)
+{
+    // v^(-1) = rev(v)/<v v>_0 = v/dot(v,v); throws for null vectors -- which
+    // includes every embedded point and the null basis vectors e3, e4
+    T sq_n = T(dot(v, v));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "vector");
+    T inv = T(1.0) / sq_n;
+    return Vec2dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
+}
+
+// formula from "Multivector and multivector matrix inverses in real Clifford
+// algebras", Hitzer, Sangwine, 2016
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec2dc<T> inv(BiVec2dc<T> const& B)
+{
+    auto bc = B * conj(B);
+    auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
+    T sq_n = T(gr0(bc * bcmap));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "bivector");
+    return gr2(conj(B) * bcmap) / sq_n;
+}
+
+// formula from "Multivector and multivector matrix inverses in real Clifford
+// algebras", Hitzer, Sangwine, 2016
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec2dc<T> inv(TriVec2dc<T> const& t)
+{
+    auto tc = t * conj(t);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    T sq_n = T(gr0(tc * tcmap));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "trivector");
+    return gr3(conj(t) * tcmap) / sq_n;
+}
+
+// the cga2dc metric is non-degenerate, so (unlike the pga pseudoscalars) the
+// pseudoscalar is invertible: I_2dc * I_2dc = -1, hence inv(I_2dc) = -I_2dc
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar2dc<T> inv(PScalar2dc<T> ps)
+{
+    T sq_n = T(ps * ps); // = -ps^2 (signed geometric square)
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "pseudoscalar");
+    return PScalar2dc<T>(T(ps) / sq_n);
+}
+
+// formula from "Multivector and multivector matrix inverses in real Clifford
+// algebras", Hitzer, Sangwine, 2016
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc_E<T> inv(MVec2dc_E<T> const& E)
+{
+    auto tc = E * conj(E);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    T sq_n = T(gr0(tc * tcmap));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "even-grade multivector");
+    return conj(E) * tcmap / sq_n;
+}
+
+// formula from "Multivector and multivector matrix inverses in real Clifford
+// algebras", Hitzer, Sangwine, 2016
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc_U<T> inv(MVec2dc_U<T> const& U)
+{
+    auto tc = U * conj(U);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    T sq_n = T(gr0(tc * tcmap));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "odd-grade multivector");
+    return conj(U) * tcmap / sq_n;
+}
+
+// formula from "Multivector and multivector matrix inverses in real Clifford
+// algebras", Hitzer, Sangwine, 2016; a left and a right inverse are the same
+// (see the paper)
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc<T> inv(MVec2dc<T> const& M)
+{
+    auto tc = M * conj(M);
+    auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
+    T sq_n = T(gr0(tc * tcmap));
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "multivector");
+    return conj(M) * tcmap / sq_n;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// multiplicative inverses w.r.t. the regressive geometric product:
+//
+//     u (v) rinv(u) = rinv(u) (v) u = I_2dc   (the pseudoscalar, identity of rgpr)
+//
+// defined as the geometric inverse carried through the complement map
+// (even-dimensional algebra, so l_/r_ complements pair up):
+//
+//     rinv(u) = l_cmpl(inv(r_cmpl(u))) = r_cmpl(inv(l_cmpl(u)))
+//
+// Unlike pga (where the scalar has no rinv, mirroring the pseudoscalar having
+// no inv), the non-degenerate cga2dc metric admits BOTH inverses for every
+// non-null element, so rinv covers all types -- e.g. rinv(1) = -1 (a scalar:
+// rgpr(1,-1) = I_2dc), the complement-dual of inv(I_2dc) = -I_2dc. Null
+// elements throw, as for inv().
+////////////////////////////////////////////////////////////////////////////////
+// HINT: rinv() cannot be constexpr due to the checks for division by zero
+//       which might throw
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Scalar2dc<T> rinv(Scalar2dc<T> s)
+{
+    return l_cmpl(inv(r_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2dc<T> rinv(Vec2dc<T> const& v)
+{
+    return l_cmpl(inv(r_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec2dc<T> rinv(BiVec2dc<T> const& B)
+{
+    return l_cmpl(inv(r_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec2dc<T> rinv(TriVec2dc<T> const& t)
+{
+    return l_cmpl(inv(r_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar2dc<T> rinv(PScalar2dc<T> ps)
+{
+    return l_cmpl(inv(r_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc_E<T> rinv(MVec2dc_E<T> const& E)
+{
+    return l_cmpl(inv(r_cmpl(E)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc_U<T> rinv(MVec2dc_U<T> const& U)
+{
+    return l_cmpl(inv(r_cmpl(U)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dc<T> rinv(MVec2dc<T> const& M)
+{
+    return l_cmpl(inv(r_cmpl(M)));
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // left and right expansions
 //

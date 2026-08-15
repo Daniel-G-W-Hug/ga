@@ -279,9 +279,9 @@ Critical usage requirements:
 ### Header layering — where to find a `ga/` operation
 
 Each algebra's operations are split across a fixed set of `ga/ga_<alg>_ops*.hpp` headers
-(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc` — cga2dc so far carries the
-`ops_basics`/`ops_products` layers; its geometric ops layer follows), layered by what they
-build on. **Every
+(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc` — cga2dc's geometric ops layer
+`ga_cga2dc_ops.hpp` is still under construction: congruence exists, norms and the
+conformal geometry follow), layered by what they build on. **Every
 file lists the functions it provides in a `// provides ... operations:` comment right after
 the `namespace hd::ga{,::pga}` declaration** — read that block first when hunting for a
 function; it is the authoritative per-file index. The split:
