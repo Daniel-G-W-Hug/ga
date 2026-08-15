@@ -974,6 +974,48 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(is_same_transform(Rc, mvec2dc_e(Rc2)));
     }
 
+    TEST_CASE("cga2dc: exported extended metric arrays")
+    {
+        fmt::println("cga2dc: exported extended metric arrays");
+
+        // the regressive extended metric is the anti-exomorphism = -G
+        for (size_t i = 0; i < cga2dc_metric.size(); ++i) {
+            CHECK(cga2dc_rmetric[i] == -cga2dc_metric[i]);
+        }
+
+        // G against the LIVE dot product, per grade block (dot(e_i, e_j) is
+        // the extended metric pairing); rdot likewise against the regressive
+        // metric
+        auto G = cga2dc_metric_view();
+        auto Gr = cga2dc_rmetric_view();
+        CHECK(value_t(dot(scalar2dc(1.0), scalar2dc(1.0))) == G[0, 0]);
+        CHECK(value_t(rdot(scalar2dc(1.0), scalar2dc(1.0))) == Gr[0, 0]);
+        std::array<vec2dc, 4> const vs{e1_2dc, e2_2dc, e3_2dc, e4_2dc};
+        for (size_t i = 0; i < 4; ++i) {
+            for (size_t j = 0; j < 4; ++j) {
+                CHECK(value_t(dot(vs[i], vs[j])) == G[i + 1, j + 1]);
+                CHECK(value_t(rdot(vs[i], vs[j])) == Gr[i + 1, j + 1]);
+            }
+        }
+        std::array<bivec2dc, 6> const bs{e31_2dc, e32_2dc, e12_2dc,
+                                         e14_2dc, e24_2dc, e34_2dc};
+        for (size_t i = 0; i < 6; ++i) {
+            for (size_t j = 0; j < 6; ++j) {
+                CHECK(value_t(dot(bs[i], bs[j])) == G[i + 5, j + 5]);
+                CHECK(value_t(rdot(bs[i], bs[j])) == Gr[i + 5, j + 5]);
+            }
+        }
+        std::array<trivec2dc, 4> const ts{e314_2dc, e324_2dc, e124_2dc, e321_2dc};
+        for (size_t i = 0; i < 4; ++i) {
+            for (size_t j = 0; j < 4; ++j) {
+                CHECK(value_t(dot(ts[i], ts[j])) == G[i + 11, j + 11]);
+                CHECK(value_t(rdot(ts[i], ts[j])) == Gr[i + 11, j + 11]);
+            }
+        }
+        CHECK(value_t(dot(I_2dc, I_2dc)) == G[15, 15]);
+        CHECK(value_t(rdot(I_2dc, I_2dc)) == Gr[15, 15]);
+    }
+
     TEST_CASE("cga2dc: fmt printing")
     {
         fmt::println("cga2dc: fmt printing");

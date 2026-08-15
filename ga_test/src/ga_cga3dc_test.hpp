@@ -114,6 +114,41 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(-(-M) == M);
     }
 
+    TEST_CASE("cga3dc: exported extended metric arrays")
+    {
+        fmt::println("cga3dc: exported extended metric arrays");
+
+        // the regressive extended metric is the anti-exomorphism = -G
+        for (size_t i = 0; i < cga3dc_metric.size(); ++i) {
+            CHECK(cga3dc_rmetric[i] == -cga3dc_metric[i]);
+        }
+
+        // pinned rows of the reviewed metric (the operation-level cross-check
+        // against dot/rdot follows with the cga3dc ops layer): the null pair,
+        // the w<->u bivector pairing, the quadvector partner pair, and the
+        // pseudoscalar
+        auto G = cga3dc_metric_view();
+        CHECK(G[0, 0] == 1);
+        CHECK(G[4, 5] == -1); // e4 . e5
+        CHECK(G[5, 4] == -1);
+        CHECK(G[4, 4] == 0); // null vectors
+        CHECK(G[5, 5] == 0);
+        CHECK(G[6, 12] == 1);   // e41 <-> e15
+        CHECK(G[15, 15] == -1); // e45
+        CHECK(G[26, 26] == -1); // e4235 (contains the null pair e45)
+        CHECK(G[29, 30] == 1);  // e3215 <-> e1234
+        CHECK(G[30, 29] == 1);
+        CHECK(G[31, 31] == -1); // e12345
+        // every row is a signed permutation: exactly one non-zero entry
+        for (size_t i = 0; i < 32; ++i) {
+            int nz = 0;
+            for (size_t j = 0; j < 32; ++j) {
+                if (G[i, j] != 0) ++nz;
+            }
+            CHECK(nz == 1);
+        }
+    }
+
     TEST_CASE("cga3dc: fmt printing")
     {
         fmt::println("cga3dc: fmt printing");
