@@ -35,6 +35,7 @@ When in doubt, leave the working tree for review and say it is ready.
 │   ├── ga_ega_test                                 #   Euclidean GA tests (2D/3D)
 │   ├── ga_pga_test                                 #   Projective GA tests (2dp/3dp)
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
+│   ├── ga_cga_test                                 #   Conformal GA tests (cga2dc; 3dc follows)
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
 │   ├── ga_appl3dp_test                             #   PGA3D applications (generic geometry/kinematics/mechanics)
 │   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
@@ -261,15 +262,16 @@ The mechanics headers (`ga/ga_pga{2,3}dp_ops_mechanics.hpp`) follow this through
 
 ### Library Usage Patterns
 
-The library provides two main entry points:
+The library provides three main entry points:
 
 - `#include "ga/ga_ega.hpp"` for Euclidean GA (2D, 3D, 4D)
 - `#include "ga/ga_pga.hpp"` for Projective GA (2dp, 3dp)
+- `#include "ga/ga_cga.hpp"` for Conformal GA (2dc; 3dc follows)
 
 Critical usage requirements:
 
 1. All GA code must be wrapped in try-catch blocks to handle exceptions
-2. Use namespace `hd::ga` and either `hd::ga::ega` or `hd::ga::pga`
+2. Use namespace `hd::ga` and either `hd::ga::ega`, `hd::ga::pga` or `hd::ga::cga`
 3. **Always enclose left/right contractions (`<<` and `>>` operators) in parentheses due
    to operator precedence**
 4. The base scalar type (float/double) is configured globally in `ga/ga_value_t.hpp`
@@ -277,7 +279,9 @@ Critical usage requirements:
 ### Header layering — where to find a `ga/` operation
 
 Each algebra's operations are split across a fixed set of `ga/ga_<alg>_ops*.hpp` headers
-(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds`), layered by what they build on. **Every
+(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc` — cga2dc so far carries the
+`ops_basics`/`ops_products` layers; its geometric ops layer follows), layered by what they
+build on. **Every
 file lists the functions it provides in a `// provides ... operations:` comment right after
 the `namespace hd::ga{,::pga}` declaration** — read that block first when hunting for a
 function; it is the authoritative per-file index. The split:
@@ -679,7 +683,7 @@ Other typed forms (`-> 0 s`, `-> 0 vec`, `-> 0 bivec`, …) are NOT used:
 
 Validator check G enforces this (see below).
 
-#### Validator: checks A–G
+#### Validator: checks A–H
 
 Every `ga_prdxpr` run validates each declared `OutputCase` and emits warnings to
 stderr (with an end-of-run summary). Implementation lives in
@@ -695,6 +699,7 @@ inside `validate_case`.
 | **E** | Declared a non-zero result type but the actual computation is identically zero (suggests `-> 0` or `-> 0 ps`)                                  |
 | **F** | Coefficient with `_even`/`_odd` suffix paired with a filter other than `mv_e`/`mv_u` (parity mismatch — typically silently produces all zeros) |
 | **G** | Typed-zero uses anything other than `ps` (e.g. `-> 0 s` or `-> 0 vec`)                                                                         |
+| **H** | Declared-zero case (`-> 0` / `-> 0 ps`) whose computation is non-zero (converse of E; typical for transplants from a degenerate algebra)       |
 
 Warnings are non-fatal — generation continues so a single run surfaces every issue.
 

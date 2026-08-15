@@ -460,8 +460,15 @@ def find_binary(proj_root):
 
     Unix/macOS single-config builds put it at build/ga_prdxpr/ga_prdxpr;
     Windows MSVC multi-config builds put it under build/ga_prdxpr/<Config>/
-    with a .exe suffix. We probe both shapes.
+    with a .exe suffix. We probe both shapes. When the binary lives somewhere
+    else entirely (e.g. this repo is built inside an enclosing project whose
+    build tree nests it differently), point GA_PRDXPR at it directly.
     """
+    env = os.environ.get("GA_PRDXPR")
+    if env:
+        if os.path.isfile(env):
+            return env
+        sys.exit(f"GA_PRDXPR is set but is not a file: {env}")
     base = os.path.join(proj_root, "build", "ga_prdxpr")
     candidates = [
         os.path.join(base, "ga_prdxpr"),  # Unix / Ninja / make
@@ -482,7 +489,7 @@ def find_binary(proj_root):
 
 
 def main():
-    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds"]
+    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "cga2dc"]
 
     # Resolve project paths up-front so the default algebra set can be derived
     # from which `ga/ga_<algebra>_ops_products.hpp` files actually exist —
@@ -507,6 +514,7 @@ def main():
             "  pga2dp  Projective 2D, G(2,0,1)\n"
             "  pga3dp  Projective 3D, G(3,0,1)\n"
             "  sta4ds  Space-time, G(1,3,0)\n"
+            "  cga2dc  Conformal 2D, G(3,1,0) diagonalized\n"
             "\n"
             "Default selection is derived from existing\n"
             "ga/ga_<algebra>_ops_products.hpp files; algebras whose library\n"
