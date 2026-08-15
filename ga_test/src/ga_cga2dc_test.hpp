@@ -582,6 +582,398 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(is_close(mvec2dc(v, t), mvec2dc(v, t)));
     }
 
+    TEST_CASE("cga2dc: geometric objects, split and norms")
+    {
+        fmt::println("cga2dc: geometric objects, split and norms");
+
+        // round point (1,2) r=1; null point embedding is the r=0 special case
+        auto a = round_point2dc(1.0, 2.0, 1.0);
+        CHECK(a == vec2dc(1.0, 2.0, 1.0, 3.0));
+        CHECK(round_point2dc(3.0, 4.0, 0.0) == point2dc(3.0, 4.0));
+
+        // circle (1,2) r=1: negative carrier weight, center readable directly
+        auto c = circle2dc(1.0, 2.0, 1.0);
+        CHECK(c == trivec2dc(2.0, -1.0, -2.0, -1.0));
+
+        // a dipole's two points lie perpendicular to its normal: for center
+        // (1,2), r=2, normal (0,1) the points are (-1,2) and (3,2); the join
+        // of those embedded points is congruent to the constructed dipole
+        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        CHECK(is_congruent(d, wdg(point2dc(-1.0, 2.0), point2dc(3.0, 2.0))));
+
+        // the flat point is the dipole with vanishing carrier-line part
+        auto fp = flat_point2dc(3.0, 4.0);
+        CHECK(round_weight_nrm_sq(fp) == 0.0);
+        CHECK(round_bulk_nrm_sq(fp) == 0.0);
+
+        // split: the four parts are disjoint and sum to the object
+        auto B = rnd_bivec();
+        auto t = rnd_trivec();
+        auto v = rnd_vec();
+        CHECK(round_bulk(B) + round_weight(B) + flat_bulk(B) + flat_weight(B) == B);
+        CHECK(round_bulk(t) + round_weight(t) + flat_bulk(t) + flat_weight(t) == t);
+        CHECK(round_bulk(v) + round_weight(v) + flat_bulk(v) + flat_weight(v) == v);
+
+        // norm pins (reference-table values through the dictionaries):
+        // round point: rb = |center dist|*w, rw = |w|, fb = |u-comp|, fw = 0
+        CHECK(round_bulk_nrm_sq(a) == 5.0);
+        CHECK(round_weight_nrm_sq(a) == 1.0);
+        CHECK(flat_bulk_nrm_sq(a) == 9.0);
+        CHECK(flat_weight_nrm_sq(a) == 0.0);
+        CHECK(center_nrm_sq(a) == 5.0); // origin<->center distance squared
+        // circle: rw = |w|, fw = center dist * |w|
+        CHECK(round_weight_nrm_sq(c) == 1.0);
+        CHECK(flat_weight_nrm_sq(c) == 5.0);
+        CHECK(center_nrm_sq(c) == 5.0);
+
+        // radius norms: the antidot square r^2 (signed), the dot square -r^2
+        CHECK(radius_nrm_sq(a) == 1.0);
+        CHECK(radius_nrm_sq(c) == 1.0);
+        CHECK(is_close(scalar2dc(radius_sq(d)), scalar2dc(4.0)));
+        CHECK(dot(c, c) == scalar2dc(-1.0));
+        CHECK(radius_nrm_sq(point2dc(3.0, 4.0)) == 0.0); // null point
+
+        // unitize: round weight norm becomes one, sign preserved
+        auto c3 = trivec2dc(3.0 * c.x, 3.0 * c.y, 3.0 * c.z, 3.0 * c.w);
+        CHECK(unitize(c3) == c);
+        CHECK_THROWS(unitize(fp)); // flat objects have no round weight
+    }
+
+    TEST_CASE("cga2dc: carrier, cocarrier, attitude")
+    {
+        fmt::println("cga2dc: carrier, cocarrier, attitude");
+
+        auto a = round_point2dc(1.0, 2.0, 1.0);
+        auto c = circle2dc(1.0, 2.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+
+        // carrier: lowest-dimensional flat containing the object. For a round
+        // point: the flat point at the same position (congruent to it)
+        CHECK(is_congruent(car(a), flat_point2dc(1.0, 2.0)));
+        // for a dipole: the carrier line -- every point of the dipole lies on
+        // it: join of carrier line with either end point vanishes
+        CHECK(wdg(point2dc(-1.0, 2.0), car(d)) == pscalar2dc(0.0));
+        CHECK(wdg(point2dc(3.0, 2.0), car(d)) == pscalar2dc(0.0));
+        // for a circle: the whole space (pseudoscalar; the trailing-wedge
+        // convention gives car(c) = -c.w * I -- odd-grade orientation flip
+        // vs. the reference's leading-wedge 2D table)
+        CHECK(car(c) == pscalar2dc(1.0));
+
+        // cocarrier = carrier of the antidual; meet of cocarrier and carrier
+        // is the object's (flat) center
+        CHECK(is_congruent(rwdg(ccr(d), car(d)), flat_point2dc(1.0, 2.0)));
+
+        // attitude: origin removed; unitized round point -> weight 1; dipole:
+        // carrier direction (perpendicular to the normal) in the v-fields
+        CHECK(att(a) == scalar2dc(1.0));
+        auto ad = att(d);
+        CHECK(is_congruent(vec2dc(ad.x, ad.y, 0.0, 0.0), vec2dc(2.0, 0.0, 0.0, 0.0)));
+    }
+
+    TEST_CASE("cga2dc: center, container, partner")
+    {
+        fmt::println("cga2dc: center, container, partner");
+
+        auto a = round_point2dc(1.0, 2.0, 1.0);
+        auto c = circle2dc(1.0, 2.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+
+        // cen: the round point with the object's position AND radius
+        CHECK(cen(a) == a); // unitized round point is its own center
+        CHECK(cen(c) == a); // exact: pins the ccr orientation convention, not
+                            // just the subspace
+        CHECK(is_congruent(cen(d), round_point2dc(1.0, 2.0, 2.0)));
+        // center coordinates: normalize by the origin component
+        auto cd = cen(d);
+        CHECK(is_close(vec2dc(cd.x / cd.z, cd.y / cd.z, 1.0, cd.w / cd.z),
+                       round_point2dc(1.0, 2.0, 2.0)));
+
+        // con: the smallest circle containing the object
+        CHECK(is_congruent(con(a), c)); // container of a round point: same r
+        CHECK(is_congruent(con(d), circle2dc(1.0, 2.0, 2.0)));
+        CHECK(is_congruent(con(c), c)); // a circle is its own container
+
+        // par: same center and carrier, radius squared negated,
+        // and always orthogonal to the object (u . par(u) = 0)
+        CHECK(par(a) == vec2dc(1.0, 2.0, 1.0, 2.0)); // exact: pins the par sign
+        CHECK(is_close(scalar2dc(radius_sq(par(a))), scalar2dc(-1.0)));
+        CHECK(is_close(scalar2dc(radius_sq(par(d))), scalar2dc(-4.0)));
+        CHECK(is_close(scalar2dc(radius_sq(par(c))), scalar2dc(-1.0)));
+        CHECK(is_congruent(cen(par(d)), round_point2dc(1.0, 2.0, 2.0)) ==
+              false); // radius differs -> cen not congruent ...
+        CHECK(is_close(vec2dc(cen(par(d)).x / cen(par(d)).z,
+                              cen(par(d)).y / cen(par(d)).z, 1.0, 0.0),
+                       vec2dc(1.0, 2.0, 1.0, 0.0))); // ... but same position
+        CHECK(dot(a, par(a)) == scalar2dc(0.0));
+        CHECK(dot(d, par(d)) == scalar2dc(0.0));
+        CHECK(dot(c, par(c)) == scalar2dc(0.0));
+        // par of par restores the object up to a positive factor
+        CHECK(is_congruent(par(par(d)), d));
+    }
+
+    TEST_CASE("cga2dc: conformal distance and same-type dot products")
+    {
+        fmt::println("cga2dc: conformal distance and same-type dot products");
+
+        // unitized round points: a1.a2 = -1/2 (v^2 + r1^2 + r2^2)
+        auto a1 = round_point2dc(1.0, 2.0, 1.0);
+        auto a2 = round_point2dc(4.0, 6.0, 0.0);
+        CHECK(dot(a1, a2) == scalar2dc(-0.5 * (25.0 + 1.0 + 0.0)));
+
+        // unitized circles (the codim-1 rounds): c1.c2 = +1/2 (v^2 - r1^2 - r2^2)
+        auto c1 = circle2dc(1.0, 0.0, 2.0);
+        auto c2 = circle2dc(3.0, 0.0, 2.0);
+        CHECK(dot(c1, c2) == scalar2dc(0.5 * (4.0 - 4.0 - 4.0)));
+
+        // orthogonal circles: r1^2 + r2^2 = v^2 (right-aligned intersection)
+        auto o1 = circle2dc(0.0, 0.0, 3.0);
+        auto o2 = circle2dc(5.0, 0.0, 4.0);
+        CHECK(dot(o1, o2) == scalar2dc(0.0));
+    }
+
+    TEST_CASE("cga2dc: circle intersection end to end")
+    {
+        fmt::println("cga2dc: circle intersection end to end");
+
+        // the showcase chain: meet -> radius sign test -> unitize ->
+        // p_1,2 = cen(d) +/- (radius/weight) att(d), x/y coordinates
+        auto const intersect = [](trivec2dc const& c1, trivec2dc const& c2, vec2dc& p1,
+                                  vec2dc& p2) -> bool {
+            auto d = rwdg(c1, c2);
+            if (radius_sq(d) < 0.0) return false; // no intersection
+            auto du = unitize(d);
+            auto ctr = cen(du);
+            auto dir = att(du);
+            value_t const r = std::sqrt(radius_sq(du));
+            // center normalized to weight one; only x/y carry meaning here
+            value_t const izw = 1.0 / ctr.z;
+            p1 = vec2dc(ctr.x * izw + r * dir.x, ctr.y * izw + r * dir.y, 1.0, 0.0);
+            p2 = vec2dc(ctr.x * izw - r * dir.x, ctr.y * izw - r * dir.y, 1.0, 0.0);
+            return true;
+        };
+
+        vec2dc p1, p2;
+
+        // two r=2 circles at (1,0), (3,0): intersection (2, +/-sqrt(3))
+        CHECK(intersect(circle2dc(1.0, 0.0, 2.0), circle2dc(3.0, 0.0, 2.0), p1, p2));
+        value_t const s3 = std::sqrt(3.0);
+        bool const order_a = is_close(p1, vec2dc(2.0, s3, 1.0, 0.0)) &&
+                             is_close(p2, vec2dc(2.0, -s3, 1.0, 0.0));
+        bool const order_b = is_close(p1, vec2dc(2.0, -s3, 1.0, 0.0)) &&
+                             is_close(p2, vec2dc(2.0, s3, 1.0, 0.0));
+        CHECK((order_a || order_b));
+
+        // externally tangent circles: single intersection point
+        CHECK(intersect(circle2dc(0.0, 0.0, 1.0), circle2dc(3.0, 0.0, 2.0), p1, p2));
+        CHECK(is_close(p1, vec2dc(1.0, 0.0, 1.0, 0.0)));
+        CHECK(is_close(p2, vec2dc(1.0, 0.0, 1.0, 0.0)));
+
+        // disjoint circles: no intersection (imaginary meet radius)
+        CHECK_FALSE(
+            intersect(circle2dc(0.0, 0.0, 1.0), circle2dc(5.0, 0.0, 1.0), p1, p2));
+
+        // concentric circles: the meet has zero round weight (a flat object),
+        // radius_sq must throw rather than give a bogus answer
+        auto dcc = rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(0.0, 0.0, 2.0));
+        CHECK_THROWS(radius_sq(dcc));
+    }
+
+    TEST_CASE("cga2dc: conformal conjugate and containment")
+    {
+        fmt::println("cga2dc: conformal conjugate and containment");
+
+        auto a = round_point2dc(1.0, 2.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        auto c = circle2dc(1.0, 2.0, 1.0);
+
+        // involution
+        CHECK(cconj(cconj(a)) == a);
+        CHECK(cconj(cconj(d)) == d);
+        CHECK(cconj(cconj(c)) == c);
+
+        // alternate center norm: dot(u, cconj(u)) = center_nrm_sq(u)
+        // = squared distance origin <-> center for unitized round objects
+        CHECK(dot(a, cconj(a)) == scalar2dc(5.0));
+        CHECK(dot(c, cconj(c)) == scalar2dc(5.0));
+        CHECK(scalar2dc(center_nrm_sq(a)) == dot(a, cconj(a)));
+        CHECK(scalar2dc(center_nrm_sq(c)) == dot(c, cconj(c)));
+        CHECK(is_close(scalar2dc(center_nrm_sq(d)),
+                       scalar2dc(value_t(dot(d, cconj(d))) / round_weight_nrm_sq(d))));
+
+        // the conjugate's center is reflected through the origin, its radius
+        // adjusted: for a unitized round point r'^2 = -2*|p|^2 - r^2, for a
+        // unitized circle r'^2 = 2*|p|^2 - r^2
+        CHECK(is_close(scalar2dc(radius_sq(cconj(a))), scalar2dc(-11.0)));
+        CHECK(is_close(scalar2dc(radius_sq(cconj(c))), scalar2dc(9.0)));
+        auto cc = cen(cconj(c));
+        CHECK(is_close(vec2dc(cc.x / cc.z, cc.y / cc.z, 1.0, 0.0),
+                       vec2dc(-1.0, -2.0, 1.0, 0.0)));
+
+        // containment: wdg(a, c) = -1/2 (v^2 + r^2 - R^2) * I for a unitized
+        // round point (radius r) and circle (radius R) with center distance v
+        auto const contain = [](value_t px, value_t py, value_t r, value_t cx, value_t cy,
+                                value_t R) {
+            auto val = wdg(round_point2dc(px, py, r), circle2dc(cx, cy, R));
+            value_t const v_sq = (px - cx) * (px - cx) + (py - cy) * (py - cy);
+            CHECK(val == pscalar2dc(-0.5 * (v_sq + r * r - R * R)));
+        };
+        contain(0.0, 0.0, 0.0, 1.0, 0.0, 2.0); // off-circle null point
+        contain(3.0, 0.0, 0.0, 1.0, 0.0, 2.0); // on-circle null point -> 0
+        contain(2.0, 1.0, 1.0, 1.0, 1.0, 2.0); // polar aligned: v^2+r^2 = R^2 -> 0
+        contain(2.0, -1.0, 1.5, -1.0, 0.5, 2.0);
+
+        // every round object contains its own round center: u ^ cen(u) = 0
+        CHECK(wdg(a, cen(a)) == bivec2dc());
+        CHECK(is_close(wdg(d, cen(d)), trivec2dc()));
+        CHECK(wdg(c, cen(c)) == pscalar2dc(0.0));
+
+        // dipole surface points p_pm = cen(d) +/- radius_nrm * att(d) (the
+        // formula behind the circle-intersection chain), unitized dipole
+        auto du = unitize(d);
+        auto ctr = cen(du);
+        auto dir = att(du);
+        value_t const rn = std::sqrt(radius_sq(du));
+        auto p1 =
+            vec2dc(ctr.x / ctr.z + rn * dir.x, ctr.y / ctr.z + rn * dir.y, 1.0, 0.0);
+        auto p2 =
+            vec2dc(ctr.x / ctr.z - rn * dir.x, ctr.y / ctr.z - rn * dir.y, 1.0, 0.0);
+        // d was built with center (1,2), r=2, normal (0,1): points (-1,2), (3,2)
+        bool const ok_a = is_close(p1, vec2dc(3.0, 2.0, 1.0, 0.0)) &&
+                          is_close(p2, vec2dc(-1.0, 2.0, 1.0, 0.0));
+        bool const ok_b = is_close(p1, vec2dc(-1.0, 2.0, 1.0, 0.0)) &&
+                          is_close(p2, vec2dc(3.0, 2.0, 1.0, 0.0));
+        CHECK((ok_a || ok_b));
+    }
+
+    TEST_CASE("cga2dc: exp, log and sqrt of regressive versors")
+    {
+        fmt::println("cga2dc: exp, log and sqrt of regressive versors");
+
+        auto const I_e = mvec2dc_e(pscalar2dc(1.0));
+
+        // line through two Euclidean points (a circle through infinity)
+        auto const line_through = [](value_t x1, value_t y1, value_t x2, value_t y2) {
+            return wdg(wdg(point2dc(x1, y1), point2dc(x2, y2)), e4_2dc);
+        };
+        // even-versor sandwich, spelled out with rgpr until transform() lands
+        auto const sandwich = [](mvec2dc_e const& M, vec2dc const& X) {
+            return gr1(rgpr(rgpr(M, X), rrev(M)));
+        };
+
+        // the identity: exp of the zero generator is the rgpr identity I
+        CHECK(exp(bivec2dc()) == I_e);
+
+        // group gates on generic generators
+        for (int i = 0; i < 3; ++i) {
+            auto B = bivec2dc(0.1 * rnd_int(), 0.1 * rnd_int(), 0.1 * rnd_int(),
+                              0.1 * rnd_int(), 0.1 * rnd_int(), 0.1 * rnd_int());
+            auto U = exp(B);
+            CHECK(is_close(rgpr(U, rrev(U)), I_e)); // unit versor
+            CHECK(is_close(rgpr(exp(0.3 * B), exp(0.5 * B)), exp(0.8 * B)));
+            CHECK(is_close(log(U), B)); // principal
+            CHECK(is_close(rgpr(sqrt(U), sqrt(U)), U));
+            CHECK(is_close(sqrt(U), exp(0.5 * B)));
+        }
+
+        // TRANSLATION: reflections in the parallel lines x=0 and x=1 compose
+        // to the translation by (2,0); the versor is exactly I - e24 and its
+        // generator is exactly parabolic (rgpr(B,B) = 0, series terminates)
+        auto Mt = rgpr(line_through(1.0, 0.0, 1.0, 1.0),  // x = 1
+                       line_through(0.0, 0.0, 0.0, 1.0)); // x = 0
+        CHECK(Mt == mvec2dc_e(scalar2dc(0.0), bivec2dc(0.0, 0.0, 0.0, 0.0, -1.0, 0.0),
+                              pscalar2dc(1.0)));
+        CHECK(rgpr(Mt, rrev(Mt)) == I_e);
+        CHECK(sandwich(Mt, point2dc(0.5, 2.0)) == point2dc(2.5, 2.0)); // exact
+        auto Bt = log(Mt);
+        CHECK(rgpr(Bt, Bt) == mvec2dc_e(scalar2dc(0.0))); // parabolic generator
+        CHECK(exp(Bt) == Mt);
+
+        // ROTATION about the origin by pi/2 (line pair at 45 degrees); the
+        // raw two-line versor is not unit -- normalize the sandwiched point
+        auto Mr =
+            rgpr(line_through(0.0, 0.0, 1.0, 1.0), line_through(0.0, 0.0, 1.0, 0.0));
+        CHECK(is_close(unitize(sandwich(Mr, point2dc(1.0, 0.0))), point2dc(0.0, 1.0)));
+
+        // a full turn (2 pi) exponentiates to -I, where the principal
+        // logarithm is singular by construction
+        auto Br = log(mvec2dc_e(1.0 / std::sqrt(2.0) * Mr)); // pi/2 generator
+        CHECK(is_close(exp(4.0 * Br), mvec2dc_e(pscalar2dc(-1.0))));
+        CHECK_THROWS(log(exp(4.0 * Br)));
+
+        // DILATION: inversion in concentric circles r=1 then r=2 scales by 4
+        auto Md = rgpr(circle2dc(0.0, 0.0, 2.0), circle2dc(0.0, 0.0, 1.0));
+        CHECK(is_close(unitize(sandwich(Md, point2dc(1.0, 0.0))), point2dc(4.0, 0.0)));
+        CHECK(is_close(unitize(sandwich(Md, point2dc(-0.5, 0.25))), point2dc(-2.0, 1.0)));
+    }
+
+    TEST_CASE("cga2dc: conformal transformations")
+    {
+        fmt::println("cga2dc: conformal transformations");
+
+        auto const up = [](vec2dc const& v) { return unitize(v); };
+
+        // TRANSLATION: exact on embedded points; matches the two-line versor
+        auto Tr = get_translation(2.0, 0.0);
+        CHECK(transform(point2dc(0.5, 2.0), Tr) == point2dc(2.5, 2.0));
+        auto line_x0 = wdg(wdg(point2dc(0.0, 0.0), point2dc(0.0, 1.0)), e4_2dc);
+        auto line_x1 = wdg(wdg(point2dc(1.0, 0.0), point2dc(1.0, 1.0)), e4_2dc);
+        CHECK(is_same_transform(Tr, mvec2dc_e(rgpr(line_x1, line_x0))));
+        // a translated circle keeps its radius
+        auto c = circle2dc(1.0, 2.0, 1.5);
+        CHECK(is_close(scalar2dc(radius_sq(transform(c, Tr))), scalar2dc(radius_sq(c))));
+
+        // ROTATION about a point (counterclockwise for positive angles)
+        auto Ro = get_rotation(0.0, 0.0, 0.5 * pi);
+        CHECK(is_close(up(transform(point2dc(1.0, 0.0), Ro)), point2dc(0.0, 1.0)));
+        auto Rc = get_rotation(1.0, 1.0, 0.5 * pi);
+        CHECK(is_close(up(transform(point2dc(2.0, 1.0), Rc)), point2dc(1.0, 2.0)));
+        CHECK(is_close(scalar2dc(radius_sq(transform(c, Rc))), scalar2dc(radius_sq(c))));
+        // rotation angles add; a full turn acts as the identity
+        CHECK(is_same_transform(rgpr(Ro, Ro), get_rotation(0.0, 0.0, pi)));
+        CHECK(is_same_transform(get_rotation(0.5, 0.5, 2.0 * pi),
+                                mvec2dc_e(pscalar2dc(1.0))));
+
+        // DILATION about a point; radius scales by sigma
+        auto Di = get_dilation(0.0, 0.0, 4.0);
+        CHECK(is_close(up(transform(point2dc(1.0, 0.0), Di)), point2dc(4.0, 0.0)));
+        auto Dm = get_dilation(1.0, 1.0, 2.0);
+        CHECK(is_close(up(transform(point2dc(2.0, 1.0), Dm)), point2dc(3.0, 1.0)));
+        CHECK(is_close(scalar2dc(radius_sq(transform(c, Dm))),
+                       scalar2dc(4.0 * radius_sq(c))));
+        // matches the concentric-circle inversion pair
+        auto Dc = rgpr(circle2dc(0.0, 0.0, 2.0), circle2dc(0.0, 0.0, 1.0));
+        CHECK(is_same_transform(Di, mvec2dc_e(Dc)));
+        CHECK_THROWS(get_dilation(0.0, 0.0, 0.0));
+
+        // INVERSION in the unit circle: geometric reciprocal r^2/x, on-circle
+        // points fixed, involutive
+        auto uc = circle2dc(0.0, 0.0, 1.0);
+        CHECK(is_congruent(invert_on(point2dc(2.0, 0.0), uc), point2dc(0.5, 0.0)));
+        CHECK(is_congruent(invert_on(point2dc(0.0, -1.0), uc), point2dc(0.0, -1.0)));
+        CHECK(is_congruent(invert_on(invert_on(point2dc(0.3, -0.7), uc), uc),
+                           point2dc(0.3, -0.7)));
+        // a circle through the center of inversion maps to a LINE (round
+        // weight zero); its image contains the image of any circle point
+        auto c0 = circle2dc(1.0, 0.0, 1.0); // passes through the origin
+        auto img = invert_on(c0, uc);
+        CHECK(std::abs(round_weight_nrm_sq(img)) < 1.0e-12);
+        CHECK(std::abs(value_t(wdg(invert_on(point2dc(2.0, 0.0), uc), img))) < 1.0e-12);
+        // a circle NOT through the center maps to a circle
+        CHECK(round_weight_nrm_sq(invert_on(circle2dc(3.0, 0.0, 1.0), uc)) > 0.1);
+
+        // versor equality is decided by action: M vs -M and uniform rescaling
+        // act identically; genuinely different motors do not
+        CHECK(is_same_transform(Ro, mvec2dc_e(-1.0 * Ro)));
+        CHECK(is_same_transform(Ro, mvec2dc_e(2.0 * Ro)));
+        CHECK_FALSE(is_same_transform(Ro, get_rotation(0.0, 0.0, pi)));
+        CHECK_FALSE(is_same_transform(Tr, Di));
+
+        // composition sanity: rotation about m = T(m) o rotation about origin
+        // o T(-m)
+        auto Rc2 = rgpr(rgpr(get_translation(1.0, 1.0), Ro), get_translation(-1.0, -1.0));
+        CHECK(is_same_transform(Rc, mvec2dc_e(Rc2)));
+    }
+
     TEST_CASE("cga2dc: fmt printing")
     {
         fmt::println("cga2dc: fmt printing");
