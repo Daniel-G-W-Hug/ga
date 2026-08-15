@@ -149,6 +149,215 @@ TEST_SUITE("CGA 3dc Tests")
         }
     }
 
+    TEST_CASE("cga3dc: involutions, complement, dual, antidual")
+    {
+        fmt::println("cga3dc: involutions, complement, dual, antidual");
+
+        // unit basis blade k as a full multivector
+        auto blade = [](size_t k) {
+            auto c = [k](size_t i) { return i == k ? 1.0 : 0.0; };
+            return mvec3dc(c(0), c(1), c(2), c(3), c(4), c(5), c(6), c(7), c(8), c(9),
+                           c(10), c(11), c(12), c(13), c(14), c(15), c(16), c(17), c(18),
+                           c(19), c(20), c(21), c(22), c(23), c(24), c(25), c(26), c(27),
+                           c(28), c(29), c(30), c(31));
+        };
+
+        // grade sign patterns (n=5): gr_inv - + at even grades; rev/rrev
+        // + + - - + +; conj + - - + + -
+        auto v = vec3dc(1.0, 2.0, 3.0, 4.0, 5.0);
+        auto B = bivec3dc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+        auto t = trivec3dc(10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0);
+        auto Q = quadvec3dc(5.0, 4.0, 3.0, 2.0, 1.0);
+        CHECK(gr_inv(v) == -v);
+        CHECK(gr_inv(B) == B);
+        CHECK(gr_inv(t) == -t);
+        CHECK(gr_inv(Q) == Q);
+        CHECK(gr_inv(pscalar3dc(1.0)) == pscalar3dc(-1.0));
+        CHECK(rev(v) == v);
+        CHECK(rev(B) == -B);
+        CHECK(rev(t) == -t);
+        CHECK(rev(Q) == Q);
+        CHECK(rev(pscalar3dc(1.0)) == pscalar3dc(1.0));
+        CHECK(conj(v) == -v);
+        CHECK(conj(B) == -B);
+        CHECK(conj(t) == t);
+        CHECK(conj(Q) == Q);
+        CHECK(conj(pscalar3dc(1.0)) == pscalar3dc(-1.0));
+
+        mvec3dc const M(scalar3dc(3.0), v, B, t, Q, pscalar3dc(-2.0));
+        // rev == rrev in 5d; conj = gr_inv(rev); all involutions square to id
+        CHECK(rev(M) == rrev(M));
+        CHECK(conj(M) == gr_inv(rev(M)));
+        CHECK(gr_inv(gr_inv(M)) == M);
+        CHECK(rev(rev(M)) == M);
+        CHECK(conj(conj(M)) == M);
+
+        // complement: u ^ cmpl(u) = I_3dc and cmpl(cmpl(u)) = u per unit blade
+        for (size_t i = 0; i < 32; ++i) {
+            auto const u = blade(i);
+            CHECK(wdg(u, cmpl(u)) == blade(31));
+            CHECK(cmpl(cmpl(u)) == u);
+        }
+
+        // transcription gate: dual(e_i) = cmpl(G e_i) = sum_j G[i,j] cmpl(e_j),
+        // antidual(e_i) = sum_j AG[i,j] cmpl(e_j) with AG = -G -- exact,
+        // sign-sensitive pins against the exported extended metric arrays
+        auto G = cga3dc_metric_view();
+        auto Gr = cga3dc_rmetric_view();
+        for (size_t i = 0; i < 32; ++i) {
+            mvec3dc d_expect, ad_expect;
+            for (size_t j = 0; j < 32; ++j) {
+                if (G[i, j] != 0) d_expect += value_t(G[i, j]) * cmpl(blade(j));
+                if (Gr[i, j] != 0) ad_expect += value_t(Gr[i, j]) * cmpl(blade(j));
+            }
+            CHECK(dual(blade(i)) == d_expect);
+            CHECK(antidual(blade(i)) == ad_expect);
+            CHECK(antidual(blade(i)) == -dual(blade(i)));
+        }
+    }
+
+    TEST_CASE("cga3dc: products - identities and anchors")
+    {
+        fmt::println("cga3dc: products - identities and anchors");
+
+        auto blade = [](size_t k) {
+            auto c = [k](size_t i) { return i == k ? 1.0 : 0.0; };
+            return mvec3dc(c(0), c(1), c(2), c(3), c(4), c(5), c(6), c(7), c(8), c(9),
+                           c(10), c(11), c(12), c(13), c(14), c(15), c(16), c(17), c(18),
+                           c(19), c(20), c(21), c(22), c(23), c(24), c(25), c(26), c(27),
+                           c(28), c(29), c(30), c(31));
+        };
+
+        // two full multivectors with small integer coefficients (exact arithmetic)
+        mvec3dc M1, M2;
+        for (size_t i = 0; i < 32; ++i) {
+            M1 += value_t(i % 5 + 1) * blade(i);
+            M2 += value_t(double(i * 7 % 9) - 4.0) * blade(i);
+        }
+
+        // product identity elements
+        CHECK(M1 * mvec3dc(scalar3dc(1.0)) == M1);
+        CHECK(mvec3dc(scalar3dc(1.0)) * M1 == M1);
+        CHECK(rgpr(M1, blade(31)) == M1);
+        CHECK(rgpr(blade(31), M1) == M1);
+
+        // contractions are the rwdg-duals of the interior products
+        CHECK((M1 << M2) == rwdg(dual(M1), M2));
+        CHECK((M1 >> M2) == rwdg(M1, dual(M2)));
+
+        // rwdg is the complement-mapped wedge (odd-dim: singular cmpl)
+        CHECK(rwdg(M1, M2) == cmpl(wdg(cmpl(M1), cmpl(M2))));
+
+        // rgpr is the complement-mapped geometric product
+        CHECK(rgpr(M1, M2) == cmpl(cmpl(M1) * cmpl(M2)));
+
+        // commutators are the asymmetric parts of gpr/rgpr
+        CHECK(cmt(M1, M2) == 0.5 * (M1 * M2 - M2 * M1));
+        CHECK(rcmt(M1, M2) == 0.5 * (rgpr(M1, M2) - rgpr(M2, M1)));
+
+        // equal-grade contraction reduces to the metric inner product
+        auto v1 = vec3dc(1.0, 2.0, 3.0, 4.0, 5.0);
+        auto v2 = vec3dc(-2.0, 1.0, 0.0, 3.0, -1.0);
+        CHECK(value_t(v1 << v2) == value_t(dot(v1, v2)));
+        CHECK(value_t(v1 >> v2) == value_t(dot(v1, v2)));
+
+        // null-pair anchors (book-reviewed gpr table): e4 * e5 = -1 + e45,
+        // e45 * e45 = 1; the null basis vectors square to zero
+        CHECK(e4_3dc * e5_3dc == mvec3dc_e(scalar3dc(-1.0), e45_3dc));
+        CHECK(e45_3dc * e45_3dc == mvec3dc_e(scalar3dc(1.0)));
+        CHECK(e4_3dc * e4_3dc == mvec3dc_e(scalar3dc(0.0)));
+        CHECK(e5_3dc * e5_3dc == mvec3dc_e(scalar3dc(0.0)));
+
+        // center of the rgpr algebra: rgpr(1,1) = -I (the scalar acts as the
+        // imaginary unit w.r.t. the regressive product, as in cga2dc)
+        CHECK(rgpr(scalar3dc(1.0), scalar3dc(1.0)) == pscalar3dc(-1.0));
+
+        // expansions are the wdg-based duals of the contractions
+        CHECK(l_expand3dc(v1, e12_3dc) == wdg(dual(v1), e12_3dc));
+        CHECK(r_expand3dc(e12_3dc, v1) == wdg(e12_3dc, dual(v1)));
+    }
+
+    TEST_CASE("cga3dc: inv and rinv")
+    {
+        fmt::println("cga3dc: inv and rinv");
+
+        // pinned values (non-degenerate metric: BOTH pseudoscalar inv and
+        // scalar rinv exist, unlike in the degenerate pga algebras)
+        CHECK(inv(scalar3dc(2.0)) == scalar3dc(0.5));
+        CHECK(inv(I_3dc) == pscalar3dc(-1.0));          // I * I = -1
+        CHECK(rinv(scalar3dc(1.0)) == scalar3dc(-1.0)); // rgpr(1, -1) = I
+        CHECK(is_close(rgpr(scalar3dc(1.0), rinv(scalar3dc(1.0))), pscalar3dc(1.0)));
+
+        // null elements are not invertible -- including the null basis vectors
+        CHECK_THROWS(inv(e4_3dc));
+        CHECK_THROWS(inv(e5_3dc));
+
+        // gate: u * inv(u) = 1 for generically non-null elements, both
+        // directions (H&S n=5: a left and a right inverse coincide)
+        auto const one_e = mvec3dc_e(scalar3dc(1.0));
+        auto const one_m = mvec3dc(scalar3dc(1.0));
+        auto const I_e = mvec3dc(pscalar3dc(1.0)); // rgpr(graded,...) returns mv types
+        auto v = vec3dc(1.0, 2.0, -1.0, 0.5, 2.0);
+        auto B = bivec3dc(1.0, -2.0, 0.5, 3.0, 0.0, 1.0, -1.5, 2.0, 0.0, 1.0);
+        auto t = trivec3dc(0.5, 1.0, -2.0, 0.0, 3.0, -1.0, 2.0, 0.5, 1.0, -0.5);
+        auto Q = quadvec3dc(2.0, -1.0, 0.5, 3.0, 1.0);
+        auto Me = mvec3dc_e(scalar3dc(2.0), B, Q);
+        auto Mu = mvec3dc_u(v, t, pscalar3dc(1.5));
+        mvec3dc const M(scalar3dc(1.0), v, B, t, Q, pscalar3dc(-2.0));
+
+        CHECK(is_close(v * inv(v), one_e));
+        CHECK(is_close(inv(v) * v, one_e));
+        CHECK(is_close(mvec3dc(B * inv(B)), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(inv(B) * B), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(t * inv(t)), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(inv(t) * t), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(Q * inv(Q)), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(inv(Q) * Q), mvec3dc(one_e)));
+        CHECK(is_close(Me * inv(Me), one_e));
+        CHECK(is_close(inv(Me) * Me, one_e));
+        CHECK(is_close(mvec3dc(Mu * inv(Mu)), mvec3dc(one_e)));
+        CHECK(is_close(mvec3dc(inv(Mu) * Mu), mvec3dc(one_e)));
+        CHECK(is_close(M * inv(M), one_m));
+        CHECK(is_close(inv(M) * M, one_m));
+
+        // gate: rgpr(u, rinv(u)) = I (the rgpr identity element)
+        CHECK(is_close(mvec3dc(rgpr(v, rinv(v))), I_e));
+        CHECK(is_close(mvec3dc(rgpr(rinv(v), v)), I_e));
+        CHECK(is_close(mvec3dc(rgpr(B, rinv(B))), I_e));
+        CHECK(is_close(mvec3dc(rgpr(t, rinv(t))), I_e));
+        CHECK(is_close(mvec3dc(rgpr(Q, rinv(Q))), I_e));
+        CHECK(is_close(rgpr(M, rinv(M)), I_e));
+        CHECK(is_close(rgpr(rinv(M), M), I_e));
+    }
+
+    TEST_CASE("cga3dc: congruence and closeness")
+    {
+        fmt::println("cga3dc: congruence and closeness");
+
+        auto v = vec3dc(1.0, -2.0, 3.0, 0.5, 1.0);
+        auto B = bivec3dc(1.0, 0.0, -2.0, 3.0, 0.0, 1.5, 0.5, -1.0, 0.0, 2.0);
+        auto t = trivec3dc(-1.0, 2.0, 0.0, 4.0, 1.0, 0.0, -2.0, 0.5, 3.0, 0.0);
+        auto Q = quadvec3dc(1.0, -2.0, 0.0, 3.0, 0.5);
+
+        // congruent: same subspace up to any non-zero scale (sign included)
+        CHECK(is_congruent(v, vec3dc(2.0 * v)));
+        CHECK(is_congruent(v, vec3dc(-3.0 * v)));
+        CHECK(is_congruent(B, bivec3dc(-0.5 * B)));
+        CHECK(is_congruent(t, trivec3dc(7.0 * t)));
+        CHECK(is_congruent(Q, quadvec3dc(-2.5 * Q)));
+        CHECK_FALSE(is_congruent(v, e1_3dc));
+        CHECK_FALSE(is_congruent(B, e12_3dc));
+        CHECK(is_congruent(scalar3dc(2.0), scalar3dc(-5.0)));
+        CHECK(is_congruent(I_3dc, pscalar3dc(-3.0)));
+
+        // is_close: same value within a relative tolerance
+        CHECK(is_close(v, v));
+        CHECK_FALSE(is_close(v, vec3dc(2.0 * v)));
+        CHECK(is_close(mvec3dc(v) + mvec3dc(t), mvec3dc(v) + mvec3dc(t)));
+        CHECK(is_close(mvec3dc_e(scalar3dc(1.0), B, Q), mvec3dc_e(scalar3dc(1.0), B, Q)));
+        CHECK_FALSE(is_close(mvec3dc(v), mvec3dc(t)));
+    }
+
     TEST_CASE("cga3dc: fmt printing")
     {
         fmt::println("cga3dc: fmt printing");

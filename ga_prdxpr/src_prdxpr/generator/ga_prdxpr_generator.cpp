@@ -1028,8 +1028,11 @@ void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
     else if (algebra.dimension == 3) {
         filters = {"s", "vec", "bivec", "ps"};
     }
-    else {
+    else if (algebra.dimension == 4) {
         filters = {"s", "vec", "bivec", "trivec", "ps"};
+    }
+    else {
+        filters = {"s", "vec", "bivec", "trivec", "quadvec", "ps"};
     }
     filters.insert(filters.end(), {"mv_e", "mv_u", "mv"});
 

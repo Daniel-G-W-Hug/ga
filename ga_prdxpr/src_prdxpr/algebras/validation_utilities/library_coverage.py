@@ -489,7 +489,7 @@ def find_binary(proj_root):
 
 
 def main():
-    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "cga2dc"]
+    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "cga2dc", "cga3dc"]
 
     # Resolve project paths up-front so the default algebra set can be derived
     # from which `ga/ga_<algebra>_ops_products.hpp` files actually exist —
@@ -515,6 +515,7 @@ def main():
             "  pga3dp  Projective 3D, G(3,0,1)\n"
             "  sta4ds  Space-time, G(1,3,0)\n"
             "  cga2dc  Conformal 2D, G(3,1,0) diagonalized\n"
+            "  cga3dc  Conformal 3D, G(4,1,0) diagonalized\n"
             "\n"
             "Default selection is derived from existing\n"
             "ga/ga_<algebra>_ops_products.hpp files; algebras whose library\n"

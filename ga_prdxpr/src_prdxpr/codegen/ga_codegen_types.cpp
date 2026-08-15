@@ -168,6 +168,34 @@ std::map<std::string, TypeInfo> build_cga2dc()
     return m;
 }
 
+// CGA3DC: basis = {1, e1, e2, e3, e4, e5, e41, e42, e43, e23, e31, e12, e15, e25,
+//                  e35, e45, e415, e425, e435, e235, e315, e125, e423, e431, e412,
+//                  e321, e4235, e4315, e4125, e3215, e1234, e12345} (32 elements) —
+// first 5D algebra: scalar + 5-vec + 10-bivec + 10-trivec + 5-quadvec + ps. The
+// pseudoscalar is ODD in 5D, so MVec3dc_E composes {s, bivec, quadvec} and
+// MVec3dc_U composes {vec, trivec, ps}.
+//
+// Vec3dc components: (x, y, z, w, u); BiVec3dc: (vx, vy, vz, mx, my, mz, px, py,
+// pz, pw); TriVec3dc mirrors the bivector layout; QuadVec3dc: (x, y, z, w, u) —
+// matching the svBtQps coefficient layout in algebras/ga_prdxpr_cga3dc.hpp and the
+// library type layer (detail/type_t/ga_type3dc.hpp).
+std::map<std::string, TypeInfo> build_cga3dc()
+{
+    std::map<std::string, TypeInfo> m;
+    m["s"] = make_single("Scalar3dc", 0);
+    m["vec"] = make_named("Vec3dc", {1, 2, 3, 4, 5});
+    m["bivec"] = make_named("BiVec3dc", {6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    m["trivec"] = make_named("TriVec3dc", {16, 17, 18, 19, 20, 21, 22, 23, 24, 25});
+    m["quadvec"] = make_named("QuadVec3dc", {26, 27, 28, 29, 30});
+    m["ps"] = make_single("PScalar3dc", 31);
+    m["mv_e"] = make_composite("MVec3dc_E", {"s", "bivec", "quadvec"}, m);
+    m["mv_u"] = make_composite("MVec3dc_U", {"vec", "trivec", "ps"}, m);
+    m["mv"] = make_indexed("MVec3dc", {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+                                       11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+                                       22, 23, 24, 25, 26, 27, 28, 29, 30, 31});
+    return m;
+}
+
 } // namespace
 
 TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_name)
@@ -189,6 +217,9 @@ TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_n
     }
     else if (algebra_name == "cga2dc") {
         types_ = build_cga2dc();
+    }
+    else if (algebra_name == "cga3dc") {
+        types_ = build_cga3dc();
     }
     else {
         throw std::invalid_argument("TypeRegistry: no registry available for algebra '" +

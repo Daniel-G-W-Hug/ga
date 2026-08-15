@@ -37,5 +37,11 @@
 #include "ga_cga2dc_ops.hpp"          // geometric operations (is_congruent, is_close;
                                       // layer under construction)
 
+#include "ga_cga3dc_ops_basics.hpp"   // involutions, complement, dual, antidual
+#include "ga_cga3dc_ops_products.hpp" // products (dot, wdg, contractions, gpr, rgpr,
+                                      // inv, rinv, ...)
+#include "ga_cga3dc_ops.hpp"          // geometric operations (is_congruent, is_close;
+                                      // layer under construction)
+
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)
