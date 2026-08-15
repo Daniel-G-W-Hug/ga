@@ -932,15 +932,19 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             auto fresh = generate_algebra_rules(cga3dc_config);
-            bool cga3dc_success = (fresh.geometric_product_mt == gpr_cga3dc_rules_mt) &&
-                                  (fresh.wedge_product == wdg_cga3dc_rules) &&
-                                  (fresh.dot_product == dot_cga3dc_rules) &&
-                                  (fresh.l_cmpl == l_cmpl_cga3dc_rules) &&
-                                  (fresh.r_cmpl == r_cmpl_cga3dc_rules) &&
-                                  (fresh.l_dual == l_dual_cga3dc_rules) &&
-                                  (fresh.r_dual == r_dual_cga3dc_rules) &&
-                                  (fresh.l_antidual == l_antidual_cga3dc_rules) &&
-                                  (fresh.r_antidual == r_antidual_cga3dc_rules);
+            // NON-EMPTINESS is pinned alongside equality: an equality gate over
+            // two empty tables passes vacuously (this exact slip shipped once --
+            // odd dimensions fill the SINGULAR complement/dual/antidual fields,
+            // and comparing the empty l_/r_ pairs reported PERFECT)
+            bool cga3dc_success =
+                (fresh.geometric_product_mt == gpr_cga3dc_rules_mt) &&
+                !gpr_cga3dc_rules_mt.empty() &&
+                (fresh.wedge_product == wdg_cga3dc_rules) && !wdg_cga3dc_rules.empty() &&
+                (fresh.dot_product == dot_cga3dc_rules) && !dot_cga3dc_rules.empty() &&
+                (fresh.complement == cmpl_cga3dc_rules) && !cmpl_cga3dc_rules.empty() &&
+                (fresh.dual == dual_cga3dc_rules) && !dual_cga3dc_rules.empty() &&
+                (fresh.antidual == antidual_cga3dc_rules) &&
+                !antidual_cga3dc_rules.empty();
             fmt::println("\n=== Complete cga3dc Validation ===");
             fmt::println("  gpr (multi-term), wdg, dot, l/r cmpl, l/r dual/antidual: {}",
                          cga3dc_success ? "✓ PERFECT MATCH (static init == fresh)"

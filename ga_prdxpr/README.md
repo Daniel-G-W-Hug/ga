@@ -94,10 +94,10 @@ cd ga_prdxpr
 
 ### Verification
 
-The bare invocation must produce a stable 39918-line reference:
+The bare invocation must produce a stable 55050-line reference:
 
 ```bash
-./ga_prdxpr | wc -l   # 39918
+./ga_prdxpr | wc -l   # 55050
 ```
 
 A round-trip byte-identity check against the C++ source (`ga/*_ops_products.hpp`) is
@@ -232,7 +232,7 @@ ga_prdxpr --output=all                                   # everything
 | `--output=code`        | —      | —      | —       | ✓    |
 | `--output=coeffs,code` | ✓      | —      | —       | ✓    |
 
-The bare invocation produces the canonical 39918-line searchable
+The bare invocation produces the canonical 55050-line searchable
 reference (coeffs + tables + metrics). `code` is opt-in only so the
 default output stays stable; ask for it explicitly when you want C++
 implementations.

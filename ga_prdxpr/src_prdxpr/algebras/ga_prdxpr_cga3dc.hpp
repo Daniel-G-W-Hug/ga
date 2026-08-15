@@ -53,20 +53,16 @@ extern const prd_rules_mt gpr_cga3dc_rules_mt;
 extern const prd_rules wdg_cga3dc_rules; // Wedge product: a ^ b
 extern const prd_rules dot_cga3dc_rules; // Dot product: a · b
 
-// complements (odd-dimensional algebra: left and right complements coincide,
-// but the l_/r_ pair is kept so the generator's even/odd-dimension machinery
-// stays uniform across algebras)
-extern const prd_rules l_cmpl_cga3dc_rules;
-extern const prd_rules r_cmpl_cga3dc_rules;
+// complement (odd-dimensional algebra: left and right complements coincide,
+// so a single rule table is used -- same convention as ega3d/pga2dp)
+extern const prd_rules cmpl_cga3dc_rules;
 
-// duals (non-degenerate metric: regular left/right duals, no bulk/weight split)
-extern const prd_rules l_dual_cga3dc_rules;
-extern const prd_rules r_dual_cga3dc_rules;
+// dual (non-degenerate metric: a single regular dual, no bulk/weight split)
+extern const prd_rules dual_cga3dc_rules;
 
-// antiduals (dual w.r.t. the anti-exomorphism = the negated duals;
+// antidual (dual w.r.t. the anti-exomorphism = the negated dual;
 // the identity is verified at rule-generation time)
-extern const prd_rules l_antidual_cga3dc_rules;
-extern const prd_rules r_antidual_cga3dc_rules;
+extern const prd_rules antidual_cga3dc_rules;
 
 ////////////////////////////////////////////////////////////////////////////////
 // coefficients needed to create a multivector = [coeff]^T [mv3dc_basis]

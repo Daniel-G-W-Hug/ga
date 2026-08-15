@@ -355,4 +355,658 @@ ProductConfig get_cga3dc_dot_config()
         .show_basis_table = true};
 }
 
+ProductConfig get_cga3dc_cmt_config()
+{
+    return {
+        .product_name = "cmt",
+        .description = "cga3dc commutator product",
+        .display_name = "commutator product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"cmt(ps,ps) -> 0", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"cmt(ps,quadvec) -> 0", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"cmt(quadvec,ps) -> 0", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"cmt(ps,trivec) -> 0", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"cmt(trivec,ps) -> 0", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"cmt(ps,bivec) -> 0", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"cmt(bivec,ps) -> 0", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"cmt(ps,vec) -> 0", "svBtQps", "svBtQps", "ps", "vec"},
+             {"cmt(vec,ps) -> 0", "svBtQps", "svBtQps", "vec", "ps"},
+             {"cmt(ps,s) -> 0", "svBtQps", "svBtQps", "ps", "s"},
+             {"cmt(s,ps) -> 0", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"cmt(quadvec,quadvec) -> bivec", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"cmt(quadvec,trivec) -> vec", "svBtQps", "svBtQps", "quadvec", "trivec"},
+             {"cmt(trivec,quadvec) -> vec", "svBtQps", "svBtQps", "trivec", "quadvec"},
+             {"cmt(quadvec,bivec) -> quadvec", "svBtQps", "svBtQps", "quadvec", "bivec"},
+             {"cmt(bivec,quadvec) -> quadvec", "svBtQps", "svBtQps", "bivec", "quadvec"},
+             {"cmt(quadvec,vec) -> trivec", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"cmt(vec,quadvec) -> trivec", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"cmt(quadvec,s) -> 0", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"cmt(s,quadvec) -> 0", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"cmt(trivec,trivec) -> bivec", "svBtQps1", "svBtQps2", "trivec", "trivec"},
+             {"cmt(trivec,bivec) -> trivec", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"cmt(bivec,trivec) -> trivec", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"cmt(trivec,vec) -> quadvec", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"cmt(vec,trivec) -> quadvec", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"cmt(trivec,s) -> 0", "svBtQps", "svBtQps", "trivec", "s"},
+             {"cmt(s,trivec) -> 0", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"cmt(bivec,bivec) -> bivec", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"cmt(bivec,vec) -> vec", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"cmt(vec,bivec) -> vec", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"cmt(bivec,s) -> 0", "svBtQps", "svBtQps", "bivec", "s"},
+             {"cmt(s,bivec) -> 0", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"cmt(vec,vec) -> bivec", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"cmt(vec,s) -> 0", "svBtQps", "svBtQps", "vec", "s"},
+             {"cmt(s,vec) -> 0", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"cmt(s,s) -> 0", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_l_contract_config()
+{
+    return {
+        .product_name = "l_contract",
+        .description = "cga3dc left contraction",
+        .display_name = "left contraction",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"l_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"l_contract(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"l_contract(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"l_contract(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"l_contract(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"l_contract(mv,ps) -> mv", "M", "svBtQps", "mv", "ps"},
+             {"l_contract(ps,mv) -> mv", "svBtQps", "M", "ps", "mv"},
+             {"l_contract(mv,quadvec) -> mv", "M", "svBtQps", "mv", "quadvec"},
+             {"l_contract(quadvec,mv) -> mv", "svBtQps", "M", "quadvec", "mv"},
+             {"l_contract(mv,trivec) -> mv", "M", "svBtQps", "mv", "trivec"},
+             {"l_contract(trivec,mv) -> mv", "svBtQps", "M", "trivec", "mv"},
+             {"l_contract(mv,bivec) -> mv", "M", "svBtQps", "mv", "bivec"},
+             {"l_contract(bivec,mv) -> mv", "svBtQps", "M", "bivec", "mv"},
+             {"l_contract(mv,vec) -> mv", "M", "svBtQps", "mv", "vec"},
+             {"l_contract(vec,mv) -> mv", "svBtQps", "M", "vec", "mv"},
+             {"l_contract(mv,s) -> mv", "M", "svBtQps", "mv", "s"},
+             {"l_contract(s,mv) -> mv", "svBtQps", "M", "s", "mv"},
+             // mv_e
+             {"l_contract(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+             {"l_contract(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"l_contract(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"l_contract(mv_e,ps) -> mv_u", "M_even", "svBtQps", "mv_e", "ps"},
+             {"l_contract(ps,mv_e) -> 0", "svBtQps", "M_even", "ps", "mv_e"},
+             {"l_contract(mv_e,quadvec) -> mv_e", "M_even", "svBtQps", "mv_e", "quadvec"},
+             {"l_contract(quadvec,mv_e) -> mv_e", "svBtQps", "M_even", "quadvec", "mv_e"},
+             {"l_contract(mv_e,trivec) -> mv_u", "M_even", "svBtQps", "mv_e", "trivec"},
+             {"l_contract(trivec,mv_e) -> mv_u", "svBtQps", "M_even", "trivec", "mv_e"},
+             {"l_contract(mv_e,bivec) -> mv_e", "M_even", "svBtQps", "mv_e", "bivec"},
+             {"l_contract(bivec,mv_e) -> mv_e", "svBtQps", "M_even", "bivec", "mv_e"},
+             {"l_contract(mv_e,vec) -> mv_u", "M_even", "svBtQps", "mv_e", "vec"},
+             {"l_contract(vec,mv_e) -> mv_u", "svBtQps", "M_even", "vec", "mv_e"},
+             {"l_contract(mv_e,s) -> mv_e", "M_even", "svBtQps", "mv_e", "s"},
+             {"l_contract(s,mv_e) -> mv_e", "svBtQps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"l_contract(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"l_contract(mv_u,ps) -> mv_e", "M_odd", "svBtQps", "mv_u", "ps"},
+             {"l_contract(ps,mv_u) -> mv_e", "svBtQps", "M_odd", "ps", "mv_u"},
+             {"l_contract(mv_u,quadvec) -> mv_u", "M_odd", "svBtQps", "mv_u", "quadvec"},
+             {"l_contract(quadvec,mv_u) -> mv_u", "svBtQps", "M_odd", "quadvec", "mv_u"},
+             {"l_contract(mv_u,trivec) -> mv_e", "M_odd", "svBtQps", "mv_u", "trivec"},
+             {"l_contract(trivec,mv_u) -> mv_e", "svBtQps", "M_odd", "trivec", "mv_u"},
+             {"l_contract(mv_u,bivec) -> mv_u", "M_odd", "svBtQps", "mv_u", "bivec"},
+             {"l_contract(bivec,mv_u) -> mv_u", "svBtQps", "M_odd", "bivec", "mv_u"},
+             {"l_contract(mv_u,vec) -> mv_e", "M_odd", "svBtQps", "mv_u", "vec"},
+             {"l_contract(vec,mv_u) -> mv_e", "svBtQps", "M_odd", "vec", "mv_u"},
+             {"l_contract(mv_u,s) -> 0", "M_odd", "svBtQps", "mv_u", "s"},
+             {"l_contract(s,mv_u) -> mv_u", "svBtQps", "M_odd", "s", "mv_u"},
+             // ps
+             {"l_contract(ps,ps) -> s", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"l_contract(ps,quadvec) -> 0", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"l_contract(quadvec,ps) -> vec", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"l_contract(ps,trivec) -> 0", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"l_contract(trivec,ps) -> bivec", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"l_contract(ps,bivec) -> 0", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"l_contract(bivec,ps) -> trivec", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"l_contract(ps,vec) -> 0", "svBtQps", "svBtQps", "ps", "vec"},
+             {"l_contract(vec,ps) -> quadvec", "svBtQps", "svBtQps", "vec", "ps"},
+             {"l_contract(ps,s) -> 0", "svBtQps", "svBtQps", "ps", "s"},
+             {"l_contract(s,ps) -> ps", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"l_contract(quadvec,quadvec) -> s", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"l_contract(quadvec,trivec) -> 0", "svBtQps", "svBtQps", "quadvec",
+              "trivec"},
+             {"l_contract(trivec,quadvec) -> vec", "svBtQps", "svBtQps", "trivec",
+              "quadvec"},
+             {"l_contract(quadvec,bivec) -> 0", "svBtQps", "svBtQps", "quadvec", "bivec"},
+             {"l_contract(bivec,quadvec) -> bivec", "svBtQps", "svBtQps", "bivec",
+              "quadvec"},
+             {"l_contract(quadvec,vec) -> 0", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"l_contract(vec,quadvec) -> trivec", "svBtQps", "svBtQps", "vec",
+              "quadvec"},
+             {"l_contract(quadvec,s) -> 0", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"l_contract(s,quadvec) -> quadvec", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"l_contract(trivec,trivec) -> s", "svBtQps1", "svBtQps2", "trivec",
+              "trivec"},
+             {"l_contract(trivec,bivec) -> 0", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"l_contract(bivec,trivec) -> vec", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"l_contract(trivec,vec) -> 0", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"l_contract(vec,trivec) -> bivec", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"l_contract(trivec,s) -> 0", "svBtQps", "svBtQps", "trivec", "s"},
+             {"l_contract(s,trivec) -> trivec", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"l_contract(bivec,bivec) -> s", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"l_contract(bivec,vec) -> 0", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"l_contract(vec,bivec) -> vec", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"l_contract(bivec,s) -> 0", "svBtQps", "svBtQps", "bivec", "s"},
+             {"l_contract(s,bivec) -> bivec", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"l_contract(vec,vec) -> s", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"l_contract(vec,s) -> 0", "svBtQps", "svBtQps", "vec", "s"},
+             {"l_contract(s,vec) -> vec", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"l_contract(s,s) -> s", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_r_contract_config()
+{
+    return {
+        .product_name = "r_contract",
+        .description = "cga3dc right contraction",
+        .display_name = "right contraction",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"r_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"r_contract(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"r_contract(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"r_contract(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"r_contract(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"r_contract(mv,ps) -> mv", "M", "svBtQps", "mv", "ps"},
+             {"r_contract(ps,mv) -> mv", "svBtQps", "M", "ps", "mv"},
+             {"r_contract(mv,quadvec) -> mv", "M", "svBtQps", "mv", "quadvec"},
+             {"r_contract(quadvec,mv) -> mv", "svBtQps", "M", "quadvec", "mv"},
+             {"r_contract(mv,trivec) -> mv", "M", "svBtQps", "mv", "trivec"},
+             {"r_contract(trivec,mv) -> mv", "svBtQps", "M", "trivec", "mv"},
+             {"r_contract(mv,bivec) -> mv", "M", "svBtQps", "mv", "bivec"},
+             {"r_contract(bivec,mv) -> mv", "svBtQps", "M", "bivec", "mv"},
+             {"r_contract(mv,vec) -> mv", "M", "svBtQps", "mv", "vec"},
+             {"r_contract(vec,mv) -> mv", "svBtQps", "M", "vec", "mv"},
+             {"r_contract(mv,s) -> mv", "M", "svBtQps", "mv", "s"},
+             {"r_contract(s,mv) -> mv", "svBtQps", "M", "s", "mv"},
+             // mv_e
+             {"r_contract(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+             {"r_contract(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"r_contract(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"r_contract(mv_e,ps) -> 0", "M_even", "svBtQps", "mv_e", "ps"},
+             {"r_contract(ps,mv_e) -> mv_u", "svBtQps", "M_even", "ps", "mv_e"},
+             {"r_contract(mv_e,quadvec) -> mv_e", "M_even", "svBtQps", "mv_e", "quadvec"},
+             {"r_contract(quadvec,mv_e) -> mv_e", "svBtQps", "M_even", "quadvec", "mv_e"},
+             {"r_contract(mv_e,trivec) -> mv_u", "M_even", "svBtQps", "mv_e", "trivec"},
+             {"r_contract(trivec,mv_e) -> mv_u", "svBtQps", "M_even", "trivec", "mv_e"},
+             {"r_contract(mv_e,bivec) -> mv_e", "M_even", "svBtQps", "mv_e", "bivec"},
+             {"r_contract(bivec,mv_e) -> mv_e", "svBtQps", "M_even", "bivec", "mv_e"},
+             {"r_contract(mv_e,vec) -> mv_u", "M_even", "svBtQps", "mv_e", "vec"},
+             {"r_contract(vec,mv_e) -> mv_u", "svBtQps", "M_even", "vec", "mv_e"},
+             {"r_contract(mv_e,s) -> mv_e", "M_even", "svBtQps", "mv_e", "s"},
+             {"r_contract(s,mv_e) -> mv_e", "svBtQps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"r_contract(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"r_contract(mv_u,ps) -> mv_e", "M_odd", "svBtQps", "mv_u", "ps"},
+             {"r_contract(ps,mv_u) -> mv_e", "svBtQps", "M_odd", "ps", "mv_u"},
+             {"r_contract(mv_u,quadvec) -> mv_u", "M_odd", "svBtQps", "mv_u", "quadvec"},
+             {"r_contract(quadvec,mv_u) -> mv_u", "svBtQps", "M_odd", "quadvec", "mv_u"},
+             {"r_contract(mv_u,trivec) -> mv_e", "M_odd", "svBtQps", "mv_u", "trivec"},
+             {"r_contract(trivec,mv_u) -> mv_e", "svBtQps", "M_odd", "trivec", "mv_u"},
+             {"r_contract(mv_u,bivec) -> mv_u", "M_odd", "svBtQps", "mv_u", "bivec"},
+             {"r_contract(bivec,mv_u) -> mv_u", "svBtQps", "M_odd", "bivec", "mv_u"},
+             {"r_contract(mv_u,vec) -> mv_e", "M_odd", "svBtQps", "mv_u", "vec"},
+             {"r_contract(vec,mv_u) -> mv_e", "svBtQps", "M_odd", "vec", "mv_u"},
+             {"r_contract(mv_u,s) -> mv_u", "M_odd", "svBtQps", "mv_u", "s"},
+             {"r_contract(s,mv_u) -> 0", "svBtQps", "M_odd", "s", "mv_u"},
+             // ps
+             {"r_contract(ps,ps) -> s", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"r_contract(ps,quadvec) -> vec", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"r_contract(quadvec,ps) -> 0", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"r_contract(ps,trivec) -> bivec", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"r_contract(trivec,ps) -> 0", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"r_contract(ps,bivec) -> trivec", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"r_contract(bivec,ps) -> 0", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"r_contract(ps,vec) -> quadvec", "svBtQps", "svBtQps", "ps", "vec"},
+             {"r_contract(vec,ps) -> 0", "svBtQps", "svBtQps", "vec", "ps"},
+             {"r_contract(ps,s) -> ps", "svBtQps", "svBtQps", "ps", "s"},
+             {"r_contract(s,ps) -> 0", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"r_contract(quadvec,quadvec) -> s", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"r_contract(quadvec,trivec) -> vec", "svBtQps", "svBtQps", "quadvec",
+              "trivec"},
+             {"r_contract(trivec,quadvec) -> 0", "svBtQps", "svBtQps", "trivec",
+              "quadvec"},
+             {"r_contract(quadvec,bivec) -> bivec", "svBtQps", "svBtQps", "quadvec",
+              "bivec"},
+             {"r_contract(bivec,quadvec) -> 0", "svBtQps", "svBtQps", "bivec", "quadvec"},
+             {"r_contract(quadvec,vec) -> trivec", "svBtQps", "svBtQps", "quadvec",
+              "vec"},
+             {"r_contract(vec,quadvec) -> 0", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"r_contract(quadvec,s) -> quadvec", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"r_contract(s,quadvec) -> 0", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"r_contract(trivec,trivec) -> s", "svBtQps1", "svBtQps2", "trivec",
+              "trivec"},
+             {"r_contract(trivec,bivec) -> vec", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"r_contract(bivec,trivec) -> 0", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"r_contract(trivec,vec) -> bivec", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"r_contract(vec,trivec) -> 0", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"r_contract(trivec,s) -> trivec", "svBtQps", "svBtQps", "trivec", "s"},
+             {"r_contract(s,trivec) -> 0", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"r_contract(bivec,bivec) -> s", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"r_contract(bivec,vec) -> vec", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"r_contract(vec,bivec) -> 0", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"r_contract(bivec,s) -> bivec", "svBtQps", "svBtQps", "bivec", "s"},
+             {"r_contract(s,bivec) -> 0", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"r_contract(vec,vec) -> s", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"r_contract(vec,s) -> vec", "svBtQps", "svBtQps", "vec", "s"},
+             {"r_contract(s,vec) -> 0", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"r_contract(s,s) -> s", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_l_expand_config()
+{
+    return {
+        .product_name = "l_expand",
+        .description = "cga3dc left expansion",
+        .display_name = "left expansion",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// ps
+             {"l_expand(ps,quadvec) -> quadvec", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"l_expand(ps,trivec) -> trivec", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"l_expand(ps,bivec) -> bivec", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"l_expand(ps,vec) -> vec", "svBtQps", "svBtQps", "ps", "vec"},
+             // quadvec
+             {"l_expand(quadvec,trivec) -> quadvec", "svBtQps", "svBtQps", "quadvec",
+              "trivec"},
+             {"l_expand(quadvec,bivec) -> trivec", "svBtQps", "svBtQps", "quadvec",
+              "bivec"},
+             {"l_expand(quadvec,vec) -> bivec", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"l_expand(quadvec,s) -> vec", "svBtQps", "svBtQps", "quadvec", "s"},
+             // trivec
+             {"l_expand(trivec,bivec) -> quadvec", "svBtQps", "svBtQps", "trivec",
+              "bivec"},
+             {"l_expand(trivec,vec) -> trivec", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"l_expand(trivec,s) -> bivec", "svBtQps", "svBtQps", "trivec", "s"},
+             // bivec
+             {"l_expand(bivec,vec) -> quadvec", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"l_expand(bivec,s) -> trivec", "svBtQps", "svBtQps", "bivec", "s"},
+             // vec
+             {"l_expand(vec,s) -> quadvec", "svBtQps", "svBtQps", "vec", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_r_expand_config()
+{
+    return {
+        .product_name = "r_expand",
+        .description = "cga3dc right expansion",
+        .display_name = "right expansion",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// quadvec
+             {"r_expand(quadvec,ps) -> quadvec", "svBtQps", "svBtQps", "quadvec", "ps"},
+             // trivec
+             {"r_expand(trivec,ps) -> trivec", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"r_expand(trivec,quadvec) -> quadvec", "svBtQps", "svBtQps", "trivec",
+              "quadvec"},
+             // bivec
+             {"r_expand(bivec,ps) -> bivec", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"r_expand(bivec,quadvec) -> trivec", "svBtQps", "svBtQps", "bivec",
+              "quadvec"},
+             {"r_expand(bivec,trivec) -> quadvec", "svBtQps", "svBtQps", "bivec",
+              "trivec"},
+             // vec
+             {"r_expand(vec,ps) -> vec", "svBtQps", "svBtQps", "vec", "ps"},
+             {"r_expand(vec,quadvec) -> bivec", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"r_expand(vec,trivec) -> trivec", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"r_expand(vec,bivec) -> quadvec", "svBtQps", "svBtQps", "vec", "bivec"},
+             // s
+             {"r_expand(s,quadvec) -> vec", "svBtQps", "svBtQps", "s", "quadvec"},
+             {"r_expand(s,trivec) -> bivec", "svBtQps", "svBtQps", "s", "trivec"},
+             {"r_expand(s,bivec) -> trivec", "svBtQps", "svBtQps", "s", "bivec"},
+             {"r_expand(s,vec) -> quadvec", "svBtQps", "svBtQps", "s", "vec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_rgpr_config()
+{
+    return {
+        .product_name = "rgpr",
+        .description = "cga3dc regressive geometric product",
+        .display_name = "regressive geometric product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"rgpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"rgpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"rgpr(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"rgpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"rgpr(mv,ps) -> mv", "M", "svBtQps", "mv", "ps"},
+             {"rgpr(ps,mv) -> mv", "svBtQps", "M", "ps", "mv"},
+             {"rgpr(mv,quadvec) -> mv", "M", "svBtQps", "mv", "quadvec"},
+             {"rgpr(quadvec,mv) -> mv", "svBtQps", "M", "quadvec", "mv"},
+             {"rgpr(mv,trivec) -> mv", "M", "svBtQps", "mv", "trivec"},
+             {"rgpr(trivec,mv) -> mv", "svBtQps", "M", "trivec", "mv"},
+             {"rgpr(mv,bivec) -> mv", "M", "svBtQps", "mv", "bivec"},
+             {"rgpr(bivec,mv) -> mv", "svBtQps", "M", "bivec", "mv"},
+             {"rgpr(mv,vec) -> mv", "M", "svBtQps", "mv", "vec"},
+             {"rgpr(vec,mv) -> mv", "svBtQps", "M", "vec", "mv"},
+             {"rgpr(mv,s) -> mv", "M", "svBtQps", "mv", "s"},
+             {"rgpr(s,mv) -> mv", "svBtQps", "M", "s", "mv"},
+             // mv_e
+             {"rgpr(mv_e,mv_e) -> mv_u", "A_even", "B_even", "mv_e", "mv_e"},
+             {"rgpr(mv_e,mv_u) -> mv_e", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"rgpr(mv_u,mv_e) -> mv_e", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"rgpr(mv_e,ps) -> mv_e", "M_even", "svBtQps", "mv_e", "ps"},
+             {"rgpr(ps,mv_e) -> mv_e", "svBtQps", "M_even", "ps", "mv_e"},
+             {"rgpr(mv_e,quadvec) -> mv_u", "M_even", "svBtQps", "mv_e", "quadvec"},
+             {"rgpr(quadvec,mv_e) -> mv_u", "svBtQps", "M_even", "quadvec", "mv_e"},
+             {"rgpr(mv_e,trivec) -> mv_e", "M_even", "svBtQps", "mv_e", "trivec"},
+             {"rgpr(trivec,mv_e) -> mv_e", "svBtQps", "M_even", "trivec", "mv_e"},
+             {"rgpr(mv_e,bivec) -> mv_u", "M_even", "svBtQps", "mv_e", "bivec"},
+             {"rgpr(bivec,mv_e) -> mv_u", "svBtQps", "M_even", "bivec", "mv_e"},
+             {"rgpr(mv_e,vec) -> mv_e", "M_even", "svBtQps", "mv_e", "vec"},
+             {"rgpr(vec,mv_e) -> mv_e", "svBtQps", "M_even", "vec", "mv_e"},
+             {"rgpr(mv_e,s) -> mv_u", "M_even", "svBtQps", "mv_e", "s"},
+             {"rgpr(s,mv_e) -> mv_u", "svBtQps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"rgpr(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"rgpr(mv_u,ps) -> mv_u", "M_odd", "svBtQps", "mv_u", "ps"},
+             {"rgpr(ps,mv_u) -> mv_u", "svBtQps", "M_odd", "ps", "mv_u"},
+             {"rgpr(mv_u,quadvec) -> mv_e", "M_odd", "svBtQps", "mv_u", "quadvec"},
+             {"rgpr(quadvec,mv_u) -> mv_e", "svBtQps", "M_odd", "quadvec", "mv_u"},
+             {"rgpr(mv_u,trivec) -> mv_u", "M_odd", "svBtQps", "mv_u", "trivec"},
+             {"rgpr(trivec,mv_u) -> mv_u", "svBtQps", "M_odd", "trivec", "mv_u"},
+             {"rgpr(mv_u,bivec) -> mv_e", "M_odd", "svBtQps", "mv_u", "bivec"},
+             {"rgpr(bivec,mv_u) -> mv_e", "svBtQps", "M_odd", "bivec", "mv_u"},
+             {"rgpr(mv_u,vec) -> mv_u", "M_odd", "svBtQps", "mv_u", "vec"},
+             {"rgpr(vec,mv_u) -> mv_u", "svBtQps", "M_odd", "vec", "mv_u"},
+             {"rgpr(mv_u,s) -> mv_e", "M_odd", "svBtQps", "mv_u", "s"},
+             {"rgpr(s,mv_u) -> mv_e", "svBtQps", "M_odd", "s", "mv_u"},
+             // ps
+             {"rgpr(ps,ps) -> ps", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"rgpr(ps,quadvec) -> quadvec", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"rgpr(quadvec,ps) -> quadvec", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"rgpr(ps,trivec) -> trivec", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"rgpr(trivec,ps) -> trivec", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"rgpr(ps,bivec) -> bivec", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"rgpr(bivec,ps) -> bivec", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"rgpr(ps,vec) -> vec", "svBtQps", "svBtQps", "ps", "vec"},
+             {"rgpr(vec,ps) -> vec", "svBtQps", "svBtQps", "vec", "ps"},
+             {"rgpr(ps,s) -> s", "svBtQps", "svBtQps", "ps", "s"},
+             {"rgpr(s,ps) -> s", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"rgpr(quadvec,quadvec) -> mv_u", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"rgpr(quadvec,trivec) -> mv_e", "svBtQps", "svBtQps", "quadvec", "trivec"},
+             {"rgpr(trivec,quadvec) -> mv_e", "svBtQps", "svBtQps", "trivec", "quadvec"},
+             {"rgpr(quadvec,bivec) -> mv_u", "svBtQps", "svBtQps", "quadvec", "bivec"},
+             {"rgpr(bivec,quadvec) -> mv_u", "svBtQps", "svBtQps", "bivec", "quadvec"},
+             {"rgpr(quadvec,vec) -> mv_e", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"rgpr(vec,quadvec) -> mv_e", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"rgpr(quadvec,s) -> vec", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"rgpr(s,quadvec) -> vec", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"rgpr(trivec,trivec) -> mv_u", "svBtQps1", "svBtQps2", "trivec", "trivec"},
+             {"rgpr(trivec,bivec) -> mv_e", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"rgpr(bivec,trivec) -> mv_e", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"rgpr(trivec,vec) -> mv_u", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"rgpr(vec,trivec) -> mv_u", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"rgpr(trivec,s) -> bivec", "svBtQps", "svBtQps", "trivec", "s"},
+             {"rgpr(s,trivec) -> bivec", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"rgpr(bivec,bivec) -> mv_u", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"rgpr(bivec,vec) -> mv_e", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"rgpr(vec,bivec) -> mv_e", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"rgpr(bivec,s) -> trivec", "svBtQps", "svBtQps", "bivec", "s"},
+             {"rgpr(s,bivec) -> trivec", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"rgpr(vec,vec) -> mv_u", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"rgpr(vec,s) -> quadvec", "svBtQps", "svBtQps", "vec", "s"},
+             {"rgpr(s,vec) -> quadvec", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"rgpr(s,s) -> ps", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_rcmt_config()
+{
+    return {
+        .product_name = "rcmt",
+        .description = "cga3dc regressive commutator product",
+        .display_name = "regressive commutator product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"rcmt(ps,ps) -> 0", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"rcmt(ps,quadvec) -> 0", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"rcmt(quadvec,ps) -> 0", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"rcmt(ps,trivec) -> 0", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"rcmt(trivec,ps) -> 0", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"rcmt(ps,bivec) -> 0", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"rcmt(bivec,ps) -> 0", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"rcmt(ps,vec) -> 0", "svBtQps", "svBtQps", "ps", "vec"},
+             {"rcmt(vec,ps) -> 0", "svBtQps", "svBtQps", "vec", "ps"},
+             {"rcmt(ps,s) -> 0", "svBtQps", "svBtQps", "ps", "s"},
+             {"rcmt(s,ps) -> 0", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"rcmt(quadvec,quadvec) -> trivec", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"rcmt(quadvec,trivec) -> quadvec", "svBtQps", "svBtQps", "quadvec",
+              "trivec"},
+             {"rcmt(trivec,quadvec) -> quadvec", "svBtQps", "svBtQps", "trivec",
+              "quadvec"},
+             {"rcmt(quadvec,bivec) -> vec", "svBtQps", "svBtQps", "quadvec", "bivec"},
+             {"rcmt(bivec,quadvec) -> vec", "svBtQps", "svBtQps", "bivec", "quadvec"},
+             {"rcmt(quadvec,vec) -> bivec", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"rcmt(vec,quadvec) -> bivec", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"rcmt(quadvec,s) -> 0", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"rcmt(s,quadvec) -> 0", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"rcmt(trivec,trivec) -> trivec", "svBtQps1", "svBtQps2", "trivec",
+              "trivec"},
+             {"rcmt(trivec,bivec) -> bivec", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"rcmt(bivec,trivec) -> bivec", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"rcmt(trivec,vec) -> vec", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"rcmt(vec,trivec) -> vec", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"rcmt(trivec,s) -> 0", "svBtQps", "svBtQps", "trivec", "s"},
+             {"rcmt(s,trivec) -> 0", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"rcmt(bivec,bivec) -> trivec", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"rcmt(bivec,vec) -> quadvec", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"rcmt(vec,bivec) -> quadvec", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"rcmt(bivec,s) -> 0", "svBtQps", "svBtQps", "bivec", "s"},
+             {"rcmt(s,bivec) -> 0", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"rcmt(vec,vec) -> trivec", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"rcmt(vec,s) -> 0", "svBtQps", "svBtQps", "vec", "s"},
+             {"rcmt(s,vec) -> 0", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"rcmt(s,s) -> 0", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_rwdg_config()
+{
+    return {
+        .product_name = "rwdg",
+        .description = "cga3dc regressive wedge product",
+        .display_name = "regressive wedge product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"rwdg(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"rwdg(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"rwdg(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"rwdg(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"rwdg(mv,ps) -> mv", "M", "svBtQps", "mv", "ps"},
+             {"rwdg(ps,mv) -> mv", "svBtQps", "M", "ps", "mv"},
+             {"rwdg(mv,quadvec) -> mv", "M", "svBtQps", "mv", "quadvec"},
+             {"rwdg(quadvec,mv) -> mv", "svBtQps", "M", "quadvec", "mv"},
+             {"rwdg(mv,trivec) -> mv", "M", "svBtQps", "mv", "trivec"},
+             {"rwdg(trivec,mv) -> mv", "svBtQps", "M", "trivec", "mv"},
+             {"rwdg(mv,bivec) -> mv", "M", "svBtQps", "mv", "bivec"},
+             {"rwdg(bivec,mv) -> mv", "svBtQps", "M", "bivec", "mv"},
+             {"rwdg(mv,vec) -> mv", "M", "svBtQps", "mv", "vec"},
+             {"rwdg(vec,mv) -> mv", "svBtQps", "M", "vec", "mv"},
+             {"rwdg(mv,s) -> mv", "M", "svBtQps", "mv", "s"},
+             {"rwdg(s,mv) -> mv", "svBtQps", "M", "s", "mv"},
+             // mv_e
+             {"rwdg(mv_e,mv_e) -> mv_u", "A_even", "B_even", "mv_e", "mv_e"},
+             {"rwdg(mv_e,mv_u) -> mv_e", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"rwdg(mv_u,mv_e) -> mv_e", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"rwdg(mv_e,ps) -> mv_e", "M_even", "svBtQps", "mv_e", "ps"},
+             {"rwdg(ps,mv_e) -> mv_e", "svBtQps", "M_even", "ps", "mv_e"},
+             {"rwdg(mv_e,quadvec) -> mv_u", "M_even", "svBtQps", "mv_e", "quadvec"},
+             {"rwdg(quadvec,mv_e) -> mv_u", "svBtQps", "M_even", "quadvec", "mv_e"},
+             {"rwdg(mv_e,trivec) -> mv_e", "M_even", "svBtQps", "mv_e", "trivec"},
+             {"rwdg(trivec,mv_e) -> mv_e", "svBtQps", "M_even", "trivec", "mv_e"},
+             {"rwdg(mv_e,bivec) -> mv_u", "M_even", "svBtQps", "mv_e", "bivec"},
+             {"rwdg(bivec,mv_e) -> mv_u", "svBtQps", "M_even", "bivec", "mv_e"},
+             {"rwdg(mv_e,vec) -> mv_e", "M_even", "svBtQps", "mv_e", "vec"},
+             {"rwdg(vec,mv_e) -> mv_e", "svBtQps", "M_even", "vec", "mv_e"},
+             {"rwdg(mv_e,s) -> 0", "M_even", "svBtQps", "mv_e", "s"},
+             {"rwdg(s,mv_e) -> 0", "svBtQps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"rwdg(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"rwdg(mv_u,ps) -> mv_u", "M_odd", "svBtQps", "mv_u", "ps"},
+             {"rwdg(ps,mv_u) -> mv_u", "svBtQps", "M_odd", "ps", "mv_u"},
+             {"rwdg(mv_u,quadvec) -> mv_e", "M_odd", "svBtQps", "mv_u", "quadvec"},
+             {"rwdg(quadvec,mv_u) -> mv_e", "svBtQps", "M_odd", "quadvec", "mv_u"},
+             {"rwdg(mv_u,trivec) -> mv_u", "M_odd", "svBtQps", "mv_u", "trivec"},
+             {"rwdg(trivec,mv_u) -> mv_u", "svBtQps", "M_odd", "trivec", "mv_u"},
+             {"rwdg(mv_u,bivec) -> mv_e", "M_odd", "svBtQps", "mv_u", "bivec"},
+             {"rwdg(bivec,mv_u) -> mv_e", "svBtQps", "M_odd", "bivec", "mv_u"},
+             {"rwdg(mv_u,vec) -> mv_u", "M_odd", "svBtQps", "mv_u", "vec"},
+             {"rwdg(vec,mv_u) -> mv_u", "svBtQps", "M_odd", "vec", "mv_u"},
+             {"rwdg(mv_u,s) -> mv_e", "M_odd", "svBtQps", "mv_u", "s"},
+             {"rwdg(s,mv_u) -> mv_e", "svBtQps", "M_odd", "s", "mv_u"},
+             // ps
+             {"rwdg(ps,ps) -> ps", "svBtQps1", "svBtQps2", "ps", "ps"},
+             {"rwdg(ps,quadvec) -> quadvec", "svBtQps", "svBtQps", "ps", "quadvec"},
+             {"rwdg(quadvec,ps) -> quadvec", "svBtQps", "svBtQps", "quadvec", "ps"},
+             {"rwdg(ps,trivec) -> trivec", "svBtQps", "svBtQps", "ps", "trivec"},
+             {"rwdg(trivec,ps) -> trivec", "svBtQps", "svBtQps", "trivec", "ps"},
+             {"rwdg(ps,bivec) -> bivec", "svBtQps", "svBtQps", "ps", "bivec"},
+             {"rwdg(bivec,ps) -> bivec", "svBtQps", "svBtQps", "bivec", "ps"},
+             {"rwdg(ps,vec) -> vec", "svBtQps", "svBtQps", "ps", "vec"},
+             {"rwdg(vec,ps) -> vec", "svBtQps", "svBtQps", "vec", "ps"},
+             {"rwdg(ps,s) -> s", "svBtQps", "svBtQps", "ps", "s"},
+             {"rwdg(s,ps) -> s", "svBtQps", "svBtQps", "s", "ps"},
+             // quadvec
+             {"rwdg(quadvec,quadvec) -> trivec", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             {"rwdg(quadvec,trivec) -> bivec", "svBtQps", "svBtQps", "quadvec", "trivec"},
+             {"rwdg(trivec,quadvec) -> bivec", "svBtQps", "svBtQps", "trivec", "quadvec"},
+             {"rwdg(quadvec,bivec) -> vec", "svBtQps", "svBtQps", "quadvec", "bivec"},
+             {"rwdg(bivec,quadvec) -> vec", "svBtQps", "svBtQps", "bivec", "quadvec"},
+             {"rwdg(quadvec,vec) -> s", "svBtQps", "svBtQps", "quadvec", "vec"},
+             {"rwdg(vec,quadvec) -> s", "svBtQps", "svBtQps", "vec", "quadvec"},
+             {"rwdg(quadvec,s) -> 0", "svBtQps", "svBtQps", "quadvec", "s"},
+             {"rwdg(s,quadvec) -> 0", "svBtQps", "svBtQps", "s", "quadvec"},
+             // trivec
+             {"rwdg(trivec,trivec) -> vec", "svBtQps1", "svBtQps2", "trivec", "trivec"},
+             {"rwdg(trivec,bivec) -> s", "svBtQps", "svBtQps", "trivec", "bivec"},
+             {"rwdg(bivec,trivec) -> s", "svBtQps", "svBtQps", "bivec", "trivec"},
+             {"rwdg(trivec,vec) -> 0", "svBtQps", "svBtQps", "trivec", "vec"},
+             {"rwdg(vec,trivec) -> 0", "svBtQps", "svBtQps", "vec", "trivec"},
+             {"rwdg(trivec,s) -> 0", "svBtQps", "svBtQps", "trivec", "s"},
+             {"rwdg(s,trivec) -> 0", "svBtQps", "svBtQps", "s", "trivec"},
+             // bivec
+             {"rwdg(bivec,bivec) -> 0", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             {"rwdg(bivec,vec) -> 0", "svBtQps", "svBtQps", "bivec", "vec"},
+             {"rwdg(vec,bivec) -> 0", "svBtQps", "svBtQps", "vec", "bivec"},
+             {"rwdg(bivec,s) -> 0", "svBtQps", "svBtQps", "bivec", "s"},
+             {"rwdg(s,bivec) -> 0", "svBtQps", "svBtQps", "s", "bivec"},
+             // vec
+             {"rwdg(vec,vec) -> 0", "svBtQps1", "svBtQps2", "vec", "vec"},
+             {"rwdg(vec,s) -> 0", "svBtQps", "svBtQps", "vec", "s"},
+             {"rwdg(s,vec) -> 0", "svBtQps", "svBtQps", "s", "vec"},
+             // s
+             {"rwdg(s,s) -> 0", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga3dc_rdot_config()
+{
+    return {
+        .product_name = "rdot",
+        .description = "cga3dc regressive inner product",
+        .display_name = "regressive inner product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {// mv
+             {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+             {"rdot(mv_e,mv_e) -> ps", "A_even", "B_even", "mv_e", "mv_e"},
+             {"rdot(mv_u,mv_u) -> ps", "A_odd", "B_odd", "mv_u", "mv_u"},
+             // ps
+             {"rdot(ps,ps) -> ps", "svBtQps1", "svBtQps2", "ps", "ps"},
+             // quadvec
+             {"rdot(quadvec,quadvec) -> ps", "svBtQps1", "svBtQps2", "quadvec",
+              "quadvec"},
+             // trivec
+             {"rdot(trivec,trivec) -> ps", "svBtQps1", "svBtQps2", "trivec", "trivec"},
+             // bivec
+             {"rdot(bivec,bivec) -> ps", "svBtQps1", "svBtQps2", "bivec", "bivec"},
+             // vec
+             {"rdot(vec,vec) -> ps", "svBtQps1", "svBtQps2", "vec", "vec"},
+             // s
+             {"rdot(s,s) -> ps", "svBtQps1", "svBtQps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
 } // namespace configurable

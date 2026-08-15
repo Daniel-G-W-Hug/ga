@@ -936,12 +936,9 @@ std::vector<UnaryOp> unary_ops_for(std::string const& alg)
                 {"l_antidual", "l_antidual", &l_antidual_cga2dc_rules},
                 {"r_antidual", "r_antidual", &r_antidual_cga2dc_rules}};
     if (alg == "cga3dc")
-        return {{"l_cmpl", "l_cmpl", &l_cmpl_cga3dc_rules},
-                {"r_cmpl", "r_cmpl", &r_cmpl_cga3dc_rules},
-                {"l_dual", "l_dual", &l_dual_cga3dc_rules},
-                {"r_dual", "r_dual", &r_dual_cga3dc_rules},
-                {"l_antidual", "l_antidual", &l_antidual_cga3dc_rules},
-                {"r_antidual", "r_antidual", &r_antidual_cga3dc_rules}};
+        return {{"cmpl", "cmpl", &cmpl_cga3dc_rules},
+                {"dual", "dual", &dual_cga3dc_rules},
+                {"antidual", "antidual", &antidual_cga3dc_rules}};
     return {};
 }
 
@@ -3091,27 +3088,27 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // A << B = rwdg(l_dual(A), B) =
             // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
             auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dc_basis, l_dual_cga3dc_rules), r_cmpl_cga3dc_rules);
-            auto rhs = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+                apply_rules_to_mv(mv3dc_basis, dual_cga3dc_rules), cmpl_cga3dc_rules);
+            auto rhs = apply_rules_to_mv(mv3dc_basis, cmpl_cga3dc_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga3dc_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_cga3dc_rules);
         }
 
         else if (product_name == "r_contract") {
             // A >> B = rwdg(A, r_dual(B)) = l_cmpl(wdg(r_cmpl(A),
             // r_cmpl(r_dual(B))))
-            auto lhs = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto lhs = apply_rules_to_mv(mv3dc_basis, cmpl_cga3dc_rules);
             auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dc_basis, r_dual_cga3dc_rules), r_cmpl_cga3dc_rules);
+                apply_rules_to_mv(mv3dc_basis, dual_cga3dc_rules), cmpl_cga3dc_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga3dc_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_cga3dc_rules);
         }
 
         else if (product_name == "l_expand") {
             // Left expansion: l_expand(A,B) = wdg(l_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv3dc_basis, l_dual_cga3dc_rules);
+            auto lhs = apply_rules_to_mv(mv3dc_basis, dual_cga3dc_rules);
             auto rhs = mv3dc_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_cga3dc_rules);
@@ -3120,27 +3117,27 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         else if (product_name == "r_expand") {
             // Right expansion: r_expand(A,B) = wdg(A, r_dual(B))
             auto lhs = mv3dc_basis;
-            auto rhs = apply_rules_to_mv(mv3dc_basis, r_dual_cga3dc_rules);
+            auto rhs = apply_rules_to_mv(mv3dc_basis, dual_cga3dc_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_cga3dc_rules);
         }
 
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, cmpl_cga3dc_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
                 wdg_cga3dc_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_cga3dc_rules);
         }
 
         else if (product_name == "rdot") {
             // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, cmpl_cga3dc_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 dot_cga3dc_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_cga3dc_rules);
         }
     }
 
@@ -3179,14 +3176,14 @@ ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra
             // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)));
             // the regressive sandwich uses the same basis table for both steps
             return build_mt_basis_table_cmpl_conjugated(mv3dc_basis, gpr_cga3dc_rules_mt,
-                                                        r_cmpl_cga3dc_rules,
-                                                        l_cmpl_cga3dc_rules, mul_str());
+                                                        cmpl_cga3dc_rules,
+                                                        cmpl_cga3dc_rules, mul_str());
         }
         else if (product_name == "rcmt") {
             // Regressive commutator: rcmt(A,B) = asym(rgpr(A,B))
             return get_mt_tab_asym(build_mt_basis_table_cmpl_conjugated(
-                mv3dc_basis, gpr_cga3dc_rules_mt, r_cmpl_cga3dc_rules,
-                l_cmpl_cga3dc_rules, mul_str()));
+                mv3dc_basis, gpr_cga3dc_rules_mt, cmpl_cga3dc_rules, cmpl_cga3dc_rules,
+                mul_str()));
         }
         throw std::invalid_argument("no multi-term basis table for cga3dc product '" +
                                     product_name + "'");
