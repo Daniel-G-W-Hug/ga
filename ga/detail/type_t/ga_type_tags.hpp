@@ -73,6 +73,18 @@ struct mvec2dc_u_tag : public cga2dc_tag {};
 struct mvec2dc_tag : public cga2dc_tag {};
 struct dual_number2dc_tag : public cga2dc_tag {};
 
+struct cga3dc_tag {};
+struct scalar3dc_tag : public cga3dc_tag {};
+struct vec3dc_tag : public cga3dc_tag {};
+struct bivec3dc_tag : public cga3dc_tag {};
+struct trivec3dc_tag : public cga3dc_tag {};
+struct quadvec3dc_tag : public cga3dc_tag {};
+struct pscalar3dc_tag : public cga3dc_tag {};
+struct mvec3dc_e_tag : public cga3dc_tag {};
+struct mvec3dc_u_tag : public cga3dc_tag {};
+struct mvec3dc_tag : public cga3dc_tag {};
+struct dual_number3dc_tag : public cga3dc_tag {};
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // concept to check for consistent type definitions checks via template specialization
@@ -128,6 +140,12 @@ template <typename T>
     requires std::is_base_of_v<cga2dc_tag, T>
 struct base_class<T> {
     using type = cga2dc_tag;
+};
+
+template <typename T>
+    requires std::is_base_of_v<cga3dc_tag, T>
+struct base_class<T> {
+    using type = cga3dc_tag;
 };
 
 // hint: just add newly defined tag classes here

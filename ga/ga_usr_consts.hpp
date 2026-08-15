@@ -20,6 +20,7 @@
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
 
 #include "detail/type_t/ga_mvec2dc.hpp" // MVec2dc<T> and subtypes
+#include "detail/type_t/ga_mvec3dc.hpp" // MVec3dc<T> and subtypes
 #include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
@@ -507,5 +508,127 @@ auto const e321_2dc_mv_u = MVec2dc_U<value_t>{e321_2dc}; // e321_2dc as odd mult
 
 auto const e1234_2dc = PScalar2dc<value_t>(1.0);
 auto const I_2dc = e1234_2dc; // the pseudoscalar of cga2dc
+
+
+// 3dc constants (conformal algebra of 3d Euclidean space)
+//
+// e1, e2, e3 = Euclidean, e4 = projective/origin (w), e5 = round/infinity (u);
+// the null pair satisfies e4*e4 = e5*e5 = 0 and e4.e5 = -1 (see
+// detail/type_t/ga_type3dc.hpp for the field layout of each type).
+
+auto const e1_3dc = Vec3dc<value_t>{1.0, 0.0, 0.0, 0.0, 0.0};
+auto const e2_3dc = Vec3dc<value_t>{0.0, 1.0, 0.0, 0.0, 0.0};
+auto const e3_3dc = Vec3dc<value_t>{0.0, 0.0, 1.0, 0.0, 0.0};
+auto const e4_3dc =
+    Vec3dc<value_t>{0.0, 0.0, 0.0, 1.0, 0.0}; // projective (w), null vector
+auto const e5_3dc = Vec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 1.0}; // round (u), null vector
+
+auto const e1_3dc_mv = MVec3dc<value_t>{e1_3dc}; // e1_3dc as multivector
+auto const e2_3dc_mv = MVec3dc<value_t>{e2_3dc}; // e2_3dc as multivector
+auto const e3_3dc_mv = MVec3dc<value_t>{e3_3dc}; // e3_3dc as multivector
+auto const e4_3dc_mv = MVec3dc<value_t>{e4_3dc}; // e4_3dc as multivector
+auto const e5_3dc_mv = MVec3dc<value_t>{e5_3dc}; // e5_3dc as multivector
+
+auto const e41_3dc = BiVec3dc<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e42_3dc = BiVec3dc<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e43_3dc = BiVec3dc<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e23_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e31_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e12_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+auto const e15_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
+auto const e25_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+auto const e35_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
+auto const e45_3dc = BiVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+
+auto const e41_3dc_mv = MVec3dc<value_t>{e41_3dc}; // e41_3dc as multivector
+auto const e42_3dc_mv = MVec3dc<value_t>{e42_3dc}; // e42_3dc as multivector
+auto const e43_3dc_mv = MVec3dc<value_t>{e43_3dc}; // e43_3dc as multivector
+auto const e23_3dc_mv = MVec3dc<value_t>{e23_3dc}; // e23_3dc as multivector
+auto const e31_3dc_mv = MVec3dc<value_t>{e31_3dc}; // e31_3dc as multivector
+auto const e12_3dc_mv = MVec3dc<value_t>{e12_3dc}; // e12_3dc as multivector
+auto const e15_3dc_mv = MVec3dc<value_t>{e15_3dc}; // e15_3dc as multivector
+auto const e25_3dc_mv = MVec3dc<value_t>{e25_3dc}; // e25_3dc as multivector
+auto const e35_3dc_mv = MVec3dc<value_t>{e35_3dc}; // e35_3dc as multivector
+auto const e45_3dc_mv = MVec3dc<value_t>{e45_3dc}; // e45_3dc as multivector
+
+auto const e41_3dc_mv_e = MVec3dc_E<value_t>{e41_3dc}; // e41_3dc as even multivector
+auto const e42_3dc_mv_e = MVec3dc_E<value_t>{e42_3dc}; // e42_3dc as even multivector
+auto const e43_3dc_mv_e = MVec3dc_E<value_t>{e43_3dc}; // e43_3dc as even multivector
+auto const e23_3dc_mv_e = MVec3dc_E<value_t>{e23_3dc}; // e23_3dc as even multivector
+auto const e31_3dc_mv_e = MVec3dc_E<value_t>{e31_3dc}; // e31_3dc as even multivector
+auto const e12_3dc_mv_e = MVec3dc_E<value_t>{e12_3dc}; // e12_3dc as even multivector
+auto const e15_3dc_mv_e = MVec3dc_E<value_t>{e15_3dc}; // e15_3dc as even multivector
+auto const e25_3dc_mv_e = MVec3dc_E<value_t>{e25_3dc}; // e25_3dc as even multivector
+auto const e35_3dc_mv_e = MVec3dc_E<value_t>{e35_3dc}; // e35_3dc as even multivector
+auto const e45_3dc_mv_e = MVec3dc_E<value_t>{e45_3dc}; // e45_3dc as even multivector
+
+auto const e415_3dc =
+    TriVec3dc<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e425_3dc =
+    TriVec3dc<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e435_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e235_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e315_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e125_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+auto const e423_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
+auto const e431_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+auto const e412_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
+auto const e321_3dc =
+    TriVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+
+auto const e415_3dc_mv = MVec3dc<value_t>{e415_3dc}; // e415_3dc as multivector
+auto const e425_3dc_mv = MVec3dc<value_t>{e425_3dc}; // e425_3dc as multivector
+auto const e435_3dc_mv = MVec3dc<value_t>{e435_3dc}; // e435_3dc as multivector
+auto const e235_3dc_mv = MVec3dc<value_t>{e235_3dc}; // e235_3dc as multivector
+auto const e315_3dc_mv = MVec3dc<value_t>{e315_3dc}; // e315_3dc as multivector
+auto const e125_3dc_mv = MVec3dc<value_t>{e125_3dc}; // e125_3dc as multivector
+auto const e423_3dc_mv = MVec3dc<value_t>{e423_3dc}; // e423_3dc as multivector
+auto const e431_3dc_mv = MVec3dc<value_t>{e431_3dc}; // e431_3dc as multivector
+auto const e412_3dc_mv = MVec3dc<value_t>{e412_3dc}; // e412_3dc as multivector
+auto const e321_3dc_mv = MVec3dc<value_t>{e321_3dc}; // e321_3dc as multivector
+
+auto const e415_3dc_mv_u = MVec3dc_U<value_t>{e415_3dc}; // e415_3dc as odd multivector
+auto const e425_3dc_mv_u = MVec3dc_U<value_t>{e425_3dc}; // e425_3dc as odd multivector
+auto const e435_3dc_mv_u = MVec3dc_U<value_t>{e435_3dc}; // e435_3dc as odd multivector
+auto const e235_3dc_mv_u = MVec3dc_U<value_t>{e235_3dc}; // e235_3dc as odd multivector
+auto const e315_3dc_mv_u = MVec3dc_U<value_t>{e315_3dc}; // e315_3dc as odd multivector
+auto const e125_3dc_mv_u = MVec3dc_U<value_t>{e125_3dc}; // e125_3dc as odd multivector
+auto const e423_3dc_mv_u = MVec3dc_U<value_t>{e423_3dc}; // e423_3dc as odd multivector
+auto const e431_3dc_mv_u = MVec3dc_U<value_t>{e431_3dc}; // e431_3dc as odd multivector
+auto const e412_3dc_mv_u = MVec3dc_U<value_t>{e412_3dc}; // e412_3dc as odd multivector
+auto const e321_3dc_mv_u = MVec3dc_U<value_t>{e321_3dc}; // e321_3dc as odd multivector
+
+auto const e4235_3dc = QuadVec3dc<value_t>{1.0, 0.0, 0.0, 0.0, 0.0};
+auto const e4315_3dc = QuadVec3dc<value_t>{0.0, 1.0, 0.0, 0.0, 0.0};
+auto const e4125_3dc = QuadVec3dc<value_t>{0.0, 0.0, 1.0, 0.0, 0.0};
+auto const e3215_3dc = QuadVec3dc<value_t>{0.0, 0.0, 0.0, 1.0, 0.0};
+auto const e1234_3dc = QuadVec3dc<value_t>{0.0, 0.0, 0.0, 0.0, 1.0};
+
+auto const e4235_3dc_mv = MVec3dc<value_t>{e4235_3dc}; // e4235_3dc as multivector
+auto const e4315_3dc_mv = MVec3dc<value_t>{e4315_3dc}; // e4315_3dc as multivector
+auto const e4125_3dc_mv = MVec3dc<value_t>{e4125_3dc}; // e4125_3dc as multivector
+auto const e3215_3dc_mv = MVec3dc<value_t>{e3215_3dc}; // e3215_3dc as multivector
+auto const e1234_3dc_mv = MVec3dc<value_t>{e1234_3dc}; // e1234_3dc as multivector
+
+auto const e4235_3dc_mv_e =
+    MVec3dc_E<value_t>{e4235_3dc}; // e4235_3dc as even multivector
+auto const e4315_3dc_mv_e =
+    MVec3dc_E<value_t>{e4315_3dc}; // e4315_3dc as even multivector
+auto const e4125_3dc_mv_e =
+    MVec3dc_E<value_t>{e4125_3dc}; // e4125_3dc as even multivector
+auto const e3215_3dc_mv_e =
+    MVec3dc_E<value_t>{e3215_3dc}; // e3215_3dc as even multivector
+auto const e1234_3dc_mv_e =
+    MVec3dc_E<value_t>{e1234_3dc}; // e1234_3dc as even multivector
+
+auto const e12345_3dc = PScalar3dc<value_t>(1.0);
+auto const I_3dc = e12345_3dc; // the pseudoscalar of cga3dc
 
 } // namespace hd::ga::cga

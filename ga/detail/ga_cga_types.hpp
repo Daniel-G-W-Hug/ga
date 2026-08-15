@@ -5,8 +5,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // CGA (Conformal Geometric Algebra) type definitions
-// Complete type system for the 2dc conformal geometric algebra
-// (the 3dc algebra follows once its 32-component type layer exists)
+// Complete type system for the 2dc and 3dc conformal geometric algebras
 /////////////////////////////////////////////////////////////////////////////////////////
 
 #include "ga_core_types.hpp"
@@ -17,6 +16,12 @@
 // Complete CGA multivector types (includes the even and uneven (odd) subtypes)
 #include "type_t/ga_mvec2dc.hpp" // cga2dc multivectors incl. even/uneven mvec2dc_e/u
 
+// CGA algebra-specific type definitions (3dc)
+#include "type_t/ga_type3dc.hpp" // cga3dc concrete types (Scalar3dc, Vec3dc, etc.)
+
+// Complete CGA multivector types (includes the even and uneven (odd) subtypes)
+#include "type_t/ga_mvec3dc.hpp" // cga3dc multivectors incl. even/uneven mvec3dc_e/u
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // This header provides the complete cga2dc type system:
 //
@@ -26,6 +31,14 @@
 // - MVec2dc_E<T> (even subalgebra), MVec2dc_U<T> (uneven (or odd) subalgebra)
 // - MVec2dc<T> (full multivector)
 // - DualNum2dc<T> (dual numbers for 2dc space)
+//
+// **cga3dc (G(4,1,0) after diagonalization of the null-basis metric):**
+//
+// - Scalar3dc<T>, Vec3dc<T>, BiVec3dc<T>, TriVec3dc<T>, QuadVec3dc<T>,
+//   PScalar3dc<T>
+// - MVec3dc_E<T> (even subalgebra), MVec3dc_U<T> (uneven (or odd) subalgebra)
+// - MVec3dc<T> (full multivector)
+// - DualNum3dc<T> (dual numbers for 3dc space)
 //
 // The conformal algebra adds TWO projective dimensions to 2D Euclidean space:
 // the homogeneous dimension known from PGA (e3, w) and a round dimension (e4,

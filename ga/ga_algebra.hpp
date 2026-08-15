@@ -18,7 +18,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
-    requires(P + N + Z >= 2) && (P + N + Z <= 4) && (P >= 1) && (P <= 3) && (N <= 3) &&
+    requires(P + N + Z >= 2) && (P + N + Z <= 5) && (P >= 1) && (P <= 4) && (N <= 3) &&
             (Z <= 1) // no implementation for other algebras yet
 struct algebra {
     constexpr static uint8_t p() { return P; }; // number of +1 generators
@@ -43,10 +43,13 @@ struct algebra {
         if constexpr (dim_space() == 4) {
             return {1, 4, 6, 4, 1};
         }
+        if constexpr (dim_space() == 5) {
+            return {1, 5, 10, 10, 5, 1};
+        }
     }();
 
-    constexpr static std::array<const char[6], num_components()> basis_name =
-        []() -> std::array<const char[6], num_components()> {
+    constexpr static std::array<const char[7], num_components()> basis_name =
+        []() -> std::array<const char[7], num_components()> {
         //
         // this defines the basis components of the multivectors:
         //
@@ -88,6 +91,17 @@ struct algebra {
             return {"    1", "   e1", "   e2", "   e3", "   e4", "  e31",
                     "  e32", "  e12", "  e14", "  e24", "  e34", " e314",
                     " e324", " e124", " e321", "e1234"};
+        }
+        //
+        // cga3dc:  algebra<4,1,0> (conformal 3d) — STORED in the null basis
+        // {e1, e2, e3, e4, e5} with e4*e4 = e5*e5 = 0 and e4.e5 = -1; the
+        // signature G(4,1,0) refers to the diagonalized form of that metric
+        if constexpr (dim_space() == 5 && (p() == 4 && n() == 1 && z() == 0)) {
+            return {"     1", "    e1", "    e2", "    e3", "    e4", "    e5", "   e41",
+                    "   e42", "   e43", "   e23", "   e31", "   e12", "   e15", "   e25",
+                    "   e35", "   e45", "  e415", "  e425", "  e435", "  e235", "  e315",
+                    "  e125", "  e423", "  e431", "  e412", "  e321", " e4235", " e4315",
+                    " e4125", " e3215", " e1234", "e12345"};
         }
     }();
 };

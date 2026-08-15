@@ -17,6 +17,7 @@
 #include "detail/type_t/ga_mvec4ds.hpp" // 4ds types for STA
 
 #include "detail/type_t/ga_mvec2dc.hpp" // 2dc types for CGA
+#include "detail/type_t/ga_mvec3dc.hpp" // 3dc types for CGA
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy and convenient use (based on value_t)
@@ -133,6 +134,21 @@ using mvec2dc = MVec2dc<value_t>;     // fully populated 2dc multivector
 
 // dual number with s 1 + ps I_2dc (I_2dc = e1234)
 using dualnum2dc = DualNum2dc<value_t>;
+
+// vector and multivector types cga3dc (3dc = conformal algebra of 3d space)
+
+using scalar3dc = Scalar3dc<value_t>;
+using vec3dc = Vec3dc<value_t>;
+using bivec3dc = BiVec3dc<value_t>;
+using trivec3dc = TriVec3dc<value_t>;
+using quadvec3dc = QuadVec3dc<value_t>;
+using pscalar3dc = PScalar3dc<value_t>;
+using mvec3dc_e = MVec3dc_E<value_t>; // multivector 3dc of even subalgebra
+using mvec3dc_u = MVec3dc_U<value_t>; // multivector 3dc of uneven (odd) subalgebra
+using mvec3dc = MVec3dc<value_t>;     // fully populated 3dc multivector
+
+// dual number with s 1 + ps I_3dc (I_3dc = e12345)
+using dualnum3dc = DualNum3dc<value_t>;
 
 // NOTE: mechanics convenience aliases (inertia2dp, inertia3dp, ...) live in
 // ga_usr_types_mechanics.hpp -- they alias templates defined by the mechanics ops
