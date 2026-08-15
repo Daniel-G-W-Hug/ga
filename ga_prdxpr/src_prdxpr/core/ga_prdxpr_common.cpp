@@ -508,6 +508,20 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
                      get_coeff_filter(rfilter), brsw);
 }
 
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_5d lfilter, filter_5d rfilter, brace_switch brsw)
+{
+
+    // make sure sizes match as required
+    if (prd_tab.size() != mv_basis.size()) {
+        throw std::runtime_error("Multivector size of product table and multivector "
+                                 "basis size must match.");
+    }
+
+    return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
+                     get_coeff_filter(rfilter), brsw);
+}
+
 
 mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
@@ -833,6 +847,63 @@ mvec_coeff_filter get_coeff_filter(filter_4d filter)
             filter_vec = {0, 0, 0, 0, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 1}; // pseudoscalar element
                                                    // (=quadvector in 4d)
+            break;
+        default:
+            std::unreachable();
+    }
+    return filter_vec;
+}
+
+mvec_coeff_filter get_coeff_filter(filter_5d filter)
+{
+
+    mvec_coeff_filter filter_vec(32); // 5d multivector has 32 basis components:
+                                      // 1 scalar, 5 vector, 10 bivector, 10 trivector,
+                                      // 5 quadvector, and 1 pseudoscalar components
+
+    switch (filter) {
+        case filter_5d::mv:
+            filter_vec = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // all components
+            break;
+        case filter_5d::mv_e:
+            filter_vec = {
+                1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0}; // even-grade components
+            break;
+        case filter_5d::mv_u:
+            filter_vec = {
+                0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1}; // odd-grade components
+            break;
+        case filter_5d::s:
+            filter_vec = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // scalar element
+            break;
+        case filter_5d::vec:
+            filter_vec = {
+                0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // vector components
+            break;
+        case filter_5d::bivec:
+            filter_vec = {
+                0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // bivector components
+            break;
+        case filter_5d::trivec:
+            filter_vec = {
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}; // trivector components
+            break;
+        case filter_5d::quadvec:
+            filter_vec = {
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0}; // quadvector components
+            break;
+        case filter_5d::ps:
+            filter_vec = {
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}; // pseudoscalar element
             break;
         default:
             std::unreachable();

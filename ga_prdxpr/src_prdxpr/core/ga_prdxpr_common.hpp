@@ -59,6 +59,9 @@ using filter_2dp = filter_3d;
 // scalar: s, vector: vec, bivector: bivec, trivector: trivec, pseudoscalar: ps,
 // even-grade multivector: mv_e, odd-grade multivector: mv_u, multivector: mv
 enum class filter_4d { s, vec, bivec, trivec, ps, mv_e, mv_u, mv };
+
+// filter to select components of 5d multivectors
+enum class filter_5d { s, vec, bivec, trivec, quadvec, ps, mv_e, mv_u, mv };
 using filter_3dp = filter_4d;
 
 // multivector product table - contains products of scalars and basis elements
@@ -186,6 +189,10 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
                                filter_4d lfilter, filter_4d rfilter,
                                brace_switch brsw = brace_switch::no_braces);
 
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_5d lfilter, filter_5d rfilter,
+                               brace_switch brsw = brace_switch::no_braces);
+
 mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
                      mvec_coeff_filter const& rcoeff_filter,
@@ -279,6 +286,7 @@ void validate_basis_consistency(mvec_coeff const& multivector_basis,
 mvec_coeff_filter get_coeff_filter(filter_2d filter = filter_2d::mv);
 mvec_coeff_filter get_coeff_filter(filter_3d filter = filter_3d::mv);
 mvec_coeff_filter get_coeff_filter(filter_4d filter = filter_4d::mv);
+mvec_coeff_filter get_coeff_filter(filter_5d filter = filter_5d::mv);
 
 void toggle_bool(bool& value);
 

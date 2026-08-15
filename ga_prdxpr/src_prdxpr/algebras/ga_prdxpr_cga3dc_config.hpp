@@ -19,3 +19,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 AlgebraConfig get_cga3dc_algebra_config();
+
+namespace configurable {
+
+// cga3dc algebra data creation
+AlgebraData create_cga3dc_algebra_data();
+
+// cga3dc product configurations (initial set; further products follow the
+// established per-product workflow, mirroring the cga2dc rollout)
+ProductConfig get_cga3dc_gpr_config(); // geometric product (multi-term rules)
+ProductConfig get_cga3dc_wdg_config(); // wedge product
+ProductConfig get_cga3dc_dot_config(); // inner product
+
+} // namespace configurable

@@ -141,6 +141,7 @@ void ArgumentParser::parse_algebra_list(std::string const& value)
             options_.algebras.insert("pga3dp");
             options_.algebras.insert("sta4ds");
             options_.algebras.insert("cga2dc");
+            options_.algebras.insert("cga3dc");
             continue;
         }
         else if (name == "none") {
@@ -229,8 +230,9 @@ void ArgumentParser::parse_output_list(std::string const& value)
 
 bool ArgumentParser::is_valid_algebra(std::string const& name) const
 {
-    static std::set<std::string> const valid_algebras = {
-        "ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "cga2dc", "all", "none"};
+    static std::set<std::string> const valid_algebras = {"ega2d",  "ega3d",  "pga2dp",
+                                                         "pga3dp", "sta4ds", "cga2dc",
+                                                         "cga3dc", "all",    "none"};
     return valid_algebras.count(name) > 0;
 }
 
@@ -353,6 +355,7 @@ void ArgumentParser::print_list() const
     fmt::println("  pga3dp  - Projective Geometric Algebra 3D");
     fmt::println("  sta4ds  - Space-Time Algebra 4D");
     fmt::println("  cga2dc  - Conformal Geometric Algebra 2D");
+    fmt::println("  cga3dc  - Conformal Geometric Algebra 3D");
     fmt::println("");
     fmt::println("Common Product Types (all algebras):");
     fmt::println("  gpr                 - Geometric product");

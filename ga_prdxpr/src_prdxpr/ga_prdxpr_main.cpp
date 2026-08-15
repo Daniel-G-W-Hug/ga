@@ -3,6 +3,7 @@
 // Complete configurable GA product expression generator for all four algebras
 
 #include "algebras/ga_prdxpr_cga2dc_config.hpp"
+#include "algebras/ga_prdxpr_cga3dc_config.hpp"
 #include "algebras/ga_prdxpr_ega2d_config.hpp"
 #include "algebras/ga_prdxpr_ega3d_config.hpp"
 #include "algebras/ga_prdxpr_pga2dp_config.hpp"
@@ -256,7 +257,20 @@ int main(int argc, char const* argv[])
 
                 get_cga2dc_sandwich_rgpr_config()};
 
-            generate_algebra_products(generator, cga2dc_configs, cga2dc_algebra, true,
+            generate_algebra_products(generator, cga2dc_configs, cga2dc_algebra, false,
+                                      options);
+        }
+
+        if (options.should_generate_algebra("cga3dc") &&
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
+
+            auto cga3dc_algebra = create_cga3dc_algebra_data();
+            std::vector<ProductConfig> cga3dc_configs = {get_cga3dc_gpr_config(),
+                                                         get_cga3dc_wdg_config(),
+                                                         get_cga3dc_dot_config()};
+
+            generate_algebra_products(generator, cga3dc_configs, cga3dc_algebra, true,
                                       options);
         }
 

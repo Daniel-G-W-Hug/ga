@@ -71,6 +71,7 @@ class ConfigurableGenerator {
     filter_2d get_filter_2d(AlgebraData const& algebra, std::string const& filter_name);
     filter_3d get_filter_3d(AlgebraData const& algebra, std::string const& filter_name);
     filter_4d get_filter_4d(AlgebraData const& algebra, std::string const& filter_name);
+    filter_5d get_filter_5d(AlgebraData const& algebra, std::string const& filter_name);
 
     // Print formatted output matching reference implementation exactly
     void print_product_header(AlgebraData const& algebra, ProductConfig const& config);

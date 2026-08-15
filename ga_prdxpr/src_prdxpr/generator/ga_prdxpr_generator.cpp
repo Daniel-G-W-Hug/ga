@@ -17,6 +17,7 @@
 
 // Include mathematical definitions
 #include "algebras/ga_prdxpr_cga2dc.hpp"
+#include "algebras/ga_prdxpr_cga3dc.hpp"
 #include "algebras/ga_prdxpr_ega2d.hpp"
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
@@ -136,6 +137,11 @@ std::optional<mvec_coeff_filter> get_filter_mask(AlgebraData const& algebra,
         if (it == algebra.filters_4d.end()) return std::nullopt;
         return get_coeff_filter(it->second);
     }
+    if (algebra.dimension == 5) {
+        auto const it = algebra.filters_5d.find(filter_name);
+        if (it == algebra.filters_5d.end()) return std::nullopt;
+        return get_coeff_filter(it->second);
+    }
     return std::nullopt;
 }
 
@@ -162,6 +168,10 @@ std::optional<std::string> suggest_minimal_result_type(AlgebraData const& algebr
         }
         else if (algebra.dimension == 4) {
             for (auto const& [name, f] : algebra.filters_4d)
+                fn(name, get_coeff_filter(f));
+        }
+        else if (algebra.dimension == 5) {
+            for (auto const& [name, f] : algebra.filters_5d)
                 fn(name, get_coeff_filter(f));
         }
     };
@@ -485,11 +495,16 @@ mvec_coeff compute_prd_mv_for_validation(AlgebraData const& algebra,
         auto const rf = algebra.filters_4d.at(case_def.right_filter_name);
         return get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
     }
+    if (algebra.dimension == 5) {
+        auto const lf = algebra.filters_5d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_5d.at(case_def.right_filter_name);
+        return get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
     return {};
 }
 
-// Multi-term variant of compute_prd_mv_for_validation (non-orthogonal metrics;
-// only defined for 4-basis-vector algebras, the only mt users so far).
+// Multi-term variant of compute_prd_mv_for_validation (non-orthogonal
+// metrics; defined for the 4- and 5-basis-vector algebras, the mt users).
 mvec_coeff compute_prd_mv_for_validation_mt(AlgebraData const& algebra,
                                             OutputCase const& case_def,
                                             mt_table const& mt_tab)
@@ -503,13 +518,21 @@ mvec_coeff compute_prd_mv_for_validation_mt(AlgebraData const& algebra,
         !filter_name_known(algebra, case_def.right_filter_name)) {
         return {};
     }
-    if (algebra.dimension != 4) {
-        return {};
+    if (algebra.dimension == 4) {
+        auto const lf = algebra.filters_4d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_4d.at(case_def.right_filter_name);
+        return get_mv_from_mt_tab(mt_tab, left_it->second, right_it->second,
+                                  algebra.basis, get_coeff_filter(lf),
+                                  get_coeff_filter(rf));
     }
-    auto const lf = algebra.filters_4d.at(case_def.left_filter_name);
-    auto const rf = algebra.filters_4d.at(case_def.right_filter_name);
-    return get_mv_from_mt_tab(mt_tab, left_it->second, right_it->second, algebra.basis,
-                              get_coeff_filter(lf), get_coeff_filter(rf));
+    if (algebra.dimension == 5) {
+        auto const lf = algebra.filters_5d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_5d.at(case_def.right_filter_name);
+        return get_mv_from_mt_tab(mt_tab, left_it->second, right_it->second,
+                                  algebra.basis, get_coeff_filter(lf),
+                                  get_coeff_filter(rf));
+    }
+    return {};
 }
 
 } // namespace
@@ -778,6 +801,11 @@ void ConfigurableGenerator::generate_single_case(AlgebraData const& algebra,
         auto right_filter = get_filter_4d(algebra, case_def.right_filter_name);
         prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, left_filter, right_filter);
     }
+    else if (algebra.dimension == 5) {
+        auto left_filter = get_filter_5d(algebra, case_def.left_filter_name);
+        auto right_filter = get_filter_5d(algebra, case_def.right_filter_name);
+        prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, left_filter, right_filter);
+    }
     else {
         throw std::invalid_argument("Unsupported algebra dimension: " +
                                     std::to_string(algebra.dimension));
@@ -836,6 +864,11 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
     else if (algebra.dimension == 4) {
         auto lf = get_filter_4d(algebra, case_def.left_filter_name);
         auto rf = get_filter_4d(algebra, case_def.right_filter_name);
+        prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    else if (algebra.dimension == 5) {
+        auto lf = get_filter_5d(algebra, case_def.left_filter_name);
+        auto rf = get_filter_5d(algebra, case_def.right_filter_name);
         prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
     }
     else {
@@ -902,6 +935,13 @@ std::vector<UnaryOp> unary_ops_for(std::string const& alg)
                 {"r_dual", "r_dual", &r_dual_cga2dc_rules},
                 {"l_antidual", "l_antidual", &l_antidual_cga2dc_rules},
                 {"r_antidual", "r_antidual", &r_antidual_cga2dc_rules}};
+    if (alg == "cga3dc")
+        return {{"l_cmpl", "l_cmpl", &l_cmpl_cga3dc_rules},
+                {"r_cmpl", "r_cmpl", &r_cmpl_cga3dc_rules},
+                {"l_dual", "l_dual", &l_dual_cga3dc_rules},
+                {"r_dual", "r_dual", &r_dual_cga3dc_rules},
+                {"l_antidual", "l_antidual", &l_antidual_cga3dc_rules},
+                {"r_antidual", "r_antidual", &r_antidual_cga3dc_rules}};
     return {};
 }
 
@@ -916,6 +956,7 @@ mvec_coeff const& canonical_mv_coeff(std::string const& alg)
     if (alg == "pga3dp") return mv3dp_coeff_svBtps;
     if (alg == "sta4ds") return mvsta4ds_coeff_svBtps;
     if (alg == "cga2dc") return mv2dc_coeff_svBtps;
+    if (alg == "cga3dc") return mv3dc_coeff_svBtQps;
     throw std::runtime_error("canonical_mv_coeff: unsupported algebra '" + alg + "'");
 }
 
@@ -956,7 +997,8 @@ void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
         mvec_coeff_filter m;
         if (algebra.dimension == 2) m = get_coeff_filter(get_filter_2d(algebra, gf));
         else if (algebra.dimension == 3) m = get_coeff_filter(get_filter_3d(algebra, gf));
-        else m = get_coeff_filter(get_filter_4d(algebra, gf));
+        else if (algebra.dimension == 4) m = get_coeff_filter(get_filter_4d(algebra, gf));
+        else m = get_coeff_filter(get_filter_5d(algebra, gf));
         for (std::size_t i = 0; i < m.size() && i < grade_of_pos.size(); ++i) {
             if (m[i] != 0) grade_of_pos[i] = g;
         }
@@ -965,6 +1007,7 @@ void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
     mark_grade("vec", 1);
     mark_grade("bivec", 2);
     mark_grade("trivec", 3);
+    mark_grade("quadvec", 4);
     mark_grade("ps", n);
 
     // grade set spanned by a (graded or aggregate) filter type
@@ -1056,8 +1099,11 @@ void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
             else if (algebra.dimension == 3) {
                 mask = get_coeff_filter(get_filter_3d(algebra, fname));
             }
-            else {
+            else if (algebra.dimension == 4) {
                 mask = get_coeff_filter(get_filter_4d(algebra, fname));
+            }
+            else {
+                mask = get_coeff_filter(get_filter_5d(algebra, fname));
             }
             mvec_coeff in(canon.size(), zero_str());
             for (std::size_t i = 0; i < canon.size(); ++i) {
@@ -3017,6 +3063,87 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
     }
 
+    else if (algebra.name == "cga3dc") {
+
+        // NOTE: the geometric product of cga3dc is MULTI-TERM (null-pair
+        // metric) and does not fit prd_table — it goes through
+        // get_mt_basis_table_for_product / uses_mt_basis_table instead.
+        if (product_name == "gpr") {
+            throw std::invalid_argument(
+                "cga3dc::gpr is multi-term — handled by the mt basis-table path");
+        }
+
+        else if (product_name == "wdg") {
+            return apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(mv3dc_basis, mv3dc_basis, wdg_str()),
+                wdg_cga3dc_rules);
+        }
+
+        else if (product_name == "dot") {
+            // Inner product (=dot product); off-diagonal metric-partner pairs
+            // are non-zero for the null-basis metric
+            return apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(mv3dc_basis, mv3dc_basis, mul_str()),
+                dot_cga3dc_rules);
+        }
+
+        else if (product_name == "l_contract") {
+            // A << B = rwdg(l_dual(A), B) =
+            // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dc_basis, l_dual_cga3dc_rules), r_cmpl_cga3dc_rules);
+            auto rhs = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+        }
+
+        else if (product_name == "r_contract") {
+            // A >> B = rwdg(A, r_dual(B)) = l_cmpl(wdg(r_cmpl(A),
+            // r_cmpl(r_dual(B))))
+            auto lhs = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dc_basis, r_dual_cga3dc_rules), r_cmpl_cga3dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+        }
+
+        else if (product_name == "l_expand") {
+            // Left expansion: l_expand(A,B) = wdg(l_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv3dc_basis, l_dual_cga3dc_rules);
+            auto rhs = mv3dc_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_cga3dc_rules);
+        }
+
+        else if (product_name == "r_expand") {
+            // Right expansion: r_expand(A,B) = wdg(A, r_dual(B))
+            auto lhs = mv3dc_basis;
+            auto rhs = apply_rules_to_mv(mv3dc_basis, r_dual_cga3dc_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_cga3dc_rules);
+        }
+
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+        }
+
+        else if (product_name == "rdot") {
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, r_cmpl_cga3dc_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_cga3dc_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_cga3dc_rules);
+        }
+    }
+
     // Add other algebras as needed...
     // For now, throw an error for unimplemented combinations
     throw std::invalid_argument("Unsupported product: " + algebra.name +
@@ -3029,7 +3156,7 @@ bool ConfigurableGenerator::uses_mt_basis_table(AlgebraData const& algebra,
     // multi-term basis tables exist wherever a non-orthogonal metric makes the
     // geometric product of basis blades multi-term; that covers the whole gpr
     // family (gpr, its commutator, and the regressive counterparts)
-    return algebra.name == "cga2dc" &&
+    return (algebra.name == "cga2dc" || algebra.name == "cga3dc") &&
            (product_name == "gpr" || product_name == "cmt" || product_name == "rgpr" ||
             product_name == "rcmt" || product_name == "sandwich_rgpr");
 }
@@ -3038,6 +3165,32 @@ mt_table
 ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra,
                                                       std::string const& product_name)
 {
+    if (algebra.name == "cga3dc") {
+        if (product_name == "gpr") {
+            return build_mt_basis_table(mv3dc_basis, mv3dc_basis, gpr_cga3dc_rules_mt,
+                                        mul_str());
+        }
+        else if (product_name == "cmt") {
+            // Commutator product (=asymmetric part of the geometric product)
+            return get_mt_tab_asym(build_mt_basis_table(mv3dc_basis, mv3dc_basis,
+                                                        gpr_cga3dc_rules_mt, mul_str()));
+        }
+        else if (product_name == "rgpr" || product_name == "sandwich_rgpr") {
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)));
+            // the regressive sandwich uses the same basis table for both steps
+            return build_mt_basis_table_cmpl_conjugated(mv3dc_basis, gpr_cga3dc_rules_mt,
+                                                        r_cmpl_cga3dc_rules,
+                                                        l_cmpl_cga3dc_rules, mul_str());
+        }
+        else if (product_name == "rcmt") {
+            // Regressive commutator: rcmt(A,B) = asym(rgpr(A,B))
+            return get_mt_tab_asym(build_mt_basis_table_cmpl_conjugated(
+                mv3dc_basis, gpr_cga3dc_rules_mt, r_cmpl_cga3dc_rules,
+                l_cmpl_cga3dc_rules, mul_str()));
+        }
+        throw std::invalid_argument("no multi-term basis table for cga3dc product '" +
+                                    product_name + "'");
+    }
     if (algebra.name == "cga2dc") {
         if (product_name == "gpr") {
             return build_mt_basis_table(mv2dc_basis, mv2dc_basis, gpr_cga2dc_rules_mt,
@@ -3084,18 +3237,24 @@ void ConfigurableGenerator::generate_single_case_mt(AlgebraData const& algebra,
                                     case_def.right_coeff_name);
     }
 
-    if (algebra.dimension != 4) {
+    if (algebra.dimension != 4 && algebra.dimension != 5) {
         throw std::invalid_argument("Multi-term case generation is only provided for "
-                                    "4-basis-vector algebras (got dimension " +
+                                    "4- and 5-basis-vector algebras (got dimension " +
                                     std::to_string(algebra.dimension) + ")");
     }
 
-    auto left_filter = get_filter_4d(algebra, case_def.left_filter_name);
-    auto right_filter = get_filter_4d(algebra, case_def.right_filter_name);
+    auto const left_mask =
+        algebra.dimension == 4
+            ? get_coeff_filter(get_filter_4d(algebra, case_def.left_filter_name))
+            : get_coeff_filter(get_filter_5d(algebra, case_def.left_filter_name));
+    auto const right_mask =
+        algebra.dimension == 4
+            ? get_coeff_filter(get_filter_4d(algebra, case_def.right_filter_name))
+            : get_coeff_filter(get_filter_5d(algebra, case_def.right_filter_name));
 
-    auto prd_mv = get_mv_from_mt_tab(
-        mt_tab, left_coeff_it->second, right_coeff_it->second, algebra.basis,
-        get_coeff_filter(left_filter), get_coeff_filter(right_filter));
+    auto prd_mv =
+        get_mv_from_mt_tab(mt_tab, left_coeff_it->second, right_coeff_it->second,
+                           algebra.basis, left_mask, right_mask);
 
     // Format output to match reference implementation exactly
     print_case_header(algebra, config, case_def.case_name);
@@ -3135,17 +3294,22 @@ void ConfigurableGenerator::emit_single_case_code_mt(AlgebraData const& algebra,
         return;
     }
 
-    if (algebra.dimension != 4) {
+    if (algebra.dimension != 4 && algebra.dimension != 5) {
         fmt::println("// SKIP {} {} :: {} -- unsupported dimension {}", algebra.name,
                      config.product_name, case_def.case_name, algebra.dimension);
         return;
     }
 
-    auto lf = get_filter_4d(algebra, case_def.left_filter_name);
-    auto rf = get_filter_4d(algebra, case_def.right_filter_name);
-    auto prd_mv =
-        get_mv_from_mt_tab(mt_tab, left_coeff_it->second, right_coeff_it->second,
-                           algebra.basis, get_coeff_filter(lf), get_coeff_filter(rf));
+    auto const lmask =
+        algebra.dimension == 4
+            ? get_coeff_filter(get_filter_4d(algebra, case_def.left_filter_name))
+            : get_coeff_filter(get_filter_5d(algebra, case_def.left_filter_name));
+    auto const rmask =
+        algebra.dimension == 4
+            ? get_coeff_filter(get_filter_4d(algebra, case_def.right_filter_name))
+            : get_coeff_filter(get_filter_5d(algebra, case_def.right_filter_name));
+    auto prd_mv = get_mv_from_mt_tab(mt_tab, left_coeff_it->second,
+                                     right_coeff_it->second, algebra.basis, lmask, rmask);
 
     std::string skip_reason;
     auto rendered =
@@ -3266,6 +3430,16 @@ filter_4d ConfigurableGenerator::get_filter_4d(AlgebraData const& algebra,
     auto it = algebra.filters_4d.find(filter_name);
     if (it == algebra.filters_4d.end()) {
         throw std::invalid_argument("Unknown 4D filter: " + filter_name);
+    }
+    return it->second;
+}
+
+filter_5d ConfigurableGenerator::get_filter_5d(AlgebraData const& algebra,
+                                               std::string const& filter_name)
+{
+    auto it = algebra.filters_5d.find(filter_name);
+    if (it == algebra.filters_5d.end()) {
+        throw std::invalid_argument("Unknown 5D filter: " + filter_name);
     }
     return it->second;
 }

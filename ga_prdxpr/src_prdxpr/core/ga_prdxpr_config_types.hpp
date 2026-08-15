@@ -70,6 +70,7 @@ struct AlgebraData {
     std::map<std::string, filter_2d> filters_2d;
     std::map<std::string, filter_3d> filters_3d;
     std::map<std::string, filter_4d> filters_4d;
+    std::map<std::string, filter_5d> filters_5d;
 
     // Reference to existing basis (unchanged from reference implementation)
     mvec_coeff basis;
