@@ -116,6 +116,7 @@ struct GeometricVariablePatterns {
     std::vector<std::string> bivectors = {"B.x", "B.y", "B.z"}; // Bivector components
     std::vector<std::string> trivectors = {"t.x", "t.y", "t.z",
                                            "t.w"}; // Trivector components
+    std::vector<std::string> quadvectors = {};     // Quadvector components (5D algebras)
 
     // Predefined pattern factories
     static GeometricVariablePatterns createEGA3DPatterns();
@@ -124,6 +125,7 @@ struct GeometricVariablePatterns {
     static GeometricVariablePatterns createPGA2DPPatterns();
     static GeometricVariablePatterns createSTA4DSPatterns();
     static GeometricVariablePatterns createCGA2DCPatterns();
+    static GeometricVariablePatterns createCGA3DCPatterns();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

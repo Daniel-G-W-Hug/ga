@@ -129,6 +129,7 @@ class AlgebraRegistry {
     static SandwichAlgebraConfig createPGA3DPConfig();
     static SandwichAlgebraConfig createSTA4DSConfig();
     static SandwichAlgebraConfig createCGA2DCConfig();
+    static SandwichAlgebraConfig createCGA3DCConfig();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

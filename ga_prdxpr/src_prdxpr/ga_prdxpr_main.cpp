@@ -267,12 +267,13 @@ int main(int argc, char const* argv[])
 
             auto cga3dc_algebra = create_cga3dc_algebra_data();
             std::vector<ProductConfig> cga3dc_configs = {
-                get_cga3dc_gpr_config(),        get_cga3dc_cmt_config(),
-                get_cga3dc_wdg_config(),        get_cga3dc_dot_config(),
-                get_cga3dc_l_contract_config(), get_cga3dc_r_contract_config(),
-                get_cga3dc_l_expand_config(),   get_cga3dc_r_expand_config(),
-                get_cga3dc_rgpr_config(),       get_cga3dc_rcmt_config(),
-                get_cga3dc_rwdg_config(),       get_cga3dc_rdot_config()};
+                get_cga3dc_gpr_config(),          get_cga3dc_cmt_config(),
+                get_cga3dc_wdg_config(),          get_cga3dc_dot_config(),
+                get_cga3dc_l_contract_config(),   get_cga3dc_r_contract_config(),
+                get_cga3dc_l_expand_config(),     get_cga3dc_r_expand_config(),
+                get_cga3dc_rgpr_config(),         get_cga3dc_rcmt_config(),
+                get_cga3dc_rwdg_config(),         get_cga3dc_rdot_config(),
+                get_cga3dc_sandwich_rgpr_config()};
 
             generate_algebra_products(generator, cga3dc_configs, cga3dc_algebra, true,
                                       options);

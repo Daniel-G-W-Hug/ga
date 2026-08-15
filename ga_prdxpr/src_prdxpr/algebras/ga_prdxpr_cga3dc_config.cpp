@@ -1009,4 +1009,23 @@ ProductConfig get_cga3dc_rdot_config()
         .show_basis_table = true};
 }
 
+
+ProductConfig get_cga3dc_sandwich_rgpr_config()
+{
+    return {
+        .product_name = "sandwich_rgpr",
+        .description = "cga3dc regressive sandwich product",
+        .display_name = "regressive sandwich product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter", is_two_step, "intermediate"}
+        .cases =
+            {// Single case that triggers regressive sandwich product behavior - motor
+             // operations
+             {"dummy", "dummy", "dummy", "dummy", "dummy", true, "vec_tmp"}},
+        .is_sandwich_product = true,
+        .uses_brace_switch = true, // true needed for sandwich products
+        .show_basis_table = true   // Reference shows basis table for sandwich product
+    };
+}
+
 } // namespace configurable

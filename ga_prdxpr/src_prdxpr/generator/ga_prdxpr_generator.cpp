@@ -3330,8 +3330,56 @@ void ConfigurableGenerator::generate_sandwich_case_mt(AlgebraData const& algebra
 {
     // Two-step regressive sandwich for multi-term basis tables, mirroring the
     // single-term pga3dp path: step 1 rgpr(M, X) with braced intermediate
-    // coefficients, step 2 rgpr(tmp, rrev(M)). Only cga2dc uses this so far.
+    // coefficients, step 2 rgpr(tmp, rrev(M)). Used by cga2dc and cga3dc.
     std::string prd_name = algebra.name + " " + config.display_name;
+
+    if (algebra.name == "cga3dc") {
+        // cga3dc: regressive versors are ODD multivectors (the rgpr identity is
+        // the odd pseudoscalar in the odd-dimensional algebra, mirroring
+        // pga2dp's odd motors), so the motor slots are mv_u with R_odd /
+        // R_rrev_odd. One rgpr with an odd motor preserves the operand's
+        // parity, so vec/trivec intermediates are odd and bivec/quadvec
+        // intermediates are even.
+        auto const mv_e_filter_5 = get_coeff_filter(filter_5d::mv_e);
+        auto const mv_u_filter_5 = get_coeff_filter(filter_5d::mv_u);
+
+        struct SandwichObj {
+            std::string obj_name;  // object filter name in the case labels
+            filter_5d obj_filter;  // object mask
+            filter_5d tmp_filter;  // intermediate mask (parity of the object)
+            std::string tmp_label; // intermediate label in the printout
+        };
+        std::vector<SandwichObj> const objs = {
+            {"vec", filter_5d::vec, filter_5d::mv_u, "mv_u_tmp"},
+            {"bivec", filter_5d::bivec, filter_5d::mv_e, "mv_e_tmp"},
+            {"trivec", filter_5d::trivec, filter_5d::mv_u, "mv_u_tmp"},
+            {"quadvec", filter_5d::quadvec, filter_5d::mv_e, "mv_e_tmp"},
+        };
+
+        for (auto const& o : objs) {
+            // First product rgpr(M, X) with braced intermediate coefficients
+            fmt::println("{}:", prd_name + space_str() + "rgpr(mv_u, " + o.obj_name +
+                                    ") -> " + o.tmp_label);
+            auto tmp = get_mv_from_mt_tab(
+                mt_tab, mv3dc_coeff_R_odd, mv3dc_coeff_svBtQps, algebra.basis,
+                mv_u_filter_5, get_coeff_filter(o.obj_filter), brace_switch::use_braces);
+            fmt::println("{}:", o.tmp_label);
+            print_mvec(tmp, algebra.basis);
+            fmt::println("");
+
+            // Second product rgpr(tmp, rrev(M))
+            fmt::println("{}:", prd_name + space_str() + "rgpr(" + o.tmp_label +
+                                    ", rrev(mv_u)) -> " + o.tmp_label + "_res");
+            auto res =
+                get_mv_from_mt_tab(mt_tab, tmp, mv3dc_coeff_R_rrev_odd, algebra.basis,
+                                   get_coeff_filter(o.tmp_filter), mv_u_filter_5);
+            print_mvec(res, algebra.basis);
+            fmt::println("");
+
+            print_transformed_result(res, algebra.basis, algebra, config);
+        }
+        return;
+    }
 
     if (algebra.name != "cga2dc") {
         throw std::invalid_argument("generate_sandwich_case_mt: unsupported algebra '" +
@@ -3574,6 +3622,9 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
     }
     else if (algebra_name == "cga2dc") {
         patterns = GeometricVariablePatterns::createCGA2DCPatterns();
+    }
+    else if (algebra_name == "cga3dc") {
+        patterns = GeometricVariablePatterns::createCGA3DCPatterns();
     }
     else {
         // Default to PGA3DP patterns as fallback

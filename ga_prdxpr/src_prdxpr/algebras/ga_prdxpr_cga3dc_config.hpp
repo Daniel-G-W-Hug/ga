@@ -43,5 +43,6 @@ ProductConfig get_cga3dc_rgpr_config(); // regressive geometric product (multi-t
 ProductConfig get_cga3dc_rcmt_config(); // regressive commutator product (multi-term)
 ProductConfig get_cga3dc_rwdg_config(); // regressive wedge product
 ProductConfig get_cga3dc_rdot_config(); // regressive inner product
+ProductConfig get_cga3dc_sandwich_rgpr_config(); // regressive sandwich product
 
 } // namespace configurable

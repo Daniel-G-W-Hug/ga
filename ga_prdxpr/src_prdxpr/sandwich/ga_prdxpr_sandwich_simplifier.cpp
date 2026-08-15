@@ -637,6 +637,21 @@ GeometricVariablePatterns GeometricVariablePatterns::createCGA2DCPatterns()
     return patterns;
 }
 
+GeometricVariablePatterns GeometricVariablePatterns::createCGA3DCPatterns()
+{
+    // cga3dc uses the 32-component svBtQps layout (first 5D algebra): 5 vector,
+    // 10 bivector, 10 trivector and 5 quadvector components
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "M.c"; // Motors (rgpr sandwich)
+    patterns.vectors = {"v.x", "v.y", "v.z", "v.w", "v.u"};
+    patterns.bivectors = {"B.vx", "B.vy", "B.vz", "B.mx", "B.my",
+                          "B.mz", "B.px", "B.py", "B.pz", "B.pw"};
+    patterns.trivectors = {"t.vx", "t.vy", "t.vz", "t.mx", "t.my",
+                           "t.mz", "t.px", "t.py", "t.pz", "t.pw"};
+    patterns.quadvectors = {"Q.x", "Q.y", "Q.z", "Q.w", "Q.u"};
+    return patterns;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // GAAlgebraRules implementation
 ///////////////////////////////////////////////////////////////////////////////
@@ -711,6 +726,13 @@ int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var,
     for (size_t i = 0; i < patterns.trivectors.size(); ++i) {
         if (var == patterns.trivectors[i]) {
             return 4000 + static_cast<int>(i); // First trivector=4000, second=4001, etc.
+        }
+    }
+
+    // GROUP 5b: Quadvector components (4500-4599) - After trivectors (5D algebras)
+    for (size_t i = 0; i < patterns.quadvectors.size(); ++i) {
+        if (var == patterns.quadvectors[i]) {
+            return 4500 + static_cast<int>(i); // First quadvector=4500, second=4501, etc.
         }
     }
 

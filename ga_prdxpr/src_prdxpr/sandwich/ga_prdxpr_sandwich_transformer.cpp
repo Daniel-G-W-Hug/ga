@@ -7,6 +7,7 @@
 // Pull in canonical per-algebra basis declarations so the sandwich configs
 // stay in sync with whatever ordering / naming the algebra headers use.
 #include "algebras/ga_prdxpr_cga2dc.hpp" // mv2dc_basis_kvec
+#include "algebras/ga_prdxpr_cga3dc.hpp" // mv3dc_basis_kvec
 #include "algebras/ga_prdxpr_ega2d.hpp"  // mv2d_basis_kvec
 #include "algebras/ga_prdxpr_ega3d.hpp"  // mv3d_basis_kvec
 #include "algebras/ga_prdxpr_pga2dp.hpp" // mv2dp_basis_kvec
@@ -443,6 +444,9 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
     else if (algebra_type == "cga2dc") {
         return createCGA2DCConfig();
     }
+    else if (algebra_type == "cga3dc") {
+        return createCGA3DCConfig();
+    }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);
     }
@@ -488,6 +492,22 @@ SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
             .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
                                    "R.c7"},
+            .matrix_size = components.size()};
+}
+
+SandwichAlgebraConfig AlgebraRegistry::createCGA3DCConfig()
+{
+    // cga3dc motor sandwich (rgpr-based): the transformed inputs are the
+    // grade-1 components; regressive versors are ODD multivectors in the
+    // odd-dimensional algebra (16 coefficients on grades 1, 3, 5 -- the rgpr
+    // identity is the odd pseudoscalar), mirroring pga2dp's odd motors
+    auto components = basis_kvec_grades(mv3dc_basis_kvec, {1});
+    return {.name = "cga3dc",
+            .geometric_variables = {"v.x", "v.y", "v.z", "v.w", "v.u"},
+            .result_components = components,
+            .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
+                                   "R.c7", "R.c8", "R.c9", "R.c10", "R.c11", "R.c12",
+                                   "R.c13", "R.c14", "R.c15"},
             .matrix_size = components.size()};
 }
 
