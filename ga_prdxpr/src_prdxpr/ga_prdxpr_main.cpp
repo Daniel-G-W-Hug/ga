@@ -306,6 +306,21 @@ int main(int argc, char const* argv[])
                 AlgebraConfig sta4ds_config = get_sta4ds_algebra_config();
                 print_metrics_for_algebra(sta4ds_config);
             }
+
+            // The cga algebras carry the non-orthogonal null-basis metric; the
+            // export uses the full Gram computation, and the zero entries on
+            // the signature diagonal additionally trigger the regressive
+            // metric export (which for these non-degenerate algebras is the
+            // anti-exomorphism, i.e. the negated extended metric)
+            if (options.should_generate_algebra("cga2dc")) {
+                AlgebraConfig cga2dc_config = get_cga2dc_algebra_config();
+                print_metrics_for_algebra(cga2dc_config);
+            }
+
+            if (options.should_generate_algebra("cga3dc")) {
+                AlgebraConfig cga3dc_config = get_cga3dc_algebra_config();
+                print_metrics_for_algebra(cga3dc_config);
+            }
         }
 
         // End-of-run summary of all OutputCase validation warnings (silent if

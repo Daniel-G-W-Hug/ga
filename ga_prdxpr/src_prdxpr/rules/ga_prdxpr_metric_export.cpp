@@ -199,9 +199,14 @@ std::string export_pga_metrics_to_code(std::string const& algebra_name,
 // Generate algebra name from basis prefix (e.g., "e" -> "algebra", "g" -> "sta")
 static std::string generate_algebra_name(AlgebraConfig const& config)
 {
-    // Simple heuristic based on basis prefix and size
+    // Simple heuristic based on basis prefix, metric shape and size
     if (config.basis_prefix == "g") {
         return "sta" + std::to_string(config.basis_vectors.size()) + "ds";
+    }
+    else if (config.has_metric_matrix()) {
+        // CGA (non-orthogonal null-pair metric: two projective dimensions)
+        int euclidean_dims = static_cast<int>(config.basis_vectors.size()) - 2;
+        return "cga" + std::to_string(euclidean_dims) + "dc";
     }
     else if (config.metric_signature.back() == 0) {
         // PGA (has null vector)
