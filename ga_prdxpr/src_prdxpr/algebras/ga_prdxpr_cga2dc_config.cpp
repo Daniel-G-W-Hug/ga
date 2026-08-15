@@ -645,7 +645,7 @@ ProductConfig get_cga2dc_rgpr_config()
              {"rgpr(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
              {"rgpr(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
              // s
-             {"rgpr(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
+             {"rgpr(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -804,7 +804,7 @@ ProductConfig get_cga2dc_rdot_config()
                  // vec
                  {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
                  // s
-                 {"rdot(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
+                 {"rdot(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

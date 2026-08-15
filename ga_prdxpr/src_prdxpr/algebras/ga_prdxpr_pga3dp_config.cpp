@@ -572,7 +572,7 @@ ProductConfig get_pga3dp_l_weight_contract_config()
             {// mv
              {"l_weight_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
              // ps
-             {"l_weight_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"l_weight_contract(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
              {"l_weight_contract(ps,trivec) -> 0", "svBtps", "svBtps", "ps", "trivec"},
              {"l_weight_contract(trivec,ps) -> vec", "svBtps", "svBtps", "trivec", "ps"},
              {"l_weight_contract(ps,bivec) -> 0", "svBtps", "svBtps", "ps", "bivec"},
@@ -623,7 +623,7 @@ ProductConfig get_pga3dp_r_weight_contract_config()
             {// mv
              {"r_weight_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
              // ps
-             {"r_weight_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"r_weight_contract(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
              {"r_weight_contract(ps,trivec) -> vec", "svBtps", "svBtps", "ps", "trivec"},
              {"r_weight_contract(trivec,ps) -> 0", "svBtps", "svBtps", "trivec", "ps"},
              {"r_weight_contract(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},

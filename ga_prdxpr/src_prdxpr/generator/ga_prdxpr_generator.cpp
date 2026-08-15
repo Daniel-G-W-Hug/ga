@@ -354,6 +354,37 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
                                   "-- {}",
                                   *override_t, fix));
         }
+        // Check H (converse of check E): declared a zero result ('-> 0' /
+        // '-> 0 ps'), but the actual computation is non-zero. The typical cause
+        // is a case list transplanted from an algebra whose metric makes the
+        // case vanish (e.g. a degenerate pseudoscalar square) into one where it
+        // does not. Without this check the declaration silently wins: the case
+        // print shows the computed content, but --output=code emits the
+        // declared zero form.
+        if (!prd_mv.empty() && prd_mv.size() == algebra.basis.size()) {
+            std::vector<std::string> nonzero;
+            for (std::size_t k = 0; k < prd_mv.size(); ++k) {
+                if (!is_zero_expr(prd_mv[k])) {
+                    nonzero.push_back(
+                        fmt::format("{}='{}'", algebra.basis[k], trim_ws(prd_mv[k])));
+                }
+            }
+            if (!nonzero.empty()) {
+                std::string joined;
+                for (std::size_t k = 0; k < nonzero.size(); ++k) {
+                    if (k) joined += ", ";
+                    joined += nonzero[k];
+                }
+                std::string msg = fmt::format("declared zero result but the "
+                                              "computation is non-zero: {}",
+                                              joined);
+                auto const suggestion = suggest_minimal_result_type(algebra, prd_mv);
+                if (suggestion) {
+                    msg += fmt::format(" -- suggested result type: '{}'", *suggestion);
+                }
+                warn_case(algebra, config, case_def, msg);
+            }
+        }
         return; // No check C on zero results.
     }
     auto const result_mask = get_filter_mask(algebra, tokens->result);
