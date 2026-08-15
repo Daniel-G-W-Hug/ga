@@ -344,13 +344,18 @@ source](#validating-against-existing-source)).
 
 The non-orthogonal metric machinery (`metric_matrix`, multi-term geometric product
 rules) is covered by `ga_prdxpr_metric_matrix_test` (doctest), and the generated cga2dc
-rule tables are pinned against a literature-reviewed reference,
-`reference_output/ga_prdxpr_rulegen_cga2dc.txt` (both the canonical basis order and the
+rule tables are pinned against references, `reference_output/ga_prdxpr_rulegen_cga2dc.txt`
+(literature-reviewed) and `reference_output/ga_prdxpr_rulegen_cga3dc.txt` (generated;
+its book-order review is pending — both hold the canonical basis order and the
 reference-literature basis order). Re-verify after any generator or config change (run
 from `build/ga_prdxpr/`):
 
 ```bash
 ./ga_prdxpr_rule_generator_test | \
-  awk '/^=== cga2dc algebra rules ===/{f=1} f&&/^RULE DISPLAY COMPLETE$/{exit} f' | \
+  awk '/^=== cga2dc algebra rules ===/{f=1} f&&(/^=== cga3dc algebra rules ===/||/^RULE DISPLAY COMPLETE$/){exit} f' | \
   diff - ../../ga_prdxpr/src_prdxpr/reference_output/ga_prdxpr_rulegen_cga2dc.txt
+
+./ga_prdxpr_rule_generator_test | \
+  awk '/^=== cga3dc algebra rules ===/{f=1} f&&/^RULE DISPLAY COMPLETE$/{exit} f' | \
+  diff - ../../ga_prdxpr/src_prdxpr/reference_output/ga_prdxpr_rulegen_cga3dc.txt
 ```

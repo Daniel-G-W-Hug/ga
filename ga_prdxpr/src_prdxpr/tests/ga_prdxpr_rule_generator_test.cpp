@@ -3,6 +3,8 @@
 
 #include "algebras/ga_prdxpr_cga2dc.hpp"
 #include "algebras/ga_prdxpr_cga2dc_config.hpp"
+#include "algebras/ga_prdxpr_cga3dc.hpp"
+#include "algebras/ga_prdxpr_cga3dc_config.hpp"
 #include "algebras/ga_prdxpr_ega2d.hpp"
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
@@ -151,6 +153,7 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
                  : algebra_name.find("sta4ds") != std::string::npos ? "space-time 3d"
                  : algebra_name.find("cga2dc") != std::string::npos ? "conformal 2d"
+                 : algebra_name.find("cga3dc") != std::string::npos ? "conformal 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -923,6 +926,45 @@ int main(int argc, char* argv[])
             display_algebra_rules(cga2dc_bookview, "cga2dc (reference basis order)");
         }
 
+        // Configure and test CGA3DC algebra (non-orthogonal null-basis metric —
+        // same machinery as cga2dc, one dimension up: 32x32 multi-term rules)
+        AlgebraConfig cga3dc_config = get_cga3dc_algebra_config();
+
+        if (test_consistency) {
+            auto fresh = generate_algebra_rules(cga3dc_config);
+            bool cga3dc_success = (fresh.geometric_product_mt == gpr_cga3dc_rules_mt) &&
+                                  (fresh.wedge_product == wdg_cga3dc_rules) &&
+                                  (fresh.dot_product == dot_cga3dc_rules) &&
+                                  (fresh.l_cmpl == l_cmpl_cga3dc_rules) &&
+                                  (fresh.r_cmpl == r_cmpl_cga3dc_rules) &&
+                                  (fresh.l_dual == l_dual_cga3dc_rules) &&
+                                  (fresh.r_dual == r_dual_cga3dc_rules) &&
+                                  (fresh.l_antidual == l_antidual_cga3dc_rules) &&
+                                  (fresh.r_antidual == r_antidual_cga3dc_rules);
+            fmt::println("\n=== Complete cga3dc Validation ===");
+            fmt::println("  gpr (multi-term), wdg, dot, l/r cmpl, l/r dual/antidual: {}",
+                         cga3dc_success ? "✓ PERFECT MATCH (static init == fresh)"
+                                        : "✗ DIFFERENCES");
+            test_results.push_back(cga3dc_success);
+        }
+        else {
+            display_algebra_rules(cga3dc_config, "cga3dc");
+
+            // REVIEW AID: the same algebra with the multivector basis in the
+            // order used by the printed reference tables (round-first at the
+            // antivector grades, PGA-quartet first at grade 3), so the
+            // generated metric matrix and product tables can be compared
+            // against the literature 1:1 by eye. The canonical library order
+            // is the section above.
+            AlgebraConfig cga3dc_bookview = cga3dc_config;
+            cga3dc_bookview.multivector_basis = {
+                "1",    "e1",   "e2",    "e3",    "e4",    "e5",    "e41",   "e42",
+                "e43",  "e23",  "e31",   "e12",   "e15",   "e25",   "e35",   "e45",
+                "e423", "e431", "e412",  "e321",  "e415",  "e425",  "e435",  "e235",
+                "e315", "e125", "e1234", "e4235", "e4315", "e4125", "e3215", "e12345"};
+            display_algebra_rules(cga3dc_bookview, "cga3dc (reference basis order)");
+        }
+
         if (test_consistency) {
             // Overall summary for test mode
             std::string separator(80, '=');
@@ -941,6 +983,8 @@ int main(int argc, char* argv[])
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
             fmt::println("cga2dc (G(3,1,0), null basis): {}",
                          test_results[5] ? "✓ PERFECT" : "✗ FAILED");
+            fmt::println("cga3dc (G(4,1,0), null basis): {}",
+                         test_results[6] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),
                                            [](bool b) { return b; });

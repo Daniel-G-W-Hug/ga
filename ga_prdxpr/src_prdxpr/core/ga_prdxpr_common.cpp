@@ -3,6 +3,7 @@
 
 #include "core/ga_prdxpr_common.hpp"
 
+#include <algorithm>
 #include <exception>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -973,6 +974,25 @@ void validate_basis_consistency(mvec_coeff const& multivector_basis,
                 "match flattened basis_kvec[{}] = '{}'",
                 i, multivector_basis[i], i, flattened_basis_kvec[i]));
         }
+    }
+
+    // Check that no two blades carry the same INDEX SET (a typo like a
+    // duplicated 'e4325'/'e4235' pair would otherwise enter the rule
+    // generation silently; blade names are compared by their sorted index
+    // digits, so reorderings of the same indices are caught as well)
+    std::vector<std::string> seen_index_sets;
+    for (size_t i = 1; i < multivector_basis.size(); ++i) {
+        std::string digits = multivector_basis[i].substr(expected_prefix.size());
+        std::sort(digits.begin(), digits.end());
+        for (size_t k = 0; k < seen_index_sets.size(); ++k) {
+            if (seen_index_sets[k] == digits) {
+                throw std::runtime_error(fmt::format(
+                    "validate_basis_consistency: multivector_basis[{}] = '{}' has the "
+                    "same basis-vector index set as multivector_basis[{}] = '{}'",
+                    i, multivector_basis[i], k + 1, multivector_basis[k + 1]));
+            }
+        }
+        seen_index_sets.push_back(digits);
     }
 }
 
