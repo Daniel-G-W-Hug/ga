@@ -18,7 +18,7 @@ What this demonstrates
 ----------------------
 The full physics workflow in projective GA from Python:
 
-* body-frame motor formulation: ``M(t) = M0 ⟇ exp(½ B_b(t))``;
+* body-frame motor formulation: ``M(t) = M0 ⟇ rexp(½ B_b(t))``;
 * inertia construction with parallel-axis (Steiner) correction
   (``get_plate_inertia`` with a non-default pivot);
 * LU-based inertia inversion (``get_inertia_inverse``);
@@ -86,12 +86,12 @@ class SimOdePlatePga2dp:
         hw, hh = self.width / 2.0, self.height / 2.0
 
         # M0: pure translation placing the body origin (= cm) at cm_w_pos0.
-        # Encoding: translation by (tx, ty) → motor exp(0.5*(-ty, tx, 0)).
-        self.M0 = pga.exp(0.5 * pga.vec2dp(
+        # Encoding: translation by (tx, ty) → motor rexp(0.5*(-ty, tx, 0)).
+        self.M0 = pga.rexp(0.5 * pga.vec2dp(
             -self.cm_w_pos0.y, self.cm_w_pos0.x, 0.0))
 
         # World position of the body-frame pivot Q_b — fixed throughout the
-        # rotation: move2dp(Q_b, M0 ⟇ exp(½ phi Q_b)) = move2dp(Q_b, M0).
+        # rotation: move2dp(Q_b, M0 ⟇ rexp(½ phi Q_b)) = move2dp(Q_b, M0).
         Q_b = pga.vec2dp(hw, hh, 1.0)
         self.pivot_w = pga.move2dp(Q_b, self.M0)
         print(f"pivot_w = {self.pivot_w:>-7.3f}  "
@@ -114,8 +114,8 @@ class SimOdePlatePga2dp:
         B = self.u[0]      # B_b = phi * Q_b
         Omega = self.u[1]  # Omega_b = omega * Q_b
 
-        # Current motor M(t) = M0 ⟇ exp(½ B_b(t)) and the cm world position.
-        M = pga.rgpr(self.M0, pga.exp(0.5 * B))
+        # Current motor M(t) = M0 ⟇ rexp(½ B_b(t)) and the cm world position.
+        M = pga.rgpr(self.M0, pga.rexp(0.5 * B))
         cm_w = pga.move2dp(pga.vec2dp(0.0, 0.0, 1.0), M)
 
         # Force couple. Gravity g acts at cm; the reaction holds the pivot in
@@ -146,7 +146,7 @@ class SimOdePlatePga2dp:
 
     def print_sim(self, t):
         B = self.u[0]
-        M = pga.rgpr(self.M0, pga.exp(0.5 * B))
+        M = pga.rgpr(self.M0, pga.rexp(0.5 * B))
         cm_w = pga.move2dp(pga.vec2dp(0.0, 0.0, 1.0), M)
         # B_b = phi * Q_b, so phi = B.z. World-frame B via M0 — the rotation
         # angle is frame-invariant, only the moment terms change.
@@ -160,7 +160,7 @@ class SimOdePlatePga2dp:
 
     # Validation helpers ---------------------------------------------------
     def get_cm_world(self):
-        M = pga.rgpr(self.M0, pga.exp(0.5 * self.u[0]))
+        M = pga.rgpr(self.M0, pga.rexp(0.5 * self.u[0]))
         return pga.move2dp(pga.vec2dp(0.0, 0.0, 1.0), M)
 
     def get_omega(self):

@@ -158,7 +158,7 @@ def test_marked_point_orbit_radius_is_constant():
 
 def test_step_via_motor_manifold_matches_closed_form_pose():
     """kinematic_system2dp::step evolves a frame's relative pose on the motor
-    manifold: P_new = P ⟇ exp(0.5·ξ·dt). For a constant rate, N steps of dt
+    manifold: P_new = P ⟇ rexp(0.5·ξ·dt). For a constant rate, N steps of dt
     must reproduce the closed-form pose at t = N·dt — exercising pose2dp,
     motor_from_pose2dp / pose2dp_from_motor, rgpr, rrev and exp together."""
     dt, n = 0.016, 50

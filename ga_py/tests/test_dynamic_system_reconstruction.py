@@ -11,7 +11,7 @@ bound, exercising the joint descriptors the closed-loop work added to ga_py
 
 Mirrors dynamic_system2dp exactly:
   * a joint is a joint_state2dp {type, screw_b, rest, phi, omega}; its
-    body->parent motor is  M(q) = rest (x) exp(0.5 q screw_b)  (rgpr + exp);
+    body->parent motor is  M(q) = rest (x) rexp(0.5 q screw_b)  (rgpr + rexp);
   * world motors compose with rgpr, parent on the left (= get_pos_trafo(i, 0));
   * the joint-space mass matrix is  M_jk = sum_i <S_j^(i), I_i[S_k^(i)]>  with
     the spatial pairing  <a, P> = -rwdg(a, P)  and the screws transported into
@@ -78,7 +78,7 @@ class DoublePendulum:
     # --- kinematics rebuilt from the joint state -----------------------------
 
     def _joint_motor(self, j: "pga.joint_state2dp") -> "pga.mvec2dp_u":
-        # M(q) = rest (x) exp(0.5 q screw_b)
+        # M(q) = rest (x) rexp(0.5 q screw_b)
         return pga.rgpr(j.rest, pga.rexp(0.5 * j.phi * j.screw_b))
 
     def _refresh(self) -> None:

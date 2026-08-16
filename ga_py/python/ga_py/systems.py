@@ -327,7 +327,7 @@ class KinematicSystem3dp(StaticSystem3dp):
 # ---------------------------------------------------------------------------
 
 # Joint kinds (mirror of the C++ `joint3dp` enum). Both 1-DOF kinds run through
-# the same exponential M(q) = rest ⟇ exp(½ q·screw) — only the screw differs.
+# the same exponential M(q) = rest ⟇ rexp(½ q·screw) — only the screw differs.
 FREE = "free"
 REVOLUTE = "revolute"
 PRISMATIC = "prismatic"
@@ -774,7 +774,7 @@ class DynamicSystem3dp(KinematicSystem3dp):
     def _step_free_body(self, idx: int, dt: float) -> None:
         """RK4-integrate one free rigid body over dt on the Lie-algebra pair (B, Omega):
         dB/dt = Omega, dOmega/dt = I⁻¹[W_body - rcmt(Omega, I(Omega))] (compute_omega_dot).
-        Pose evolves on the motor manifold M(t) = M0 ⟇ exp(½ B).
+        Pose evolves on the motor manifold M(t) = M0 ⟇ rexp(½ B).
         """
         m0 = pga.rrev(self.step_pos_trafo(idx))  # current body -> parent motor
         bd = self._body[idx]

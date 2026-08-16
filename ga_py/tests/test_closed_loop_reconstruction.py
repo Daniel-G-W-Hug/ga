@@ -13,7 +13,7 @@ pairing (rwdg), the inertia map, and the shared solvers (lu_solve / lstsq_solve)
 Mirrors closed_loop_system2dp exactly:
   * a spanning TREE of revolute bodies (here a genuine branching tree: crank ->
     coupler is one branch, the rocker a second branch from the ground), each body
-    a joint_state2dp whose body->parent motor is  M(q) = rest (x) exp(0.5 q S_b);
+    a joint_state2dp whose body->parent motor is  M(q) = rest (x) rexp(0.5 q S_b);
   * the closure residual g(q) = P_a - P_b for one point-coincidence, and its
     Jacobian G whose columns are the relative anchor partial velocities
     rcmt(S_j, P) over the ancestor joints (= constraint_jacobian);
@@ -106,7 +106,7 @@ class ClosedLoopSystem:
     # --- kinematics rebuilt from the joint state ---------------------------------
 
     def _joint_motor(self, j: "pga.joint_state2dp") -> "pga.mvec2dp_u":
-        # M(q) = rest (x) exp(0.5 q screw_b)
+        # M(q) = rest (x) rexp(0.5 q screw_b)
         return pga.rgpr(j.rest, pga.rexp(0.5 * j.phi * j.screw_b))
 
     def _refresh(self) -> None:
