@@ -15,9 +15,18 @@ namespace hd::ga::cga {
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc geometric operations (layer under construction):
 //
-// exp/log/sqrt and the conformal transformations follow next (they mirror the
-// cga2dc layer one dimension up and are inserted ABOVE the object section, in
-// the canonical per-algebra ordering).
+// - exp()                   -> versor from a simple trivector generator
+//                              (w.r.t. rgpr, closed form; throws non-simple)
+// - log()                   -> principal generator of a simple-image motor
+// - sqrt()                  -> square root of such a motor
+// - get_translation()       -> motor translating by (dx, dy, dz)
+// - get_rotation()          -> motor rotating about a line by theta
+// - get_dilation()          -> motor scaling by sigma about a point
+// - get_transversion()      -> special conformal transformation motor
+// - get_loxodromic()        -> two-fixed-point motor from a dipole
+// - transform()             -> apply motor: sandwich M (v) u (v) rrev(M)
+// - invert_on()             -> inversion in a sphere or plane (flector
+//                              sandwich)
 //
 // Object construction (grade encodes the object kind: round point = vector,
 // dipole / flat point = bivector, circle / line = trivector, sphere / plane =
@@ -51,6 +60,7 @@ namespace hd::ga::cga {
 //
 // - is_congruent()          -> same subspace up to a non-zero scalar factor
 // - is_close()              -> same value within a RELATIVE tolerance
+// - is_same_transform()     -> do two motors act as the same conformal map?
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -66,6 +76,9 @@ constexpr TriVec3dc<T> line3dc(T px, T py, T pz, T vx, T vy, T vz);
 template <typename T>
     requires(numeric_type<T>)
 constexpr QuadVec3dc<T> plane3dc(T nx, T ny, T nz, T d);
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec3dc<T> car(BiVec3dc<T> const& B);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -302,6 +315,55 @@ inline MVec3dc_U<T> get_dilation(T mx, T my, T mz, T sigma)
     T const delta = -T(0.5) * std::log(sigma);
     auto const g = antidual(flat_point3dc(mx, my, mz));
     return exp(TriVec3dc<T>(delta * g));
+}
+
+
+// transversion (special conformal transformation) by (tx, ty, tz): the
+// conjugate of a translation by the unit-sphere inversion,
+//
+//     x' = (x + x^2 t) / (1 + 2 t.x + t^2 x^2)
+//
+// built directly as the versor product s (v) T (v) s with the unit sphere s
+// at the origin (an even flector conjugating the odd translation motor back
+// to a motor)
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> get_transversion(T tx, T ty, T tz)
+{
+    auto const s = QuadVec3dc<T>(T(0.0), T(0.0), T(0.0), T(0.5), T(-1.0)); // unit sphere
+    auto const Tm = get_translation(tx, ty, tz);
+    auto const M = rgpr(rgpr(s, Tm), s);
+    return gr1(M) + gr3(M) + gr5(M);
+}
+
+// loxodromic motor about the two surface points of the (unitized) dipole d:
+// rotation by phi about the carrier line combined with the hyperbolic motion
+// of rapidity delta that flows from one dipole point to the other (both fix
+// the two points; delta > 0 flows towards the point at center + r * axis). The generator
+// phi/2 * l + delta * h is NON-simple, but its two parts commute, so the motor is the
+// product of the two SIMPLE exponentials:
+//
+//     M = exp( (phi/2) * l ) (v) exp( delta * h )
+//
+// with l the unit carrier line, h = antidual(d) normalized to rgpr(h,h) = +I.
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> get_loxodromic(BiVec3dc<T> const& d, T phi, T delta)
+{
+    auto const du = unitize(d);
+    // elliptic part: the unit carrier line of the dipole
+    auto const l = car(du);
+    auto const sql = rgpr(l, l);
+    T const al = T(gr5(sql));
+    hd::ga::detail::check_normalization<T>(std::abs(al), "dipole carrier line");
+    auto const lu = T(1.0) / std::sqrt(-al) * l;
+    // hyperbolic part: the antidual of the dipole (fixes the same two points)
+    auto const h = antidual(du);
+    auto const sqh = rgpr(h, h);
+    T const ah = T(gr5(sqh));
+    hd::ga::detail::check_normalization<T>(std::abs(ah), "dipole antidual");
+    auto const hu = T(1.0) / std::sqrt(ah) * h;
+    return rgpr(exp(TriVec3dc<T>(T(0.5) * phi * lu)), exp(TriVec3dc<T>(-delta * hu)));
 }
 
 
@@ -907,6 +969,30 @@ bool is_close(MVec3dc<T> const& a, MVec3dc<U> const& b, value_t rel_tol = eps_co
          value_t(b.c25), value_t(b.c26), value_t(b.c27), value_t(b.c28), value_t(b.c29),
          value_t(b.c30), value_t(b.c31)},
         rel_tol);
+}
+
+// Do two motors describe the same conformal transformation? NOT the same
+// question as M1 == M2: versors double-cover the transformations (M and -M
+// act identically), and any uniform rescaling of a versor changes only the
+// homogeneous weights of the images, not the geometry. Decided by ACTION: a
+// 3d Moebius transformation is pinned by the images of a spread point set,
+// so the images of five embedded points in general position are compared up
+// to weight.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_same_transform(MVec3dc_U<T> const& M1, MVec3dc_U<U> const& M2,
+                       value_t rel_tol = eps_congruent)
+{
+    auto const p0 = Vec3dc<value_t>(0.0, 0.0, 0.0, 1.0, 0.0); // embedded origin
+    auto const p1 = Vec3dc<value_t>(1.0, 0.0, 0.0, 1.0, 0.5); // embedded (1,0,0)
+    auto const p2 = Vec3dc<value_t>(0.0, 1.0, 0.0, 1.0, 0.5); // embedded (0,1,0)
+    auto const p3 = Vec3dc<value_t>(0.0, 0.0, 1.0, 1.0, 0.5); // embedded (0,0,1)
+    auto const p4 = Vec3dc<value_t>(1.0, 1.0, 1.0, 1.0, 1.5); // embedded (1,1,1)
+    return is_congruent(transform(p0, M1), transform(p0, M2), rel_tol) &&
+           is_congruent(transform(p1, M1), transform(p1, M2), rel_tol) &&
+           is_congruent(transform(p2, M1), transform(p2, M2), rel_tol) &&
+           is_congruent(transform(p3, M1), transform(p3, M2), rel_tol) &&
+           is_congruent(transform(p4, M1), transform(p4, M2), rel_tol);
 }
 
 } // namespace hd::ga::cga

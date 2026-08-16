@@ -586,6 +586,56 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), screw)),
                        vec3dc(0.0, 1.0, 2.0, 0.0, 0.0)));
         CHECK_THROWS(log(screw)); // outside the simple-generator image
+
+        // is_same_transform: action-equality across the double cover and
+        // uniform rescaling; distinguishes genuinely different maps
+        CHECK(is_same_transform(Rm, -1.0 * Rm));
+        CHECK(is_same_transform(Tm, 2.5 * Tm));
+        CHECK(is_same_transform(
+            Rm, rgpr(get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 4.0),
+                     get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 4.0))));
+        // translation equals its two-plane reflection composition
+        CHECK(
+            is_same_transform(Tm, rgpr(mvec3dc_u(gr1(rgpr(plane3dc(1.0, 0.0, 0.0, 1.0),
+                                                          plane3dc(1.0, 0.0, 0.0, 0.0))),
+                                                 gr3(rgpr(plane3dc(1.0, 0.0, 0.0, 1.0),
+                                                          plane3dc(1.0, 0.0, 0.0, 0.0))),
+                                                 gr5(rgpr(plane3dc(1.0, 0.0, 0.0, 1.0),
+                                                          plane3dc(1.0, 0.0, 0.0, 0.0)))),
+                                       I_u)));
+        CHECK_FALSE(is_same_transform(Rm, Tm));
+        CHECK_FALSE(is_same_transform(Rm, Dm));
+        // transversion: x' = (x + x^2 t)/(1 + 2 t.x + t^2 x^2); on the t-axis
+        // x -> x/(1 + tau x)
+        auto V = get_transversion(0.5, 0.0, 0.0);
+        CHECK(is_close(rgpr(V, rrev(V)), I_u));
+        CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), V)),
+                       vec3dc(2.0 / 3.0, 0.0, 0.0, 0.0, 0.0)));
+        CHECK(is_close(euclid(transform(round_point3dc(2.0, 0.0, 0.0, 0.0), V)),
+                       vec3dc(1.0, 0.0, 0.0, 0.0, 0.0)));
+
+        // loxodromic about the dipole with points (0,0,+-1): fixes both points;
+        // the pure hyperbolic flow moves the equator point (1,0,0) to
+        // (sech(2 delta), 0, tanh(2 delta)); the pure elliptic part is the
+        // rotation about the carrier line; the two parts commute
+        auto dz = dipole3dc(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0);
+        auto Lx = get_loxodromic(dz, 0.7, 0.3);
+        CHECK(is_close(rgpr(Lx, rrev(Lx)), I_u));
+        CHECK(is_congruent(transform(round_point3dc(0.0, 0.0, 1.0, 0.0), Lx),
+                           round_point3dc(0.0, 0.0, 1.0, 0.0)));
+        CHECK(is_congruent(transform(round_point3dc(0.0, 0.0, -1.0, 0.0), Lx),
+                           round_point3dc(0.0, 0.0, -1.0, 0.0)));
+        auto Lh = get_loxodromic(dz, 0.0, 0.3);
+        CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), Lh)),
+                       vec3dc(1.0 / std::cosh(0.6), 0.0, std::tanh(0.6), 0.0, 0.0)));
+        CHECK(is_same_transform(get_loxodromic(dz, 0.7, 0.0),
+                                get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.7)));
+        CHECK(is_same_transform(Lx, rgpr(get_loxodromic(dz, 0.7, 0.0), Lh)));
+        CHECK(is_same_transform(Lx, rgpr(Lh, get_loxodromic(dz, 0.7, 0.0))));
+
+        // conjugated rotation == rotation about the shifted line (the check
+        // the double cover blocked above)
+        CHECK(is_same_transform(Mc, Rsh));
     }
 
     TEST_CASE("cga3dc: fmt printing")
