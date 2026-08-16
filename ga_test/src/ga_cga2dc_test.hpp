@@ -754,7 +754,7 @@ TEST_SUITE("CGA 2dc Tests")
 
         vec2dc p1, p2;
 
-        // two r=2 circles at (1,0), (3,0): intersection (2, +/-sqrt(3))
+        // two r=2 circles at (1,0), (3,0): intersection (2, +/-rsqrt(3))
         CHECK(intersect(circle2dc(1.0, 0.0, 2.0), circle2dc(3.0, 0.0, 2.0), p1, p2));
         value_t const s3 = std::sqrt(3.0);
         bool const order_a = is_close(p1, vec2dc(2.0, s3, 1.0, 0.0)) &&
@@ -861,18 +861,18 @@ TEST_SUITE("CGA 2dc Tests")
         };
 
         // the identity: exp of the zero generator is the rgpr identity I
-        CHECK(exp(bivec2dc()) == I_e);
+        CHECK(rexp(bivec2dc()) == I_e);
 
         // group gates on generic generators
         for (int i = 0; i < 3; ++i) {
             auto B = bivec2dc(0.1 * rnd_int(), 0.1 * rnd_int(), 0.1 * rnd_int(),
                               0.1 * rnd_int(), 0.1 * rnd_int(), 0.1 * rnd_int());
-            auto U = exp(B);
+            auto U = rexp(B);
             CHECK(is_close(rgpr(U, rrev(U)), I_e)); // unit versor
-            CHECK(is_close(rgpr(exp(0.3 * B), exp(0.5 * B)), exp(0.8 * B)));
-            CHECK(is_close(log(U), B)); // principal
-            CHECK(is_close(rgpr(sqrt(U), sqrt(U)), U));
-            CHECK(is_close(sqrt(U), exp(0.5 * B)));
+            CHECK(is_close(rgpr(rexp(0.3 * B), rexp(0.5 * B)), rexp(0.8 * B)));
+            CHECK(is_close(rlog(U), B)); // principal
+            CHECK(is_close(rgpr(rsqrt(U), rsqrt(U)), U));
+            CHECK(is_close(rsqrt(U), rexp(0.5 * B)));
         }
 
         // TRANSLATION: reflections in the parallel lines x=0 and x=1 compose
@@ -884,9 +884,9 @@ TEST_SUITE("CGA 2dc Tests")
                               pscalar2dc(1.0)));
         CHECK(rgpr(Mt, rrev(Mt)) == I_e);
         CHECK(sandwich(Mt, point2dc(0.5, 2.0)) == point2dc(2.5, 2.0)); // exact
-        auto Bt = log(Mt);
+        auto Bt = rlog(Mt);
         CHECK(rgpr(Bt, Bt) == mvec2dc_e(scalar2dc(0.0))); // parabolic generator
-        CHECK(exp(Bt) == Mt);
+        CHECK(rexp(Bt) == Mt);
 
         // ROTATION about the origin by pi/2 (line pair at 45 degrees); the
         // raw two-line versor is not unit -- normalize the sandwiched point
@@ -896,9 +896,9 @@ TEST_SUITE("CGA 2dc Tests")
 
         // a full turn (2 pi) exponentiates to -I, where the principal
         // logarithm is singular by construction
-        auto Br = log(mvec2dc_e(1.0 / std::sqrt(2.0) * Mr)); // pi/2 generator
-        CHECK(is_close(exp(4.0 * Br), mvec2dc_e(pscalar2dc(-1.0))));
-        CHECK_THROWS(log(exp(4.0 * Br)));
+        auto Br = rlog(mvec2dc_e(1.0 / std::sqrt(2.0) * Mr)); // pi/2 generator
+        CHECK(is_close(rexp(4.0 * Br), mvec2dc_e(pscalar2dc(-1.0))));
+        CHECK_THROWS(rlog(rexp(4.0 * Br)));
 
         // DILATION: inversion in concentric circles r=1 then r=2 scales by 4
         auto Md = rgpr(circle2dc(0.0, 0.0, 2.0), circle2dc(0.0, 0.0, 1.0));

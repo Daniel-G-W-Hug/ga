@@ -15,10 +15,10 @@ namespace hd::ga::cga {
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc geometric operations (layer under construction):
 //
-// - exp()                   -> versor from a simple trivector generator
+// - rexp()                   -> versor from a simple trivector generator
 //                              (w.r.t. rgpr, closed form; throws non-simple)
-// - log()                   -> principal generator of a simple-image motor
-// - sqrt()                  -> square root of such a motor
+// - rlog()                   -> principal generator of a simple-image motor
+// - rsqrt()                  -> square root of such a motor
 // - get_translation()       -> motor translating by (dx, dy, dz)
 // - get_rotation()          -> motor rotating about a line by theta
 // - get_dilation()          -> motor scaling by sigma about a point
@@ -97,25 +97,25 @@ constexpr TriVec3dc<T> car(BiVec3dc<T> const& B);
 // generator (a blade: every line, circle and dual flat point is one) the
 // square is purely central and the series sums in closed form,
 //
-//     exp(t) = cosh(w) * I + (sinh(w)/w) * t,   w = sqrt(alpha)
+//     rexp(t) = cosh(w) * I + (sinh(w)/w) * t,   w = rsqrt(alpha)
 //
 // evaluated with complex arithmetic so the elliptic (alpha < 0), hyperbolic
-// (alpha > 0) and parabolic (alpha = 0, translations: exp(t) = I + t)
+// (alpha > 0) and parabolic (alpha = 0, translations: rexp(t) = I + t)
 // branches come out of ONE formula (cosh(w) and sinh(w)/w are even in w, so
 // the square-root branch is irrelevant). Non-simple generators (screws,
 // loxodromics) are NOT covered yet -- exp throws for them; compose their
 // motors as rgpr products of simple ones instead.
 //
-// log() returns the principal generator: complex acosh of the pseudoscalar
+// rlog() returns the principal generator: complex acosh of the pseudoscalar
 // part, then t = V / (sinh(w)/w) with V the trivector part. It is restricted
 // to motors in the image of the simple exp (vanishing vector part) and throws
 // otherwise, and at the true singularity (full-turn versor, central part -I).
-// sqrt(M) = exp(log(M)/2).
+// rsqrt(M) = rexp(rlog(M)/2).
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(numeric_type<T>)
-inline MVec3dc_U<T> exp(TriVec3dc<T> const& t)
+inline MVec3dc_U<T> rexp(TriVec3dc<T> const& t)
 {
     auto const sq = rgpr(t, t); // alpha * I + rwdg(t,t), central iff simple
     auto const nsp = gr1(sq);   // non-simplicity (vector) part
@@ -141,7 +141,7 @@ inline MVec3dc_U<T> exp(TriVec3dc<T> const& t)
 
 template <typename T>
     requires(numeric_type<T>)
-inline TriVec3dc<T> log(MVec3dc_U<T> const& M)
+inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M)
 {
     // restricted to the image of the simple exp: vector part must vanish
     auto const v = gr1(M);
@@ -167,9 +167,9 @@ inline TriVec3dc<T> log(MVec3dc_U<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-inline MVec3dc_U<T> sqrt(MVec3dc_U<T> const& M)
+inline MVec3dc_U<T> rsqrt(MVec3dc_U<T> const& M)
 {
-    return exp(T(0.5) * log(M));
+    return rexp(T(0.5) * rlog(M));
 }
 
 
@@ -195,8 +195,8 @@ inline MVec3dc_U<T> sqrt(MVec3dc_U<T> const& M)
 // directly in the terminated parabolic form):
 //
 //     translation by d:            M = I + B,  B from the parabolic generator
-//     rotation about a line by theta:  M = exp( (theta/2) * unit line )
-//     dilation about m by sigma:   M = exp( delta * dual flat point at m ),
+//     rotation about a line by theta:  M = rexp( (theta/2) * unit line )
+//     dilation about m by sigma:   M = rexp( delta * dual flat point at m ),
 //                                  delta = -1/2 ln(sigma)
 //
 // Weights under sandwiches are homogeneous: a non-unit versor scales all
@@ -301,7 +301,7 @@ inline MVec3dc_U<T> get_rotation(T px, T py, T pz, T vx, T vy, T vz, T theta)
     T const alpha = T(gr5(sq));
     hd::ga::detail::check_normalization<T>(std::abs(alpha), "rotation axis line");
     auto const lu = T(1.0) / std::sqrt(-alpha) * l;
-    return exp(TriVec3dc<T>(T(0.5) * theta * lu));
+    return rexp(TriVec3dc<T>(T(0.5) * theta * lu));
 }
 
 // dilation about (mx, my, mz) by the scale factor sigma > 0; the generator is
@@ -314,7 +314,7 @@ inline MVec3dc_U<T> get_dilation(T mx, T my, T mz, T sigma)
     hd::ga::detail::check_normalization<T>(sigma, "dilation scale factor");
     T const delta = -T(0.5) * std::log(sigma);
     auto const g = antidual(flat_point3dc(mx, my, mz));
-    return exp(TriVec3dc<T>(delta * g));
+    return rexp(TriVec3dc<T>(delta * g));
 }
 
 
@@ -343,7 +343,7 @@ inline MVec3dc_U<T> get_transversion(T tx, T ty, T tz)
 // phi/2 * l + delta * h is NON-simple, but its two parts commute, so the motor is the
 // product of the two SIMPLE exponentials:
 //
-//     M = exp( (phi/2) * l ) (v) exp( delta * h )
+//     M = rexp( (phi/2) * l ) (v) rexp( delta * h )
 //
 // with l the unit carrier line, h = antidual(d) normalized to rgpr(h,h) = +I.
 template <typename T>
@@ -363,7 +363,7 @@ inline MVec3dc_U<T> get_loxodromic(BiVec3dc<T> const& d, T phi, T delta)
     T const ah = T(gr5(sqh));
     hd::ga::detail::check_normalization<T>(std::abs(ah), "dipole antidual");
     auto const hu = T(1.0) / std::sqrt(ah) * h;
-    return rgpr(exp(TriVec3dc<T>(T(0.5) * phi * lu)), exp(TriVec3dc<T>(-delta * hu)));
+    return rgpr(rexp(TriVec3dc<T>(T(0.5) * phi * lu)), rexp(TriVec3dc<T>(-delta * hu)));
 }
 
 

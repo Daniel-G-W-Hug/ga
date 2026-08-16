@@ -487,7 +487,7 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(value_t(dot(a, par(a))) == 0.0);
         CHECK(value_t(dot(c, par(c))) == 0.0);
 
-        // dipole surface points: p+- = cen +- sqrt(radius_sq) * att (exact:
+        // dipole surface points: p+- = cen +- rsqrt(radius_sq) * att (exact:
         // the two round points at center +- r * axis)
         auto du = unitize(d);
         auto p_plus = vec3dc(cen(du) + std::sqrt(radius_sq(du)) * att(du));
@@ -513,8 +513,8 @@ TEST_SUITE("CGA 3dc Tests")
             return vec3dc(u.x, u.y, u.z, 0.0, 0.0);
         };
 
-        // exp(0) = I; unit versors for all three builders
-        CHECK(exp(trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)) == I_u);
+        // rexp(0) = I; unit versors for all three builders
+        CHECK(rexp(trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)) == I_u);
         auto Tm = get_translation(2.0, 0.0, 0.0);
         auto Rm = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 2.0);
         auto Dm = get_dilation(0.0, 0.0, 0.0, 4.0);
@@ -556,11 +556,11 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(is_close(unitize(invert_on(invert_on(q, S1), S1)), unitize(q)));
 
         // log/exp round trip (elliptic + hyperbolic + parabolic) and sqrt
-        CHECK(is_close(exp(log(Rm)), Rm));
-        CHECK(is_close(exp(log(Dm)), Dm));
-        CHECK(is_close(exp(log(Tm)), Tm));
-        CHECK(is_close(rgpr(sqrt(Rm), sqrt(Rm)), Rm));
-        CHECK(is_close(rgpr(sqrt(Dm), sqrt(Dm)), Dm));
+        CHECK(is_close(rexp(rlog(Rm)), Rm));
+        CHECK(is_close(rexp(rlog(Dm)), Dm));
+        CHECK(is_close(rexp(rlog(Tm)), Tm));
+        CHECK(is_close(rgpr(rsqrt(Rm), rsqrt(Rm)), Rm));
+        CHECK(is_close(rgpr(rsqrt(Dm), rsqrt(Dm)), Dm));
 
         // one-parameter group: R(a) v R(b) = R(a+b)
         auto Ra = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.4);
@@ -580,12 +580,12 @@ TEST_SUITE("CGA 3dc Tests")
         // non-simple (screw) generators throw; composed motors still work
         auto lz = gr3(get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0));
         auto tz = gr3(get_translation(0.0, 0.0, 2.0));
-        CHECK_THROWS(exp(trivec3dc(lz + tz)));
+        CHECK_THROWS(rexp(trivec3dc(lz + tz)));
         auto screw = rgpr(get_translation(0.0, 0.0, 2.0), Rm); // compose instead
         CHECK(is_close(rgpr(screw, rrev(screw)), I_u));
         CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), screw)),
                        vec3dc(0.0, 1.0, 2.0, 0.0, 0.0)));
-        CHECK_THROWS(log(screw)); // outside the simple-generator image
+        CHECK_THROWS(rlog(screw)); // outside the simple-generator image
 
         // is_same_transform: action-equality across the double cover and
         // uniform rescaling; distinguishes genuinely different maps
