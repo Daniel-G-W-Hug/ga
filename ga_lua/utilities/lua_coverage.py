@@ -113,13 +113,26 @@ def collect_ga_py(ga_py):
 
 
 def collect_ga_lua():
-    """Parse ga_lua.hpp into flat sets of bound types / functions / constants."""
+    """Parse ga_lua.hpp into bound types / functions / constants.
+
+    Functions are collected PER ALGEBRA TABLE, because that is how they are bound:
+    `ega.set_function("wdg", ...)`, `pga.rgpr`, `cga.dot`, `sta.wdg`. Matching the
+    name alone would report a function bound in ONE table as present for every
+    algebra --- which was harmless while a single global name served all of them,
+    and became a blind spot the moment the tables were introduced. Types and
+    constants stay global, so those remain flat sets.
+    """
     src = GA_LUA_HPP.read_text()
-    # functions reach Lua two ways: C++ `set_function("name", ...)` (the name may
-    # sit on the next line) and Lua-level `function name(...)` definitions inside the
-    # embedded prelude string (register_forwarders -> lua.script). Count both.
-    funcs = set(re.findall(r'set_function\(\s*"([A-Za-z0-9_]+)"', src))
-    funcs |= set(re.findall(r"^\s*function ([A-Za-z0-9_]+)\(", src, re.MULTILINE))
+    # functions reach Lua two ways: C++ `<table>.set_function("name", ...)` (the
+    # name may sit on the next line) and Lua-level `function <table>.name(...)`
+    # definitions inside the embedded prelude (register_forwarders -> lua.script).
+    funcs = {a: set() for a in ("ega", "pga", "cga", "sta", "top")}
+    for tbl, name in re.findall(
+            r'\b(ega|pga|cga|sta|lua)\.set_function\(\s*"([A-Za-z0-9_]+)"', src):
+        funcs["top" if tbl == "lua" else tbl].add(name)
+    for tbl, name in re.findall(
+            r"^\s*function (?:(ega|pga|cga|sta)\.)?([A-Za-z0-9_]+)\(", src, re.MULTILINE):
+        funcs[tbl or "top"].add(name)
     # ga_py exposes both value/POD types and scoped enums as classes; ga_lua binds
     # the former with new_usertype<> and the latter with new_enum<> -> count both.
     types = set(re.findall(r"new_usertype<\s*([A-Za-z0-9_]+)\s*>", src))
@@ -161,7 +174,18 @@ def main():
               "==============================================================")
         for kind in kinds:
             target = py[alg][kind]
-            bound = lua[kind]  # ga_lua is flat (global) -> name-level membership
+            # functions are per-algebra tables; types/constants stay global. A
+            # top-level helper (deg2rad, sign, ...) counts for any algebra asking.
+            if kind == "functions" and alg == "top":
+                # ga_py keeps a few algebra-agnostic helpers (gr, rgr) at the top
+                # level; ga_lua binds them per algebra, where they dispatch on the
+                # argument type just the same. Reachable, so not a gap --- count a
+                # top-level target found in any table.
+                bound = set().union(*lua["functions"].values())
+            elif kind == "functions":
+                bound = lua["functions"][alg] | lua["functions"]["top"]
+            else:
+                bound = lua[kind]
             present = sorted(n for n in target if n in bound)
             missing = sorted(n for n in target if n not in bound)
             grand["target"] += len(target)

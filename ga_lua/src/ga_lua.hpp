@@ -3878,8 +3878,9 @@ void register_functions(sol::state& lua)
             sol::resolve<quadvec3dc(quadvec3dc const&, quadvec3dc const&)>(invert_on)));
 
     // expand(): join of a point with a line/plane into the higher-grade flat
-    // (operates on the convenience types registered in register_convenience_types)
-    ega.set_function(
+    // (operates on the PGA convenience types registered in
+    // register_convenience_types -- hence the pga table, matching ga_py's pga.expand)
+    pga.set_function(
         "expand",
         sol::overload(sol::resolve<line2d(point2d const&, line2d const&)>(expand),
                       sol::resolve<line3d(point3d const&, plane3d const&)>(expand),
@@ -4861,68 +4862,74 @@ void register_constants(sol::state& lua)
 ////////////////////////////////////////////////////////////////////////////////
 void register_forwarders(sol::state& lua)
 {
+    // These live in the per-algebra tables, like every other operation and like
+    // ga_py's pga.* / sta.* -- and every call INSIDE them must be qualified too:
+    // after the move to per-algebra tables nothing is global any more, so an
+    // unqualified rwdg() here is a nil call at RUNTIME. No input script exercises
+    // these forwarders, so only calling them catches it
+    // (ga_lua/input/test_forwarders.lua).
     lua.script(R"lua(
         -- PGA 2dp bulk/weight contractions:  rwdg(dual(a), b) / rwdg(a, dual(b))
-        function l_bulk_contract2dp(a, b)   return rwdg(bulk_dual(a), b)   end
-        function l_weight_contract2dp(a, b) return rwdg(weight_dual(a), b) end
-        function r_bulk_contract2dp(a, b)   return rwdg(a, bulk_dual(b))   end
-        function r_weight_contract2dp(a, b) return rwdg(a, weight_dual(b)) end
+        function pga.l_bulk_contract2dp(a, b)   return pga.rwdg(pga.bulk_dual(a), b)   end
+        function pga.l_weight_contract2dp(a, b) return pga.rwdg(pga.weight_dual(a), b) end
+        function pga.r_bulk_contract2dp(a, b)   return pga.rwdg(a, pga.bulk_dual(b))   end
+        function pga.r_weight_contract2dp(a, b) return pga.rwdg(a, pga.weight_dual(b)) end
 
         -- PGA 2dp bulk/weight expansions:  wdg(dual(a), b) / wdg(a, dual(b))
-        function l_bulk_expand2dp(a, b)   return wdg(bulk_dual(a), b)   end
-        function l_weight_expand2dp(a, b) return wdg(weight_dual(a), b) end
-        function r_bulk_expand2dp(a, b)   return wdg(a, bulk_dual(b))   end
-        function r_weight_expand2dp(a, b) return wdg(a, weight_dual(b)) end
+        function pga.l_bulk_expand2dp(a, b)   return pga.wdg(pga.bulk_dual(a), b)   end
+        function pga.l_weight_expand2dp(a, b) return pga.wdg(pga.weight_dual(a), b) end
+        function pga.r_bulk_expand2dp(a, b)   return pga.wdg(a, pga.bulk_dual(b))   end
+        function pga.r_weight_expand2dp(a, b) return pga.wdg(a, pga.weight_dual(b)) end
 
         -- PGA 3dp bulk/weight contractions (left/right complement variants)
-        function l_bulk_contract3dp(a, b)   return rwdg(l_bulk_dual(a), b)   end
-        function l_weight_contract3dp(a, b) return rwdg(l_weight_dual(a), b) end
-        function r_bulk_contract3dp(a, b)   return rwdg(a, r_bulk_dual(b))   end
-        function r_weight_contract3dp(a, b) return rwdg(a, r_weight_dual(b)) end
+        function pga.l_bulk_contract3dp(a, b)   return pga.rwdg(pga.l_bulk_dual(a), b)   end
+        function pga.l_weight_contract3dp(a, b) return pga.rwdg(pga.l_weight_dual(a), b) end
+        function pga.r_bulk_contract3dp(a, b)   return pga.rwdg(a, pga.r_bulk_dual(b))   end
+        function pga.r_weight_contract3dp(a, b) return pga.rwdg(a, pga.r_weight_dual(b)) end
 
         -- PGA 3dp bulk/weight expansions
-        function l_bulk_expand3dp(a, b)   return wdg(l_bulk_dual(a), b)   end
-        function l_weight_expand3dp(a, b) return wdg(l_weight_dual(a), b) end
-        function r_bulk_expand3dp(a, b)   return wdg(a, r_bulk_dual(b))   end
-        function r_weight_expand3dp(a, b) return wdg(a, r_weight_dual(b)) end
+        function pga.l_bulk_expand3dp(a, b)   return pga.wdg(pga.l_bulk_dual(a), b)   end
+        function pga.l_weight_expand3dp(a, b) return pga.wdg(pga.l_weight_dual(a), b) end
+        function pga.r_bulk_expand3dp(a, b)   return pga.wdg(a, pga.r_bulk_dual(b))   end
+        function pga.r_weight_expand3dp(a, b) return pga.wdg(a, pga.r_weight_dual(b)) end
 
         -- "is the weight squared norm essentially 1?" guard (matches ga_py's _EPS)
         local _EPS = 1e-9
         local function _unitize_if_needed(p)
-            local n = weight_nrm_sq(p)
-            if n > _EPS and n ~= 1.0 then p = unitize(p) end
+            local n = pga.weight_nrm_sq(p)
+            if n > _EPS and n ~= 1.0 then p = pga.unitize(p) end
             return p
         end
 
         -- projections of the lower-grade a onto the larger-grade b  (gr(a) < gr(b))
-        function ortho_proj2dp(a, b)   return _unitize_if_needed(rwdg(b, r_weight_expand2dp(a, b))) end
-        function central_proj2dp(a, b) return _unitize_if_needed(rwdg(b, r_bulk_expand2dp(a, b)))   end
-        function ortho_antiproj2dp(a, b) return wdg(b, r_weight_contract2dp(a, b)) end
-        function ortho_proj3dp(a, b)   return _unitize_if_needed(rwdg(b, r_weight_expand3dp(a, b))) end
-        function central_proj3dp(a, b) return _unitize_if_needed(rwdg(b, r_bulk_expand3dp(a, b)))   end
-        function ortho_antiproj3dp(a, b) return wdg(b, r_weight_contract3dp(a, b)) end
+        function pga.ortho_proj2dp(a, b)   return _unitize_if_needed(pga.rwdg(b, pga.r_weight_expand2dp(a, b))) end
+        function pga.central_proj2dp(a, b) return _unitize_if_needed(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)))   end
+        function pga.ortho_antiproj2dp(a, b) return pga.wdg(b, pga.r_weight_contract2dp(a, b)) end
+        function pga.ortho_proj3dp(a, b)   return _unitize_if_needed(pga.rwdg(b, pga.r_weight_expand3dp(a, b))) end
+        function pga.central_proj3dp(a, b) return _unitize_if_needed(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)))   end
+        function pga.ortho_antiproj3dp(a, b) return pga.wdg(b, pga.r_weight_contract3dp(a, b)) end
 
         -- Euclidean distance -> dualnum(homogeneous_magnitude, weight). The C++
         -- `if constexpr (gr(a)+gr(b) == n)` is dispatched here via gr().
-        function dist2dp(a, b)
-            local c1 = to_val(weight_nrm(wdg(a, att(b))))
+        function pga.dist2dp(a, b)
+            local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
             local c0
-            if gr(a) + gr(b) == 3 then c0 = to_val(rwdg(a, b))
-            else                       c0 = to_val(bulk_nrm(att(wdg(a, b)))) end
+            if pga.gr(a) + pga.gr(b) == 3 then c0 = pga.to_val(pga.rwdg(a, b))
+            else                               c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b)))) end
             return dualnum2dp.new(c0, c1)
         end
-        function dist3dp(a, b)
-            local c1 = to_val(weight_nrm(wdg(a, att(b))))
+        function pga.dist3dp(a, b)
+            local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
             local c0
-            if gr(a) + gr(b) == 4 then c0 = to_val(rwdg(a, b))
-            else                       c0 = to_val(bulk_nrm(att(wdg(a, b)))) end
+            if pga.gr(a) + pga.gr(b) == 4 then c0 = pga.to_val(pga.rwdg(a, b))
+            else                               c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b)))) end
             return dualnum3dp.new(c0, c1)
         end
 
         -- STA4D expansions (generic C++ templates, mirroring ga_py's forwarders):
         --   l_expand4ds(a,b) = wdg(l_dual(a), b) ;  r_expand4ds(a,b) = wdg(a, r_dual(b))
-        function l_expand4ds(a, b) return wdg(l_dual(a), b) end
-        function r_expand4ds(a, b) return wdg(a, r_dual(b)) end
+        function sta.l_expand4ds(a, b) return sta.wdg(sta.l_dual(a), b) end
+        function sta.r_expand4ds(a, b) return sta.wdg(a, sta.r_dual(b)) end
     )lua");
 }
 

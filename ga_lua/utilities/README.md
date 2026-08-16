@@ -40,10 +40,12 @@ from any cwd as long as the in-tree `build/` is current.
 
 ### What it does and does NOT check
 
-- **Name-level, not overload-level.** `ga_lua` binds one global `nrm` carrying
-  per-type `sol::overload`s; `ga_py` exposes `ega.nrm`, `pga.nrm`, … A name reported
-  "bound" is present *somewhere* in `ga_lua` — the tool does not verify that every
-  per-type overload exists. The dominant gaps (a whole missing algebra, or an unbound
+- **Per-table, but not overload-level.** Since free functions moved into the
+  per-algebra tables (`ega.wdg`, `pga.rgpr`, `cga.dot`, `sta.wdg`), the tool matches
+  the TABLE too: a function bound only in `ega` no longer counts as present for
+  `pga`. That distinction found a real mis-filing the moment it was added
+  (`expand` sat in `ega` while `ga_py` has it as `pga.expand`). It still does not
+  verify that every per-type overload within a table exists. The dominant gaps (a whole missing algebra, or an unbound
   function) still surface clearly through the type/constant lists. Audit per-overload
   completeness by reading the relevant `register_*` block.
 - **Operators are out of scope.** `ga_py` exposes them as dunder methods, `ga_lua` as
@@ -51,6 +53,18 @@ from any cwd as long as the in-tree `build/` is current.
   type, so they are not listed as free functions.
 - **`ga_py` must be current.** The tool reads the built module, so rebuild `_ga_py`
   after any binding/regeneration change before trusting the numbers.
+
+### Two things it cannot see
+
+- **A forwarder that is defined but broken.** The `register_forwarders` prelude is
+  Lua source inside a C++ string: the tool (and the compiler) see the definitions,
+  not whether their bodies resolve. All 26 were dead at once after the per-algebra
+  move — their bodies still called the old global names — while every input script
+  stayed green because none of them called a forwarder. `ga_lua/input/test_forwarders.lua`
+  now calls all 26, so that path has a gate.
+- **Placement that differs from `ga_py` on purpose.** `gr` / `rgr` are top-level in
+  `ga_py` and per-algebra here (they dispatch on argument type either way), so a
+  top-level target found in any table counts as bound.
 
 ## `gen_lua_overloads.py`
 
