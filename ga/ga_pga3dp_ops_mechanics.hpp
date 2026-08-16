@@ -207,7 +207,7 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //
 //   input twist Omega:  weight (vx,vy,vz) = ANGULAR velocity omega  (rotation lives in
 //   the
-//                       weight: exp() uses weight_nrm_sq over (vx,vy,vz) as the rotation
+//                       weight: rexp() uses weight_nrm_sq over (vx,vy,vz) as the rotation
 //                       angle), bulk (mx,my,mz) = LINEAR velocity v (a translation has
 //                       zero weight, only bulk).
 //   output I(Omega):    (vx,vy,vz) = LINEAR momentum p = m v,
@@ -424,7 +424,7 @@ BiVec3dp<T> compute_omega_dot(Inertia3dp<T> const& I_inv, BiVec3dp<T> const& F,
 // In 2D the orientation is a scalar angle phi; in 3D it is a rotation VECTOR rot = axis *
 // angle (both origin and rot are vec3dp -- origin a finite point with w = 1, rot a
 // direction with w = 0). The pose is encoded into / decoded from the body->parent motor
-// by the two converters below (the 3D analog of 2D's exp(vec2dp(0,0,phi)) build + atan2
+// by the two converters below (the 3D analog of 2D's rexp(vec2dp(0,0,phi)) build + atan2
 // decode).
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -435,12 +435,12 @@ struct pose3dp {
 
 
 // Build the body->parent motor M = translate(origin) (x) rotate(rot) from a pose. The
-// rotation about the parent origin is exp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight /
+// rotation about the parent origin is rexp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight /
 // (vx,vy,vz) slots carry the rotation axis*angle); the translation is get_motor(origin as
 // a direction). Inverse of pose3dp_from_motor (below).
 inline mvec3dp_e motor_from_pose3dp(pose3dp const& p)
 {
-    auto const M_rot = exp(0.5 * bivec3dp{p.rot.x, p.rot.y, p.rot.z, 0.0, 0.0, 0.0});
+    auto const M_rot = rexp(0.5 * bivec3dp{p.rot.x, p.rot.y, p.rot.z, 0.0, 0.0, 0.0});
     auto const M_tra = get_motor(vec3dp{p.origin.x, p.origin.y, p.origin.z, 0.0});
     return rgpr(M_tra,
                 M_rot); // rotate about origin first, then translate -> body->parent
@@ -665,10 +665,10 @@ class static_system3dp {
 // root -> frame by the Newton-Euler adjoint + commutator (bracket) relations.
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// A 3dp twist (instantaneous screw), the se(3) motor generator. exp(0.5 * twist) is the
+// A 3dp twist (instantaneous screw), the se(3) motor generator. rexp(0.5 * twist) is the
 // motor and move3dp(twist, M) is its adjoint. In the BiVec3dp{vx,vy,vz,mx,my,mz} encoding
 // the (vx,vy,vz)=e41,e42,e43 (weight) slots carry the ANGULAR velocity (the rotation
-// axis*rate, as in exp()'s weight_nrm_sq angle) and (mx,my,mz)=e23,e31,e12 (bulk) slots
+// axis*rate, as in rexp()'s weight_nrm_sq angle) and (mx,my,mz)=e23,e31,e12 (bulk) slots
 // the LINEAR velocity -- decode as omega = (vx,vy,vz), v = (mx,my,mz). The alias
 // documents intent at every signature and adds no overloads (it IS bivec3dp); 2D's
 // twist2dp was a vec2dp -- see the 2D->3D notes.
@@ -885,7 +885,7 @@ class kinematic_system3dp : public static_system3dp {
 //   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
 //
 // -- LITERALLY the same line as 2D (vec) with BiVec3dp instead. The pose is evolved on
-// the motor manifold M(t) = M0 (x) exp(1/2 B) with RK4 on the Lie-algebra pair (B,
+// the motor manifold M(t) = M0 (x) rexp(1/2 B) with RK4 on the Lie-algebra pair (B,
 // Omega). Bodies may also be connected by 1-DOF JOINTS into articulated chains (coupled
 // forward dynamics) with force elements (spring/damper, applied wrench, grounded spring,
 // and subclass-provided elements via extra_wrenches()) feeding the generalised force.
@@ -917,7 +917,7 @@ inline body3dp make_disc_body(value_t m, value_t r, value_t t)
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
 // Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
-// unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw).
+// unification of rotation and translation): M(q) = rest (x) rexp(1/2 q * screw).
 //
 //   free      : unconstrained 6-DOF rigid body; state lives in the base layer.
 //
@@ -1089,7 +1089,7 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     // add a revolute-jointed body: a 1-DOF hinge about the body-fixed axis line through
     // `pivot_b` (a finite point, w = 1) along the unit direction `axis_b` (w = 0). The
-    // joint screw is that line, screw = wdg(pivot_b, axis_b); exp(1/2 q screw) is a
+    // joint screw is that line, screw = wdg(pivot_b, axis_b); rexp(1/2 q screw) is a
     // rotation about it. The effective hinge inertia (Steiner) emerges from the spatial
     // Jacobian in the forward dynamics; nothing extra to precompute.
     void add_revolute_body(static_frame3dp const& f, body3dp const& b,
@@ -1103,7 +1103,7 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     // add a prismatic-jointed body: a 1-DOF slider along the body-fixed unit direction
     // `dir`. The joint screw is the translation generator (an ideal line, zero weight):
-    // exp(1/2 s screw) is a pure translation by s along dir. The machinery is IDENTICAL
+    // rexp(1/2 s screw) is a pure translation by s along dir. The machinery is IDENTICAL
     // to the revolute joint -- only the generator differs (the PGA unification).
     void add_prismatic_body(static_frame3dp const& f, body3dp const& b, vec3dp const& dir,
                             value_t s0 = 0.0, value_t v0 = 0.0,
@@ -1332,7 +1332,7 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
     // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
-    // accumulated from the current relative pose M0 (so M(t) = M0 (x) exp(1/2 B)), Omega
+    // accumulated from the current relative pose M0 (so M(t) = M0 (x) rexp(1/2 B)), Omega
     // the body twist. dB/dt = Omega; dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ].
     // For a torque-free body (grav = 0) this reduces to the pure se(3) Euler equation
     // (Poinsot / Dzhanibekov).
@@ -1345,14 +1345,14 @@ class dynamic_system3dp : public kinematic_system3dp {
 
         // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
         auto omega_dot = [&](twist3dp const& B, twist3dp const& Om) -> twist3dp {
-            auto const M = rgpr(M0, exp(0.5 * B));             // pose at this stage
+            auto const M = rgpr(M0, rexp(0.5 * B));             // pose at this stage
             auto const W_w = wdg(move3dp(O_3dp, M), m * grav); // gravity wrench (world)
             auto const W_b = move3dp(W_w, rrev(M)); // pulled into the body frame
             return compute_omega_dot(I_inv, W_b, Om, I);
         };
 
         // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = Omega,
-        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) exp(1/2 B)).
+        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) rexp(1/2 B)).
         std::array<twist3dp, 2> u_mem{twist3dp{}, relative_twist(idx)};
         std::array<twist3dp, 4> uh_mem{};
         std::array<twist3dp, 2> rhs_mem{};
@@ -1368,7 +1368,7 @@ class dynamic_system3dp : public kinematic_system3dp {
 
         // decode the evolved pose (motor -> pose3dp via the constrained motor log) and
         // write pose + twist back into the base layers
-        set_pose(idx, pose3dp_from_motor(rgpr(M0, exp(0.5 * u[0]))));
+        set_pose(idx, pose3dp_from_motor(rgpr(M0, rexp(0.5 * u[0]))));
         set_twist(idx, u[1]);
     }
 
@@ -1391,12 +1391,12 @@ class dynamic_system3dp : public kinematic_system3dp {
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
     }
 
-    // body->parent motor at generalised coordinate q: M(q) = rest (x) exp(1/2 q * screw).
+    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q * screw).
     // The SAME exponential builds a rotation (revolute, screw = a line) or a translation
     // (prismatic, screw = an ideal line); the operators do not change.
     mvec3dp_e joint_motor(size_t idx, value_t q) const
     {
-        return rgpr(joint[idx].rest, exp(0.5 * q * joint[idx].screw_b));
+        return rgpr(joint[idx].rest, rexp(0.5 * q * joint[idx].screw_b));
     }
 
     // Write the joint state (q, q-dot) into the base pose + relative twist, so all

@@ -552,7 +552,7 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("rgpr(B_rot, B_rot) = {}", rgpr(B_rot, B_rot));
 
         CHECK(rgpr(B_tra, B_tra) == mvec3dp_e{});      // should be zero
-                                                       // (stops expansion of exp(B_tra)
+                                                       // (stops expansion of rexp(B_tra)
                                                        //  after second term)
         CHECK(gr0(rgpr(B_rot, B_rot)) == scalar3dp{}); // should be zero
         CHECK(gr2(rgpr(B_rot, B_rot)) == bivec3dp{});  // should be zero

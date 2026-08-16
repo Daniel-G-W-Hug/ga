@@ -374,7 +374,7 @@ TEST_SUITE("PGA3DP: physics tests prep")
         // Cross-check the two rk4_step overloads by integrating the same
         // problem with both and asserting bit-identical results at every
         // sub-step. Problem: 1-D harmonic oscillator du/dt = -u (closed
-        // form: u(t) = u0 * exp(-t)), state encoded in a single vec3d.
+        // form: u(t) = u0 * rexp(-t)), state encoded in a single vec3d.
 
         constexpr size_t n = 1;
         constexpr value_t dt = 0.01;
@@ -419,7 +419,7 @@ TEST_SUITE("PGA3DP: physics tests prep")
             }
         }
 
-        // Sanity: the trajectory is approximately u0 * exp(-T) at the end.
+        // Sanity: the trajectory is approximately u0 * rexp(-T) at the end.
         value_t const T = n_steps * dt;
         value_t const decay = std::exp(-T);
         CHECK(u_vec[0].x == doctest::Approx(1.0 * decay).epsilon(1e-6));
@@ -504,17 +504,17 @@ TEST_SUITE("PGA3DP: physics tests application")
             // Models a rigid cuboid acting as a 3D pendulum fixed at its
             // top-right z-edge (the pivot line L_b).
             //
-            // PGA3DP body-frame formulation: M(t) = M0 ⟇ exp(½ B_b(t))
+            // PGA3DP body-frame formulation: M(t) = M0 ⟇ rexp(½ B_b(t))
             // - M0: pure translation motor placing body origin (= cm) at initial world
             // pos
-            //       M0 = exp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
+            //       M0 = rexp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
             //       (translation uses the bulk/e23,e31,e12 components, not e41,e42,e43)
             // - B_b = phi * L_b: rotation bivector, phi = rotation angle about L_b
             // - Pivot line L_b = wdg(P_z0, P_z1) = bivec3dp{0, 0, 1, hh, -hw, 0}
             //   where P_z0 = (hw,hh,0,1), P_z1 = (hw,hh,1,1) in body frame
             //   => direction vz = +1 (along e3/z axis), moment = (hh, -hw, 0)
             // - Constraint projection: alpha = dOmega.vz  (since L_b.vz = 1)
-            // - Pivot invariance: move3dp(L_b, exp(½ phi * L_b)) = L_b for all phi
+            // - Pivot invariance: move3dp(L_b, rexp(½ phi * L_b)) = L_b for all phi
             //
             // get_cuboid_inertia(m,w,h,d,L_pivot) applies the scalar parallel-axis
             // (Steiner) correction: only I[3,0], I[4,1], I[5,2] are updated by
@@ -560,15 +560,15 @@ TEST_SUITE("PGA3DP: physics tests application")
 
                 // Body origin = CM. Pivot = z-edge at (hw, hh, *) in body frame.
                 // M0: pure translation placing cm at cm_w_pos0.
-                // In PGA3DP, translate by (cx,cy,cz): motor = exp(0.5 *
+                // In PGA3DP, translate by (cx,cy,cz): motor = rexp(0.5 *
                 // bivec3dp{0,0,0,cx,cy,cz}) Translation is encoded in the bulk
                 // (e23,e31,e12) components, not the weight (e41,e42,e43) components.
-                M0 = exp(0.5 *
+                M0 = rexp(0.5 *
                          bivec3dp{0.0, 0.0, 0.0, cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
 
                 // pivot_pt_w: world position of representative pivot point (hw,hh,0,1)
                 // in body frame, mapped via M0.  Stays fixed during rotation since
-                // move3dp(P_on_L_b, M0 ⟇ exp(½ phi * L_b)) = M0-image of P_on_L_b.
+                // move3dp(P_on_L_b, M0 ⟇ rexp(½ phi * L_b)) = M0-image of P_on_L_b.
                 pivot_pt_w = move3dp(vec3dp{hw, hh, 0.0, 1.0}, M0);
                 fmt::println(
                     "pivot_pt_w = {:>-7.3f}  (world position of (hw,hh,0) via M0)",
@@ -590,8 +590,8 @@ TEST_SUITE("PGA3DP: physics tests application")
                 bivec3dp const B = u[0];     // position bivector B_b = phi * L_b
                 bivec3dp const Omega = u[1]; // velocity bivector Omega_b = omega * L_b
 
-                // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
-                auto const M = rgpr(M0, exp(0.5 * B));
+                // Current motor: M(t) = M0 ⟇ rexp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, rexp(0.5 * B));
 
                 // CM world position: body origin = (0,0,0,1) in body frame
                 vec3dp const O_b{0.0, 0.0, 0.0, 1.0};
@@ -642,8 +642,8 @@ TEST_SUITE("PGA3DP: physics tests application")
 
                 bivec3dp const B = u[0]; // B_b = phi * L_b
 
-                // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))
-                auto const M = rgpr(M0, exp(0.5 * B));
+                // Current motor: M(t) = M0 ⟇ rexp(½ B_b(t))
+                auto const M = rgpr(M0, rexp(0.5 * B));
 
                 // phi = B.vz  (since B_b = phi * L_b and L_b.vz = 1)
                 value_t const phi_b = B.vz;
@@ -660,7 +660,7 @@ TEST_SUITE("PGA3DP: physics tests application")
             vec3dp get_cm_world() const
             {
                 auto u = mdspan<bivec3dp const, dextents<size_t, 1>>(u_mem.data(), 2);
-                auto const M = rgpr(M0, exp(0.5 * u[0]));
+                auto const M = rgpr(M0, rexp(0.5 * u[0]));
                 return move3dp(vec3dp{0.0, 0.0, 0.0, 1.0}, M);
             }
 
@@ -922,7 +922,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         // A cube hinged at a fixed horizontal axis (e3), its cm a distance L below the
         // axis, swinging under gravity -> a compound pendulum. The hinge moment of
         // inertia emerges (Steiner) from the spatial Jacobian: I_hinge = I_cm_zz + m L^2
-        // = m s^2/6 + m L^2. Small-oscillation frequency w0 = sqrt(m g L / I_hinge).
+        // = m s^2/6 + m L^2. Small-oscillation frequency w0 = rsqrt(m g L / I_hinge).
         value_t const m = 1.0, s = 1.0, L = 1.0, g = 9.81;
         auto const cube = make_cuboid_body(m, s, s, s);
 
@@ -2117,7 +2117,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
     // why the polar satellite stays in the lon = 0° plane throughout, as specified.
     //
     // The VELOCITY at each sampled point is nevertheless the physical one. A body on a
-    // circular orbit of radius r runs at the mean motion n = sqrt(mu/r^3) in the INERTIAL
+    // circular orbit of radius r runs at the mean motion n = rsqrt(mu/r^3) in the INERTIAL
     // frame, so its ECEF velocity carries the frame-rotation term:
     //
     //     v_inertial = n * (h x p)                h = orbit normal, p = position
@@ -3021,7 +3021,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
     //
     // THE PLANAR CURVE (great ellipse). Still pure GA: the plane through the geocenter
     // and the two points is join(join(A, B), O), and the curve in it is swept by a ROTOR
-    // built from that plane's own bivector -- exp(-B_hat t/2) carried the start direction
+    // built from that plane's own bivector -- rexp(-B_hat t/2) carried the start direction
     // round to the end direction. Each swept direction is pushed out to the surface along
     // its ray. It is a genuine curve on the ellipsoid; it is simply not the shortest one.
     //

@@ -13,9 +13,9 @@ namespace hd::ga::pga {
 // provides functionality that is based on pga3dp ops basics and products:
 //
 // - angle()                              -> angle operations
-// - exp()                                -> exponential (w.r.t. rgpr)
-// - log()                                -> logarithm (w.r.t. rgpr, inverse of exp)
-// - sqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
+// - rexp()                                -> exponential (w.r.t. rgpr)
+// - rlog()                                -> logarithm (w.r.t. rgpr, inverse of rexp)
+// - rsqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
 // - get_motor()                          -> provide a motor from (line, phi), or (delta),
 //                                           or (line, phi, dist along line)
 // - get_motor_from_planes()              -> provide a motor (from two plane reflections)
@@ -146,11 +146,11 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp() with respect to the regressive geometric product rgpr()
+// rexp() with respect to the regressive geometric product rgpr()
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
+constexpr MVec3dp_E<T> rexp(BiVec3dp<T> const& B)
 {
     T phi_sq = weight_nrm_sq(B); // rotation angle^2
     if (phi_sq == 0.0) {
@@ -188,7 +188,7 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> sqrt(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> rsqrt(MVec3dp_E<T> const& M)
 {
     if (std::abs(M.c0) < eps) {
         // simple motor, if M.c0 == 0.0 (i.e. no scalar part)
@@ -202,12 +202,12 @@ constexpr MVec3dp_E<T> sqrt(MVec3dp_E<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// log() with respect to rgpr() -- the inverse of exp(): for a (unit) motor M it returns
-// the bivector generator B with exp(B) == M.
+// rlog() with respect to rgpr() -- the inverse of rexp(): for a (unit) motor M it returns
+// the bivector generator B with rexp(B) == M.
 //
 // B is the full Chasles/Mozzi SCREW generator B = phi * l + dist * (axis direction in the
 // bulk slots), where l is the unitized screw axis line, phi the rotation angle about l,
-// and dist the translation distance ALONG l (the pitch). This inverts exp()'s screw
+// and dist the translation distance ALONG l (the pitch). This inverts rexp()'s screw
 // branch:
 //   gr2(M) = l*sin(phi) - r_weight_dual(l)*dist*cos(phi),  gr0(M) = -dist*sin(phi),
 //   gr4(M) = cos(phi).
@@ -221,7 +221,7 @@ constexpr MVec3dp_E<T> sqrt(MVec3dp_E<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> log(MVec3dp_E<T> const& M_in)
+constexpr BiVec3dp<T> rlog(MVec3dp_E<T> const& M_in)
 {
     auto const M = unitize(M_in);
     auto const Bm = gr2(M); // bivector part
@@ -397,7 +397,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     //
     // Line of rotation is l_rot = rcmt(l2, rrev(l1)).
     // The operator rotating by 2*phi and moving by 2*dist is rgpr(l2, rrev(l1))
-    // Thus, sqrt(rgpr(l2, rrev(l1))) is the motor we look for rotating by phi and moving
+    // Thus, rsqrt(rgpr(l2, rrev(l1))) is the motor we look for rotating by phi and moving
     // by dist.
     // (see Lengyel, "PGA Illuminated", p. 152)
 
@@ -414,7 +414,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     }
 
     // the resulting motor must be unitized to avoid surprises
-    auto M{sqrt(rgpr(l2, rrev(l1)))};
+    auto M{rsqrt(rgpr(l2, rrev(l1)))};
     w_nrm_sq = weight_nrm_sq(M);
     if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         M = unitize(M);

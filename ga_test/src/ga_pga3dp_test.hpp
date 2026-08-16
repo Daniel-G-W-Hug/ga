@@ -4812,14 +4812,14 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
         fmt::println("B_tra                = {}", B);
         fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
+        fmt::println("M (from rexp(0.5 * B)) = {}", rexp(0.5 * B));
         fmt::println("");
         fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
         fmt::println("X (target value)     = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M)); // motor moves to X
-        CHECK(M == exp(0.5 * B));   // bivector creates motor via exp()
+        CHECK(M == rexp(0.5 * B));   // bivector creates motor via rexp()
 
         //////////////////////////
         // b) pure rotation
@@ -4845,14 +4845,14 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
         fmt::println("B_rot                 = {}", B);
         fmt::println("M (from get_motor())  = {}", M);
-        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
+        fmt::println("M (from rexp(0.5 * B)) = {}", rexp(0.5 * B));
         fmt::println("");
         fmt::println("X = M ⟇ X0 ⟇ rrev(m)  = {}", move3dp(X0, M));
         fmt::println("X (target value)      = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M));
-        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
+        CHECK(M == rexp(0.5 * B)); // bivector creates motor via rexp()
 
         //////////////////////////
         // c) screw motion (rotation + translation in direction of rotation axis)
@@ -4891,14 +4891,14 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("B_tra                 = {}", B_tra);
         fmt::println("B = B_rot + B_tra     = {}", B);
         fmt::println("M (from get_motor())  = {}", M);
-        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
+        fmt::println("M (from rexp(0.5 * B)) = {}", rexp(0.5 * B));
         fmt::println("");
         fmt::println("X = M ⟇ X0 ⟇ rrev(m)  = {}", move3dp(X0, M));
         fmt::println("X (target value)      = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M));
-        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
+        CHECK(M == rexp(0.5 * B)); // bivector creates motor via rexp()
 
 
         fmt::println("exp check:");
@@ -4927,38 +4927,38 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("rgpr(e41_3dp,e41_3dp) = {}", rgpr(e41_3dp, e41_3dp));
         fmt::println("rgpr(e42_3dp,e42_3dp) = {}", rgpr(e42_3dp, e42_3dp));
         fmt::println("rgpr(e43_3dp,e43_3dp) = {}", rgpr(e43_3dp, e43_3dp));
-        fmt::println("exp(e41_3dp * pi) = {}", exp(e41_3dp * pi));
-        fmt::println("exp(e42_3dp * pi) = {}", exp(e42_3dp * pi));
-        fmt::println("exp(e43_3dp * pi) = {}", exp(e43_3dp * pi));
+        fmt::println("rexp(e41_3dp * pi) = {}", rexp(e41_3dp * pi));
+        fmt::println("rexp(e42_3dp * pi) = {}", rexp(e42_3dp * pi));
+        fmt::println("rexp(e43_3dp * pi) = {}", rexp(e43_3dp * pi));
         fmt::println("");
 
-        CHECK(exp(e41_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
-        CHECK(exp(e42_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
-        CHECK(exp(e43_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+        CHECK(rexp(e41_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+        CHECK(rexp(e42_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+        CHECK(rexp(e43_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
 
         fmt::println("The bulk carries translational information. "
                      "The bivector squares to 0 w.r.t. rgpr().");
         fmt::println("rgpr(e23_3dp,e23_3dp) = {}", rgpr(e23_3dp, e23_3dp));
         fmt::println("rgpr(e31_3dp,e31_3dp) = {}", rgpr(e31_3dp, e31_3dp));
         fmt::println("rgpr(e12_3dp,e12_3dp) = {}", rgpr(e12_3dp, e12_3dp));
-        fmt::println("exp(e23_3dp * pi) = {}", exp(e23_3dp * pi));
-        fmt::println("exp(e31_3dp * pi) = {}", exp(e31_3dp * pi));
-        fmt::println("exp(e12_3dp * pi) = {}", exp(e12_3dp * pi));
+        fmt::println("rexp(e23_3dp * pi) = {}", rexp(e23_3dp * pi));
+        fmt::println("rexp(e31_3dp * pi) = {}", rexp(e31_3dp * pi));
+        fmt::println("rexp(e12_3dp * pi) = {}", rexp(e12_3dp * pi));
         fmt::println("");
 
-        CHECK(exp(e23_3dp * pi) == mvec3dp_e{scalar3dp{0}, e23_3dp * pi, pscalar3dp{1}});
-        CHECK(exp(e31_3dp * pi) == mvec3dp_e{scalar3dp{0}, e31_3dp * pi, pscalar3dp{1}});
-        CHECK(exp(e12_3dp * pi) == mvec3dp_e{scalar3dp{0}, e12_3dp * pi, pscalar3dp{1}});
+        CHECK(rexp(e23_3dp * pi) == mvec3dp_e{scalar3dp{0}, e23_3dp * pi, pscalar3dp{1}});
+        CHECK(rexp(e31_3dp * pi) == mvec3dp_e{scalar3dp{0}, e31_3dp * pi, pscalar3dp{1}});
+        CHECK(rexp(e12_3dp * pi) == mvec3dp_e{scalar3dp{0}, e12_3dp * pi, pscalar3dp{1}});
     }
 
-    TEST_CASE("G<3,0,1>: sqrt(motor) function")
+    TEST_CASE("G<3,0,1>: rsqrt(motor) function")
     {
-        fmt::println("G<3,0,1>: sqrt(motor) function");
+        fmt::println("G<3,0,1>: rsqrt(motor) function");
 
         // how to transfer plane pl1 into plane pl2, such that pl2 = M ⟇ pl1 ⟇ rrev(M)?
         //
         // We know R = pl2 ⟇ pl1 represents two consequtive reflections across pl1 & pl2.
-        // So we need "half of the transformation" M = R^{1/2} = sqrt(R)
+        // So we need "half of the transformation" M = R^{1/2} = rsqrt(R)
 
         // case a) rotation as defined by consequtive mirroring across intersecting planes
         fmt::println("\nG<3,0,1>: case a) rotation:\n");
@@ -4975,7 +4975,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto phi = angle(pl1, pl2);
         auto l_fix = unitize(rwdg(pl1, pl2));
 
-        auto R = sqrt(M);
+        auto R = rsqrt(M);
 
         fmt::println("pl1             = {}", pl1);
         fmt::println("pl1 ⟇ pl1       = {}", rgpr(pl1, pl1));
@@ -4993,7 +4993,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move3dp(P0, M));
         fmt::println("");
-        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R = rsqrt(M) = {}", R);
         fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
         fmt::println("");
         fmt::println("P0                    = {}", P0);
@@ -5016,7 +5016,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         P0 = vec3dp{0, 7, 0, 1};
 
-        R = sqrt(M);
+        R = rsqrt(M);
 
         fmt::println("pl1             = {}", pl1);
         fmt::println("pl1 ⟇ pl1       = {}", rgpr(pl1, pl1));
@@ -5031,7 +5031,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move3dp(P0, M));
         fmt::println("");
-        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R = rsqrt(M) = {}", R);
         fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
         fmt::println("");
         fmt::println("P0                    = {}", P0);
@@ -5052,7 +5052,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         M = get_motor(l3, deg2rad(90), 1.0);
         auto M_double = rgpr(l2, rrev(l1));
-        auto M_calc = sqrt(M_double);
+        auto M_calc = rsqrt(M_double);
         auto M2 = get_motor_from_lines(l1, l2);
 
         P0 = vec3dp{1, 0, 0, 1};
@@ -5092,11 +5092,11 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
-    TEST_CASE("G<3,0,1>: log(motor) function")
+    TEST_CASE("G<3,0,1>: rlog(motor) function")
     {
-        fmt::println("G<3,0,1>: log(motor) function");
+        fmt::println("G<3,0,1>: rlog(motor) function");
 
-        // log() is the inverse of exp(): exp(log(M)) == M for every motor M, recovering
+        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M, recovering
         // the full screw generator (rotation about a line + translation along it).
         // Validated as a round-trip gate over translations, rotations and general screws.
 
@@ -5104,9 +5104,9 @@ TEST_SUITE("PGA 3DP Tests")
         {
             auto const B =
                 bivec3dp{0, 0, 0, -2, 1, 3}; // translation generator (bulk only)
-            auto const M = exp(B);
-            CHECK(M == exp(log(M)));
-            CHECK(log(M) == B); // exact for a pure translation
+            auto const M = rexp(B);
+            CHECK(M == rexp(rlog(M)));
+            CHECK(rlog(M) == B); // exact for a pure translation
         }
 
         // b) pure rotation about an axis line through a point
@@ -5114,23 +5114,23 @@ TEST_SUITE("PGA 3DP Tests")
             double const phi = deg2rad(70);
             auto const l_hat = unitize(
                 wdg(vec3dp{1, 0, 1, 1}, phi * bulk_normalize(vec3dp{0, 1, 0, 0})));
-            auto const M = exp(l_hat * phi);
-            CHECK(M == exp(log(M)));
+            auto const M = rexp(l_hat * phi);
+            CHECK(M == rexp(rlog(M)));
         }
 
         // c) general screw: rotation about an offset axis + translation along it
         {
             auto const B = bivec3dp{0.3, -0.8, 0.5, 0.7, -0.2, 1.1};
-            auto const M = exp(B);
-            CHECK(M == exp(log(M)));
+            auto const M = rexp(B);
+            CHECK(M == rexp(rlog(M)));
         }
     }
 
-    TEST_CASE("G<3,0,1>: sqrt(motor) round-trip (simple & non-simple screw)")
+    TEST_CASE("G<3,0,1>: rsqrt(motor) round-trip (simple & non-simple screw)")
     {
-        fmt::println("G<3,0,1>: sqrt(motor) round-trip (simple & non-simple screw)");
+        fmt::println("G<3,0,1>: rsqrt(motor) round-trip (simple & non-simple screw)");
 
-        // Defining property of sqrt w.r.t. the regressive product: sqrt(M) ⟇ sqrt(M) ==
+        // Defining property of sqrt w.r.t. the regressive product: rsqrt(M) ⟇ rsqrt(M) ==
         // M. Two branches must both hold: SIMPLE motors (scalar part ~ 0) and non-simple
         // SCREW motors (scalar part != 0, the closed-form Lengyel formula). The screw
         // branch guards the regressive dual-map path against a sign regression.
@@ -5143,8 +5143,8 @@ TEST_SUITE("PGA 3DP Tests")
                 wdg(vec3dp{1, 0, 1, 1}, deg2rad(80) * bulk_normalize(vec3dp{0, 1, 0, 0})),
                 deg2rad(80));
             REQUIRE(std::abs(M.c0) < eps); // simple branch
-            auto const R = sqrt(M);
-            CHECK(rgpr(R, R) == M); // sqrt(M) ⟇ sqrt(M) == M
+            auto const R = rsqrt(M);
+            CHECK(rgpr(R, R) == M); // rsqrt(M) ⟇ rsqrt(M) == M
             CHECK(bulk_nrm_sq(move3dp(move3dp(P0, R), R) - move3dp(P0, M)) ==
                   doctest::Approx(0.0)); // two halves == one
         }
@@ -5153,25 +5153,25 @@ TEST_SUITE("PGA 3DP Tests")
         //    (scalar part != 0 -> exercises the non-simple sqrt formula)
         {
             auto const B = bivec3dp{0.3, -0.8, 0.5, 0.7, -0.2, 1.1};
-            auto const M = exp(B);
+            auto const M = rexp(B);
             REQUIRE(std::abs(M.c0) > eps); // non-simple branch
-            auto const R = sqrt(M);
-            CHECK(rgpr(R, R) == M); // sqrt(M) ⟇ sqrt(M) == M
+            auto const R = rsqrt(M);
+            CHECK(rgpr(R, R) == M); // rsqrt(M) ⟇ rsqrt(M) == M
             CHECK(bulk_nrm_sq(move3dp(move3dp(P0, R), R) - move3dp(P0, M)) ==
                   doctest::Approx(0.0));   // two halves == one
-            CHECK(2.0 * log(R) == log(M)); // sqrt halves the screw generator
+            CHECK(2.0 * rlog(R) == rlog(M)); // sqrt halves the screw generator
         }
 
         // c) get_motor screw (explicit axis / angle / pitch) also round-trips
         {
             auto const M = get_motor(y_axis_3dp, deg2rad(110), 1.7);
             REQUIRE(std::abs(M.c0) > eps);
-            auto const R = sqrt(M);
+            auto const R = rsqrt(M);
             CHECK(rgpr(R, R) == M);
         }
 
         fmt::println(
-            "sqrt: sqrt(M) ⟇ sqrt(M) == M for simple and non-simple screw motors");
+            "sqrt: rsqrt(M) ⟇ rsqrt(M) == M for simple and non-simple screw motors");
     }
 
     TEST_CASE("Vec3dp: operations - inverses II")
@@ -5227,9 +5227,9 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("rotational case:");
         fmt::println("arg1 = {}", arg1);
         fmt::println("arg2 = {}", arg2);
-        fmt::println("exp(arg1 + arg2) = {}", exp(arg1 + arg2));
+        fmt::println("rexp(arg1 + arg2) = {}", rexp(arg1 + arg2));
         fmt::println("");
-        CHECK(exp(arg1 + arg2) == get_motor(x_axis_3dp, deg2rad(15)));
+        CHECK(rexp(arg1 + arg2) == get_motor(x_axis_3dp, deg2rad(15)));
 
         // Now the corresponding ideal line at infinity:
         // (received from weight dualization)
@@ -5244,7 +5244,7 @@ TEST_SUITE("PGA 3DP Tests")
         // its negative normal direction) (right and left weight dual deliver identical
         // results incl. sign)
         double dist = 0.5;
-        CHECK(exp(-0.5 * r_weight_dual(x_axis_3dp) * dist) == get_motor(e1_3dp * dist));
+        CHECK(rexp(-0.5 * r_weight_dual(x_axis_3dp) * dist) == get_motor(e1_3dp * dist));
         arg1 = rgpr(scalar3dp(0.5 * dist), x_axis_3dp);
         arg2 = rgpr(pscalar3dp(0.0), x_axis_3dp);
         fmt::println("translational case:");
@@ -5252,9 +5252,9 @@ TEST_SUITE("PGA 3DP Tests")
                      0.5 * dist * r_weight_dual(x_axis_3dp));
         fmt::println("arg1 = {}", arg1);
         fmt::println("arg2 = {}", arg2);
-        fmt::println("exp(arg1 + arg2) = {}", exp(arg1 + arg2));
+        fmt::println("rexp(arg1 + arg2) = {}", rexp(arg1 + arg2));
         fmt::println("");
-        CHECK(exp(arg1 + arg2) == get_motor(e1_3dp * dist));
+        CHECK(rexp(arg1 + arg2) == get_motor(e1_3dp * dist));
     }
 
 
