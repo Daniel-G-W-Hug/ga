@@ -17,6 +17,7 @@
 
 // hd::ga::det / lu_decomp / lu_backsubs come transitively via ga_pga.hpp.
 
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
@@ -564,7 +565,7 @@ TEST_SUITE("PGA3DP: physics tests application")
                 // bivec3dp{0,0,0,cx,cy,cz}) Translation is encoded in the bulk
                 // (e23,e31,e12) components, not the weight (e41,e42,e43) components.
                 M0 = rexp(0.5 *
-                         bivec3dp{0.0, 0.0, 0.0, cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
+                          bivec3dp{0.0, 0.0, 0.0, cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
 
                 // pivot_pt_w: world position of representative pivot point (hw,hh,0,1)
                 // in body frame, mapped via M0.  Stays fixed during rotation since
@@ -1752,7 +1753,11 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         // component-wise comparison with an EXPLICIT tolerance -- operator== compares
         // against an absolute eps, which is meaningless once coordinates are of the
         // order of the earth's radius (3.8e6 m: one ulp is already ~5e-10 m)
-        auto const near = [](vec3dp const& a, vec3dp const& b, value_t tol) {
+        //
+        // NOT named `near`: on MSVC <windows.h> arrives via doctest's implementation
+        // section and defines the legacy `near`/`far` memory-model keywords as EMPTY
+        // macros, so `auto const near = ...` would expand to `auto const = ...`.
+        auto const is_near = [](vec3dp const& a, vec3dp const& b, value_t tol) {
             return std::abs(a.x - b.x) < tol && std::abs(a.y - b.y) < tol &&
                    std::abs(a.z - b.z) < tol && std::abs(a.w - b.w) < tol;
         };
@@ -1761,10 +1766,10 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         // equator at the prime meridian the point is the equatorial radius, at the north
         // pole it is the polar radius
         auto const P_equ = geo_to_ecef(geo_pos{0.0, 0.0, 0.0});
-        CHECK(near(P_equ, vec3dp{wgs84.r_equator, 0.0, 0.0, 1.0}, 1e-9));
+        CHECK(is_near(P_equ, vec3dp{wgs84.r_equator, 0.0, 0.0, 1.0}, 1e-9));
 
         auto const P_pole = geo_to_ecef(geo_pos{0.5 * pi, 0.0, 0.0});
-        CHECK(near(P_pole, vec3dp{0.0, 0.0, wgs84.r_pole, 1.0}, 1e-6));
+        CHECK(is_near(P_pole, vec3dp{0.0, 0.0, wgs84.r_pole, 1.0}, 1e-6));
 
         // Berlin0 against an independently computed reference [m] (pinned to the tenth
         // of a millimetre, i.e. ~1.5e-11 relative)
@@ -1802,19 +1807,20 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         // so agreement between the two is a real cross-check, not a tautology
         auto const G = enu_basis_at(B0);
 
-        CHECK(near(F.east, G.east, 1e-14));
-        CHECK(near(F.north, G.north, 1e-14));
-        CHECK(near(F.up, G.up, 1e-14));
+        CHECK(is_near(F.east, G.east, 1e-14));
+        CHECK(is_near(F.north, G.north, 1e-14));
+        CHECK(is_near(F.up, G.up, 1e-14));
 
         // and both against an independently computed reference
-        CHECK(
-            near(F.east, vec3dp{-0.231917681383160, 0.972735415753872, 0.0, 0.0}, 1e-14));
-        CHECK(near(F.north,
-                   vec3dp{-0.771929548448704, -0.184041937990537, 0.608484459368082, 0.0},
-                   1e-14));
-        CHECK(near(F.up,
-                   vec3dp{0.591894383563182, 0.141118304974331, 0.793565789778978, 0.0},
-                   1e-14));
+        CHECK(is_near(F.east, vec3dp{-0.231917681383160, 0.972735415753872, 0.0, 0.0},
+                      1e-14));
+        CHECK(is_near(
+            F.north,
+            vec3dp{-0.771929548448704, -0.184041937990537, 0.608484459368082, 0.0},
+            1e-14));
+        CHECK(is_near(
+            F.up, vec3dp{0.591894383563182, 0.141118304974331, 0.793565789778978, 0.0},
+            1e-14));
 
         // up is the ellipsoid NORMAL, not the ray from the geocenter: it is parallel to
         // the surface gradient 2*(x/a^2, y/a^2, z/b^2) at the foot point ...
@@ -1839,11 +1845,11 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         // the surface, and drifts only slowly with height (see enu_at)
         {
             auto const p0 = geo_pos{B0.lat, B0.lon, 0.0};
-            CHECK(near(enu_at(geo_to_ecef(p0)).up, enu_basis_at(p0).up, 1e-15));
+            CHECK(is_near(enu_at(geo_to_ecef(p0)).up, enu_basis_at(p0).up, 1e-15));
 
             auto const p1 = geo_pos{B0.lat, B0.lon, 1000.0};
-            CHECK(near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-6));
-            CHECK(!near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-9));
+            CHECK(is_near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-6));
+            CHECK(!is_near(enu_at(geo_to_ecef(p1)).up, enu_basis_at(p1).up, 1e-9));
         }
 
         // orthonormal and right-handed: east x north = up (the EGA3D cross product,
@@ -1854,9 +1860,9 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         CHECK(nrm(e3d) == doctest::Approx(1.0).epsilon(1e-14));
         CHECK(nrm(n3d) == doctest::Approx(1.0).epsilon(1e-14));
         CHECK(nrm(u3d) == doctest::Approx(1.0).epsilon(1e-14));
-        CHECK(dot(e3d, n3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
-        CHECK(dot(n3d, u3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
-        CHECK(dot(u3d, e3d) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(value_t(dot(e3d, n3d)) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(value_t(dot(n3d, u3d)) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(value_t(dot(u3d, e3d)) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
         CHECK(cross(e3d, n3d) == u3d);
 
         // The frame must hold up over the whole latitude range, not just at the one
@@ -1870,9 +1876,9 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             auto const p = geo_pos{deg2rad(double(i)), deg2rad(0.37 * double(i)), 0.0};
             auto const Fi = enu_at(geo_to_ecef(p));
             auto const Gi = enu_basis_at(p);
-            CHECK(near(Fi.east, Gi.east, 1e-13));
-            CHECK(near(Fi.north, Gi.north, 1e-13));
-            CHECK(near(Fi.up, Gi.up, 1e-13));
+            CHECK(is_near(Fi.east, Gi.east, 1e-13));
+            CHECK(is_near(Fi.north, Gi.north, 1e-13));
+            CHECK(is_near(Fi.up, Gi.up, 1e-13));
         }
 
         // The MOTOR is what every later transformation runs on, and so far it has only
@@ -1890,20 +1896,20 @@ TEST_SUITE("PGA3DP: coordinate transformation")
                 auto const Mi = enu_to_ecef_motor(p);
                 auto const Fi = enu_basis_at(p);
 
-                CHECK(near(move3dp(x_dir_3dp, Mi), Fi.east, 1e-13));
-                CHECK(near(move3dp(y_dir_3dp, Mi), Fi.north, 1e-13));
-                CHECK(near(move3dp(z_dir_3dp, Mi), Fi.up, 1e-13));
+                CHECK(is_near(move3dp(x_dir_3dp, Mi), Fi.east, 1e-13));
+                CHECK(is_near(move3dp(y_dir_3dp, Mi), Fi.north, 1e-13));
+                CHECK(is_near(move3dp(z_dir_3dp, Mi), Fi.up, 1e-13));
 
                 // the GA construction agrees with both, poles included
                 auto const Gi = enu_at(p);
-                CHECK(near(Gi.east, Fi.east, 1e-13));
-                CHECK(near(Gi.north, Fi.north, 1e-13));
-                CHECK(near(Gi.up, Fi.up, 1e-13));
+                CHECK(is_near(Gi.east, Fi.east, 1e-13));
+                CHECK(is_near(Gi.north, Fi.north, 1e-13));
+                CHECK(is_near(Gi.up, Fi.up, 1e-13));
 
                 // the motor puts the ENU origin on the station ...
-                CHECK(near(unitize(move3dp(O_3dp, Mi)), geo_to_ecef(p), 1e-6));
+                CHECK(is_near(unitize(move3dp(O_3dp, Mi)), geo_to_ecef(p), 1e-6));
                 // ... and its inverse brings the station back to the ENU origin
-                CHECK(near(unitize(move3dp(geo_to_ecef(p), rrev(Mi))), O_3dp, 1e-6));
+                CHECK(is_near(unitize(move3dp(geo_to_ecef(p), rrev(Mi))), O_3dp, 1e-6));
             }
         }
 
@@ -1919,9 +1925,9 @@ TEST_SUITE("PGA3DP: coordinate transformation")
                 auto const at_pole = geo_pos{0.5 * pi, deg2rad(lon_deg), 0.0};
                 auto const nearly = geo_pos{deg2rad(89.999999), deg2rad(lon_deg), 0.0};
 
-                CHECK(near(enu_at(at_pole).east, enu_at(nearly).east, 1e-7));
-                CHECK(near(enu_at(at_pole).north, enu_at(nearly).north, 1e-7));
-                CHECK(near(enu_at(at_pole).up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));
+                CHECK(is_near(enu_at(at_pole).east, enu_at(nearly).east, 1e-7));
+                CHECK(is_near(enu_at(at_pole).north, enu_at(nearly).north, 1e-7));
+                CHECK(is_near(enu_at(at_pole).up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));
 
                 // still an orthonormal right-handed triad, exactly at the pole
                 auto const Fp = enu_at(at_pole);
@@ -1934,15 +1940,15 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             // prime meridian is taken by convention -- the same choice ecef_to_geo makes
             // when it reports lon == 0 there
             auto const F_np = enu_at(P_pole);
-            CHECK(near(F_np.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));   // +e2
-            CHECK(near(F_np.north, vec3dp{-1.0, 0.0, 0.0, 0.0}, 1e-13)); // -e1
-            CHECK(near(F_np.up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));     // +e3
-            CHECK(near(F_np.east, enu_at(geo_pos{0.5 * pi, 0.0, 0.0}).east, 1e-13));
+            CHECK(is_near(F_np.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));   // +e2
+            CHECK(is_near(F_np.north, vec3dp{-1.0, 0.0, 0.0, 0.0}, 1e-13)); // -e1
+            CHECK(is_near(F_np.up, vec3dp{0.0, 0.0, 1.0, 0.0}, 1e-13));     // +e3
+            CHECK(is_near(F_np.east, enu_at(geo_pos{0.5 * pi, 0.0, 0.0}).east, 1e-13));
 
             auto const F_sp = enu_at(geo_to_ecef(geo_pos{-0.5 * pi, 0.0, 0.0}));
-            CHECK(near(F_sp.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));  // +e2
-            CHECK(near(F_sp.north, vec3dp{1.0, 0.0, 0.0, 0.0}, 1e-13)); // +e1
-            CHECK(near(F_sp.up, vec3dp{0.0, 0.0, -1.0, 0.0}, 1e-13));   // -e3
+            CHECK(is_near(F_sp.east, vec3dp{0.0, 1.0, 0.0, 0.0}, 1e-13));  // +e2
+            CHECK(is_near(F_sp.north, vec3dp{1.0, 0.0, 0.0, 0.0}, 1e-13)); // +e1
+            CHECK(is_near(F_sp.up, vec3dp{0.0, 0.0, -1.0, 0.0}, 1e-13));   // -e3
         }
 
         // enu_motor_at(): the motor for a station given as an ECEF point. It must agree
@@ -1995,22 +2001,22 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             CHECK(corrected.height == doctest::Approx(35.0 + N_geoid).epsilon(1e-14));
             CHECK(corrected.lat == plain.lat);
             CHECK(corrected.lon == plain.lon);
-            CHECK(near(enu_at(corrected).up, enu_at(plain).up, 1e-15));
-            CHECK(near(enu_at(corrected).east, enu_at(plain).east, 1e-15));
+            CHECK(is_near(enu_at(corrected).up, enu_at(plain).up, 1e-15));
+            CHECK(is_near(enu_at(corrected).east, enu_at(plain).east, 1e-15));
 
             // and the position moves by exactly N along the local vertical -- which is
             // what "measured along the ellipsoid normal" means
             auto const P0 = geo_to_ecef(plain);
             auto const P1 = geo_to_ecef(corrected);
             auto const up = enu_at(plain).up;
-            CHECK(near(P1,
-                       vec3dp{P0.x + N_geoid * up.x, P0.y + N_geoid * up.y,
-                              P0.z + N_geoid * up.z, 1.0},
-                       1e-6));
+            CHECK(is_near(P1,
+                          vec3dp{P0.x + N_geoid * up.x, P0.y + N_geoid * up.y,
+                                 P0.z + N_geoid * up.z, 1.0},
+                          1e-6));
 
             // read back in the uncorrected station's own ENU frame it is straight up
             auto const q = unitize(move3dp(P1, rrev(enu_to_ecef_motor(plain))));
-            CHECK(near(q, vec3dp{0.0, 0.0, N_geoid, 1.0}, 1e-6));
+            CHECK(is_near(q, vec3dp{0.0, 0.0, N_geoid, 1.0}, 1e-6));
 
             // the default really is zero, i.e. the quoted number passes through
             CHECK(plain.height == 35.0);
@@ -2031,27 +2037,28 @@ TEST_SUITE("PGA3DP: coordinate transformation")
 
         // 1e-6 m = one micrometre, i.e. ~1.5e-13 relative on the earth's radius and
         // roughly 3 ulp of the coordinates involved
-        CHECK(near(unitize(move3dp(O_3dp, M)), P_B0, 1e-6));
-        CHECK(near(move3dp(x_dir_3dp, M), F.east, 1e-14));
-        CHECK(near(move3dp(y_dir_3dp, M), F.north, 1e-14));
-        CHECK(near(move3dp(z_dir_3dp, M), F.up, 1e-14));
+        CHECK(is_near(unitize(move3dp(O_3dp, M)), P_B0, 1e-6));
+        CHECK(is_near(move3dp(x_dir_3dp, M), F.east, 1e-14));
+        CHECK(is_near(move3dp(y_dir_3dp, M), F.north, 1e-14));
+        CHECK(is_near(move3dp(z_dir_3dp, M), F.up, 1e-14));
 
         // and the inverse direction ECEF -> ENU is rrev(M)
         auto const M_inv = rrev(M);
 
         // the station is the ENU origin
-        CHECK(near(unitize(move3dp(P_B0, M_inv)), O_3dp, 1e-6));
+        CHECK(is_near(unitize(move3dp(P_B0, M_inv)), O_3dp, 1e-6));
 
         // a point 100 m straight up over the station has ENU coordinates (0, 0, 100)
         auto const P_up = vec3dp{P_B0.x + 100.0 * F.up.x, P_B0.y + 100.0 * F.up.y,
                                  P_B0.z + 100.0 * F.up.z, 1.0};
-        CHECK(near(unitize(move3dp(P_up, M_inv)), vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
+        CHECK(is_near(unitize(move3dp(P_up, M_inv)), vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
 
         // the same station quoted 100 m higher sits at the same ENU spot -- this is the
         // height being measured along the ellipsoid normal, i.e. along ENU's up
-        CHECK(near(unitize(move3dp(
-                       geo_to_ecef(geo_pos{B0.lat, B0.lon, B0.height + 100.0}), M_inv)),
-                   vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
+        CHECK(
+            is_near(unitize(move3dp(
+                        geo_to_ecef(geo_pos{B0.lat, B0.lon, B0.height + 100.0}), M_inv)),
+                    vec3dp{0.0, 0.0, 100.0, 1.0}, 1e-6));
 
         /////////////////////////////////////////////////////////////////////////////////
         // a second station seen from the first
@@ -2117,8 +2124,8 @@ TEST_SUITE("PGA3DP: coordinate transformation")
     // why the polar satellite stays in the lon = 0° plane throughout, as specified.
     //
     // The VELOCITY at each sampled point is nevertheless the physical one. A body on a
-    // circular orbit of radius r runs at the mean motion n = rsqrt(mu/r^3) in the INERTIAL
-    // frame, so its ECEF velocity carries the frame-rotation term:
+    // circular orbit of radius r runs at the mean motion n = rsqrt(mu/r^3) in the
+    // INERTIAL frame, so its ECEF velocity carries the frame-rotation term:
     //
     //     v_inertial = n * (h x p)                h = orbit normal, p = position
     //     v_ecef     = v_inertial - omega x p     omega = earth rotation rate about e3
@@ -2308,14 +2315,17 @@ TEST_SUITE("PGA3DP: coordinate transformation")
                 CHECK(nrm(bx) == doctest::Approx(1.0).epsilon(1e-14));
                 CHECK(nrm(by) == doctest::Approx(1.0).epsilon(1e-14));
                 CHECK(nrm(bz) == doctest::Approx(1.0).epsilon(1e-14));
-                CHECK(dot(bx, by) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
-                CHECK(dot(by, bz) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
-                CHECK(dot(bz, bx) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(value_t(dot(bx, by)) ==
+                      doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(value_t(dot(by, bz)) ==
+                      doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+                CHECK(value_t(dot(bz, bx)) ==
+                      doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
                 CHECK(cross(bx, by) == bz); // right-handed
 
                 // z points at the geocenter, x is perpendicular to the radius (circular)
                 CHECK(is_congruent(S.bz, vec3dp{-S.pos.x, -S.pos.y, -S.pos.z, 0.0}));
-                CHECK(dot(bx, vec3d{S.pos.x, S.pos.y, S.pos.z}) ==
+                CHECK(value_t(dot(bx, vec3d{S.pos.x, S.pos.y, S.pos.z})) ==
                       doctest::Approx(0.0).scale(orbit.r).epsilon(1e-14));
 
                 // the rigid ECEF rotation reproduces the velocity: v = Omega x p
@@ -3021,9 +3031,10 @@ TEST_SUITE("PGA3DP: coordinate transformation")
     //
     // THE PLANAR CURVE (great ellipse). Still pure GA: the plane through the geocenter
     // and the two points is join(join(A, B), O), and the curve in it is swept by a ROTOR
-    // built from that plane's own bivector -- rexp(-B_hat t/2) carried the start direction
-    // round to the end direction. Each swept direction is pushed out to the surface along
-    // its ray. It is a genuine curve on the ellipsoid; it is simply not the shortest one.
+    // built from that plane's own bivector -- rexp(-B_hat t/2) carried the start
+    // direction round to the end direction. Each swept direction is pushed out to the
+    // surface along its ray. It is a genuine curve on the ellipsoid; it is simply not the
+    // shortest one.
     //
     // THE GEODESIC. Writing the ellipsoid as the quadratic form G = diag(1/a^2, 1/a^2,
     // 1/b^2)

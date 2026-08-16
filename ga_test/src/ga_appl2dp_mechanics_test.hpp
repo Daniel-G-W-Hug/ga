@@ -2832,9 +2832,9 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     TEST_CASE("pga2dp: kinematic_system2dp - step(dt) time evolution")
     {
         // step(dt) advances each frame's relative pose on the motor manifold by
-        // rexp(0.5 B dt) and ramps its velocity by the relative acceleration. For CONSTANT
-        // twist the pose evolution is EXACT: N steps of dt match a single rebuild at
-        // t = N*dt to ~machine precision.
+        // rexp(0.5 B dt) and ramps its velocity by the relative acceleration. For
+        // CONSTANT twist the pose evolution is EXACT: N steps of dt match a single
+        // rebuild at t = N*dt to ~machine precision.
         fmt::println("pga2dp: kinematic_system2dp - step(dt) time evolution");
         auto constexpr cmp_eps = 1e-9;
 
@@ -4242,7 +4242,7 @@ TEST_SUITE("PGA2DP: geodesics in the meridian section")
         auto const n2 = vec2d{F.north.x, F.north.y};
         CHECK(nrm(u2) == doctest::Approx(1.0).epsilon(1e-14));
         CHECK(nrm(n2) == doctest::Approx(1.0).epsilon(1e-14));
-        CHECK(dot(u2, n2) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
+        CHECK(value_t(dot(u2, n2)) == doctest::Approx(0.0).scale(1.0).epsilon(1e-14));
         CHECK(value_t(wdg(u2, n2)) == doctest::Approx(1.0).epsilon(1e-14));  // +e12
         CHECK(value_t(wdg(n2, u2)) == doctest::Approx(-1.0).epsilon(1e-14)); // -e12
 
