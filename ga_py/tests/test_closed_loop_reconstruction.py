@@ -107,7 +107,7 @@ class ClosedLoopSystem:
 
     def _joint_motor(self, j: "pga.joint_state2dp") -> "pga.mvec2dp_u":
         # M(q) = rest (x) exp(0.5 q screw_b)
-        return pga.rgpr(j.rest, pga.exp(0.5 * j.phi * j.screw_b))
+        return pga.rgpr(j.rest, pga.rexp(0.5 * j.phi * j.screw_b))
 
     def _refresh(self) -> None:
         """World (body i -> world) motors: parent applied on the left via rgpr.

@@ -166,7 +166,7 @@ def test_step_via_motor_manifold_matches_closed_form_pose():
     pose = pga.pose2dp(_pt(RADIUS, 0.0), 0.0)     # start unrotated
     for _ in range(n):
         P = pga.motor_from_pose2dp(pose)                      # body → parent
-        P_new = pga.rgpr(P, pga.exp(0.5 * xi * dt))
+        P_new = pga.rgpr(P, pga.rexp(0.5 * xi * dt))
         pose = pga.pose2dp_from_motor(P_new)                  # decode evolved pose
     assert pose.phi == pytest.approx(OMEGA_T * n * dt, abs=1e-12)
     assert (pose.origin.x, pose.origin.y) == pytest.approx((RADIUS, 0.0), abs=1e-12)

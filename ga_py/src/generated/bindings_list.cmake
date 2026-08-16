@@ -2,13 +2,20 @@
 # Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 
 set(GA_PY_GENERATED_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state2dp.cpp
@@ -19,12 +26,18 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d_e.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dc.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dc_e.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dc_u.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dp_e.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dp_u.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3d_e.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3d_u.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dc.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dc_e.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dc_u.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dp_e.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec3dp_u.cpp
@@ -39,20 +52,30 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pose2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pose3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_quadvec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec2dc.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_un_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vec4ds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vector2d.cpp

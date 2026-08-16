@@ -146,6 +146,33 @@ void register_functions_ega(nb::module_& m)
     m.def("inv", [](mvec3d_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec3d_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec3d const& a0) { return inv(a0); });
+    m.def("is_close", [](scalar2d const& a0, scalar2d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](vec2d const& a0, vec2d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](pscalar2d const& a0, pscalar2d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec2d_e const& a0, mvec2d_e const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](scalar3d const& a0, scalar3d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](vec3d const& a0, vec3d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](bivec3d const& a0, bivec3d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](pscalar3d const& a0, pscalar3d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec3d_e const& a0, mvec3d_e const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_congruent", [](scalar2d const& a0, scalar2d const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
@@ -166,6 +193,12 @@ void register_functions_ega(nb::module_& m)
     });
     m.def("is_congruent", [](pscalar3d const& a0, pscalar3d const& a1, double a2) {
         return is_congruent(a0, a1, a2);
+    });
+    m.def("is_same_rotation", [](mvec2d_e const& a0, mvec2d_e const& a1, double a2) {
+        return is_same_rotation(a0, a1, a2);
+    });
+    m.def("is_same_rotation", [](mvec3d_e const& a0, mvec3d_e const& a1, double a2) {
+        return is_same_rotation(a0, a1, a2);
     });
     m.def("l_cmpl", [](scalar2d const& a0) { return l_cmpl(a0); });
     m.def("l_cmpl", [](vec2d const& a0) { return l_cmpl(a0); });

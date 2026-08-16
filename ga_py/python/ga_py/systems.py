@@ -625,7 +625,7 @@ class DynamicSystem3dp(KinematicSystem3dp):
 
     def _joint_motor(self, idx: int, q: float) -> "pga.mvec3dp_e":
         js = self._joint[idx]
-        return pga.rgpr(js.rest, pga.exp(0.5 * q * js.screw_b))
+        return pga.rgpr(js.rest, pga.rexp(0.5 * q * js.screw_b))
 
     def _apply_joint_state(self, idx: int) -> None:
         js = self._joint[idx]
@@ -782,7 +782,7 @@ class DynamicSystem3dp(KinematicSystem3dp):
         g = self._grav
 
         def omega_dot(B, Om):
-            m = pga.rgpr(m0, pga.exp(0.5 * B))
+            m = pga.rgpr(m0, pga.rexp(0.5 * B))
             f_world = pga.vec3dp(mass * g.x, mass * g.y, mass * g.z, 0.0)
             w_w = pga.wdg(pga.move3dp(pga.O_3dp, m), f_world)  # gravity wrench (world)
             w_b = pga.move3dp(w_w, pga.rrev(m))                # into the body frame
@@ -800,5 +800,5 @@ class DynamicSystem3dp(KinematicSystem3dp):
         B = B0 + dt / 6.0 * (kB1 + 2 * kB2 + 2 * kB3 + kB4)
         Om = Om0 + dt / 6.0 * (kO1 + 2 * kO2 + 2 * kO3 + kO4)
 
-        self.set_pose(idx, pga.pose3dp_from_motor(pga.rgpr(m0, pga.exp(0.5 * B))))
+        self.set_pose(idx, pga.pose3dp_from_motor(pga.rgpr(m0, pga.rexp(0.5 * B))))
         self.set_twist(idx, Om)

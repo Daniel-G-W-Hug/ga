@@ -92,6 +92,24 @@ void register_functions_sta(nb::module_& m)
     m.def("inv", [](mvec4ds_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds const& a0) { return inv(a0); });
+    m.def("is_close", [](scalar4ds const& a0, scalar4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](vec4ds const& a0, vec4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](bivec4ds const& a0, bivec4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](trivec4ds const& a0, trivec4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](pscalar4ds const& a0, pscalar4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_congruent", [](scalar4ds const& a0, scalar4ds const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
@@ -110,6 +128,9 @@ void register_functions_sta(nb::module_& m)
     m.def("is_lightlike", [](vec4ds const& a0) { return is_lightlike(a0); });
     m.def("is_lightlike", [](bivec4ds const& a0) { return is_lightlike(a0); });
     m.def("is_lightlike", [](trivec4ds const& a0) { return is_lightlike(a0); });
+    m.def("is_same_transform", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
+        return is_same_transform(a0, a1, a2);
+    });
     m.def("is_spacelike", [](vec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](bivec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](trivec4ds const& a0) { return is_spacelike(a0); });

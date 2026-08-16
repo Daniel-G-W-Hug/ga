@@ -53,6 +53,17 @@ void register_functions_top(nb::module_& m)
     m.def("gr", [](bivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](trivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](pscalar4ds const& a0) { return gr(a0); });
+    m.def("gr", [](scalar2dc const& a0) { return gr(a0); });
+    m.def("gr", [](vec2dc const& a0) { return gr(a0); });
+    m.def("gr", [](bivec2dc const& a0) { return gr(a0); });
+    m.def("gr", [](trivec2dc const& a0) { return gr(a0); });
+    m.def("gr", [](pscalar2dc const& a0) { return gr(a0); });
+    m.def("gr", [](scalar3dc const& a0) { return gr(a0); });
+    m.def("gr", [](vec3dc const& a0) { return gr(a0); });
+    m.def("gr", [](bivec3dc const& a0) { return gr(a0); });
+    m.def("gr", [](trivec3dc const& a0) { return gr(a0); });
+    m.def("gr", [](quadvec3dc const& a0) { return gr(a0); });
+    m.def("gr", [](pscalar3dc const& a0) { return gr(a0); });
     m.def("linear_step",
           [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
     m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
@@ -76,6 +87,17 @@ void register_functions_top(nb::module_& m)
     m.def("rgr", [](bivec4ds const& a0) { return rgr(a0); });
     m.def("rgr", [](trivec4ds const& a0) { return rgr(a0); });
     m.def("rgr", [](pscalar4ds const& a0) { return rgr(a0); });
+    m.def("rgr", [](scalar2dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](vec2dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](bivec2dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](trivec2dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](pscalar2dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](scalar3dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](vec3dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](bivec3dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](trivec3dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](quadvec3dc const& a0) { return rgr(a0); });
+    m.def("rgr", [](pscalar3dc const& a0) { return rgr(a0); });
     m.def("rk4_get_time",
           [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
     m.def("rpm2radps", [](double a0) { return rpm2radps(a0); });
@@ -84,4 +106,8 @@ void register_functions_top(nb::module_& m)
           [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
     m.def("smoother_step",
           [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
+    m.def("to_geo_pos",
+          [](geo_pos_dms const& a0, double a1) { return to_geo_pos(a0, a1); });
+    m.def("to_geo_pos",
+          [](geo_pos_dms2dp const& a0, double a1) { return to_geo_pos(a0, a1); });
 }

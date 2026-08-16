@@ -195,8 +195,6 @@ void register_functions_pga(nb::module_& m)
     m.def("dot", [](bivec3dp const& a0, bivec3dp const& a1) { return dot(a0, a1); });
     m.def("dot", [](vec3dp const& a0, vec3dp const& a1) { return dot(a0, a1); });
     m.def("dot", [](scalar3dp const& a0, scalar3dp const& a1) { return dot(a0, a1); });
-    m.def("exp", [](vec2dp const& a0) { return exp(a0); });
-    m.def("exp", [](bivec3dp const& a0) { return exp(a0); });
     m.def("expand", [](point2d const& a0, line2d const& a1) { return expand(a0, a1); });
     m.def("expand", [](point3d const& a0, plane3d const& a1) { return expand(a0, a1); });
     m.def("expand", [](point3d const& a0, line3d const& a1) { return expand(a0, a1); });
@@ -284,6 +282,39 @@ void register_functions_pga(nb::module_& m)
           [](bivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
     m.def("invert_on",
           [](trivec3dp const& a0, vec3dp const& a1) { return invert_on(a0, a1); });
+    m.def("is_close", [](scalar2dp const& a0, scalar2dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](vec2dp const& a0, vec2dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](bivec2dp const& a0, bivec2dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](pscalar2dp const& a0, pscalar2dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec2dp_u const& a0, mvec2dp_u const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](scalar3dp const& a0, scalar3dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](vec3dp const& a0, vec3dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](bivec3dp const& a0, bivec3dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](trivec3dp const& a0, trivec3dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](pscalar3dp const& a0, pscalar3dp const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec3dp_e const& a0, mvec3dp_e const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_congruent", [](scalar2dp const& a0, scalar2dp const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
@@ -310,6 +341,12 @@ void register_functions_pga(nb::module_& m)
     });
     m.def("is_congruent", [](pscalar3dp const& a0, pscalar3dp const& a1, double a2) {
         return is_congruent(a0, a1, a2);
+    });
+    m.def("is_same_motion", [](mvec2dp_u const& a0, mvec2dp_u const& a1, double a2) {
+        return is_same_motion(a0, a1, a2);
+    });
+    m.def("is_same_motion", [](mvec3dp_e const& a0, mvec3dp_e const& a1, double a2) {
+        return is_same_motion(a0, a1, a2);
     });
     m.def("join", [](bivec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, bivec2dp const& a1) { return join(a0, a1); });
@@ -347,8 +384,6 @@ void register_functions_pga(nb::module_& m)
     m.def("l_weight_dual", [](mvec3dp_e const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp_u const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp const& a0) { return l_weight_dual(a0); });
-    m.def("log", [](mvec2dp_u const& a0) { return log(a0); });
-    m.def("log", [](mvec3dp_e const& a0) { return log(a0); });
     m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) {
         return make_cuboid_body(a0, a1, a2, a3);
     });
@@ -547,6 +582,8 @@ void register_functions_pga(nb::module_& m)
     m.def("rev", [](mvec3dp_e const& a0) { return rev(a0); });
     m.def("rev", [](mvec3dp_u const& a0) { return rev(a0); });
     m.def("rev", [](mvec3dp const& a0) { return rev(a0); });
+    m.def("rexp", [](vec2dp const& a0) { return rexp(a0); });
+    m.def("rexp", [](bivec3dp const& a0) { return rexp(a0); });
     m.def("rgpr", [](mvec2dp const& a0, mvec2dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec2dp const& a0, mvec2dp_e const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec2dp_e const& a0, mvec2dp const& a1) { return rgpr(a0, a1); });
@@ -675,6 +712,8 @@ void register_functions_pga(nb::module_& m)
     m.def("rinv", [](mvec3dp_e const& a0) { return rinv(a0); });
     m.def("rinv", [](mvec3dp_u const& a0) { return rinv(a0); });
     m.def("rinv", [](mvec3dp const& a0) { return rinv(a0); });
+    m.def("rlog", [](mvec2dp_u const& a0) { return rlog(a0); });
+    m.def("rlog", [](mvec3dp_e const& a0) { return rlog(a0); });
     m.def("rrev", [](scalar2dp const& a0) { return rrev(a0); });
     m.def("rrev", [](vec2dp const& a0) { return rrev(a0); });
     m.def("rrev", [](bivec2dp const& a0) { return rrev(a0); });
@@ -690,6 +729,8 @@ void register_functions_pga(nb::module_& m)
     m.def("rrev", [](mvec3dp_e const& a0) { return rrev(a0); });
     m.def("rrev", [](mvec3dp_u const& a0) { return rrev(a0); });
     m.def("rrev", [](mvec3dp const& a0) { return rrev(a0); });
+    m.def("rsqrt", [](mvec2dp_u const& a0) { return rsqrt(a0); });
+    m.def("rsqrt", [](mvec3dp_e const& a0) { return rsqrt(a0); });
     m.def("rtwdg1",
           [](bivec2dp const& a0, bivec2dp const& a1) { return rtwdg1(a0, a1); });
     m.def("rtwdg1", [](bivec2dp const& a0, vec2dp const& a1) { return rtwdg1(a0, a1); });
@@ -830,8 +871,6 @@ void register_functions_pga(nb::module_& m)
     m.def("rwdg", [](vec3dp const& a0, scalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar3dp const& a0, vec3dp const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar3dp const& a0, scalar3dp const& a1) { return rwdg(a0, a1); });
-    m.def("sqrt", [](mvec2dp_u const& a0) { return sqrt(a0); });
-    m.def("sqrt", [](mvec3dp_e const& a0) { return sqrt(a0); });
     m.def("sup", [](bivec2dp const& a0) { return sup(a0); });
     m.def("sup", [](bivec3dp const& a0) { return sup(a0); });
     m.def("sup", [](trivec3dp const& a0) { return sup(a0); });

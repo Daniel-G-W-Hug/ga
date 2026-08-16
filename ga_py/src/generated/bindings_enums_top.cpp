@@ -30,5 +30,7 @@ using namespace hd::ga::sta;
 
 void register_enums_top(nb::module_& m)
 {
-    (void)m; // no enums in this submodule yet
+    nb::enum_<geo_angle>(m, "geo_angle")
+        .value("latitude", geo_angle::latitude)
+        .value("longitude", geo_angle::longitude);
 }

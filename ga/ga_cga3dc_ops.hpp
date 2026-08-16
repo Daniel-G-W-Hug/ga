@@ -15,10 +15,10 @@ namespace hd::ga::cga {
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc geometric operations (layer under construction):
 //
-// - rexp()                   -> versor from a simple trivector generator
+// - rexp()                  -> versor from a simple trivector generator
 //                              (w.r.t. rgpr, closed form; throws non-simple)
-// - rlog()                   -> principal generator of a simple-image motor
-// - rsqrt()                  -> square root of such a motor
+// - rlog()                  -> principal generator of a simple-image motor
+// - rsqrt()                 -> square root of such a motor
 // - get_translation()       -> motor translating by (dx, dy, dz)
 // - get_rotation()          -> motor rotating about a line by theta
 // - get_dilation()          -> motor scaling by sigma about a point
