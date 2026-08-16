@@ -40,22 +40,22 @@ print("v5 / 3:", v5 / 3, "scalar division")
 print("\n2. Testing vec2d geometric operations:")
 print("-------------------------------------")
 
-print("dot(v1, v2):", dot(v1, v2), "dot product")
+print("ega.dot(v1, v2):", ega.dot(v1, v2), "dot product")
 
-print("nrm_sq(v1): ", nrm_sq(v1), "squared norm")
-print("nrm(v1): ", nrm(v1), "norm")
-assert(math.abs(nrm_sq(v1) - 2) < eps)
-assert(math.abs(nrm(v1) - math.sqrt(2)) < eps)
+print("ega.nrm_sq(v1): ", ega.nrm_sq(v1), "squared norm")
+print("ega.nrm(v1): ", ega.nrm(v1), "norm")
+assert(math.abs(ega.nrm_sq(v1) - 2) < eps)
+assert(math.abs(ega.nrm(v1) - math.sqrt(2)) < eps)
 
-print("normalize(v1): ", normalize(v1), "normalized")
-print("math.abs( nrm(normalize(v1))-1.0 ):", math.abs(nrm(normalize(v1)) - 1.0))
-assert(math.abs(nrm(normalize(v1)) - 1.0) < eps)
+print("ega.normalize(v1): ", ega.normalize(v1), "normalized")
+print("math.abs( ega.nrm(ega.normalize(v1))-1.0 ):", math.abs(ega.nrm(ega.normalize(v1)) - 1.0))
+assert(math.abs(ega.nrm(ega.normalize(v1)) - 1.0) < eps)
 
-print("inv(v1):", inv(v1), "inverse")
-print("math.abs(nrm(v1)*nrm(inv(v1))-1):", math.abs(nrm(v1) * nrm(inv(v1)) - 1))
-assert(math.abs(nrm(v1) * nrm(inv(v1)) - 1) < eps)
+print("ega.inv(v1):", ega.inv(v1), "inverse")
+print("math.abs(ega.nrm(v1)*ega.nrm(ega.inv(v1))-1):", math.abs(ega.nrm(v1) * ega.nrm(ega.inv(v1)) - 1))
+assert(math.abs(ega.nrm(v1) * ega.nrm(ega.inv(v1)) - 1) < eps)
 
-print("wdg(v1,v2):", wdg(v1, v2))
+print("ega.wdg(v1,v2):", ega.wdg(v1, v2))
 
 -- Test pscalar2d
 print("\n3. Testing pscalar2d:")
@@ -71,10 +71,10 @@ print("ps2:", ps2)
 print("\n4. Testing angle calculations:")
 print("------------------------------")
 
-local phi = angle(v1, v2)
+local phi = ega.angle(v1, v2)
 print("phi (rad): ", phi)
 print("phi (deg): ", rad2deg(phi))
-assert(math.abs(angle(vec2d.new(1, 0), vec2d.new(1, 1)) - math.pi / 4) < eps)
+assert(math.abs(ega.angle(vec2d.new(1, 0), vec2d.new(1, 1)) - math.pi / 4) < eps)
 
 -- Test mvec2d_e (even multivectors)
 print("\n5. Testing mvec2d_e (even multivectors):")
@@ -110,13 +110,13 @@ assert(mve5 / 3 == mve4)
 print("mv5 = 3 * mve4:", 3 * mve4, "scalar multiplication")
 print("mve5 / 3:", mve5 / 3, "scalar division")
 
-print("gr0(mve2)", gr0(mve2))
-print("gr2(mve2)", gr2(mve2))
-assert(gr0(mve2) == scalar2d.new(1.5))
-assert(gr2(mve2) == pscalar2d.new(-2))
+print("ega.gr0(mve2)", ega.gr0(mve2))
+print("ega.gr2(mve2)", ega.gr2(mve2))
+assert(ega.gr0(mve2) == scalar2d.new(1.5))
+assert(ega.gr2(mve2) == pscalar2d.new(-2))
 
-print("angle_to_re(mve1) - (rad, deg):", angle_to_re(mve1), rad2deg(angle_to_re(mve1)))
-print("angle_to_re(mve2) - (rad, deg):", angle_to_re(mve2), rad2deg(angle_to_re(mve2)))
+print("ega.angle_to_re(mve1) - (rad, deg):", ega.angle_to_re(mve1), rad2deg(ega.angle_to_re(mve1)))
+print("ega.angle_to_re(mve2) - (rad, deg):", ega.angle_to_re(mve2), rad2deg(ega.angle_to_re(mve2)))
 
 -- Test full mvec2d
 print("\n6. Testing mvec2d (full multivectors):")
@@ -156,82 +156,82 @@ assert(mv5 / 3 == mv4)
 print("mv5 = 3 * mv4:", 3 * mv4, "scalar multiplication")
 print("mv5 / 3:", mv5 / 3, "scalar division")
 
-print("gr0(mv2)", gr0(mv2))
-print("gr1(mv2)", gr1(mv2))
-print("gr2(mv2)", gr2(mv2))
-assert(gr0(mv2) == scalar2d.new(1.5))
-assert(gr1(mv2) == vec2d.new(-2, 1))
-assert(gr2(mv2) == pscalar2d.new(2))
+print("ega.gr0(mv2)", ega.gr0(mv2))
+print("ega.gr1(mv2)", ega.gr1(mv2))
+print("ega.gr2(mv2)", ega.gr2(mv2))
+assert(ega.gr0(mv2) == scalar2d.new(1.5))
+assert(ega.gr1(mv2) == vec2d.new(-2, 1))
+assert(ega.gr2(mv2) == pscalar2d.new(2))
 
-print("nrm_sq(mv1), nrm(mv1)", nrm_sq(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1)", rev(mv1), conj(mv1))
+print("ega.nrm_sq(mv1), ega.nrm(mv1)", ega.nrm_sq(mv1), ega.nrm(mv1))
+print("ega.rev(mv1), ega.conj(mv1)", ega.rev(mv1), ega.conj(mv1))
 
-print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
+print("ega.inv(mv2), mv2*ega.inv(mv2)", ega.inv(mv2), mv2 * ega.inv(mv2))
 
 -- Test inverses
 print("\n7. Testing inverses:")
 print("-------------------")
 
 local v = vec2d.new(13, 5)
-local vi = inv(v)
+local vi = ega.inv(v)
 print("v:", v)
 print("vi:", vi)
 print("v*vi:", v * vi)
-assert(math.abs(to_val(gr0(v * vi)) - 1) < eps)
-assert(math.abs(to_val(gr2(v * vi)) - 0) < eps)
+assert(math.abs(ega.to_val(ega.gr0(v * vi)) - 1) < eps)
+assert(math.abs(ega.to_val(ega.gr2(v * vi)) - 0) < eps)
 
 local vc = mvec2d_e.new(13, 5)
-local vci = inv(vc)
+local vci = ega.inv(vc)
 print("vc:", vc)
 print("vci:", vci)
 print("vc*vci:", vc * vci)
-assert(math.abs(to_val(gr0(vc * vci)) - 1) < eps)
-assert(math.abs(to_val(gr2(vc * vci)) - 0) < eps)
+assert(math.abs(ega.to_val(ega.gr0(vc * vci)) - 1) < eps)
+assert(math.abs(ega.to_val(ega.gr2(vc * vci)) - 0) < eps)
 
 local vm = mvec2d.new(13, -27, 3, 5)
-local vmi = inv(vm)
+local vmi = ega.inv(vm)
 print("vm:", vm)
 print("vmi:", vmi)
 print("vm*vmi:", vm * vmi)
-assert(math.abs(to_val(gr0(vm * vmi)) - 1) < eps)
-assert(nrm(gr1(vm * vmi)) < eps)
-assert(math.abs(to_val(gr2(vm * vmi)) - 0) < eps)
+assert(math.abs(ega.to_val(ega.gr0(vm * vmi)) - 1) < eps)
+assert(ega.nrm(ega.gr1(vm * vmi)) < eps)
+assert(math.abs(ega.to_val(ega.gr2(vm * vmi)) - 0) < eps)
 
 -- Test pscalar2d operations
 print("\n8. Testing pscalar2d operations:")
 print("-------------------------------")
 
-print("I_2d*I_2d:", I_2d * I_2d, "nrm_sq(I_2d):", nrm_sq(I_2d), "nrm(I_2d):", nrm(I_2d))
+print("I_2d*I_2d:", I_2d * I_2d, "ega.nrm_sq(I_2d):", ega.nrm_sq(I_2d), "ega.nrm(I_2d):", ega.nrm(I_2d))
 local I = pscalar2d.new(3)
-print("I:", I, "I*inv(I):", I * inv(I))
-assert(to_val(I * inv(I)) == 1)
+print("I:", I, "I*ega.inv(I):", I * ega.inv(I))
+assert(ega.to_val(I * ega.inv(I)) == 1)
 
-print("I+I:", I + I, "I-I:", I - I, "I/3:", I / 3, "to_val(I):", to_val(I))
+print("I+I:", I + I, "I-I:", I - I, "I/3:", I / 3, "ega.to_val(I):", ega.to_val(I))
 
 -- Test projections, rejections and reflections
 print("\n9. Testing projections, rejections and reflections:")
 print("--------------------------------------------------")
 
-print("project_onto(vec2d.new(3,7),vec2d.new(1,1))", project_onto(vec2d.new(3, 7), vec2d.new(1, 1)))
-print("reject_from(vec2d.new(3,7),vec2d.new(1,1))", reject_from(vec2d.new(3, 7), vec2d.new(1, 1)))
+print("ega.project_onto(vec2d.new(3,7),vec2d.new(1,1))", ega.project_onto(vec2d.new(3, 7), vec2d.new(1, 1)))
+print("ega.reject_from(vec2d.new(3,7),vec2d.new(1,1))", ega.reject_from(vec2d.new(3, 7), vec2d.new(1, 1)))
 
-print("reflect_on_vec(vec2d.new(-2,2),vec2d.new(0,1))", reflect_on_vec(vec2d.new(-2, 2), vec2d.new(0, 1)))
-print("reflect_on(vec2d.new(-2,2),vec2d.new(0,1))", reflect_on(vec2d.new(-2, 2), vec2d.new(0, 1)))
+print("ega.reflect_on_vec(vec2d.new(-2,2),vec2d.new(0,1))", ega.reflect_on_vec(vec2d.new(-2, 2), vec2d.new(0, 1)))
+print("ega.reflect_on(vec2d.new(-2,2),vec2d.new(0,1))", ega.reflect_on(vec2d.new(-2, 2), vec2d.new(0, 1)))
 
 -- Test geometric products
 print("\n10. Testing geometric products:")
 print("------------------------------")
 
 print("mvec2d.new(2,-3,5,7)*mvec2d.new(1,2,-5,12):", mvec2d.new(2, -3, 5, 7) * mvec2d.new(1, 2, -5, 12))
-print("dot(vec2d.new(2,-3),vec2d.new(1,2)):", dot(vec2d.new(2, -3), vec2d.new(1, 2)))
-print("wdg(vec2d.new(2,-3),vec2d.new(1,2)):", to_val(wdg(vec2d.new(2, -3), vec2d.new(1, 2))))
-print("angle(vec2d.new(2,-3),vec2d.new(1,2)) [deg]:", rad2deg(angle(vec2d.new(2, -3), vec2d.new(1, 2))))
-print("nrm(vec2d.new(2,-3)):", nrm(vec2d.new(2, -3)))
-print("nrm(vec2d.new(1,2)):", nrm(vec2d.new(1, 2)))
-print("nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2))", nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2)))
+print("ega.dot(vec2d.new(2,-3),vec2d.new(1,2)):", ega.dot(vec2d.new(2, -3), vec2d.new(1, 2)))
+print("ega.wdg(vec2d.new(2,-3),vec2d.new(1,2)):", ega.to_val(ega.wdg(vec2d.new(2, -3), vec2d.new(1, 2))))
+print("ega.angle(vec2d.new(2,-3),vec2d.new(1,2)) [deg]:", rad2deg(ega.angle(vec2d.new(2, -3), vec2d.new(1, 2))))
+print("ega.nrm(vec2d.new(2,-3)):", ega.nrm(vec2d.new(2, -3)))
+print("ega.nrm(vec2d.new(1,2)):", ega.nrm(vec2d.new(1, 2)))
+print("ega.nrm(vec2d.new(2,-3))*ega.nrm(vec2d.new(1,2))", ega.nrm(vec2d.new(2, -3)) * ega.nrm(vec2d.new(1, 2)))
 print(
-	"sin(angle)*nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2)))",
-	math.sin(angle(vec2d.new(2, -3), vec2d.new(1, 2))) * nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2))
+	"sin(angle)*ega.nrm(vec2d.new(2,-3))*ega.nrm(vec2d.new(1,2)))",
+	math.sin(ega.angle(vec2d.new(2, -3), vec2d.new(1, 2))) * ega.nrm(vec2d.new(2, -3)) * ega.nrm(vec2d.new(1, 2))
 )
 
 print("vec2d.new(2,-3)*vec2d.new(1,2):", vec2d.new(2, -3) * vec2d.new(1, 2))
@@ -241,25 +241,25 @@ print("\n11. Testing dual operations:")
 print("---------------------------")
 
 print("I_2d*mvec2d.new(2,-3,5,7)", I_2d * mvec2d.new(2, -3, 5, 7))
-print("r_dual(mvec2d.new(2,-3,5,7))", r_dual(mvec2d.new(2, -3, 5, 7)))
+print("ega.r_dual(mvec2d.new(2,-3,5,7))", ega.r_dual(mvec2d.new(2, -3, 5, 7)))
 
 print("I_2d*mvec2d_e.new(2,7)", I_2d * mvec2d_e.new(2, 7))
-print("r_dual(mvec2d_e.new(2,7))", r_dual(mvec2d_e.new(2, 7)))
+print("ega.r_dual(mvec2d_e.new(2,7))", ega.r_dual(mvec2d_e.new(2, 7)))
 
 print("I_2d*vec2d.new(2,7)", I_2d * vec2d.new(2, 7))
-print("r_dual(vec2d.new(2,7))", r_dual(vec2d.new(2, 7)))
+print("ega.r_dual(vec2d.new(2,7))", ega.r_dual(vec2d.new(2, 7)))
 
-print("r_dual(scalar2d.new(5))", r_dual(scalar2d.new(5)))
-print("r_dual(pscalar2d.new(3))", r_dual(pscalar2d.new(3)))
+print("ega.r_dual(scalar2d.new(5))", ega.r_dual(scalar2d.new(5)))
+print("ega.r_dual(pscalar2d.new(3))", ega.r_dual(pscalar2d.new(3)))
 
 -- Test complement operations
 print("\n12. Testing complement operations:")
 print("---------------------------------")
 
-print("r_cmpl(scalar2d.new(5))", r_cmpl(scalar2d.new(5)))
-print("l_cmpl(scalar2d.new(5))", l_cmpl(scalar2d.new(5)))
-print("r_cmpl(vec2d.new(3,4))", r_cmpl(vec2d.new(3, 4)))
-print("l_cmpl(vec2d.new(3,4))", l_cmpl(vec2d.new(3, 4)))
+print("ega.r_cmpl(scalar2d.new(5))", ega.r_cmpl(scalar2d.new(5)))
+print("ega.l_cmpl(scalar2d.new(5))", ega.l_cmpl(scalar2d.new(5)))
+print("ega.r_cmpl(vec2d.new(3,4))", ega.r_cmpl(vec2d.new(3, 4)))
+print("ega.l_cmpl(vec2d.new(3,4))", ega.l_cmpl(vec2d.new(3, 4)))
 
 -- Test 2D rotations
 print("\n13. Testing 2D rotations:")
@@ -268,7 +268,7 @@ print("-------------------------")
 print("Exponential rotations:")
 for i = 0, 10 do
 	local theta = math.pi / 10.0 * i
-	print("theta:", theta, "exp(I_2d,theta):", exp(I_2d, theta))
+	print("theta:", theta, "ega.exp(I_2d,theta):", ega.exp(I_2d, theta))
 end
 
 print("\nRotor rotations:")
@@ -277,10 +277,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"get_rotor(I_2d,theta):",
-		get_rotor(I_2d, theta),
+		"ega.get_rotor(I_2d,theta):",
+		ega.get_rotor(I_2d, theta),
 		"rotated:",
-		rotate(vec2d.new(1, 0), get_rotor(I_2d, theta))
+		ega.rotate(vec2d.new(1, 0), ega.get_rotor(I_2d, theta))
 	)
 end
 
@@ -291,7 +291,7 @@ print("---------------------------")
 local u = vec2d.new(-3, 5)
 local v = vec2d.new(2, -5)
 local uv = u ^ v
-print("wdg(vec2d.new(-3,5),vec2d.new(2,-5)):", wdg(vec2d.new(-3, 5), vec2d.new(2, -5)))
+print("ega.wdg(vec2d.new(-3,5),vec2d.new(2,-5)):", ega.wdg(vec2d.new(-3, 5), vec2d.new(2, -5)))
 print("u:", u, "v:", v, "u^v:", uv)
 
 -- Test projection and rejection identities
@@ -300,8 +300,8 @@ print("-----------------------------------------------")
 
 local u = vec2d.new(4.5, 3)
 local v = vec2d.new(2.5, 4)
-local v_par = project_onto(v, u)
-local v_perp = reject_from(v, u)
+local v_par = ega.project_onto(v, u)
+local v_perp = ega.reject_from(v, u)
 print("v =  ", v)
 print("u = ", u)
 print("v_par =  ", v_par)
@@ -312,20 +312,20 @@ print("v = v_par + v_perp ", v_par + v_perp)
 local u = vec2d.new(3, 0)
 local v = vec2d.new(2, 1)
 
-local v_par = dot(v, u) * inv(u)
-local v_perp = (v ^ u) * inv(u)
+local v_par = ega.dot(v, u) * ega.inv(u)
+local v_perp = (v ^ u) * ega.inv(u)
 
 print("u=", u, "v=", v)
-print("dot(v, u)=", dot(v, u), "wdg(v, u)=", v ^ u)
-print("inv(u)", inv(u))
+print("ega.dot(v, u)=", ega.dot(v, u), "ega.wdg(v, u)=", v ^ u)
+print("ega.inv(u)", ega.inv(u))
 print("v_par=", v_par, "v_perp=", v_perp)
-print("project_onto(v,u)=", project_onto(v, u), "reject_from(v,u)=", reject_from(v, u))
+print("ega.project_onto(v,u)=", ega.project_onto(v, u), "ega.reject_from(v,u)=", ega.reject_from(v, u))
 
 -- Test contractions
 print("\n16. Testing contractions:")
 print("------------------------")
 
-print("(v<<I_2d)*inv(I_2d)=", (v << I_2d) * inv(I_2d))
+print("(v<<I_2d)*ega.inv(I_2d)=", (v << I_2d) * ega.inv(I_2d))
 print("v*I_2d=", v * I_2d, "I_2d*v=", I_2d * v)
 print("(v<<I_2d)=", (v << I_2d), "(I_2d>>v)=", (I_2d >> v))
 print("0.5*(v*I_2d-I_2d*v)=", 0.5 * (v * I_2d - I_2d * v))
@@ -346,6 +346,6 @@ print("s1 =", s1)
 print("s2 =", s2)
 print("mvs1 =", mvs1)
 print("mvs2 =", mvs2)
-print("dot(s1,s2)=", dot(s1, s2))
-print("wdg(s1,s2)=", wdg(s1, s2))
+print("ega.dot(s1,s2)=", ega.dot(s1, s2))
+print("ega.wdg(s1,s2)=", ega.wdg(s1, s2))
 print("mvs1 * mvs2 =", mvs1 * mvs2)

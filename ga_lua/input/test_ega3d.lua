@@ -40,42 +40,42 @@ print("v5 / 3:", v5 / 3, "scalar division")
 print("\n2. Testing vec3d geometric operations:")
 print("-------------------------------------")
 
-print("dot(v1, v2):", dot(v1, v2), "dot product")
+print("ega.dot(v1, v2):", ega.dot(v1, v2), "dot product")
 
-print("nrm_sq(v1): ", nrm_sq(v1), "squared norm")
-print("nrm(v1): ", nrm(v1), "norm")
-assert(math.abs(nrm_sq(v1) - 3) < eps)
-assert(math.abs(nrm(v1) - math.sqrt(3)) < eps)
+print("ega.nrm_sq(v1): ", ega.nrm_sq(v1), "squared norm")
+print("ega.nrm(v1): ", ega.nrm(v1), "norm")
+assert(math.abs(ega.nrm_sq(v1) - 3) < eps)
+assert(math.abs(ega.nrm(v1) - math.sqrt(3)) < eps)
 
-print("normalize(v1): ", normalize(v1), "normalized")
-print("math.abs( nrm(normalize(v1))-1.0 ):", math.abs(nrm(normalize(v1)) - 1.0))
-assert(math.abs(nrm(normalize(v1)) - 1.0) < eps)
+print("ega.normalize(v1): ", ega.normalize(v1), "normalized")
+print("math.abs( ega.nrm(ega.normalize(v1))-1.0 ):", math.abs(ega.nrm(ega.normalize(v1)) - 1.0))
+assert(math.abs(ega.nrm(ega.normalize(v1)) - 1.0) < eps)
 
-print("inv(v1):", inv(v1), "inverse")
-print("math.abs(nrm(v1)*nrm(inv(v1))-1):", math.abs(nrm(v1) * nrm(inv(v1)) - 1))
-assert(math.abs(nrm(v1) * nrm(inv(v1)) - 1) < eps)
+print("ega.inv(v1):", ega.inv(v1), "inverse")
+print("math.abs(ega.nrm(v1)*ega.nrm(ega.inv(v1))-1):", math.abs(ega.nrm(v1) * ega.nrm(ega.inv(v1)) - 1))
+assert(math.abs(ega.nrm(v1) * ega.nrm(ega.inv(v1)) - 1) < eps)
 
-print("wdg(v1,v2):", wdg(v1, v2), "dual(wdg(v1,v2)):", dual(wdg(v1, v2)))
+print("ega.wdg(v1,v2):", ega.wdg(v1, v2), "ega.dual(ega.wdg(v1,v2)):", ega.dual(ega.wdg(v1, v2)))
 
 -- Test bivector operations
 print("\n3. Testing bivector operations:")
 print("------------------------------")
 
-local bv1 = wdg(vec3d.new(0, 1, 0), vec3d.new(0, 0, 1))
-print("bv1 = wdg(vec3d.new(0,1,0),vec3d.new(0,0,1)):", bv1, "dual(bv1):", dual(bv1))
+local bv1 = ega.wdg(vec3d.new(0, 1, 0), vec3d.new(0, 0, 1))
+print("bv1 = ega.wdg(vec3d.new(0,1,0),vec3d.new(0,0,1)):", bv1, "ega.dual(bv1):", ega.dual(bv1))
 
-local bv2 = wdg(vec3d.new(0, 0, 1), vec3d.new(1, 0, 0))
-print("bv2 = wdg(vec3d.new(0,0,1),vec3d.new(1,0,0)):", bv2, "dual(bv2):", dual(bv2))
+local bv2 = ega.wdg(vec3d.new(0, 0, 1), vec3d.new(1, 0, 0))
+print("bv2 = ega.wdg(vec3d.new(0,0,1),vec3d.new(1,0,0)):", bv2, "ega.dual(bv2):", ega.dual(bv2))
 
-local bv3 = wdg(vec3d.new(1, 0, 0), vec3d.new(0, 1, 0))
-print("bv3 = wdg(vec3d.new(1,0,0),vec3d.new(0,1,0)):", bv3, "dual(bv3):", dual(bv3))
+local bv3 = ega.wdg(vec3d.new(1, 0, 0), vec3d.new(0, 1, 0))
+print("bv3 = ega.wdg(vec3d.new(1,0,0),vec3d.new(0,1,0)):", bv3, "ega.dual(bv3):", ega.dual(bv3))
 
 -- Test cross product vs dual
-local vc = cross(vec3d.new(1, 0, 0), vec3d.new(0, 1, 0))
+local vc = ega.cross(vec3d.new(1, 0, 0), vec3d.new(0, 1, 0))
 print("vc = (1,0,0)x(0,1,0):", vc)
-print("(1,0,0)x(0,1,0) = -dual(bv3):", -dual(bv3))
-print("vc == -dual(bv3) --> dual definition of Hestenes, Doran, Lasenby")
-print("vc ==  dual(bv3) --> dual definition of Macdonald")
+print("(1,0,0)x(0,1,0) = -ega.dual(bv3):", -ega.dual(bv3))
+print("vc == -ega.dual(bv3) --> dual definition of Hestenes, Doran, Lasenby")
+print("vc ==  ega.dual(bv3) --> dual definition of Macdonald")
 
 -- Test pscalar3d
 print("\n4. Testing pscalar3d:")
@@ -90,10 +90,10 @@ print("ps2:", ps2)
 print("\n5. Testing angle calculations:")
 print("------------------------------")
 
-local phi = angle(v1, v2)
+local phi = ega.angle(v1, v2)
 print("phi (rad): ", phi)
 print("phi (deg): ", rad2deg(phi))
-assert(math.abs(angle(vec3d.new(1, 0, 0), vec3d.new(1, 1, 0)) - math.pi / 4) < eps)
+assert(math.abs(ega.angle(vec3d.new(1, 0, 0), vec3d.new(1, 1, 0)) - math.pi / 4) < eps)
 
 -- Test mvec3d_e (even multivectors)
 print("\n6. Testing mvec3d_e (even multivectors):")
@@ -129,25 +129,25 @@ assert(mve5 / 3 == mve4)
 print("mv5 = 3 * mve4:", 3 * mve4, "scalar multiplication")
 print("mve5 / 3:", mve5 / 3, "scalar division")
 
-print("gr0(mve2)", gr0(mve2))
-print("gr2(mve2)", gr2(mve2))
-assert(gr0(mve2) == scalar3d.new(1.5))
-assert(gr2(mve2) == bivec3d.new(-2, -2, -1))
+print("ega.gr0(mve2)", ega.gr0(mve2))
+print("ega.gr2(mve2)", ega.gr2(mve2))
+assert(ega.gr0(mve2) == scalar3d.new(1.5))
+assert(ega.gr2(mve2) == bivec3d.new(-2, -2, -1))
 
-print("angle(bv1, v1) - (rad, deg):", angle(bv1, v1), rad2deg(angle(bv1, v1)))
-print("angle(v1, bv1) - (rad, deg):", angle(v1, bv1), rad2deg(angle(v1, bv1)))
+print("ega.angle(bv1, v1) - (rad, deg):", ega.angle(bv1, v1), rad2deg(ega.angle(bv1, v1)))
+print("ega.angle(v1, bv1) - (rad, deg):", ega.angle(v1, bv1), rad2deg(ega.angle(v1, bv1)))
 
 -- Test inverses
 print("\n7. Testing inverses:")
 print("-------------------")
 
 local v = vec3d.new(13, 5, -4)
-local vi = inv(v)
+local vi = ega.inv(v)
 print("v:", v)
 print("vi:", vi)
 print("v*vi:", v * vi)
-assert(math.abs(to_val(gr0(v * vi)) - 1) < eps)
-assert(math.abs(nrm(gr2(v * vi)) - 0) < eps)
+assert(math.abs(ega.to_val(ega.gr0(v * vi)) - 1) < eps)
+assert(math.abs(ega.nrm(ega.gr2(v * vi)) - 0) < eps)
 
 -- Test full mvec3d
 print("\n8. Testing mvec3d (full multivectors):")
@@ -192,29 +192,29 @@ print("mv5 = 3 * mv4:", 3 * mv4, "scalar multiplication")
 print("mv5 / 3:", mv5 / 3, "scalar division")
 
 print("mv2", mv2)
-print("gr0(mv2)", gr0(mv2))
-print("gr1(mv2)", gr1(mv2))
-print("gr2(mv2)", gr2(mv2))
-print("gr3(mv2)", gr3(mv2))
-assert(gr0(mv2) == scalar3d.new(1.5))
-assert(gr1(mv2) == vec3d.new(-2, 1, 2))
-assert(gr2(mv2) == bivec3d.new(0, 0, 0))
-assert(gr3(mv2) == pscalar3d.new(0))
+print("ega.gr0(mv2)", ega.gr0(mv2))
+print("ega.gr1(mv2)", ega.gr1(mv2))
+print("ega.gr2(mv2)", ega.gr2(mv2))
+print("ega.gr3(mv2)", ega.gr3(mv2))
+assert(ega.gr0(mv2) == scalar3d.new(1.5))
+assert(ega.gr1(mv2) == vec3d.new(-2, 1, 2))
+assert(ega.gr2(mv2) == bivec3d.new(0, 0, 0))
+assert(ega.gr3(mv2) == pscalar3d.new(0))
 
-print("nrm_sq(mv1), nrm(mv1)", nrm_sq(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1)", rev(mv1), conj(mv1))
-print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
+print("ega.nrm_sq(mv1), ega.nrm(mv1)", ega.nrm_sq(mv1), ega.nrm(mv1))
+print("ega.rev(mv1), ega.conj(mv1)", ega.rev(mv1), ega.conj(mv1))
+print("ega.inv(mv2), mv2*ega.inv(mv2)", ega.inv(mv2), mv2 * ega.inv(mv2))
 
 -- Test pscalar3d operations
 print("\n9. Testing pscalar3d operations:")
 print("-------------------------------")
 
-print("I_3d*I_3d:", I_3d * I_3d, "nrm_sq(I_3d):", nrm_sq(I_3d), "nrm(I_3d):", nrm(I_3d))
+print("I_3d*I_3d:", I_3d * I_3d, "ega.nrm_sq(I_3d):", ega.nrm_sq(I_3d), "ega.nrm(I_3d):", ega.nrm(I_3d))
 local I = pscalar3d.new(3)
-print("I:", I, "I*inv(I):", I * inv(I))
-assert(to_val(I * inv(I)) == 1)
+print("I:", I, "I*ega.inv(I):", I * ega.inv(I))
+assert(ega.to_val(I * ega.inv(I)) == 1)
 
-print("I+I:", I + I, "I-I:", I - I, "I/3:", I / 3, "to_val(I):", to_val(I))
+print("I+I:", I + I, "I-I:", I - I, "I/3:", I / 3, "ega.to_val(I):", ega.to_val(I))
 
 -- Test mixed geometric operations
 print("\n10. Testing mixed geometric operations:")
@@ -223,26 +223,26 @@ print("--------------------------------------")
 print("bivec3d.new(0,0,1)>>vec3d.new(1,1,1))", bivec3d.new(0, 0, 1) >> vec3d.new(1, 1, 1))
 print("vec3d.new(1,1,1)<<bivec3d.new(0,0,1))", vec3d.new(1, 1, 1) << bivec3d.new(0, 0, 1))
 
-print("dot(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", dot(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
-print("cmt(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", cmt(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
+print("ega.dot(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", ega.dot(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
+print("ega.cmt(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", ega.cmt(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
 
-print("angle(vec3d.new(1,0,1),bivec3d.new(0,0,1))", rad2deg(angle(vec3d.new(1, 0, 1), bivec3d.new(0, 0, 1))))
-print("bivec3d.new(0,0,1),angle(vec3d.new(1,0,1))", rad2deg(angle(bivec3d.new(0, 0, 1), vec3d.new(1, 0, 1))))
+print("ega.angle(vec3d.new(1,0,1),bivec3d.new(0,0,1))", rad2deg(ega.angle(vec3d.new(1, 0, 1), bivec3d.new(0, 0, 1))))
+print("bivec3d.new(0,0,1),ega.angle(vec3d.new(1,0,1))", rad2deg(ega.angle(bivec3d.new(0, 0, 1), vec3d.new(1, 0, 1))))
 
 -- Test projections, rejections and reflections
 print("\n11. Testing projections, rejections and reflections:")
 print("---------------------------------------------------")
 
-print("project_onto(vec3d.new(3,7,5),vec3d.new(1,1,1))", project_onto(vec3d.new(3, 7, 5), vec3d.new(1, 1, 1)))
-print("reject_from(vec3d.new(3,7,5),vec3d.new(1,1,1))", reject_from(vec3d.new(3, 7, 5), vec3d.new(1, 1, 1)))
+print("ega.project_onto(vec3d.new(3,7,5),vec3d.new(1,1,1))", ega.project_onto(vec3d.new(3, 7, 5), vec3d.new(1, 1, 1)))
+print("ega.reject_from(vec3d.new(3,7,5),vec3d.new(1,1,1))", ega.reject_from(vec3d.new(3, 7, 5), vec3d.new(1, 1, 1)))
 
-print("reflect_on_vec(vec3d.new(-2,2,0),vec3d.new(0,0,1))", reflect_on_vec(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
-print("reflect_on(vec3d.new(-2,2,0),vec3d.new(0,0,1))", reflect_on(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
+print("ega.reflect_on_vec(vec3d.new(-2,2,0),vec3d.new(0,0,1))", ega.reflect_on_vec(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
+print("ega.reflect_on(vec3d.new(-2,2,0),vec3d.new(0,0,1))", ega.reflect_on(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
 
-print("project_onto(vec3d.new(3,7,5),bivec3d.new(1,0,0)))", project_onto(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
-print("reject_from(vec3d.new(3,7,5),bivec3d.new(1,0,0))", reject_from(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
+print("ega.project_onto(vec3d.new(3,7,5),bivec3d.new(1,0,0)))", ega.project_onto(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
+print("ega.reject_from(vec3d.new(3,7,5),bivec3d.new(1,0,0))", ega.reject_from(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
 
-print("reflect_on(vec3d.new(3,7,5),bivec3d.new(1,0,0))", reflect_on(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
+print("ega.reflect_on(vec3d.new(3,7,5),bivec3d.new(1,0,0))", ega.reflect_on(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))
 
 -- Test geometric products
 print("\n12. Testing geometric products:")
@@ -253,15 +253,15 @@ print(
 	mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1)
 )
 
-print("nrm(vec3d.new(-3,5,7)):", nrm(vec3d.new(-3, 5, 7)))
-print("nrm(vec3d.new(2,-5,12)):", nrm(vec3d.new(2, -5, 12)))
+print("ega.nrm(vec3d.new(-3,5,7)):", ega.nrm(vec3d.new(-3, 5, 7)))
+print("ega.nrm(vec3d.new(2,-5,12)):", ega.nrm(vec3d.new(2, -5, 12)))
 
-print("dot(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", dot(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
-print("wdg(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", wdg(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
+print("ega.dot(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", ega.dot(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
+print("ega.wdg(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", ega.wdg(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
 print("vec3d.new(-3,5,7)*vec3d.new(2,-5,12):", vec3d.new(-3, 5, 7) * vec3d.new(2, -5, 12))
 
-print("wdg(vec3d.new(-3,5,7),bivec3d.new(2,3,4)):", wdg(vec3d.new(-3, 5, 7), bivec3d.new(2, 3, 4)))
-print("wdg(bivec3d.new(2,3,4),vec3d.new(-3,5,7)):", wdg(bivec3d.new(2, 3, 4), vec3d.new(-3, 5, 7)))
+print("ega.wdg(vec3d.new(-3,5,7),bivec3d.new(2,3,4)):", ega.wdg(vec3d.new(-3, 5, 7), bivec3d.new(2, 3, 4)))
+print("ega.wdg(bivec3d.new(2,3,4),vec3d.new(-3,5,7)):", ega.wdg(bivec3d.new(2, 3, 4), vec3d.new(-3, 5, 7)))
 
 print("vec3d.new(-3,5,7)*bivec3d.new(2,3,4)):", vec3d.new(-3, 5, 7) * bivec3d.new(2, 3, 4))
 print("bivec3d.new(2,3,4)*vec3d.new(-3,5,7)):", bivec3d.new(2, 3, 4) * vec3d.new(-3, 5, 7))
@@ -272,28 +272,28 @@ print("\n13. Testing dual operations:")
 print("---------------------------")
 
 print("I_3d*mvec3d.new(2,-3,5,7,1,2,3,1)", I_3d * mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1))
-print("dual(mvec3d.new(2,-3,5,7,1,2,3,1))", dual(mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1)))
+print("ega.dual(mvec3d.new(2,-3,5,7,1,2,3,1))", ega.dual(mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1)))
 
 print("I_3d*mvec3d_e.new(2,1,2,3)", I_3d * mvec3d_e.new(2, 1, 2, 3))
-print("dual(mvec3d_e.new(2,1,2,3))", dual(mvec3d_e.new(2, 1, 2, 3)))
+print("ega.dual(mvec3d_e.new(2,1,2,3))", ega.dual(mvec3d_e.new(2, 1, 2, 3)))
 
 print("I_3d*mvec3d_u.new(2,1,2,3)", I_3d * mvec3d_u.new(2, 1, 2, 3))
-print("dual(mvec3d_u.new(2,1,2,3))", dual(mvec3d_u.new(2, 1, 2, 3)))
+print("ega.dual(mvec3d_u.new(2,1,2,3))", ega.dual(mvec3d_u.new(2, 1, 2, 3)))
 
 print("I_3d*bivec3d.new(-3,5,7)", I_3d * bivec3d.new(-3, 5, 7))
-print("dual(bivec3d.new(-3,5,7))", dual(bivec3d.new(-3, 5, 7)))
+print("ega.dual(bivec3d.new(-3,5,7))", ega.dual(bivec3d.new(-3, 5, 7)))
 
 print("I_3d*vec3d.new(-3,5,7)", I_3d * vec3d.new(-3, 5, 7))
-print("dual(vec3d.new(-3,5,7))", dual(vec3d.new(-3, 5, 7)))
+print("ega.dual(vec3d.new(-3,5,7))", ega.dual(vec3d.new(-3, 5, 7)))
 
 -- Test complement operations
 print("\n14. Testing complement operations:")
 print("---------------------------------")
 
-print("cmpl(scalar3d.new(5))", cmpl(scalar3d.new(5)))
-print("cmpl(vec3d.new(3,4,5))", cmpl(vec3d.new(3, 4, 5)))
-print("cmpl(bivec3d.new(1,2,3))", cmpl(bivec3d.new(1, 2, 3)))
-print("cmpl(pscalar3d.new(7))", cmpl(pscalar3d.new(7)))
+print("ega.cmpl(scalar3d.new(5))", ega.cmpl(scalar3d.new(5)))
+print("ega.cmpl(vec3d.new(3,4,5))", ega.cmpl(vec3d.new(3, 4, 5)))
+print("ega.cmpl(bivec3d.new(1,2,3))", ega.cmpl(bivec3d.new(1, 2, 3)))
+print("ega.cmpl(pscalar3d.new(7))", ega.cmpl(pscalar3d.new(7)))
 
 -- Test 3D rotations
 print("\n15. Testing 3D rotations:")
@@ -303,7 +303,7 @@ local bv = bivec3d.new(0, 1, 1)
 print("Exponential rotations:")
 for i = 0, 10 do
 	local theta = math.pi / 10.0 * i
-	print("theta:", theta, "exp(bv,theta):", exp(bv, theta))
+	print("theta:", theta, "ega.exp(bv,theta):", ega.exp(bv, theta))
 end
 
 print("\nRotor rotations:")
@@ -312,10 +312,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"get_rotor(bv,theta):",
-		get_rotor(bv, theta),
+		"ega.get_rotor(bv,theta):",
+		ega.get_rotor(bv, theta),
 		"rotated:",
-		rotate(vec3d.new(1, 0, 0), get_rotor(bv, theta))
+		ega.rotate(vec3d.new(1, 0, 0), ega.get_rotor(bv, theta))
 	)
 end
 
@@ -326,17 +326,17 @@ print("---------------------------")
 local u = vec3d.new(-3, 5, 7)
 local v = vec3d.new(2, -5, 12)
 local uv = u ^ v
-print("wdg(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", wdg(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
+print("ega.wdg(vec3d.new(-3,5,7),vec3d.new(2,-5,12)):", ega.wdg(vec3d.new(-3, 5, 7), vec3d.new(2, -5, 12)))
 print("u:", u, "v:", v, "u^v:", uv)
 
 local u = vec3d.new(-3, 5, 7)
 local v = bivec3d.new(2, 3, 4)
 local uv = u ^ v
-print("wdg(vec3d.new(-3,5,7),bivec3d.new(2,3,4)):", wdg(vec3d.new(-3, 5, 7), bivec3d.new(2, 3, 4)))
+print("ega.wdg(vec3d.new(-3,5,7),bivec3d.new(2,3,4)):", ega.wdg(vec3d.new(-3, 5, 7), bivec3d.new(2, 3, 4)))
 print("u:", u, "v:", v, "u^v:", uv)
 
 local vu = v ^ u
-print("wdg(bivec3d.new(2,3,4),vec3d.new(-3,5,7)):", wdg(bivec3d.new(2, 3, 4), vec3d.new(-3, 5, 7)))
+print("ega.wdg(bivec3d.new(2,3,4),vec3d.new(-3,5,7)):", ega.wdg(bivec3d.new(2, 3, 4), vec3d.new(-3, 5, 7)))
 print("u:", u, "v:", v, "v^u:", vu)
 
 -- Test commutator operations
@@ -347,14 +347,14 @@ local v1 = vec3d.new(1, 0, 0)
 local v2 = vec3d.new(0, 1, 0)
 print("v1 =", v1)
 print("v2 =", v2)
-print("cmt(v1, v2) =", cmt(v1, v2))
+print("ega.cmt(v1, v2) =", ega.cmt(v1, v2))
 
 local bv = bivec3d.new(1, 0, 0)
 local v = vec3d.new(0, 1, 0)
 print("bivector bv =", bv)
 print("vector v =", v)
-print("cmt(bv, v) =", cmt(bv, v))
-print("cmt(v, bv) =", cmt(v, bv))
+print("ega.cmt(bv, v) =", ega.cmt(bv, v))
+print("ega.cmt(v, bv) =", ega.cmt(v, bv))
 
 -- Test complex multivector operations
 print("\n18. Testing complex multivector operations:")
@@ -378,12 +378,12 @@ print("mvec3d_u.new(2,1,2,3)*mvec3d_e.new(1,2,3,4):", mvec3d_u.new(2, 1, 2, 3) *
 print("\n19. Testing contractions and basis elements:")
 print("-------------------------------------------")
 
-print("dot(e23_3d,e23_3d)=", dot(e23_3d, e23_3d))
-print("dot(e31_3d,e31_3d)=", dot(e31_3d, e31_3d))
-print("dot(e12_3d,e12_3d)=", dot(e12_3d, e12_3d))
-print("dot(e23_3d,e12_3d)=", dot(e23_3d, e12_3d))
-print("dot(e31_3d,e12_3d)=", dot(e31_3d, e12_3d))
-print("dot(e12_3d,e23_3d)=", dot(e12_3d, e23_3d))
+print("ega.dot(e23_3d,e23_3d)=", ega.dot(e23_3d, e23_3d))
+print("ega.dot(e31_3d,e31_3d)=", ega.dot(e31_3d, e31_3d))
+print("ega.dot(e12_3d,e12_3d)=", ega.dot(e12_3d, e12_3d))
+print("ega.dot(e23_3d,e12_3d)=", ega.dot(e23_3d, e12_3d))
+print("ega.dot(e31_3d,e12_3d)=", ega.dot(e31_3d, e12_3d))
+print("ega.dot(e12_3d,e23_3d)=", ega.dot(e12_3d, e23_3d))
 
 -- Test join and meet operations
 print("\n20. Testing join and meet operations:")
@@ -406,11 +406,11 @@ print("--------------------------------")
 local u = vec3d.new(3, 3, 0)
 local v = vec3d.new(-0.2, 2, 0)
 local uv = u ^ v
-print("nrm(uv)", nrm(uv))
-print("u << uv", normalize(u << uv))
-print("uv >> u", normalize(uv >> u))
-print("v << uv", normalize(v << uv))
-print("uv >> v", normalize(uv >> v))
+print("ega.nrm(uv)", ega.nrm(uv))
+print("u << uv", ega.normalize(u << uv))
+print("uv >> u", ega.normalize(uv >> u))
+print("v << uv", ega.normalize(v << uv))
+print("uv >> v", ega.normalize(uv >> v))
 
 -- Test mixed product decomposition
 print("\n22. Testing mixed product decomposition:")
@@ -431,26 +431,26 @@ print("\n23. Testing pseudoscalar operations:")
 print("----------------------------------")
 
 print("pscalar3d.new(1)*pscalar3d.new(1):", pscalar3d.new(1) * pscalar3d.new(1))
-print("pscalar3d.new(1)*rev(pscalar3d.new(1)):", pscalar3d.new(1) * rev(pscalar3d.new(1)))
+print("pscalar3d.new(1)*ega.rev(pscalar3d.new(1)):", pscalar3d.new(1) * ega.rev(pscalar3d.new(1)))
 
 -- Test dual with multivector
 local mv = mvec3d.new(0, 0, 0, 0, 1, 2, 3, 0)
-print("mv:", mv, "dual(mv):", dual(mv))
+print("mv:", mv, "ega.dual(mv):", ega.dual(mv))
 
 -- cross product and equivalence to outer product (wdg)
 print("\n24. Testing cross product and equivalence to wedge product:")
 print("----------------------------------")
 local a = vec3d.new(0, 0, 1)
 local b = vec3d.new(1, 0, 0)
-local c = cross(a, b)
-local wab = wdg(a, b)
+local c = ega.cross(a, b)
+local wab = ega.wdg(a, b)
 
 print("a = ", a)
 print("b = ", b)
 print("c = a x b = ", c)
 print("a ^ b = ", wab)
-print("dual(a ^ b) = ", dual(wab)) -- here they are simply duals of each other
-print("dual(a x b) = ", dual(c))
+print("ega.dual(a ^ b) = ", ega.dual(wab)) -- here they are simply duals of each other
+print("ega.dual(a x b) = ", ega.dual(c))
 print()
 print("-I_3d * (a ^ b) = ", -I_3d * wab) -- Hestenes form of duality
 print("I_3d * (a x b) = ", I_3d * c)
@@ -460,8 +460,8 @@ print("\n25. Testing basic vector product symmetries:")
 print("----------------------------------")
 local a = vec3d.new(1, 0, 2)
 local b = vec3d.new(2, 0, 1)
-local dot_ab = dot(a, b)
-local wdg_ab = wdg(a, b)
+local dot_ab = ega.dot(a, b)
+local wdg_ab = ega.wdg(a, b)
 local ab = a * b
 local ba = b * a
 local sym_ab = 0.5 * (a * b + b * a)
@@ -473,5 +473,5 @@ print("dot_ab = ", dot_ab)
 print("wdg_ab = ", wdg_ab)
 print("a*b = ", ab)
 print("b*a = ", ba)
-print("sym(a,b)  = 0.5*(a*b + b*a) = ", sym_ab, ", gr0 = ", gr0(sym_ab))
-print("asym(a,b) = 0.5*(a*b - b*a) = ", asym_ab, ", gr2 = ", gr2(asym_ab))
+print("sym(a,b)  = 0.5*(a*b + b*a) = ", sym_ab, ", gr0 = ", ega.gr0(sym_ab))
+print("asym(a,b) = 0.5*(a*b - b*a) = ", asym_ab, ", gr2 = ", ega.gr2(asym_ab))

@@ -12,8 +12,8 @@ print("\nega2d:")
 local F = vec2d.new(0.5, 0)
 local lever1 = vec2d.new(0, 0.5)
 local lever2 = vec2d.new(0, -0.5)
-local mlever1 = wdg(lever1, F) -- moment1 relative to origin
-local mlever2 = wdg(lever2, F) -- moment2 relative to origin
+local mlever1 = ega.wdg(lever1, F) -- moment1 relative to origin
+local mlever2 = ega.wdg(lever2, F) -- moment2 relative to origin
 local mres = mlever1 + mlever2
 print("F = ", F)
 print("lever1 = ", lever1)
@@ -27,8 +27,8 @@ print("\npga2dp:")
 local f = vec2dp.new(0.5, 0, 0)
 local P1 = vec2dp.new(0, 0.5, 1) -- point P1 the force acts at
 local P2 = vec2dp.new(0, -0.5, 1) -- point P2 the force acts at
-local m1 = wdg(P1, f) -- resulting moment line from f acting at P1
-local m2 = wdg(P2, f) -- resulting moment line from f acting at P2
+local m1 = pga.wdg(P1, f) -- resulting moment line from f acting at P1
+local m2 = pga.wdg(P2, f) -- resulting moment line from f acting at P2
 mres = m1 + m2
 print("f = ", f)
 print("P1 = ", P1)
@@ -36,9 +36,9 @@ print("P2 = ", P2)
 print("m1 = ", m1)
 print("m2 = ", m2)
 print("mres = m1 + m2 = ", mres)
-print("att(m1) = ", att(m1))
-print("att(m2) = ", att(m2))
-print("att(mres) = ", att(mres))
-print("sup(m1) = ", unitize(sup(m1)))
-print("sup(m2) = ", unitize(sup(m2)))
-print("sup(mres) = ", unitize(sup(mres)))
+print("pga.att(m1) = ", pga.att(m1))
+print("pga.att(m2) = ", pga.att(m2))
+print("pga.att(mres) = ", pga.att(mres))
+print("pga.sup(m1) = ", pga.unitize(pga.sup(m1)))
+print("pga.sup(m2) = ", pga.unitize(pga.sup(m2)))
+print("pga.sup(mres) = ", pga.unitize(pga.sup(mres)))
