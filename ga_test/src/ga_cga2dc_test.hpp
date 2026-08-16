@@ -776,6 +776,33 @@ TEST_SUITE("CGA 2dc Tests")
         // radius_sq must throw rather than give a bogus answer
         auto dcc = rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(0.0, 0.0, 2.0));
         CHECK_THROWS(radius_sq(dcc));
+
+        // the same chain intersects a circle with a LINE, and the line need not
+        // pass through the center: a line is the join of two of its points with
+        // the point at infinity (a circle through infinity, see the flat objects
+        // above). Circle r=2 about the origin against y = 1 (half the radius),
+        // y = 2 (tangent) and y = 3 (missing it):
+        auto const line_through = [](value_t px, value_t py, value_t dx,
+                                     value_t dy) -> trivec2dc {
+            return wdg(
+                wdg(round_point2dc(px, py, 0.0), round_point2dc(px + dx, py + dy, 0.0)),
+                e4_2dc);
+        };
+
+        auto const c_r2 = circle2dc(0.0, 0.0, 2.0);
+        CHECK(intersect(c_r2, line_through(0.0, 1.0, 1.0, 0.0), p1, p2));
+        bool const chord_a = is_close(p1, vec2dc(s3, 1.0, 1.0, 0.0)) &&
+                             is_close(p2, vec2dc(-s3, 1.0, 1.0, 0.0));
+        bool const chord_b = is_close(p1, vec2dc(-s3, 1.0, 1.0, 0.0)) &&
+                             is_close(p2, vec2dc(s3, 1.0, 1.0, 0.0));
+        CHECK((chord_a || chord_b)); // x = +/- sqrt(r^2 - 1^2) = +/- sqrt(3)
+
+        CHECK(intersect(c_r2, line_through(0.0, 2.0, 1.0, 0.0), p1, p2)); // tangent
+        CHECK(is_close(p1, vec2dc(0.0, 2.0, 1.0, 0.0)));
+        CHECK(is_close(p2, vec2dc(0.0, 2.0, 1.0, 0.0)));
+
+        CHECK_FALSE(intersect(c_r2, line_through(0.0, 3.0, 1.0, 0.0), p1, p2));
+        CHECK(radius_sq(rwdg(c_r2, line_through(0.0, 3.0, 1.0, 0.0))) == -5.0);
     }
 
     TEST_CASE("cga2dc: conformal conjugate and containment")

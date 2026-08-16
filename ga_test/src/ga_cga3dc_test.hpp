@@ -428,6 +428,61 @@ TEST_SUITE("CGA 3dc Tests")
                           round_point3dc(3.0, 4.0, 0.0, 0.0))) == -12.5);
     }
 
+    TEST_CASE("cga3dc: off-center intersections with lines and planes")
+    {
+        fmt::println("cga3dc: off-center intersections with lines and planes");
+
+        // The meet does not care whether the line or plane passes through the
+        // center of the sphere. One chain covers secant, tangent and missing:
+        // meet -> sign of radius_sq -> unitize -> cen +/- sqrt(r^2) * att.
+        auto const s = sphere3dc(0.0, 0.0, 0.0, 2.0);
+
+        // LINE along e1 at height y, i.e. at distance y from the center
+        auto const chord = [&](value_t y, vec3dc& p1, vec3dc& p2) -> bool {
+            auto d = rwdg(s, line3dc(0.0, y, 0.0, 1.0, 0.0, 0.0));
+            if (radius_sq(d) < 0.0) return false;
+            auto du = unitize(d);
+            auto ctr = unitize(cen(du));
+            auto dir = att(du);
+            value_t const r = std::sqrt(radius_sq(du));
+            p1 =
+                vec3dc(ctr.x + r * dir.x, ctr.y + r * dir.y, ctr.z + r * dir.z, 1.0, 0.0);
+            p2 =
+                vec3dc(ctr.x - r * dir.x, ctr.y - r * dir.y, ctr.z - r * dir.z, 1.0, 0.0);
+            return true;
+        };
+
+        vec3dc p1, p2;
+        value_t const s3 = std::sqrt(3.0);
+
+        // y = 1 (half the radius): chord ends at x = +/- sqrt(r^2 - y^2)
+        CHECK(chord(1.0, p1, p2));
+        bool const order_a = is_close(p1, vec3dc(s3, 1.0, 0.0, 1.0, 0.0)) &&
+                             is_close(p2, vec3dc(-s3, 1.0, 0.0, 1.0, 0.0));
+        bool const order_b = is_close(p1, vec3dc(-s3, 1.0, 0.0, 1.0, 0.0)) &&
+                             is_close(p2, vec3dc(s3, 1.0, 0.0, 1.0, 0.0));
+        CHECK((order_a || order_b));
+        CHECK(radius_sq(rwdg(s, line3dc(0.0, 1.0, 0.0, 1.0, 0.0, 0.0))) == 3.0);
+
+        // y = 2: tangent, the two points coincide and the radius vanishes
+        CHECK(chord(2.0, p1, p2));
+        CHECK(is_close(p1, vec3dc(0.0, 2.0, 0.0, 1.0, 0.0)));
+        CHECK(is_close(p2, vec3dc(0.0, 2.0, 0.0, 1.0, 0.0)));
+
+        // y = 3: the line misses the sphere -- imaginary radius, no real points
+        CHECK_FALSE(chord(3.0, p1, p2));
+        CHECK(radius_sq(rwdg(s, line3dc(0.0, 3.0, 0.0, 1.0, 0.0, 0.0))) == -5.0);
+
+        // PLANE cutting off-center: the meet is a smaller circle, its radius
+        // following r^2 - d^2, and its center sitting on the plane
+        auto const cut = [&](value_t z) { return rwdg(s, plane3dc(0.0, 0.0, 1.0, z)); };
+        CHECK(radius_sq(cut(1.0)) == 3.0); // r^2 - d^2 = 4 - 1
+        CHECK(
+            is_close(unitize(cen(unitize(cut(1.0)))), round_point3dc(0.0, 0.0, 1.0, s3)));
+        CHECK(radius_sq(cut(2.0)) == 0.0);  // tangent plane
+        CHECK(radius_sq(cut(3.0)) == -5.0); // plane misses the sphere
+    }
+
     TEST_CASE("cga3dc: object properties (car/ccr/cen/con/par/att)")
     {
         fmt::println("cga3dc: object properties (car/ccr/cen/con/par/att)");
