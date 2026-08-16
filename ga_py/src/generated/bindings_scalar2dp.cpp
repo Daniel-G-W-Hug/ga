@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 #include "ga/ga_sta.hpp"
@@ -26,6 +27,7 @@ namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::cga;
 using namespace hd::ga::sta;
 
 void bind_scalar2dp(nb::module_& m)

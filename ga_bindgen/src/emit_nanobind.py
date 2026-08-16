@@ -52,6 +52,7 @@ GENERATED_HEADER = """\
 #include <utility>
 #include <vector>
 
+#include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 #include "ga/ga_sta.hpp"
@@ -60,6 +61,7 @@ namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::cga;
 using namespace hd::ga::sta;
 """
 
@@ -463,6 +465,7 @@ def collect_free_functions(
     out: dict[str, dict[str, list[tuple[list[str], str]]]] = {
         "ega": defaultdict(list),
         "pga": defaultdict(list),
+        "cga": defaultdict(list),
         "sta": defaultdict(list),
         "top": defaultdict(list),
     }
@@ -490,6 +493,8 @@ def collect_free_functions(
             submod = "ega"
         elif grp.namespace == "hd::ga::pga":
             submod = "pga"
+        elif grp.namespace == "hd::ga::cga":
+            submod = "cga"
         elif grp.namespace == "hd::ga::sta":
             submod = "sta"
         elif grp.namespace == "hd::ga":
@@ -544,6 +549,7 @@ def collect_constants(
     out: dict[str, list[tuple[str, str, str]]] = {
         "ega": [],
         "pga": [],
+        "cga": [],
         "sta": [],
         "top": [],
     }
@@ -552,6 +558,8 @@ def collect_constants(
             submod = "ega"
         elif c.namespace == "hd::ga::pga":
             submod = "pga"
+        elif c.namespace == "hd::ga::cga":
+            submod = "cga"
         elif c.namespace == "hd::ga::sta":
             submod = "sta"
         elif c.namespace == "hd::ga":
@@ -595,11 +603,13 @@ def emit_constants_module(submodule: str, consts: list[tuple[str, str, str]]) ->
 
 
 def submodule_for_enum(e: Enum) -> str:
-    """Route a scanned enum into ega / pga / sta / top by its namespace."""
+    """Route a scanned enum into ega / pga / cga / sta / top by its namespace."""
     if e.namespace == "hd::ga::ega":
         return "ega"
     if e.namespace == "hd::ga::pga":
         return "pga"
+    if e.namespace == "hd::ga::cga":
+        return "cga"
     if e.namespace == "hd::ga::sta":
         return "sta"
     return "top"
@@ -607,7 +617,13 @@ def submodule_for_enum(e: Enum) -> str:
 
 def collect_enums(manifest: Manifest) -> dict[str, list[Enum]]:
     """Group the manifest's enums by target submodule."""
-    out: dict[str, list[Enum]] = {"ega": [], "pga": [], "sta": [], "top": []}
+    out: dict[str, list[Enum]] = {
+        "ega": [],
+        "pga": [],
+        "cga": [],
+        "sta": [],
+        "top": [],
+    }
     for e in manifest.enums:
         out[submodule_for_enum(e)].append(e)
     return out
@@ -743,7 +759,7 @@ def is_eligible(t: TypeAlias) -> bool:
 
 
 def submodule_for(t: TypeAlias) -> str:
-    """Route a user type into ega or pga or sta.
+    """Route a user type into ega, pga, cga or sta.
 
     Primary signal: presence of `pga::` in the canonical_underlying — this
     correctly catches PGA geometric primitives whose user-typedef name does
@@ -761,6 +777,8 @@ def submodule_for(t: TypeAlias) -> str:
             break
     if base.endswith("2dp") or base.endswith("3dp"):
         return "pga"
+    if base.endswith("2dc") or base.endswith("3dc"):
+        return "cga"
     if base.endswith("4ds"):
         return "sta"
     return "ega"
@@ -1363,31 +1381,38 @@ def emit_register_all(
         "\n"
         "void register_enums_ega(nb::module_& m);\n"
         "void register_enums_pga(nb::module_& m);\n"
+        "void register_enums_cga(nb::module_& m);\n"
         "void register_enums_sta(nb::module_& m);\n"
         "void register_enums_top(nb::module_& m);\n"
         "void register_functions_ega(nb::module_& m);\n"
         "void register_functions_pga(nb::module_& m);\n"
+        "void register_functions_cga(nb::module_& m);\n"
         "void register_functions_sta(nb::module_& m);\n"
         "void register_functions_top(nb::module_& m);\n"
         "void register_constants_ega(nb::module_& m);\n"
         "void register_constants_pga(nb::module_& m);\n"
+        "void register_constants_cga(nb::module_& m);\n"
         "void register_constants_sta(nb::module_& m);\n"
         "void register_constants_top(nb::module_& m);\n"
         "\n"
-        "void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta) {\n"
+        "void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga,\n"
+        "                  nb::module_& cga, nb::module_& sta) {\n"
         # enums first: pure-data structs with enum-typed fields (loop_constraint2dp,
         # joint_state2dp) need the enum types already registered before bind_* runs.
         "    register_enums_ega(ega);\n"
         "    register_enums_pga(pga);\n"
+        "    register_enums_cga(cga);\n"
         "    register_enums_sta(sta);\n"
         "    register_enums_top(top);\n"
         f"{calls}\n"
         "    register_functions_ega(ega);\n"
         "    register_functions_pga(pga);\n"
+        "    register_functions_cga(cga);\n"
         "    register_functions_sta(sta);\n"
         "    register_functions_top(top);\n"
         "    register_constants_ega(ega);\n"
         "    register_constants_pga(pga);\n"
+        "    register_constants_cga(cga);\n"
         "    register_constants_sta(sta);\n"
         "    register_constants_top(top);\n"
         "}\n"
@@ -1407,15 +1432,15 @@ def emit_cmake_list(names: list[str], out_dir: Path) -> str:
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_{n}.cpp"
         )
     lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/register_all.cpp")
-    for submod in ("ega", "pga", "sta", "top"):
+    for submod in ("ega", "pga", "cga", "sta", "top"):
         lines.append(
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_enums_{submod}.cpp"
         )
-    for submod in ("ega", "pga", "sta", "top"):
+    for submod in ("ega", "pga", "cga", "sta", "top"):
         lines.append(
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_functions_{submod}.cpp"
         )
-    for submod in ("ega", "pga", "sta", "top"):
+    for submod in ("ega", "pga", "cga", "sta", "top"):
         lines.append(
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_constants_{submod}.cpp"
         )
@@ -1561,7 +1586,7 @@ def main() -> int:
             }
 
         free_fns = collect_free_functions(manifest, type_map, file_filter)
-        for submod in ("ega", "pga", "sta", "top"):
+        for submod in ("ega", "pga", "cga", "sta", "top"):
             (out_dir / f"bindings_functions_{submod}.cpp").write_text(
                 GENERATED_HEADER
                 + "\n"
@@ -1570,7 +1595,7 @@ def main() -> int:
             )
 
         constants = collect_constants(manifest, type_map)
-        for submod in ("ega", "pga", "sta", "top"):
+        for submod in ("ega", "pga", "cga", "sta", "top"):
             (out_dir / f"bindings_constants_{submod}.cpp").write_text(
                 GENERATED_HEADER
                 + "\n"
@@ -1579,7 +1604,7 @@ def main() -> int:
             )
 
         enums_by_sub = collect_enums(manifest)
-        for submod in ("ega", "pga", "sta", "top"):
+        for submod in ("ega", "pga", "cga", "sta", "top"):
             (out_dir / f"bindings_enums_{submod}.cpp").write_text(
                 GENERATED_HEADER
                 + "\n"
@@ -1606,7 +1631,7 @@ def main() -> int:
             else "all source files"
         )
         print(f"\nFree-function emission ({n_total} overloads from {filter_desc}):")
-        for submod in ("ega", "pga", "sta", "top"):
+        for submod in ("ega", "pga", "cga", "sta", "top"):
             fns = free_fns.get(submod, {})
             n_ovs = sum(len(ovs) for ovs in fns.values())
             print(f"  {submod}: {len(fns)} unique fn names, {n_ovs} overloads")

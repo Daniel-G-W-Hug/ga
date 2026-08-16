@@ -866,8 +866,8 @@ Safety patterns (keep these when adding rules):
 ## Python wrapper (ga_py / ga_bindgen)
 
 `ga_bindgen/` scans `ga/*.hpp` with libclang into `manifest.json`; `ga_py/` turns that
-into a nanobind extension (`_ga_py`) exposing submodules `ega` / `pga` / `sta` plus the
-top-level `hd::ga` free functions.
+into a nanobind extension (`_ga_py`) exposing submodules `ega` / `pga` / `cga` / `sta`
+plus the top-level `hd::ga` free functions.
 
 **Two venvs — never conflate:** `ga_bindgen/.venv` (scan/emit, needs `libclang`) vs
 `ga_py/.venv` (build + tests, needs `pytest hypothesis numpy nanobind`).

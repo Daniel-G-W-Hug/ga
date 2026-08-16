@@ -6,9 +6,10 @@
 namespace nb = nanobind;
 
 // Implemented in src/generated/register_all.cpp (generated).
-// `top` receives free functions from `hd::ga`; `ega` / `pga` / `sta` receive
+// `top` receives free functions from `hd::ga`; `ega` / `pga` / `cga` / `sta` receive
 // types and free functions from their respective sub-namespaces.
-void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta);
+void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga,
+                  nb::module_& cga, nb::module_& sta);
 
 // Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);
@@ -21,9 +22,11 @@ NB_MODULE(_ga_py, m)
 
     auto ega = m.def_submodule("ega", "Euclidean geometric algebra (2D, 3D)");
     auto pga = m.def_submodule("pga", "Projective geometric algebra (2dp, 3dp)");
+    auto cga = m.def_submodule(
+        "cga", "Conformal geometric algebra (2dc, 3dc; rounds, flats, conformal maps)");
     auto sta = m.def_submodule("sta", "Space-time algebra (G(1,3,0), types *_4ds)");
 
-    register_all(m, ega, pga, sta);
+    register_all(m, ega, pga, cga, sta);
     bind_rk4_step(m);
     bind_mechanics(pga);
 }

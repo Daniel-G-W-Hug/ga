@@ -66,12 +66,23 @@ from model import (
 )
 
 # Headers we parse to build the unified manifest. ga_pga.hpp pulls in the
-# pga side; ga_ega.hpp pulls in the ega side. ga_sta.hpp pulls in the sta side.
-# We parse all and merge.
-SOURCE_HEADERS = ["ga/ga_ega.hpp", "ga/ga_pga.hpp", "ga/ga_sta.hpp"]
+# pga side; ga_ega.hpp pulls in the ega side; ga_sta.hpp the sta side; and
+# ga_cga.hpp the conformal side (cga2dc + cga3dc). We parse all and merge.
+SOURCE_HEADERS = [
+    "ga/ga_ega.hpp",
+    "ga/ga_pga.hpp",
+    "ga/ga_cga.hpp",
+    "ga/ga_sta.hpp",
+]
 
 # Namespaces we emit bindings for. `hd::ga::detail` is internal — excluded.
-TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga", "hd::ga::sta"}
+TARGET_NAMESPACES = {
+    "hd::ga",
+    "hd::ga::ega",
+    "hd::ga::pga",
+    "hd::ga::cga",
+    "hd::ga::sta",
+}
 
 # Namespace-scope types the structural rules below would otherwise pick up, but which are
 # INTERNALS of the stateful (unbound) dynamic_system{2,3}dp force / contact / integration

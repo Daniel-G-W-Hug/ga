@@ -83,14 +83,17 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/register_all.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_ega.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_pga.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_cga.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_sta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_top.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_ega.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_pga.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_cga.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_sta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_top.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_constants_ega.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_constants_pga.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_constants_cga.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_constants_sta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_constants_top.cpp
 )

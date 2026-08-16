@@ -15,20 +15,20 @@ underlying composition. They contain NO Python math — every call dispatches
 into the bound C++ functions.
 """
 import _ga_py
-from _ga_py import ega, pga, sta  # noqa: F401
+from _ga_py import ega, pga, cga, sta  # noqa: F401
 
 # Forward the top-level (`hd::ga::*`) functions from the compiled module to
 # this package, so callers can write `ga_py.deg2rad(180.0)` directly. This
 # mirrors the C++ idiom of bringing `using namespace hd::ga;` into scope.
 for _attr in dir(_ga_py):
-    if _attr.startswith("_") or _attr in ("ega", "pga", "sta"):
+    if _attr.startswith("_") or _attr in ("ega", "pga", "cga", "sta"):
         continue
     globals()[_attr] = getattr(_ga_py, _attr)
 del _attr
 
-__all__ = ["ega", "pga", "sta"] + [n for n in dir(_ga_py)
-                                   if not n.startswith("_")
-                                   and n not in ("ega", "pga", "sta")]
+__all__ = ["ega", "pga", "cga", "sta"] + [n for n in dir(_ga_py)
+                                          if not n.startswith("_")
+                                          and n not in ("ega", "pga", "cga", "sta")]
 
 
 # ---------------------------------------------------------------------------

@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 #include "ga/ga_sta.hpp"
@@ -26,6 +27,7 @@ namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::cga;
 using namespace hd::ga::sta;
 
 void register_functions_top(nb::module_& m)
@@ -102,6 +104,7 @@ void register_functions_top(nb::module_& m)
           [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
     m.def("rpm2radps", [](double a0) { return rpm2radps(a0); });
     m.def("sign", [](double a0) { return sign(a0); });
+    m.def("signum", [](double a0) { return signum(a0); });
     m.def("smooth_step",
           [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
     m.def("smoother_step",

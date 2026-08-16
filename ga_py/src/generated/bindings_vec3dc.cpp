@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 #include "ga/ga_sta.hpp"
@@ -26,6 +27,7 @@ namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::cga;
 using namespace hd::ga::sta;
 
 void bind_vec3dc(nb::module_& m)
@@ -124,5 +126,113 @@ void bind_vec3dc(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](vec3dc const& a, mvec3dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, vec3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, mvec3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, mvec3dc_e const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, mvec3dc_u const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, pscalar3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, quadvec3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, trivec3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, bivec3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__mul__", [](vec3dc const& a, scalar3dc const& b) { return a * b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, vec3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, mvec3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, mvec3dc_e const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, mvec3dc_u const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, pscalar3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, quadvec3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, trivec3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, bivec3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__lshift__", [](vec3dc const& a, scalar3dc const& b) { return a << b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, vec3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, mvec3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, mvec3dc_e const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, mvec3dc_u const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, pscalar3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, quadvec3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, trivec3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, bivec3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__rshift__", [](vec3dc const& a, scalar3dc const& b) { return a >> b; },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, vec3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, mvec3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, mvec3dc_e const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, mvec3dc_u const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, pscalar3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, quadvec3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, trivec3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, bivec3dc const& b) { return wdg(a, b); },
+            nb::is_operator())
+        .def(
+            "__xor__", [](vec3dc const& a, scalar3dc const& b) { return wdg(a, b); },
             nb::is_operator());
 }

@@ -13,7 +13,7 @@ End users:
 - [2. Relationship to the C++ library](#2-relationship-to-the-c-library) — how the math stays fast
 - [3. Quick start — build and run](#3-quick-start--build-and-run) — prerequisites, setup,
   hello-world, tests, API reference
-- [4. Using the library](#4-using-the-library) — constants, EGA↔PGA naming differences,
+- [4. Using the library](#4-using-the-library) — constants, EGA↔PGA naming differences, CGA,
   day-1 gotchas (typed scalars, `^` precedence, submodules)
 
 Contributors:
@@ -28,10 +28,11 @@ Contributors:
 `ga_py` is a Python module that exposes the C++ geometric algebra library (`ga/`) to
 Python. Types (`vec3d`, `bivec3d`, `mvec3d`, …), operators (`+`, `-`, `*`, `^`, `<<`,
 `>>`), and free functions (`gpr`, `wdg`, `dot`, `nrm`, …) all map 1:1 to their C++
-counterparts. The three algebras live in submodules:
+counterparts. The four algebras live in submodules:
 
 - `ga_py.ega` — Euclidean GA (mirrors `hd::ga::ega`)
 - `ga_py.pga` — Projective GA (mirrors `hd::ga::pga`)
+- `ga_py.cga` — Conformal GA (mirrors `hd::ga::cga`)
 - `ga_py.sta` — Spacetime GA (mirrors `hd::ga::sta`)
 
 Free functions in the `hd::ga` top-level namespace are re-exported at `ga_py.*` (so
@@ -216,9 +217,9 @@ ga_py/.venv/bin/pytest ga_py/tests/            # macOS / Linux
 ga_py\.venv\Scripts\pytest ga_py\tests\        # Windows
 ```
 
-688 tests, ~2 s. They cover constants, grade lookup, EGA/PGA algebraic identities (via
-`hypothesis`), numpy interop, `rk4_step` integration, and a JSON cross-check against the
-C++ reference outputs.
+972 tests, ~3 s. They cover constants, grade lookup, EGA/PGA algebraic identities (via
+`hypothesis`), the CGA objects and conformal versors, numpy interop, `rk4_step`
+integration, and a JSON cross-check against the C++ reference outputs.
 
 ### 3.6 Where to find the API reference
 
@@ -227,9 +228,13 @@ The Python surface mirrors the C++ headers exactly. Until `.pyi` stub generation
 
 - EGA: `ga/ga_ega2d_ops.hpp`, `ga/ga_ega3d_ops.hpp`, `ga/ga_usr_consts.hpp`
 - PGA: `ga/ga_pga2dp_ops.hpp`, `ga/ga_pga3dp_ops.hpp`, `ga/ga_usr_consts.hpp`
+- CGA: `ga/ga_cga2dc_ops.hpp`, `ga/ga_cga3dc_ops.hpp`, `ga/ga_usr_consts.hpp`
+  (worked example: [`demo/cga_objects.py`](demo/cga_objects.py))
 - STA: `ga/ga_sta4ds_ops.hpp`, `ga/ga_usr_consts.hpp`
+  (worked example: [`demo/sta_spacetime.py`](demo/sta_spacetime.py))
 
-Use `dir(ga_py.ega)` / `dir(ga_py.pga)` / `dir(ga_py.sta)` for a quick interactive listing.
+Use `dir(ga_py.ega)` / `dir(ga_py.pga)` / `dir(ga_py.cga)` / `dir(ga_py.sta)` for a quick
+interactive listing.
 
 ## 4. Using the library
 
@@ -277,7 +282,52 @@ Functions that exist in **both** submodules with the same name (`wdg`, `dot`, `c
 `ga_py.pga.wdg(vec3dp, vec3dp)` both Just Work; their meanings are analogous but the
 resulting types live in different algebras.
 
-### 4.3 Gotchas worth knowing up front
+### 4.3 CGA — objects carry their own geometry
+
+`ga_py.cga` covers both conformal algebras: `cga2dc` (circles, dipoles and flats in the
+plane) and `cga3dc` (spheres, circles, dipoles, planes and lines in space). Points embed
+as null vectors, so the rounds are *joins* of points (`wdg`) and the flats are the same
+joins with the point at infinity appended. Intersections are the meet (`rwdg`), and the
+result is a single object whose **squared radius carries the case distinction**: positive
+means two real intersections, zero tangency, negative no real intersection.
+
+```python
+from ga_py import cga
+
+# an off-center chord: intersect a sphere with a line, no case distinction
+sphere = cga.sphere3dc(0.0, 0.0, 0.0, 2.0)        # center (0,0,0), radius 2
+line = cga.line3dc(0.0, 1.0, 0.0, 1.0, 0.0, 0.0)  # through (0,1,0), along x
+dipole = cga.rwdg(sphere, line)                   # meet -> a point pair
+print(cga.radius_sq(dipole))                      # 3.0  -> two real hits
+d = cga.unitize(dipole)
+ctr, dir_, r = cga.unitize(cga.cen(d)), cga.att(d), cga.radius_sq(d) ** 0.5
+# the two points: ctr +/- r * dir_  ->  (-1.7320508, 1, 0) and (1.7320508, 1, 0)
+
+cga.radius_sq(cga.rwdg(sphere, cga.line3dc(0, 3, 0, 1, 0, 0)))   # -5.0 -> a miss
+
+M = cga.get_translation(1.0, 2.0, 3.0)            # a conformal versor
+moved = cga.unitize(cga.transform(sphere, M))     # center (1,2,3), r^2 still 4
+```
+
+A ready-to-run version of all of this — the null embedding, the joins, the properties,
+the three intersection cases and the versors — is
+[`ga_py/demo/cga_objects.py`](demo/cga_objects.py):
+
+```bash
+ga_py/.venv/bin/python ga_py/demo/cga_objects.py            # macOS / Linux
+ga_py\.venv\Scripts\python.exe ga_py\demo\cga_objects.py    # Windows
+```
+
+Its numbers are the ones pinned in `ga_py/tests/test_cga.py` and in the C++ suite, so a
+divergence is a failure rather than a variant.
+
+`cen` / `radius_sq` / `car` / `con` / `par` / `ccr` / `att` read the geometry back off an
+object; `get_translation`, `get_rotation`, `get_dilation`, `get_transversion`,
+`get_loxodromic` build the versors, applied with `transform` (and `invert_on` for
+inversion in a sphere). The versor exponential family is `rexp` / `rlog` / `rsqrt` — the
+`r` prefix marks the regressive product, as in PGA.
+
+### 4.4 Gotchas worth knowing up front
 
 These are not bugs — they are consequences of mirroring a strongly-typed C++ library 1:1
 in Python. You will hit them sooner or later; better to know about them on day 1.
@@ -808,10 +858,12 @@ overloaded `operator()` for the inertia map), so explicit binding is the smalles
 
 ### 6.7 Demo / teaching scripts
 
-`ga_py/demo/hello_ga.py` (the §3.4 install-check) is the first one. Topical follow-ups
-along the same lines are pending: `demo/ega_basics.py`, `demo/pga_basics.py`,
-`demo/rotors_and_motors.py`, etc. — minimal scripts demonstrating the `import ga_py`
-workflow on focused themes.
+`ga_py/demo/hello_ga.py` (the §3.4 install-check) is the first one;
+`demo/cga_objects.py` (§4.3, conformal objects and versors),
+`demo/sta_spacetime.py` (causal character, observer splits, boosts and rotations) and
+`demo/plate_pendulum.py` (§6.6, mechanics) follow the same pattern. Topical follow-ups
+still pending: `demo/ega_basics.py`, `demo/pga_basics.py`, `demo/rotors_and_motors.py`,
+etc. — minimal scripts demonstrating the `import ga_py` workflow on focused themes.
 
 ### 6.8 Documentation site
 

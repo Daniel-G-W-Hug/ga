@@ -21,6 +21,7 @@
 //   cd build && cmake --build . --target ga_export_python_cases \
 //     && ./ga_test/ga_export_python_cases
 
+#include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 #include "ga/ga_sta.hpp"
@@ -34,6 +35,7 @@
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::cga;
 using namespace hd::ga::sta;
 
 namespace {
@@ -187,6 +189,83 @@ std::string emit_value(JsonValue const& v)
     return {"mvec4ds_u", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
 
+[[maybe_unused]] JsonValue to_json(scalar2dc v) { return {"scalar2dc", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar3dc v) { return {"scalar3dc", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar2dc v) { return {"pscalar2dc", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar3dc v) { return {"pscalar3dc", {value_t(v)}}; }
+
+[[maybe_unused]] JsonValue to_json(vec2dc const& v)
+{
+    return {"vec2dc", {v.x, v.y, v.z, v.w}};
+}
+[[maybe_unused]] JsonValue to_json(trivec2dc const& t)
+{
+    return {"trivec2dc", {t.x, t.y, t.z, t.w}};
+}
+[[maybe_unused]] JsonValue to_json(bivec2dc const& B)
+{
+    return {"bivec2dc", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
+}
+[[maybe_unused]] JsonValue to_json(vec3dc const& v)
+{
+    return {"vec3dc", {v.x, v.y, v.z, v.w, v.u}};
+}
+[[maybe_unused]] JsonValue to_json(quadvec3dc const& q)
+{
+    return {"quadvec3dc", {q.x, q.y, q.z, q.w, q.u}};
+}
+[[maybe_unused]] JsonValue to_json(bivec3dc const& B)
+{
+    return {"bivec3dc", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz, B.px, B.py, B.pz, B.pw}};
+}
+[[maybe_unused]] JsonValue to_json(trivec3dc const& T)
+{
+    return {"trivec3dc", {T.vx, T.vy, T.vz, T.mx, T.my, T.mz, T.px, T.py, T.pz, T.pw}};
+}
+
+[[maybe_unused]] JsonValue to_json(MVec2dc<value_t> const& M)
+{
+    return {"mvec2dc",
+            {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7, M.c8, M.c9, M.c10, M.c11,
+             M.c12, M.c13, M.c14, M.c15}};
+}
+[[maybe_unused]] JsonValue to_json(MVec2dc_E<value_t> const& M)
+{
+    return {"mvec2dc_e", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
+}
+[[maybe_unused]] JsonValue to_json(MVec2dc_U<value_t> const& M)
+{
+    return {"mvec2dc_u", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
+}
+[[maybe_unused]] JsonValue to_json(MVec3dc<value_t> const& M)
+{
+    return {"mvec3dc",
+            {M.c0,  M.c1,  M.c2,  M.c3,  M.c4,  M.c5,  M.c6,  M.c7,  M.c8,  M.c9,  M.c10,
+             M.c11, M.c12, M.c13, M.c14, M.c15, M.c16, M.c17, M.c18, M.c19, M.c20, M.c21,
+             M.c22, M.c23, M.c24, M.c25, M.c26, M.c27, M.c28, M.c29, M.c30, M.c31}};
+}
+[[maybe_unused]] JsonValue to_json(MVec3dc_E<value_t> const& M)
+{
+    return {"mvec3dc_e",
+            {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7, M.c8, M.c9, M.c10, M.c11,
+             M.c12, M.c13, M.c14, M.c15}};
+}
+[[maybe_unused]] JsonValue to_json(MVec3dc_U<value_t> const& M)
+{
+    return {"mvec3dc_u",
+            {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7, M.c8, M.c9, M.c10, M.c11,
+             M.c12, M.c13, M.c14, M.c15}};
+}
+
+[[maybe_unused]] JsonValue to_json(DualNum2dc<value_t> const& d)
+{
+    return {"dualnum2dc", {d.c0, d.c1}};
+}
+[[maybe_unused]] JsonValue to_json(DualNum3dc<value_t> const& d)
+{
+    return {"dualnum3dc", {d.c0, d.c1}};
+}
+
 [[maybe_unused]] JsonValue to_json(DualNum2dp<value_t> const& d)
 {
     return {"dualnum2dp", {d.c0, d.c1}};
@@ -206,7 +285,7 @@ std::string emit_value(JsonValue const& v)
 
 struct Case {
     std::string id;
-    std::string submodule; // "ega" | "pga" | "sta"| "top"
+    std::string submodule; // "ega" | "pga" | "cga" | "sta" | "top"
     std::string op;
     std::vector<JsonValue> args;
     JsonValue expected;
@@ -427,6 +506,147 @@ void emit_pga_cases()
 }
 
 // --------------------------------------------------------------------------- //
+// CGA cases (cga2dc = G(3,1,0), cga3dc = G(4,1,0) --- types *_2dc / *_3dc)
+// --------------------------------------------------------------------------- //
+// Conformal points are null vectors, so the round objects are joins of points
+// and the flats are the same joins with the point at infinity appended. The
+// cases below cover both directions (build by join, read back by cen / car /
+// con / par / att / radius_sq) plus the conformal versors.
+
+void emit_cga_cases()
+{
+    // --- cga3dc: null embedding and the point-pair / circle / sphere joins ---
+    {
+        vec3dc a = round_point3dc(1.0, 0.0, 0.0, 0.0);
+        vec3dc b = round_point3dc(0.0, 1.0, 0.0, 0.0);
+        vec3dc c = round_point3dc(0.0, 0.0, 1.0, 0.0);
+        vec3dc d = round_point3dc(-1.0, 0.0, 0.0, 0.0);
+        add("cga_vec3dc_dot", "cga", "dot", dot(a, b), a, b);
+        add("cga_vec3dc_add", "cga", "+", a + b, a, b);
+        add("cga_vec3dc_sub", "cga", "-", a - b, a, b);
+        add("cga_vec3dc_neg", "cga", "neg", -a, a);
+        add("cga_vec3dc_wdg_dipole", "cga", "wdg", wdg(a, b), a, b);
+        add("cga_vec3dc_wdg_circle", "cga", "wdg", wdg(wdg(a, b), c), wdg(a, b), c);
+        add("cga_vec3dc_wdg_sphere", "cga", "wdg", wdg(wdg(wdg(a, b), c), d),
+            wdg(wdg(a, b), c), d);
+        add("cga_vec3dc_gpr", "cga", "*", a * b, a, b);
+        add("cga_vec3dc_rev", "cga", "rev", rev(wdg(a, b)), wdg(a, b));
+        add("cga_vec3dc_conj", "cga", "conj", conj(wdg(a, b)), wdg(a, b));
+        add("cga_vec3dc_cconj", "cga", "cconj", cconj(wdg(a, b)), wdg(a, b));
+        add("cga_vec3dc_gr_inv", "cga", "gr_inv", gr_inv(wdg(a, b)), wdg(a, b));
+    }
+
+    // --- cga3dc: reading the geometry back off an object ---
+    {
+        quadvec3dc s = sphere3dc(3.0, 4.0, 0.0, 2.0);
+        add("cga_sphere3dc_radius_sq", "cga", "radius_sq", radius_sq(s), s);
+        add("cga_sphere3dc_center_nrm_sq", "cga", "center_nrm_sq", center_nrm_sq(s), s);
+        add("cga_sphere3dc_cen", "cga", "cen", cen(s), s);
+        add("cga_sphere3dc_par", "cga", "par", par(s), s);
+        add("cga_sphere3dc_unitize", "cga", "unitize", unitize(s), s);
+        add("cga_sphere3dc_dot_self", "cga", "dot", dot(unitize(s), unitize(s)),
+            unitize(s), unitize(s));
+
+        trivec3dc circ = circle3dc(1.0, 2.0, 3.0, 2.0, 0.0, 0.0, 1.0);
+        add("cga_circle3dc_car", "cga", "car", car(circ), circ);
+        add("cga_circle3dc_con", "cga", "con", con(circ), circ);
+        add("cga_circle3dc_ccr", "cga", "ccr", ccr(circ), circ);
+        add("cga_circle3dc_att", "cga", "att", att(circ), circ);
+
+        vec3dc rp = round_point3dc(1.0, 2.0, 3.0, 2.0);
+        add("cga_round_point3dc_con", "cga", "con", con(rp), rp);
+        add("cga_round_point3dc_radius_sq", "cga", "radius_sq", radius_sq(rp), rp);
+        add("cga_round_point3dc_round_bulk", "cga", "round_bulk", round_bulk(rp), rp);
+        add("cga_round_point3dc_round_weight", "cga", "round_weight", round_weight(rp),
+            rp);
+
+        bivec3dc fp = flat_point3dc(1.0, 2.0, 3.0);
+        add("cga_flat_point3dc_flat_bulk", "cga", "flat_bulk", flat_bulk(fp), fp);
+        add("cga_flat_point3dc_flat_weight", "cga", "flat_weight", flat_weight(fp), fp);
+    }
+
+    // --- cga3dc: meet --- a line cutting a sphere off-center gives a point pair ---
+    {
+        quadvec3dc s = sphere3dc(0.0, 0.0, 0.0, 2.0);
+        trivec3dc l = line3dc(0.0, 1.0, 0.0, 1.0, 0.0, 0.0);
+        bivec3dc dip = rwdg(s, l);
+        add("cga_sphere_line_rwdg", "cga", "rwdg", dip, s, l);
+        add("cga_dipole3dc_radius_sq", "cga", "radius_sq", radius_sq(dip), dip);
+        add("cga_dipole3dc_cen", "cga", "cen", cen(unitize(dip)), unitize(dip));
+        add("cga_dipole3dc_att", "cga", "att", att(unitize(dip)), unitize(dip));
+
+        quadvec3dc pl = plane3dc(0.0, 0.0, 1.0, 1.0);
+        add("cga_sphere_plane_rwdg", "cga", "rwdg", rwdg(s, pl), s, pl);
+    }
+
+    // --- cga3dc: complements and duals (odd-dimensional --- single variant) ---
+    {
+        vec3dc a = round_point3dc(1.0, 2.0, 3.0, 1.0);
+        add("cga_vec3dc_cmpl", "cga", "cmpl", cmpl(a), a);
+        add("cga_vec3dc_dual", "cga", "dual", dual(a), a);
+        add("cga_vec3dc_antidual", "cga", "antidual", antidual(a), a);
+        add("cga_vec3dc_inv", "cga", "inv", inv(a), a);
+    }
+
+    // --- cga3dc: the conformal versors (odd-grade motors in 3dc) ---
+    {
+        quadvec3dc s = sphere3dc(0.0, 0.0, 0.0, 2.0);
+        mvec3dc_u T = get_translation(1.0, 2.0, 3.0);
+        mvec3dc_u R = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.5);
+        mvec3dc_u D = get_dilation(0.0, 0.0, 0.0, 3.0);
+        add("cga_get_translation", "cga", "get_translation", T, 1.0, 2.0, 3.0);
+        add("cga_get_rotation", "cga", "get_rotation", R, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            0.5);
+        add("cga_get_dilation", "cga", "get_dilation", D, 0.0, 0.0, 0.0, 3.0);
+        add("cga_transform_sphere_translate", "cga", "transform", transform(s, T), s, T);
+        add("cga_transform_sphere_dilate", "cga", "transform", transform(s, D), s, D);
+        add("cga_rgpr_versor_compose", "cga", "rgpr", rgpr(T, R), T, R);
+        add("cga_rlog_rotation", "cga", "rlog", rlog(R), R);
+        add("cga_rexp_rlog_rotation", "cga", "rexp", rexp(rlog(R)), rlog(R));
+        add("cga_rsqrt_rotation", "cga", "rsqrt", rsqrt(R), R);
+        add("cga_rrev_versor", "cga", "rrev", rrev(R), R);
+
+        // inversion in a sphere: the point at 2 maps to r^2 / 2
+        vec3dc p = round_point3dc(2.0, 0.0, 0.0, 0.0);
+        quadvec3dc us = sphere3dc(0.0, 0.0, 0.0, 1.0);
+        add("cga_invert_on_sphere", "cga", "invert_on", invert_on(p, us), p, us);
+    }
+
+    // --- cga2dc: the planar algebra (circles are trivectors, dipoles bivectors) ---
+    {
+        vec2dc a = round_point2dc(1.0, 0.0, 0.0);
+        vec2dc b = round_point2dc(0.0, 1.0, 0.0);
+        vec2dc c = round_point2dc(-1.0, 0.0, 0.0);
+        add("cga_vec2dc_dot", "cga", "dot", dot(a, b), a, b);
+        add("cga_vec2dc_wdg_dipole", "cga", "wdg", wdg(a, b), a, b);
+        add("cga_vec2dc_wdg_circle", "cga", "wdg", wdg(wdg(a, b), c), wdg(a, b), c);
+        add("cga_vec2dc_gpr", "cga", "*", a * b, a, b);
+
+        trivec2dc c1 = circle2dc(0.0, 0.0, 2.0);
+        trivec2dc c2 = circle2dc(3.0, 0.0, 2.0);
+        add("cga_circle2dc_rwdg", "cga", "rwdg", rwdg(c1, c2), c1, c2);
+        add("cga_circle2dc_radius_sq", "cga", "radius_sq", radius_sq(c1), c1);
+        add("cga_circle2dc_cen", "cga", "cen", cen(c2), c2);
+        add("cga_circle2dc_att", "cga", "att", att(c1), c1);
+        add("cga_circle2dc_unitize", "cga", "unitize", unitize(c2), c2);
+
+        // dipole2dc(center_x, center_y, radius, normal_x, normal_y)
+        bivec2dc dip = dipole2dc(0.0, 0.0, 1.0, 1.0, 0.0);
+        add("cga_dipole2dc_radius_sq", "cga", "radius_sq", radius_sq(dip), dip);
+        add("cga_dipole2dc_car", "cga", "car", car(dip), dip);
+
+        // versors are EVEN-grade in cga2dc (odd in cga3dc)
+        mvec2dc_e T2 = get_translation(1.0, 2.0);
+        mvec2dc_e R2 = get_rotation(0.0, 0.0, 0.6);
+        add("cga_get_translation2dc", "cga", "get_translation", T2, 1.0, 2.0);
+        add("cga_get_rotation2dc", "cga", "get_rotation", R2, 0.0, 0.0, 0.6);
+        add("cga_transform_circle2dc", "cga", "transform", transform(c1, T2), c1, T2);
+        add("cga_rgpr_versor_compose2dc", "cga", "rgpr", rgpr(T2, R2), T2, R2);
+        add("cga_rlog_rotation2dc", "cga", "rlog", rlog(R2), R2);
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // STA cases (G(1,3,0) --- Space-Time Algebra, types *_4ds)
 // --------------------------------------------------------------------------- //
 // Metric is (-,-,-,+): for a vector nrm_sq = -x^2 - y^2 - z^2 + w^2, so a vector
@@ -615,6 +835,7 @@ int main(int argc, char** argv)
 
     emit_ega_cases();
     emit_pga_cases();
+    emit_cga_cases();
     emit_sta_cases();
     emit_top_cases();
 

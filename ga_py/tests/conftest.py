@@ -176,6 +176,19 @@ FIELD_ORDER = {
     "dualnum2dp": ("c0", "c1"),
     "dualnum3dp": ("c0", "c1"),
     "dualnum4ds": ("c0", "c1"),
+    # cga: the field names are positional reuses of the shared templates --
+    # Vec4_t for vec2dc/trivec2dc, BVec6_t for bivec2dc, Vec5_t for
+    # vec3dc/quadvec3dc, BVec10_t for bivec3dc/trivec3dc (see
+    # ga/detail/type_t/ga_type{2,3}dc.hpp for what each slot means).
+    "vec2dc": ("x", "y", "z", "w"),
+    "bivec2dc": ("vx", "vy", "vz", "mx", "my", "mz"),
+    "trivec2dc": ("x", "y", "z", "w"),
+    "vec3dc": ("x", "y", "z", "w", "u"),
+    "bivec3dc": ("vx", "vy", "vz", "mx", "my", "mz", "px", "py", "pz", "pw"),
+    "trivec3dc": ("vx", "vy", "vz", "mx", "my", "mz", "px", "py", "pz", "pw"),
+    "quadvec3dc": ("x", "y", "z", "w", "u"),
+    "dualnum2dc": ("c0", "c1"),
+    "dualnum3dc": ("c0", "c1"),
 }
 
 

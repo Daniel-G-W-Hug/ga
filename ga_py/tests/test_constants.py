@@ -225,6 +225,101 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
 # --------------------------------------------------------------------------- #
 
 
+
+# --------------------------------------------------------------------------- #
+# CGA (cga2dc, cga3dc)
+#
+# Written out as the basis ORDER rather than as 127 literal tuples: each named
+# blade constant must be the unit vector at its own position, so a reordering in
+# C++ shows up as a failure here. The orders are those of ga/ga_usr_consts.hpp
+# and ga_docu 1.2.1; the even/odd layouts are grade-blocked (2dc even = scalar +
+# 6 bivectors + pseudoscalar, odd = 4 vectors + 4 trivectors; 3dc even = scalar +
+# 10 bivectors + 5 quadvectors, odd = 5 vectors + 10 trivectors + pseudoscalar).
+# --------------------------------------------------------------------------- #
+
+_CGA = {
+    "2dc": {
+        "grades": (
+            ("scalar2dc", ("1",)),
+            ("vec2dc", ("e1", "e2", "e3", "e4")),
+            ("bivec2dc", ("e31", "e32", "e12", "e14", "e24", "e34")),
+            ("trivec2dc", ("e314", "e324", "e124", "e321")),
+            ("pscalar2dc", ("e1234",)),
+        ),
+        "even": ("1", "e31", "e32", "e12", "e14", "e24", "e34", "e1234"),
+        "odd": ("e1", "e2", "e3", "e4", "e314", "e324", "e124", "e321"),
+    },
+    "3dc": {
+        "grades": (
+            ("scalar3dc", ("1",)),
+            ("vec3dc", ("e1", "e2", "e3", "e4", "e5")),
+            ("bivec3dc", ("e41", "e42", "e43", "e23", "e31", "e12",
+                          "e15", "e25", "e35", "e45")),
+            ("trivec3dc", ("e415", "e425", "e435", "e235", "e315", "e125",
+                           "e423", "e431", "e412", "e321")),
+            ("quadvec3dc", ("e4235", "e4315", "e4125", "e3215", "e1234")),
+            ("pscalar3dc", ("e12345",)),
+        ),
+        "even": ("1", "e41", "e42", "e43", "e23", "e31", "e12", "e15", "e25",
+                 "e35", "e45", "e4235", "e4315", "e4125", "e3215", "e1234"),
+        "odd": ("e1", "e2", "e3", "e4", "e5", "e415", "e425", "e435", "e235",
+                "e315", "e125", "e423", "e431", "e412", "e321", "e12345"),
+    },
+}
+
+
+def _unit(n: int, i: int) -> tuple[float, ...]:
+    return tuple(1.0 if j == i else 0.0 for j in range(n))
+
+
+def _cga_expected() -> list[tuple[str, str, str, tuple[float, ...]]]:
+    out: list[tuple[str, str, str, tuple[float, ...]]] = []
+    for sfx, spec in _CGA.items():
+        full = tuple(b for _, blades in spec["grades"] for b in blades)
+        for tname, blades in spec["grades"]:
+            if tname.startswith("scalar"):
+                continue  # the scalar one is named one_2dc / one_3dc, added below
+            for i, b in enumerate(blades):
+                out.append(("cga", f"{b}_{sfx}", tname, _unit(len(blades), i)))
+        # the scalar one and the pseudoscalar alias I_2dc / I_3dc
+        out.append(("cga", f"one_{sfx}", f"scalar{sfx}", (1.0,)))
+        out.append(("cga", f"I_{sfx}", f"pscalar{sfx}", (1.0,)))
+        # embeddings into the full / even / odd multivectors
+        for i, b in enumerate(full):
+            out.append(("cga", f"{b}_{sfx}_mv", f"mvec{sfx}", _unit(len(full), i)))
+        for i, b in enumerate(spec["even"]):
+            out.append(("cga", f"{b}_{sfx}_mv_e", f"mvec{sfx}_e",
+                        _unit(len(spec["even"]), i)))
+        for i, b in enumerate(spec["odd"]):
+            out.append(("cga", f"{b}_{sfx}_mv_u", f"mvec{sfx}_u",
+                        _unit(len(spec["odd"]), i)))
+        # the one / pseudoscalar embeddings, named after the alias rather than
+        # after the blade: 1 is first in the full and even lists, the
+        # pseudoscalar last in the full list and last in the list matching its
+        # grade parity (even in cga2dc, odd in cga3dc).
+        out.append(("cga", f"one_{sfx}_mv", f"mvec{sfx}", _unit(len(full), 0)))
+        out.append(("cga", f"one_{sfx}_mv_e", f"mvec{sfx}_e",
+                    _unit(len(spec["even"]), 0)))
+        out.append(("cga", f"I_{sfx}_mv", f"mvec{sfx}", _unit(len(full), len(full) - 1)))
+        # cga2dc is 4-dimensional (pseudoscalar grade 4, even), cga3dc is
+        # 5-dimensional (grade 5, odd) --- so the embedding differs in suffix.
+        parity, tag = ("even", "e") if len(full) == 16 else ("odd", "u")
+        out.append(("cga", f"I_{sfx}_mv_{tag}", f"mvec{sfx}_{tag}",
+                    _unit(len(spec[parity]), len(spec[parity]) - 1)))
+    return out
+
+
+_BOUND_CGA = {n for n in dir(ga_py.cga)
+              if not n.startswith("_")
+              and not isinstance(getattr(ga_py.cga, n), type)
+              and not callable(getattr(ga_py.cga, n))}
+
+# Only the ones actually bound: the C++ header declares _mv embeddings for a
+# subset of the blades, and the completeness test below catches any bound
+# constant this derivation would miss.
+EXPECTED = EXPECTED + [e for e in _cga_expected() if e[1] in _BOUND_CGA]
+
+
 @pytest.mark.parametrize(
     "submod,name,type_name,expected",
     EXPECTED,
@@ -437,9 +532,9 @@ def test_pga3dp_pseudoscalar_is_regressive_product_identity():
 
 
 def _all_bound_constants() -> set[tuple[str, str]]:
-    """Enumerate every const-like attribute on ga_py.ega / pga / sta."""
+    """Enumerate every const-like attribute on ga_py.ega / pga / cga / sta."""
     found: set[tuple[str, str]] = set()
-    for sub_name in ("ega", "pga", "sta"):
+    for sub_name in ("ega", "pga", "cga", "sta"):
         sub = getattr(ga_py, sub_name)
         for n in dir(sub):
             if n.startswith("_"):
@@ -461,18 +556,24 @@ def test_expected_table_covers_every_bound_constant():
     assert not extra, f"tested but no longer bound: {sorted(extra)}"
 
 
-def test_total_bound_constants_is_168():
+def test_total_bound_constants_is_305():
     """Stable count --- changes here flag intentional or accidental drift.
 
-    168 = 120 previously-counted ega/pga constants
+    305 = 120 previously-counted ega/pga constants
         +   3 PGA e4{1,2,3}_3dp_mv_e even-multivector embeddings (declared in
             ga_usr_consts.hpp but previously absent from EXPECTED)
         +  45 STA (G(1,3,0)) constants: the 4 basis vectors g1..g4_4ds
             (+ x/y/z/t_dir aliases), 6 basis bivectors g14/g24/g34/g23/g31/g12_4ds,
             4 basis trivectors g234/g314/g124/g123_4ds, the pseudoscalar I_4ds
             (= g1234_4ds), the scalar one_4ds, and their _mv / _mv_e embeddings.
+        + 137 CGA constants (2026-08-16, when the cga submodule was bound): the
+            16 cga2dc and 32 cga3dc basis blades as their graded types, the two
+            pseudoscalar aliases I_2dc / I_3dc, and the _mv / _mv_e / _mv_u
+            embeddings declared in ga_usr_consts.hpp --- the last 10 of them the
+            one_* scalar and I_*_mv pseudoscalar embeddings that the other
+            algebras always had and cga initially lacked.
     """
-    assert len(_all_bound_constants()) == 168
+    assert len(_all_bound_constants()) == 305
 
 
 def test_h_2dp_value_matches_negated_e12_2dp():

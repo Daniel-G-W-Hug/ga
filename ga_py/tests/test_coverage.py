@@ -28,6 +28,20 @@ PGA_TYPES = [
     ("dualnum2dp", 2), ("dualnum3dp", 2),
 ]
 
+CGA_TYPES = [
+    ("vec2dc", 4),
+    ("bivec2dc", 6),
+    ("trivec2dc", 4),
+    ("mvec2dc", 16), ("mvec2dc_e", 8), ("mvec2dc_u", 8),
+    ("dualnum2dc", 2),
+    ("vec3dc", 5),
+    ("bivec3dc", 10),
+    ("trivec3dc", 10),
+    ("quadvec3dc", 5),
+    ("mvec3dc", 32), ("mvec3dc_e", 16), ("mvec3dc_u", 16),
+    ("dualnum3dc", 2),
+]
+
 STA_TYPES = [
     ("vec4ds", 4),
     ("bivec4ds", 6),
@@ -49,6 +63,15 @@ def test_ega_type_exposed(name, arity):
 @pytest.mark.parametrize("name,arity", PGA_TYPES)
 def test_pga_type_exposed(name, arity):
     cls = getattr(ga_py.pga, name)
+    obj = cls(*[float(i) for i in range(arity)])
+    s = repr(obj)
+    assert s.startswith(f"{name}(")
+    assert str(obj)
+
+
+@pytest.mark.parametrize("name,arity", CGA_TYPES)
+def test_cga_type_exposed(name, arity):
+    cls = getattr(ga_py.cga, name)
     obj = cls(*[float(i) for i in range(arity)])
     s = repr(obj)
     assert s.startswith(f"{name}(")

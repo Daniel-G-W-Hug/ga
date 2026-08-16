@@ -28,7 +28,7 @@ import pytest
 # Resolve the stubs once. Doing it at import time keeps each test fast.
 PKG_DIR = Path(__file__).resolve().parents[1] / "python" / "ga_py"
 STUBS = {name: PKG_DIR / f"{name}.pyi"
-         for name in ("__init__", "ega", "pga", "sta")}
+         for name in ("__init__", "ega", "pga", "cga", "sta")}
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +84,16 @@ def test_pga_pyi_contains_core_types():
         assert cls in text
 
 
+def test_cga_pyi_contains_core_types():
+    text = STUBS["cga"].read_text()
+    for name in ("vec2dc", "trivec2dc", "vec3dc", "quadvec3dc", "mvec3dc"):
+        assert f"class {name}" in text, f"{name} missing from cga.pyi"
+    # the conformal geometry layer, not just the value types
+    for fn in ("round_point3dc", "sphere3dc", "car", "cen", "radius_sq",
+               "transform", "get_translation", "rexp"):
+        assert f"def {fn}(" in text, f"{fn} missing from cga.pyi"
+
+
 def test_sta_pyi_contains_core_types():
     text = STUBS["sta"].read_text()
     for cls in ("class scalar4ds:", "class vec4ds:", "class bivec4ds:",
@@ -110,7 +120,7 @@ def _bound_classes(text: str) -> list[str]:
     return re.findall(r"^class (\w+)(?:\([^)]*\))?:\s*$", text, re.MULTILINE)
 
 
-@pytest.mark.parametrize("name", ("ega", "pga", "sta"))
+@pytest.mark.parametrize("name", ("ega", "pga", "cga", "sta"))
 def test_every_bound_class_has_format(name: str):
     """__format__ post-pass: nanobind.stubgen filters this dunder out;
     emit_stubs.py re-injects it into every class with a __str__ since
