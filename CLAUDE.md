@@ -290,11 +290,11 @@ function; it is the authoritative per-file index. The split:
 | ---- | ----------------------------------- |
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
-| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr` for EGA/STA, `rgpr` for PGA); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA) |
+| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr`, EGA/STA only) and **`rexp`/`rlog`/`rsqrt`** (w.r.t. `rgpr`, PGA/CGA — the r-prefix marks the regressive product; the unprefixed names stay reserved there); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA) |
 | `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), and the `extra_wrenches()` subclass hook for application-specific wrenches |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
 
-So e.g. `exp`/`log` live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
+So e.g. `exp`/`log` (and `rexp`/`rlog`) live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
 `rcmt`-velocity-field helpers used together with them are in `ops_mechanics.hpp` (PGA) and
 `ops_products.hpp` (`rcmt`). EGA/STA have no `mechanics`/`constraints` headers.
 
@@ -1115,10 +1115,10 @@ motor) has a grade that **depends on the dimension** — do not assume it is alw
 bivector (a common, wrong assumption carried over from 3D):
 
 - **pga2dp**: motors are odd-grade (`MVec2dp_U`), so `Mdot ⟇ rrev(M)` is odd → the twist
-  `Omega` is a **vector** (`Vec2dp`); `exp(Vec2dp)` builds the motor. (The kinematics
+  `Omega` is a **vector** (`Vec2dp`); `rexp(Vec2dp)` builds the motor. (The kinematics
   `twist2dp` alias is a `vec2dp` for exactly this reason.)
 - **pga3dp**: motors are even-grade (`MVec3dp_E`), so the twist `Omega` is a **bivector**
-  (`BiVec3dp`); `exp(BiVec3dp)` builds the motor.
+  (`BiVec3dp`); `rexp(BiVec3dp)` builds the motor.
 
 (This mirrors the odd/even-dimensional split already noted for complements.)
 
