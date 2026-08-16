@@ -2517,6 +2517,16 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(sign(-3.0) == -1.0);
         CHECK(sign(0.0) == 1.0);
 
+        // signum() is the classical three-valued one and differs from sign()
+        // exactly at zero
+        CHECK(signum(3.0) == 1.0);
+        CHECK(signum(-3.0) == -1.0);
+        CHECK(signum(0.0) == 0.0);
+        CHECK(signum(-0.0) == 0.0);
+        CHECK(signum(scalar2d(2.5)) == 1.0);
+        CHECK(signum(scalar2d(-2.5)) == -1.0);
+        CHECK(signum(scalar2d(0.0)) == 0.0);
+
         CHECK(is_even(2));
         CHECK(is_odd(3));
 

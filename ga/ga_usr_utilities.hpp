@@ -77,7 +77,8 @@ constexpr value_t smoother_step(value_t low_x, value_t high_x, value_t x)
 // sign function for floating point types
 // returns +1.0 for value >= 0.0 and -1.0 for value < 0.0
 // HINT: this is intentionally NOT the typical signum function
-//       which returns 0.0 for value == 0.0
+//       which returns 0.0 for value == 0.0 (that one is signum() below);
+//       use sign() where a sign factor must never vanish
 template <typename T>
     requires(numeric_type<T>)
 constexpr T sign(T value)
@@ -94,6 +95,32 @@ template <typename T, typename Tag>
 constexpr T sign(Scalar_t<T, Tag> s)
 {
     return sign(T(s));
+}
+
+// signum function for floating point types (the classical three-valued one)
+// returns +1.0 for value > 0.0, 0.0 for value == 0.0 and -1.0 for value < 0.0
+// HINT: use this where zero is a case of its own, e.g. to classify a signed
+//       squared quantity as positive, zero or negative; use sign() above when a
+//       sign factor is required that never becomes zero
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T signum(T value)
+{
+    if (value > 0.0) {
+        return 1.0;
+    }
+    if (value < 0.0) {
+        return -1.0;
+    }
+    return 0.0;
+}
+
+// signum function overload for Scalar_t types
+template <typename T, typename Tag>
+    requires(numeric_type<T>)
+constexpr T signum(Scalar_t<T, Tag> s)
+{
+    return signum(T(s));
 }
 
 // Templates for is_even and is_odd work with any integer type
