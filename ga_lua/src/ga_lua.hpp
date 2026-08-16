@@ -2760,18 +2760,25 @@ void register_functions(sol::state& lua)
 
     lua.set_function("log", sol::overload(sol::resolve<pscalar2d(mvec2d_e const&)>(log),
                                           sol::resolve<bivec3d(mvec3d_e const&)>(log),
-                                          sol::resolve<vec2dp(mvec2dp_u const&)>(log),
-                                          sol::resolve<bivec3dp(mvec3dp_e const&)>(log),
                                           // sta
                                           sol::resolve<bivec4ds(mvec4ds_e const&)>(log)));
 
     lua.set_function("sqrt",
                      sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&)>(sqrt),
                                    sol::resolve<mvec3d_e(mvec3d_e const&)>(sqrt),
-                                   sol::resolve<mvec2dp_u(mvec2dp_u const&)>(sqrt),
-                                   sol::resolve<mvec3dp_e(mvec3dp_e const&)>(sqrt),
                                    // sta
                                    sol::resolve<mvec4ds_e(mvec4ds_e const&)>(sqrt)));
+
+    // pga versor exponential/logarithm/sqrt w.r.t. the regressive geometric product
+    lua.set_function("rexp",
+                     sol::overload(sol::resolve<mvec2dp_u(vec2dp const&)>(rexp),
+                                   sol::resolve<mvec3dp_e(bivec3dp const&)>(rexp)));
+    lua.set_function("rlog",
+                     sol::overload(sol::resolve<vec2dp(mvec2dp_u const&)>(rlog),
+                                   sol::resolve<bivec3dp(mvec3dp_e const&)>(rlog)));
+    lua.set_function("rsqrt",
+                     sol::overload(sol::resolve<mvec2dp_u(mvec2dp_u const&)>(rsqrt),
+                                   sol::resolve<mvec3dp_e(mvec3dp_e const&)>(rsqrt)));
 
     lua.set_function(
         "twdg1",
