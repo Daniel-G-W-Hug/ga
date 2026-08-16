@@ -8,8 +8,8 @@ namespace nb = nanobind;
 // Implemented in src/generated/register_all.cpp (generated).
 // `top` receives free functions from `hd::ga`; `ega` / `pga` / `cga` / `sta` receive
 // types and free functions from their respective sub-namespaces.
-void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga,
-                  nb::module_& cga, nb::module_& sta);
+void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& cga,
+                  nb::module_& sta);
 
 // Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);

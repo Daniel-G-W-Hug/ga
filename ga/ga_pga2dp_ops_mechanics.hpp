@@ -1093,8 +1093,9 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // add a prismatic-jointed body: a 1-DOF slider along the body-fixed unit direction
     // `dir`. The joint screw is the translation generator (an ideal point, z = 0):
-    // rexp(1/2 s * screw) is a pure translation by s along dir. The machinery is IDENTICAL
-    // to the revolute joint -- only the generator differs (the PGA unification).
+    // rexp(1/2 s * screw) is a pure translation by s along dir. The machinery is
+    // IDENTICAL to the revolute joint -- only the generator differs (the PGA
+    // unification).
     void add_prismatic_body(static_frame2dp const& f, body2dp const& b, vec2dp const& dir,
                             value_t s0 = 0.0, value_t v0 = 0.0,
                             size_t parent_idx = prev_frame)
@@ -1310,7 +1311,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
         // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
         auto omega_dot = [&](vec2dp const& B, twist2dp const& Om) -> twist2dp {
-            auto const M = rgpr(M0, rexp(0.5 * B));             // pose at this stage
+            auto const M = rgpr(M0, rexp(0.5 * B));            // pose at this stage
             auto const W_w = wdg(move2dp(O_2dp, M), m * grav); // gravity wrench (world)
             auto const W_b = move2dp(W_w, rrev(M)); // pulled into the body frame
             return compute_omega_dot(I_inv, W_b, Om, I);
@@ -1356,9 +1357,9 @@ class dynamic_system2dp : public kinematic_system2dp {
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
     }
 
-    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q * screw).
-    // The SAME exponential builds a rotation (revolute, screw = finite point) or a
-    // translation (prismatic, screw = ideal point); the operators do not change.
+    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q *
+    // screw). The SAME exponential builds a rotation (revolute, screw = finite point) or
+    // a translation (prismatic, screw = ideal point); the operators do not change.
     mvec2dp_u joint_motor(size_t idx, value_t q) const
     {
         return rgpr(joint[idx].rest, rexp(0.5 * q * joint[idx].screw_b));

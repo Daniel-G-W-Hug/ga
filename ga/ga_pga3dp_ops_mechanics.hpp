@@ -435,9 +435,9 @@ struct pose3dp {
 
 
 // Build the body->parent motor M = translate(origin) (x) rotate(rot) from a pose. The
-// rotation about the parent origin is rexp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight /
-// (vx,vy,vz) slots carry the rotation axis*angle); the translation is get_motor(origin as
-// a direction). Inverse of pose3dp_from_motor (below).
+// rotation about the parent origin is rexp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight
+// / (vx,vy,vz) slots carry the rotation axis*angle); the translation is get_motor(origin
+// as a direction). Inverse of pose3dp_from_motor (below).
 inline mvec3dp_e motor_from_pose3dp(pose3dp const& p)
 {
     auto const M_rot = rexp(0.5 * bivec3dp{p.rot.x, p.rot.y, p.rot.z, 0.0, 0.0, 0.0});
@@ -1345,7 +1345,7 @@ class dynamic_system3dp : public kinematic_system3dp {
 
         // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
         auto omega_dot = [&](twist3dp const& B, twist3dp const& Om) -> twist3dp {
-            auto const M = rgpr(M0, rexp(0.5 * B));             // pose at this stage
+            auto const M = rgpr(M0, rexp(0.5 * B));            // pose at this stage
             auto const W_w = wdg(move3dp(O_3dp, M), m * grav); // gravity wrench (world)
             auto const W_b = move3dp(W_w, rrev(M)); // pulled into the body frame
             return compute_omega_dot(I_inv, W_b, Om, I);
@@ -1391,9 +1391,9 @@ class dynamic_system3dp : public kinematic_system3dp {
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
     }
 
-    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q * screw).
-    // The SAME exponential builds a rotation (revolute, screw = a line) or a translation
-    // (prismatic, screw = an ideal line); the operators do not change.
+    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q *
+    // screw). The SAME exponential builds a rotation (revolute, screw = a line) or a
+    // translation (prismatic, screw = an ideal line); the operators do not change.
     mvec3dp_e joint_motor(size_t idx, value_t q) const
     {
         return rgpr(joint[idx].rest, rexp(0.5 * q * joint[idx].screw_b));

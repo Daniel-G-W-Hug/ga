@@ -3974,7 +3974,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
 
         CHECK(X == move2dp(X0, M)); // motor moves to X
-        CHECK(M == rexp(0.5 * B));   // bivector creates motor via rexp()
+        CHECK(M == rexp(0.5 * B));  // bivector creates motor via rexp()
 
         auto P_fix = vec2dp{-2, -3, 1};
         auto X_rot = vec2dp{-2, -3 + std::sqrt(18), 1};
@@ -4129,8 +4129,8 @@ TEST_SUITE("PGA 2DP Tests")
     {
         fmt::println("G<2,0,1>: rlog(motor) function");
 
-        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M. Validated as
-        // a round-trip gate over translations and rotations about a point.
+        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M.
+        // Validated as a round-trip gate over translations and rotations about a point.
 
         // a) pure translation: log recovers the (z = 0) translation generator exactly
         {

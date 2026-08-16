@@ -118,9 +118,9 @@ constexpr MVec2dp_U<T> rsqrt(MVec2dp_U<T> const& M)
 //
 // A 2dp motor is M = p*sin(phi) + e321*cos(phi) (rotation by phi about the point p), so
 // for a unit motor the e3 (weight) component is sin(phi) and the pseudoscalar is
-// cos(phi). rexp() builds the rotation branch as arg * sin(phi)/arg.z with arg.z = phi, so
-// the inverse is arg = M_vec * (phi / sin(phi)) with arg.z = phi. A pure translation (phi
-// ~ 0) has arg.z = 0 and M = (arg, 1), so arg is just the vector part.
+// cos(phi). rexp() builds the rotation branch as arg * sin(phi)/arg.z with arg.z = phi,
+// so the inverse is arg = M_vec * (phi / sin(phi)) with arg.z = phi. A pure translation
+// (phi ~ 0) has arg.z = 0 and M = (arg, 1), so arg is just the vector part.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)

@@ -4819,7 +4819,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
 
         CHECK(X == move3dp(X0, M)); // motor moves to X
-        CHECK(M == rexp(0.5 * B));   // bivector creates motor via rexp()
+        CHECK(M == rexp(0.5 * B));  // bivector creates motor via rexp()
 
         //////////////////////////
         // b) pure rotation
@@ -5096,9 +5096,10 @@ TEST_SUITE("PGA 3DP Tests")
     {
         fmt::println("G<3,0,1>: rlog(motor) function");
 
-        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M, recovering
-        // the full screw generator (rotation about a line + translation along it).
-        // Validated as a round-trip gate over translations, rotations and general screws.
+        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M,
+        // recovering the full screw generator (rotation about a line + translation along
+        // it). Validated as a round-trip gate over translations, rotations and general
+        // screws.
 
         // a) pure translation: log recovers the bulk generator exactly
         {
@@ -5158,7 +5159,7 @@ TEST_SUITE("PGA 3DP Tests")
             auto const R = rsqrt(M);
             CHECK(rgpr(R, R) == M); // rsqrt(M) ⟇ rsqrt(M) == M
             CHECK(bulk_nrm_sq(move3dp(move3dp(P0, R), R) - move3dp(P0, M)) ==
-                  doctest::Approx(0.0));   // two halves == one
+                  doctest::Approx(0.0));     // two halves == one
             CHECK(2.0 * rlog(R) == rlog(M)); // sqrt halves the screw generator
         }
 
