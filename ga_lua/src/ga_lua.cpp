@@ -123,7 +123,7 @@ void run_interactive_shell(sol::state& lua)
 // relative (portable, works on Windows) and assumes ga_lua is run from its build
 // directory, as documented. The fallback below only applies to a non-CMake build.
 #ifndef GA_LUA_INPUT_DIR
-    #define GA_LUA_INPUT_DIR "../../ga_lua/input"
+#define GA_LUA_INPUT_DIR "../../ga_lua/input"
 #endif
 
 std::string get_script_directory()
@@ -202,11 +202,13 @@ int main(int argc, char* argv[])
         sol::state lua;
         lua.open_libraries();
 
-        register_2d_types(lua);
-        register_3d_types(lua);
-        register_2dp_types(lua);
-        register_3dp_types(lua);
+        register_2d_types(lua);          // EGA (G(2,0,0))
+        register_3d_types(lua);          // EGA (G(3,0,0))
+        register_2dp_types(lua);         // PGA (G(2,0,1))
+        register_3dp_types(lua);         // PGA (G(3,0,1))
         register_4ds_types(lua);         // STA (G(1,3,0))
+        register_2dc_types(lua);         // CGA (G(3,1,0))
+        register_3dc_types(lua);         // CGA (G(4,1,0))
         register_convenience_types(lua); // subclasses; after the base value types
         register_physics_pods(lua);      // pose / kin_state / joint_state / enums
         register_functions(lua);

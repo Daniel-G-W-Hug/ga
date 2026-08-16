@@ -9,7 +9,7 @@ public API (stateful systems and internal template helpers are already excluded
 there), so "comparable in completeness to ga_py" is exactly "no items reported
 missing here".
 
-What it compares (per algebra ega / pga / sta, plus top-level free functions):
+What it compares (per algebra ega / pga / cga / sta, plus top-level free functions):
 
   - types       : ga_py classes            vs  ga_lua `new_usertype<NAME>`
   - functions   : ga_py module callables   vs  ga_lua `set_function("NAME", ...)`
@@ -35,7 +35,7 @@ Granularity & caveats:
 
 Usage:
     ./lua_coverage.py                       # full per-algebra report
-    ./lua_coverage.py --algebra=sta         # one algebra (ega|pga|sta|top)
+    ./lua_coverage.py --algebra=sta         # one algebra (ega|pga|cga|sta|top)
     ./lua_coverage.py --algebra=ega,pga     # comma-separated
     ./lua_coverage.py --kind=types          # only types (types|functions|constants)
     ./lua_coverage.py --summary             # totals only, no item lists
@@ -55,7 +55,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GA_LUA_HPP = REPO_ROOT / "ga_lua" / "src" / "ga_lua.hpp"
-ALGEBRAS = ["ega", "pga", "sta", "top"]
+ALGEBRAS = ["ega", "pga", "cga", "sta", "top"]
 
 
 def _import_ga_py():
@@ -96,9 +96,9 @@ def _classify_module(mod):
 
 
 def collect_ga_py(ga_py):
-    """Return {algebra: {types, functions, constants}} for ega/pga/sta/top."""
+    """Return {algebra: {types, functions, constants}} for ega/pga/cga/sta/top."""
     result = {}
-    for alg in ("ega", "pga", "sta"):
+    for alg in ("ega", "pga", "cga", "sta"):
         sub = getattr(ga_py, alg, None)
         if sub is None:
             result[alg] = {"types": set(), "functions": set(), "constants": set()}
@@ -106,7 +106,7 @@ def collect_ga_py(ga_py):
         result[alg] = _classify_module(sub)
 
     # top-level: free functions / constants that live directly on ga_py
-    # (exclude the ega/pga/sta submodules themselves, handled above).
+    # (exclude the ega/pga/cga/sta submodules themselves, handled above).
     top = _classify_module(ga_py)
     result["top"] = top
     return result
@@ -135,7 +135,7 @@ def main():
     ap = argparse.ArgumentParser(
         description="Report ga_lua coverage gaps relative to the ga_py binding.")
     ap.add_argument("--algebra", default="all",
-                    help="comma list of ega,pga,sta,top (default: all)")
+                    help="comma list of ega,pga,cga,sta,top (default: all)")
     ap.add_argument("--kind", default="all",
                     help="comma list of types,functions,constants (default: all)")
     ap.add_argument("--summary", action="store_true",

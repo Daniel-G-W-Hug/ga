@@ -104,7 +104,7 @@ def main():
                     help="comma list of names (default: all bound names with "
                     "family overloads)")
     ap.add_argument("--algebra", required=True, choices=list(gen.ALGEBRA_NS),
-                    help="family whose overloads to splice in (ega/pga/sta/top)")
+                    help="family whose overloads to splice in (ega/pga/cga/sta/top)")
     ap.add_argument("--dry-run", action="store_true",
                     help="report changes, write nothing")
     args = ap.parse_args()

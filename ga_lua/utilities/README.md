@@ -115,6 +115,23 @@ fall.
   26 shared `set_function`s
   (`nrm`/`dot`/`inv`/`exp`/`log`/`sqrt`/duals/complements/`wdg`/`rwdg`/…) via
   `splice_overloads.py`. `register_functions` gained `using namespace hd::ga::sta`.
+  Smoke script: `ga_lua/input/test_sta.lua` (added 2026-08-16 alongside the CGA one).
+- **Phase 5 — CGA2DC / CGA3DC — DONE** (100%: types 19/19, functions 70/70, constants
+  137/137). Added `#include "ga/ga_cga.hpp"` and `register_2dc_types` /
+  `register_3dc_types` (mirroring `register_4ds_types`; two metric differences from STA:
+  the pseudoscalar's self-product is a *scalar*, and the CGA dual numbers are the plain
+  `MVec2_t` without the scalar/pseudoscalar mixing overloads). The 43 CGA-only functions
+  (`cen`/`car`/`con`/`par`/`ccr`, `radius_sq`, the round/flat bulk+weight norms, the
+  object constructors, `get_translation`/`get_rotation`/`get_dilation`/
+  `get_transversion`/`get_loxodromic`, `antidual`/`l_antidual`/`r_antidual`, `cconj`)
+  came from `gen_lua_overloads.py --algebra=cga`; CGA overloads on the 27 shared
+  `set_function`s from `splice_overloads.py --algebra=cga`; the 137 constants generated
+  from `ga_usr_consts.hpp`'s `hd::ga::cga` block. `register_functions` and
+  `register_constants` gained `using namespace hd::ga::cga`. Also bound in the same pass,
+  since they were missing for *every* algebra: `is_close` (ega,pga,cga,sta),
+  `is_same_rotation` (ega), `is_same_motion` (pga), `is_same_transform` (cga,sta), and
+  the top-level `signum`. Smoke script: `ga_lua/input/test_cga.lua`.
+
 - **Phase 4 — top-level helpers — DONE** (modulo deliberate skips): bound the unit
   conversions (`Hz2radps`, `radps2Hz`, `radps2rpm`, `rpm2radps`), `rgr`, and `sign`
   (`gr` was bound in Phase 2). The solver / integrator free functions (`lu_solve`,
@@ -123,8 +140,9 @@ fall.
 
 ## Status
 
-`ga_lua` is at `ga_py` parity except for deliberate skips — **395/409** bound
-(`lua_coverage.py --summary`). EGA and STA are 100%; PGA is complete bar the
+`ga_lua` is at `ga_py` parity except for deliberate skips — **630/653** bound
+(`lua_coverage.py --summary`). EGA, CGA and STA are 100%; PGA is complete bar the
 `inertia2dp/3dp` matrix type and the 8 dynamics functions; the top-level remainder is
-the 4 solver/integrator helpers. Re-run `lua_coverage.py` after any library API change
+the solver/integrator helpers plus `linear_step`/`smooth_step`/`smoother_step`,
+`to_geo_pos` and the `geo_angle` type. Re-run `lua_coverage.py` after any library API change
 to catch new gaps.

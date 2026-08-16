@@ -22,7 +22,8 @@ How signatures are concretised (manifest stores template forms like
     convention and the existing `sol::resolve` blocks.
 
 Family filter (`--algebra`): selected by the manifest `namespace` of each overload
-(`hd::ga::ega` / `hd::ga::pga` / `hd::ga::sta`). So a multi-algebra function (e.g.
+(`hd::ga::ega` / `hd::ga::pga` / `hd::ga::cga` / `hd::ga::sta`). So a multi-algebra
+function (e.g.
 `rwdg`, `angle`, whose name appears once per namespace) yields only the slice for the
 family you ask for. The generic top-level `hd::ga` overloads (e.g. `sqrt`, `gr`, `sign`)
 are NOT emitted by a family run -- handle those separately.
@@ -54,6 +55,7 @@ MANIFEST = REPO_ROOT / "ga_bindgen" / "manifest.json"
 
 ALGEBRA_NS = {
     "ega": "hd::ga::ega",
+    "cga": "hd::ga::cga",
     "pga": "hd::ga::pga",
     "sta": "hd::ga::sta",
     "top": "hd::ga",  # top-level free functions (gr, sign, unit conversions, ...)
@@ -92,7 +94,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("functions", help="comma-separated function names")
     ap.add_argument("--algebra", default="ega",
-                    help="comma-separated families to merge (ega,pga,sta; default: ega). "
+                    help="comma-separated families to merge (ega,pga,cga,sta; default: ega). "
                     "A name with overloads in several gets ONE set_function carrying "
                     "all listed families' overloads (each name binds once in ga_lua).")
     args = ap.parse_args()
