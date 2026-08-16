@@ -358,6 +358,149 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK_FALSE(is_close(mvec3dc(v), mvec3dc(t)));
     }
 
+    TEST_CASE("cga3dc: geometric objects, split and norms")
+    {
+        fmt::println("cga3dc: geometric objects, split and norms");
+
+        // round point at (1,2,3), r = 2 (all exact pins probe-verified)
+        auto a = round_point3dc(1.0, 2.0, 3.0, 2.0);
+        CHECK(a == vec3dc(1.0, 2.0, 3.0, 1.0, 9.0)); // u = (p^2 + r^2)/2 = 9
+        CHECK(radius_sq(a) == 4.0);
+        CHECK(center_nrm_sq(a) == 14.0); // round bulk^2 (no flat weight at gr 1)
+        // null-point embedding: q * q = 0
+        auto q = round_point3dc(3.0, 2.0, 3.0, 0.0);
+        CHECK(is_close(mvec3dc(q * q), mvec3dc(scalar3dc(0.0))));
+
+        // sphere: matches the container of the round point exactly
+        auto s = sphere3dc(1.0, 2.0, 3.0, 2.0);
+        CHECK(s == quadvec3dc(1.0, 2.0, 3.0, -5.0, -1.0));
+        CHECK(s == con(a));
+        CHECK(radius_sq(s) == 4.0);
+        // containment: wdg(point, sphere) = -1/2 (v^2 + r^2 - R^2) * I for
+        // unitized operands (q lies ON s: v = 2, r = 0, R = 2)
+        CHECK(wdg(q, s) == pscalar3dc(0.0));
+        CHECK(wdg(round_point3dc(4.0, 2.0, 3.0, 0.0), s) == pscalar3dc(-2.5));
+        CHECK(wdg(round_point3dc(4.0, 2.0, 3.0, 1.0), s) == pscalar3dc(-3.0));
+
+        // circle at (1,2,3), r = 2, normal +z; dipole same center/radius, axis +x
+        auto c = circle3dc(1.0, 2.0, 3.0, 2.0, 0.0, 0.0, 1.0);
+        CHECK(c == trivec3dc(2.0, -1.0, 0.0, 3.0, 6.0, 4.0, 0.0, 0.0, 1.0, -3.0));
+        CHECK(radius_sq(c) == 4.0);
+        auto d = dipole3dc(1.0, 2.0, 3.0, 2.0, 1.0, 0.0, 0.0);
+        CHECK(d == bivec3dc(1.0, 0.0, 0.0, 0.0, 3.0, -2.0, -8.0, 2.0, 3.0, 1.0));
+        CHECK(radius_sq(d) == 4.0);
+
+        // flats: zero round weight (radius_sq/unitize throw), exact pins
+        auto fp = flat_point3dc(1.0, 2.0, 3.0);
+        CHECK(fp == bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0));
+        auto l = line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0);
+        CHECK(l == trivec3dc(1.0, 0.0, 0.0, 0.0, 3.0, -2.0, 0.0, 0.0, 0.0, 0.0));
+        auto pl = plane3dc(0.0, 0.0, 1.0, 3.0);
+        CHECK(pl == quadvec3dc(0.0, 0.0, 1.0, -3.0, 0.0));
+        CHECK_THROWS(radius_sq(pl));
+        CHECK_THROWS(unitize(l));
+        // incidence of flats: q on the line / on the plane wedges to zero
+        CHECK(wdg(round_point3dc(5.0, 2.0, 3.0, 0.0), l) ==
+              quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(wdg(round_point3dc(5.0, 7.0, 3.0, 0.0), pl) == pscalar3dc(0.0));
+        CHECK(wdg(round_point3dc(5.0, 7.0, 4.0, 0.0), pl) != pscalar3dc(0.0));
+
+        // bulk/weight split partition: the four parts sum to the object
+        CHECK(round_bulk(d) + round_weight(d) + flat_bulk(d) + flat_weight(d) == d);
+        CHECK(round_bulk(c) + round_weight(c) + flat_bulk(c) + flat_weight(c) == c);
+        CHECK(round_weight_nrm_sq(s) == 1.0);
+        CHECK(round_weight_nrm_sq(pl) == 0.0); // flat
+
+        // conformal conjugate: involution + alternate center norm
+        CHECK(cconj(cconj(d)) == d);
+        CHECK(value_t(dot(unitize(a), cconj(unitize(a)))) == 14.0);
+
+        // dot products of unitized rounds (reference Table 4.14): points
+        // a1.a2 = -1/2 (v^2 + r1^2 + r2^2), spheres s1.s2 = +1/2 (v^2 - r1^2
+        // - r2^2), null points give the distance identity -1/2 d^2
+        auto a1 = round_point3dc(0.0, 0.0, 0.0, 1.0);
+        auto a2 = round_point3dc(3.0, 0.0, 0.0, 2.0);
+        CHECK(value_t(dot(a1, a2)) == -7.0);
+        auto s1 = sphere3dc(0.0, 0.0, 0.0, 1.0);
+        auto s2 = sphere3dc(3.0, 0.0, 0.0, 2.0);
+        CHECK(value_t(dot(s1, s2)) == 2.0);
+        CHECK(value_t(dot(round_point3dc(0.0, 0.0, 0.0, 0.0),
+                          round_point3dc(3.0, 4.0, 0.0, 0.0))) == -12.5);
+    }
+
+    TEST_CASE("cga3dc: object properties (car/ccr/cen/con/par/att)")
+    {
+        fmt::println("cga3dc: object properties (car/ccr/cen/con/par/att)");
+
+        auto a = round_point3dc(1.0, 2.0, 3.0, 2.0);
+        auto s = sphere3dc(1.0, 2.0, 3.0, 2.0);
+        auto c = circle3dc(1.0, 2.0, 3.0, 2.0, 0.0, 0.0, 1.0);
+        auto d = dipole3dc(1.0, 2.0, 3.0, 2.0, 1.0, 0.0, 0.0);
+
+        // centers: every object about (1,2,3) with r = 2 has the SAME round
+        // center -- exact pins (orientation-sensitive, lesson: congruence
+        // gates are sign-blind)
+        CHECK(cen(a) == a);
+        CHECK(cen(unitize(s)) == a);
+        CHECK(cen(unitize(c)) == a);
+        CHECK(cen(unitize(d)) == a);
+
+        // attitudes recover the construction directions with POSITIVE sign
+        CHECK(att(a) == scalar3dc(1.0));
+        CHECK(att(unitize(d)) == vec3dc(1.0, 0.0, 0.0, 0.0, 1.0));
+        CHECK(att(unitize(c)) ==
+              bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, -1.0, 0.0, 0.0));
+        CHECK(att(line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)) ==
+              bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0));
+        CHECK(att(plane3dc(0.0, 0.0, 1.0, 3.0)) ==
+              trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0));
+        // Table 4.10 rows for the remaining types: flat point att = pw e5,
+        // sphere att = su e321 + sx e235 + sy e315 + sz e125
+        CHECK(att(flat_point3dc(1.0, 2.0, 3.0)) == vec3dc(0.0, 0.0, 0.0, 0.0, 1.0));
+        CHECK(att(s) == trivec3dc(0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, -1.0));
+
+        // carriers: car of a round point IS the flat point at its center
+        // (reference 4.25); car of a flat is zero; car of the circle is
+        // (congruent to) its plane, car of the dipole its line
+        CHECK(car(a) == flat_point3dc(1.0, 2.0, 3.0));
+        CHECK(car(flat_point3dc(1.0, 2.0, 3.0)) ==
+              trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(car(line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)) ==
+              quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(is_congruent(car(c), plane3dc(0.0, 0.0, 1.0, 3.0)));
+        CHECK(is_congruent(car(d), line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)));
+
+        // containers: smallest containing sphere; the round point's container
+        // is pinned exactly above (== sphere3dc); circle/dipole congruent
+        CHECK(is_congruent(con(c), s));
+        CHECK(is_congruent(con(d), s));
+
+        // factorization u = car(u) v con(u) (reference 4.63), up to scale
+        CHECK(is_congruent(rwdg(car(c), con(c)), c));
+        CHECK(is_congruent(rwdg(car(d), con(d)), d));
+
+        // partners: same center and carrier, r^2 negated; orthogonal to u;
+        // exact pin for the round point
+        CHECK(par(a) == vec3dc(1.0, 2.0, 3.0, 1.0, 5.0));
+        CHECK(radius_sq(par(a)) == -4.0);
+        CHECK(radius_sq(unitize(par(c))) == -4.0);
+        CHECK(value_t(dot(a, par(a))) == 0.0);
+        CHECK(value_t(dot(c, par(c))) == 0.0);
+
+        // dipole surface points: p+- = cen +- sqrt(radius_sq) * att (exact:
+        // the two round points at center +- r * axis)
+        auto du = unitize(d);
+        auto p_plus = vec3dc(cen(du) + std::sqrt(radius_sq(du)) * att(du));
+        auto p_minus = vec3dc(cen(du) - std::sqrt(radius_sq(du)) * att(du));
+        CHECK(p_plus == round_point3dc(3.0, 2.0, 3.0, 0.0));
+        CHECK(p_minus == round_point3dc(-1.0, 2.0, 3.0, 0.0));
+
+        // u ^ cen(u) = 0 (the center lies on every centered object's carrier
+        // chain -- reference 4.58)
+        CHECK(wdg(a, cen(a)) ==
+              bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+    }
+
     TEST_CASE("cga3dc: fmt printing")
     {
         fmt::println("cga3dc: fmt printing");

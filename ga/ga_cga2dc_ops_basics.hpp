@@ -6,6 +6,8 @@
 #include "detail/ga_cga_types.hpp"  // cga2dc types incl. multivector wrappers
 #include "detail/ga_foundation.hpp" // ga library headers and infrastructure
 
+#include "detail/ga_error_handling.hpp" // unitize() zero-division checks
+
 
 namespace hd::ga::cga {
 
@@ -16,6 +18,8 @@ namespace hd::ga::cga {
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
 // - conj()                        -> Clifford conjugation
+// - cconj()                       -> conformal conjugate (round part kept,
+//                                    flat part negated)
 //
 // - r_cmpl()                      -> right complement (non-metric)
 // - l_cmpl()                      -> left complement (non-metric)
@@ -25,9 +29,12 @@ namespace hd::ga::cga {
 // - r_antidual()                  -> right metric antidual
 // - l_antidual()                  -> left metric antidual
 //
-// bulk/weight, the norms and normalize are added together with the geometric
-// operations layer (the round objects extend the norm story vs. the flat
-// algebras)
+// - round_bulk(), round_weight(), flat_bulk(), flat_weight()
+//                                 -> the four-part bulk/weight split
+// - round_bulk_nrm{,_sq}(), round_weight_nrm{,_sq}(),
+//   flat_bulk_nrm{,_sq}(), flat_weight_nrm{,_sq}() -> the four part norms
+// - center_nrm{,_sq}()            -> weighted distance origin <-> center
+// - unitize()                     -> scale so the round weight norm equals one
 /////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -334,6 +341,42 @@ constexpr MVec2dc<T> conj(MVec2dc<T> const& M)
     return MVec2dc<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)), conj(gr3(M)),
                       conj(gr4(M)));
 }
+////////////////////////////////////////////////////////////////////////////////
+// conformal conjugate: keep the round part, negate the flat part (i.e. negate
+// every component carrying a factor of the infinity dimension e4)
+//
+//     cconj(u) = round_bulk(u) + round_weight(u) - flat_bulk(u) - flat_weight(u)
+//
+// An involution. The conjugate of a round object has its center REFLECTED
+// through the origin at the same distance and its radius adjusted such that
+// for a unitized u
+//
+//     dot(u, cconj(u)) = squared distance origin <-> center
+//
+// which is the alternate form of the center norm. (Note: distinct from the
+// Clifford conjugation conj() above, which is a grade involution.)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> cconj(Vec2dc<T> const& v)
+{
+    return Vec2dc<T>(v.x, v.y, v.z, -v.w);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> cconj(BiVec2dc<T> const& B)
+{
+    return BiVec2dc<T>(B.vx, B.vy, B.vz, -B.mx, -B.my, -B.mz);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> cconj(TriVec2dc<T> const& t)
+{
+    return TriVec2dc<T>(-t.x, -t.y, -t.z, t.w);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // complement operations (non-metric)
 //
@@ -755,4 +798,321 @@ constexpr MVec2dc<T> r_antidual(MVec2dc<T> const& M)
     return MVec2dc<T>(r_antidual(gr4(M)), r_antidual(gr3(M)), r_antidual(gr2(M)),
                       r_antidual(gr1(M)), r_antidual(gr0(M)));
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// bulk/weight split
+//
+// Every component belongs to exactly one of four parts, by whether the blade
+// contains the infinity dimension e4 (flat part: yes, round part: no) and
+// the origin e3 (weight: yes, bulk: no):
+//
+//     round bulk:   no e4, no e3      round weight: no e4, with e3
+//     flat bulk:    with e4, no e3    flat weight:  with e4 and e3
+//
+// The round weight carries the homogeneous weight of a round object, so
+// unitizing makes the round weight norm one.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> round_bulk(Vec2dc<T> const& v)
+{
+    return Vec2dc<T>(v.x, v.y, T(0.0), T(0.0)); // e1, e2
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> round_bulk(BiVec2dc<T> const& B)
+{
+    return BiVec2dc<T>(T(0.0), T(0.0), B.vz, T(0.0), T(0.0), T(0.0)); // e12
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> round_bulk([[maybe_unused]] TriVec2dc<T> const& t)
+{
+    return TriVec2dc<T>(T(0.0), T(0.0), T(0.0), T(0.0)); // (none at grade 3)
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> round_weight(Vec2dc<T> const& v)
+{
+    return Vec2dc<T>(T(0.0), T(0.0), v.z, T(0.0)); // e3
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> round_weight(BiVec2dc<T> const& B)
+{
+    return BiVec2dc<T>(B.vx, B.vy, T(0.0), T(0.0), T(0.0), T(0.0)); // e31, e32
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> round_weight(TriVec2dc<T> const& t)
+{
+    return TriVec2dc<T>(T(0.0), T(0.0), T(0.0), t.w); // e321
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> flat_bulk(Vec2dc<T> const& v)
+{
+    return Vec2dc<T>(T(0.0), T(0.0), T(0.0), v.w); // e4
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> flat_bulk(BiVec2dc<T> const& B)
+{
+    return BiVec2dc<T>(T(0.0), T(0.0), T(0.0), B.mx, B.my, T(0.0)); // e14, e24
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> flat_bulk(TriVec2dc<T> const& t)
+{
+    return TriVec2dc<T>(T(0.0), T(0.0), t.z, T(0.0)); // e124
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> flat_weight([[maybe_unused]] Vec2dc<T> const& v)
+{
+    return Vec2dc<T>(T(0.0), T(0.0), T(0.0), T(0.0)); // (no e34-type component)
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> flat_weight(BiVec2dc<T> const& B)
+{
+    return BiVec2dc<T>(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), B.mz); // e34
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> flat_weight(TriVec2dc<T> const& t)
+{
+    return TriVec2dc<T>(t.x, t.y, T(0.0), T(0.0)); // e314, e324
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// the four part norms (Euclidean lengths of the four component groups) and the
+// center norm
+//
+//     center_nrm(u) = sqrt( round_bulk_nrm^2 + flat_weight_nrm^2 )
+//
+// is the weighted distance between the origin and the object's center. (The
+// radius norm is defined in the geometric layer -- it needs the product-layer
+// antidot square rdot(u, u).)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm_sq(Vec2dc<T> const& v)
+{
+    return v.x * v.x + v.y * v.y;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm_sq(BiVec2dc<T> const& B)
+{
+    return B.vz * B.vz;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm_sq([[maybe_unused]] TriVec2dc<T> const& t)
+{
+    return T(0.0);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm_sq(Vec2dc<T> const& v)
+{
+    return v.z * v.z;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm_sq(BiVec2dc<T> const& B)
+{
+    return B.vx * B.vx + B.vy * B.vy;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm_sq(TriVec2dc<T> const& t)
+{
+    return t.w * t.w;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm_sq(Vec2dc<T> const& v)
+{
+    return v.w * v.w;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm_sq(BiVec2dc<T> const& B)
+{
+    return B.mx * B.mx + B.my * B.my;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm_sq(TriVec2dc<T> const& t)
+{
+    return t.z * t.z;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm_sq([[maybe_unused]] Vec2dc<T> const& v)
+{
+    return T(0.0);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm_sq(BiVec2dc<T> const& B)
+{
+    return B.mz * B.mz;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm_sq(TriVec2dc<T> const& t)
+{
+    return t.x * t.x + t.y * t.y;
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm(Vec2dc<T> const& v)
+{
+    return std::sqrt(round_bulk_nrm_sq(v));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm(BiVec2dc<T> const& B)
+{
+    return std::sqrt(round_bulk_nrm_sq(B));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_bulk_nrm(TriVec2dc<T> const& t)
+{
+    return std::sqrt(round_bulk_nrm_sq(t));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm(Vec2dc<T> const& v)
+{
+    return std::sqrt(round_weight_nrm_sq(v));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm(BiVec2dc<T> const& B)
+{
+    return std::sqrt(round_weight_nrm_sq(B));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T round_weight_nrm(TriVec2dc<T> const& t)
+{
+    return std::sqrt(round_weight_nrm_sq(t));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm(Vec2dc<T> const& v)
+{
+    return std::sqrt(flat_bulk_nrm_sq(v));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm(BiVec2dc<T> const& B)
+{
+    return std::sqrt(flat_bulk_nrm_sq(B));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_bulk_nrm(TriVec2dc<T> const& t)
+{
+    return std::sqrt(flat_bulk_nrm_sq(t));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm(Vec2dc<T> const& v)
+{
+    return std::sqrt(flat_weight_nrm_sq(v));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm(BiVec2dc<T> const& B)
+{
+    return std::sqrt(flat_weight_nrm_sq(B));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T flat_weight_nrm(TriVec2dc<T> const& t)
+{
+    return std::sqrt(flat_weight_nrm_sq(t));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm_sq(Vec2dc<T> const& v)
+{
+    return round_bulk_nrm_sq(v) + flat_weight_nrm_sq(v);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm_sq(BiVec2dc<T> const& B)
+{
+    return round_bulk_nrm_sq(B) + flat_weight_nrm_sq(B);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm_sq(TriVec2dc<T> const& t)
+{
+    return round_bulk_nrm_sq(t) + flat_weight_nrm_sq(t);
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm(Vec2dc<T> const& v)
+{
+    return std::sqrt(center_nrm_sq(v));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm(BiVec2dc<T> const& B)
+{
+    return std::sqrt(center_nrm_sq(B));
+}
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T center_nrm(TriVec2dc<T> const& t)
+{
+    return std::sqrt(center_nrm_sq(t));
+}
+
+// scale a round object so its round weight norm becomes one (sign preserved;
+// throws for flat objects)
+// HINT: unitize() cannot be constexpr due to the checks for division by zero
+//       which might throw
+
+// scale a round object so its round weight norm becomes one (sign preserved;
+// throws for flat objects)
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2dc<T> unitize(Vec2dc<T> const& v)
+{
+    T const wn = round_weight_nrm(v);
+    hd::ga::detail::check_normalization<T>(wn, "round point (round weight)");
+    T const inv = T(1.0) / wn;
+    return Vec2dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
+}
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec2dc<T> unitize(BiVec2dc<T> const& B)
+{
+    T const wn = round_weight_nrm(B);
+    hd::ga::detail::check_normalization<T>(wn, "dipole (round weight)");
+    T const inv = T(1.0) / wn;
+    return BiVec2dc<T>(B.vx * inv, B.vy * inv, B.vz * inv, B.mx * inv, B.my * inv,
+                       B.mz * inv);
+}
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec2dc<T> unitize(TriVec2dc<T> const& t)
+{
+    T const wn = round_weight_nrm(t);
+    hd::ga::detail::check_normalization<T>(wn, "circle (round weight)");
+    T const inv = T(1.0) / wn;
+    return TriVec2dc<T>(t.x * inv, t.y * inv, t.z * inv, t.w * inv);
+}
+
+
 } // namespace hd::ga::cga
