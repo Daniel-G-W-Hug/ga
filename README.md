@@ -69,13 +69,10 @@ For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md
 0) Enclose the headers
 
     ```cpp
-    "#include ga/ega.hpp"
-    ```
-
-    or
-
-    ```cpp
-    "#include ga/pga.hpp"
+    #include "ga/ga_ega.hpp"   // Euclidean GA (2d, 3d)
+    #include "ga/ga_pga.hpp"   // Projective GA (2dp, 3dp)
+    #include "ga/ga_cga.hpp"   // Conformal GA (2dc, 3dc)
+    #include "ga/ga_sta.hpp"   // Spacetime algebra (4ds)
     ```
 
     as needed.
@@ -84,14 +81,7 @@ For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md
 
     ```cpp
     using namespace hd::ga;
-    using namespace hd::ga::ega;
-    ```
-
-    or
-
-    ```cpp
-    using namespace hd::ga;
-    using namespace hd::ga::pga;
+    using namespace hd::ga::ega;   // or ::pga, ::cga, ::sta
     ```
 
 2) Create a try catch block to catch any exceptions thrown by GA code
@@ -155,7 +145,7 @@ cd build/ga_prdxpr && ./ga_prdxpr && cd ../..                # Generate everythi
 
 - `--algebra=NAMES` or `--a=NAMES`: Generate only specified algebras (comma-separated)
   - Example: `--algebra=ega2d,ega3d`
-  - Available: `ega2d`, `ega3d`, `pga2dp`, `pga3dp`, `sta4ds`
+  - Available: `ega2d`, `ega3d`, `pga2dp`, `pga3dp`, `cga2dc`, `cga3dc`, `sta4ds`
   - Special keywords: `all` (all algebras), `none` (no algebras)
 
 - `--products=NAMES` or `--p=NAMES`: Generate only specified products (comma-separated)
@@ -218,6 +208,8 @@ ga_prdxpr --output=all                                   # everything
 - **ega3d**: Euclidean Geometric Algebra 3D G(3,0,0)
 - **pga2dp**: Projective Geometric Algebra 2D G(2,0,1)
 - **pga3dp**: Projective Geometric Algebra 3D G(3,0,1)
+- **cga2dc**: Conformal Geometric Algebra 2D G(3,1,0) (null basis stored)
+- **cga3dc**: Conformal Geometric Algebra 3D G(4,1,0) (null basis stored)
 - **sta4ds**: Spacetime Algebra G(1,3,0)
 
 ### Common Product Types

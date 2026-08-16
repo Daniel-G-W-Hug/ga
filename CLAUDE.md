@@ -35,7 +35,7 @@ When in doubt, leave the working tree for review and say it is ready.
 │   ├── ga_ega_test                                 #   Euclidean GA tests (2D/3D)
 │   ├── ga_pga_test                                 #   Projective GA tests (2dp/3dp)
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
-│   ├── ga_cga_test                                 #   Conformal GA tests (cga2dc; 3dc follows)
+│   ├── ga_cga_test                                 #   Conformal GA tests (cga2dc + cga3dc)
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
 │   ├── ga_appl3dp_test                             #   PGA3D applications (generic geometry/kinematics/mechanics)
 │   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
@@ -266,7 +266,7 @@ The library provides three main entry points:
 
 - `#include "ga/ga_ega.hpp"` for Euclidean GA (2D, 3D, 4D)
 - `#include "ga/ga_pga.hpp"` for Projective GA (2dp, 3dp)
-- `#include "ga/ga_cga.hpp"` for Conformal GA (2dc; 3dc follows)
+- `#include "ga/ga_cga.hpp"` for Conformal GA (2dc, 3dc)
 
 Critical usage requirements:
 
@@ -279,9 +279,8 @@ Critical usage requirements:
 ### Header layering — where to find a `ga/` operation
 
 Each algebra's operations are split across a fixed set of `ga/ga_<alg>_ops*.hpp` headers
-(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc` — cga2dc's geometric ops layer
-`ga_cga2dc_ops.hpp` is still under construction: congruence exists, norms and the
-conformal geometry follow), layered by what they build on. **Every
+(`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc, cga3dc`), layered by what they
+build on. **Every
 file lists the functions it provides in a `// provides ... operations:` comment right after
 the `namespace hd::ga{,::pga}` declaration** — read that block first when hunting for a
 function; it is the authoritative per-file index. The split:
@@ -310,7 +309,7 @@ the whole tree or hand-rolling a helper:
 | `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
 | `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
 | `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
-| `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form); step/easing helpers `linear_step`/`smooth_step`/`smoother_step` |
+| `ga/ga_usr_utilities.hpp` | `deg2rad`/`rad2deg`/`rpm2radps`; **`rk4_step`** (an `mdspan` form and a `std::vector` form); step/easing helpers `linear_step`/`smooth_step`/`smoother_step`; `sign` (never zero: `+1` at `0`) vs `signum` (the classical three-valued one) |
 | `ga/detail/ga_solver.hpp` | the small dense linear solver — `lu_solve`, `lstsq_solve` (least-squares / minimum-norm via normal equations), `kkt_solve` (constrained KKT); used by the physics assembly and the closed-loop layer |
 | `ga/detail/ga_stencil.hpp` | finite-difference stencil generator — `stencil_t` (Fornberg-style weights, order, truncation error via `lu_decomp`/`lu_backsubs`; explicit + compact schemes), `factorial`; infrastructure for discretized field derivatives (numerical nabla, planned STA electrodynamics) |
 
