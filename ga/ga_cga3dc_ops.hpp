@@ -6,6 +6,9 @@
 #include "ga_cga3dc_ops_basics.hpp"
 #include "ga_cga3dc_ops_products.hpp"
 
+#include <complex> // exp/log/sqrt of regressive versors (central subalgebra = C)
+#include <limits>  // get_translation zero-direction guard
+
 
 namespace hd::ga::cga {
 
@@ -49,6 +52,257 @@ namespace hd::ga::cga {
 // - is_congruent()          -> same subspace up to a non-zero scalar factor
 // - is_close()              -> same value within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
+
+
+// forward declarations of the object constructors used by the transformation
+// builders (defined in the object-construction section below, which follows
+// the canonical per-algebra ordering: transformations first, objects after)
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dc<T> flat_point3dc(T px, T py, T pz);
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec3dc<T> line3dc(T px, T py, T pz, T vx, T vy, T vz);
+template <typename T>
+    requires(numeric_type<T>)
+constexpr QuadVec3dc<T> plane3dc(T nx, T ny, T nz, T d);
+
+
+////////////////////////////////////////////////////////////////////////////////
+// exponential, logarithm and square root w.r.t. the regressive geometric
+// product -- the versor side of the algebra: conformal transformations are
+// applied as rgpr sandwiches, so their generators and roots live here.
+//
+// In the odd-dimensional cga3dc the regressive versors (motors) are ODD
+// multivectors (the rgpr identity is the odd pseudoscalar I), and the
+// exponential generators are TRIVECTORS (antigrade 2). The regressive square
+// of a generator t is
+//
+//     rgpr(t, t) = alpha * I + rwdg(t, t)
+//
+// where the grade-1 part rwdg(t, t) measures NON-SIMPLICITY. For a SIMPLE
+// generator (a blade: every line, circle and dual flat point is one) the
+// square is purely central and the series sums in closed form,
+//
+//     exp(t) = cosh(w) * I + (sinh(w)/w) * t,   w = sqrt(alpha)
+//
+// evaluated with complex arithmetic so the elliptic (alpha < 0), hyperbolic
+// (alpha > 0) and parabolic (alpha = 0, translations: exp(t) = I + t)
+// branches come out of ONE formula (cosh(w) and sinh(w)/w are even in w, so
+// the square-root branch is irrelevant). Non-simple generators (screws,
+// loxodromics) are NOT covered yet -- exp throws for them; compose their
+// motors as rgpr products of simple ones instead.
+//
+// log() returns the principal generator: complex acosh of the pseudoscalar
+// part, then t = V / (sinh(w)/w) with V the trivector part. It is restricted
+// to motors in the image of the simple exp (vanishing vector part) and throws
+// otherwise, and at the true singularity (full-turn versor, central part -I).
+// sqrt(M) = exp(log(M)/2).
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> exp(TriVec3dc<T> const& t)
+{
+    auto const sq = rgpr(t, t); // alpha * I + rwdg(t,t), central iff simple
+    auto const nsp = gr1(sq);   // non-simplicity (vector) part
+    T const alpha = T(gr5(sq));
+    // component norm (the metric dot is not definite on the null directions)
+    T const nsp_nrm = std::sqrt(nsp.x * nsp.x + nsp.y * nsp.y + nsp.z * nsp.z +
+                                nsp.w * nsp.w + nsp.u * nsp.u);
+    if (nsp_nrm >
+        T(1e3) * std::numeric_limits<T>::epsilon() * (std::abs(alpha) + T(1.0))) {
+        throw std::invalid_argument(
+            "cga3dc exp: non-simple generator (rwdg(t,t) != 0) not supported -- "
+            "compose motors of simple generators via rgpr instead");
+    }
+    std::complex<T> const z(alpha, T(0.0));
+    std::complex<T> const w = std::sqrt(z);
+    T const ch = std::cosh(w).real();
+    T const sh_ow = (std::abs(alpha) > T(1e-4))
+                        ? (std::sinh(w) / w).real()
+                        : T(1.0) + alpha / T(6.0) + alpha * alpha / T(120.0);
+    return MVec3dc_U<T>(Vec3dc<T>(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0)), sh_ow * t,
+                        PScalar3dc<T>(ch));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec3dc<T> log(MVec3dc_U<T> const& M)
+{
+    // restricted to the image of the simple exp: vector part must vanish
+    auto const v = gr1(M);
+    T const v_nrm = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w + v.u * v.u);
+    if (v_nrm >
+        T(1e3) * std::numeric_limits<T>::epsilon() * (std::abs(T(gr5(M))) + T(1.0))) {
+        throw std::invalid_argument(
+            "cga3dc log: motor outside the simple-generator image (non-zero "
+            "vector part)");
+    }
+    T const c = T(gr5(M));
+    TriVec3dc<T> const V = gr3(M); // V = (sinh(w)/w) * t
+    std::complex<T> const w = std::acosh(std::complex<T>(c, T(0.0)));
+    std::complex<T> const w2 = w * w;
+    std::complex<T> const sh_ow = (std::abs(w) > T(1e-2))
+                                      ? std::sinh(w) / w
+                                      : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
+    // singular exactly at the full-turn versors (central part -I)
+    hd::ga::detail::check_normalization<T>(std::abs(sh_ow),
+                                           "regressive logarithm (full-turn versor)");
+    return T(1.0) / sh_ow.real() * V;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> sqrt(MVec3dc_U<T> const& M)
+{
+    return exp(T(0.5) * log(M));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// conformal transformations
+//
+// An odd unit versor (motor) M transforms any object with the regressive
+// sandwich
+//
+//     u' = transform(u, M) = M (v) u (v) rrev(M)
+//
+// Reflections generalize to INVERSIONS in spheres (and planes, which are
+// spheres through infinity): an anti-odd sandwich with the quadvector s,
+//
+//     u' = invert_on(u, s) = -( s (v) u (v) rrev(s) )
+//
+// (the leading minus is the flector-sandwich convention of the reference).
+// Composing two inversions gives a motor: parallel planes -> translation,
+// intersecting planes -> rotation about their meet line, concentric spheres
+// -> dilation about their center.
+//
+// The named builders produce unit motors from the exponential (translation
+// directly in the terminated parabolic form):
+//
+//     translation by d:            M = I + B,  B from the parabolic generator
+//     rotation about a line by theta:  M = exp( (theta/2) * unit line )
+//     dilation about m by sigma:   M = exp( delta * dual flat point at m ),
+//                                  delta = -1/2 ln(sigma)
+//
+// Weights under sandwiches are homogeneous: a non-unit versor scales all
+// image weights uniformly; normalize results with unitize() where a
+// weight-one representative is needed.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> transform(Vec3dc<T> const& v,
+                                                     MVec3dc_U<U> const& M)
+{
+    return gr1(rgpr(rgpr(M, v), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> transform(BiVec3dc<T> const& B,
+                                                       MVec3dc_U<U> const& M)
+{
+    return gr2(rgpr(rgpr(M, B), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec3dc<std::common_type_t<T, U>> transform(TriVec3dc<T> const& t,
+                                                        MVec3dc_U<U> const& M)
+{
+    return gr3(rgpr(rgpr(M, t), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr QuadVec3dc<std::common_type_t<T, U>> transform(QuadVec3dc<T> const& Q,
+                                                         MVec3dc_U<U> const& M)
+{
+    return gr4(rgpr(rgpr(M, Q), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> invert_on(Vec3dc<T> const& v,
+                                                     QuadVec3dc<U> const& s)
+{
+    return -gr1(rgpr(rgpr(s, v), rrev(s)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> invert_on(BiVec3dc<T> const& B,
+                                                       QuadVec3dc<U> const& s)
+{
+    return -gr2(rgpr(rgpr(s, B), rrev(s)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec3dc<std::common_type_t<T, U>> invert_on(TriVec3dc<T> const& t,
+                                                        QuadVec3dc<U> const& s)
+{
+    return -gr3(rgpr(rgpr(s, t), rrev(s)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr QuadVec3dc<std::common_type_t<T, U>> invert_on(QuadVec3dc<T> const& Q,
+                                                         QuadVec3dc<U> const& s)
+{
+    return -gr4(rgpr(rgpr(s, Q), rrev(s)));
+}
+
+// translation by (dx, dy, dz): parabolic, the exponential series terminates
+// (generator = half the line at infinity dual to the direction; SIGN pinned
+// by the tests)
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> get_translation(T dx, T dy, T dz)
+{
+    // exact two-plane form: reflection on the plane through the origin
+    // followed by reflection on the parallel plane at half the distance
+    T const n2 = std::sqrt(dx * dx + dy * dy + dz * dz);
+    if (n2 < std::numeric_limits<T>::epsilon()) {
+        return MVec3dc_U<T>(Vec3dc<T>(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0)),
+                            TriVec3dc<T>(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                                         T(0.0), T(0.0), T(0.0), T(0.0)),
+                            PScalar3dc<T>(T(1.0)));
+    }
+    T const nx = dx / n2, ny = dy / n2, nz = dz / n2;
+    auto const M = rgpr(plane3dc(nx, ny, nz, T(0.5) * n2), plane3dc(nx, ny, nz, T(0.0)));
+    return gr1(M) + gr3(M) + gr5(M); // already grades {3, 5}; assembled as mv_u
+}
+
+// rotation about the line through (px, py, pz) with direction (vx, vy, vz)
+// by theta (right-handed about the direction for theta > 0); the generator is
+// the unit line
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> get_rotation(T px, T py, T pz, T vx, T vy, T vz, T theta)
+{
+    auto const l = line3dc(px, py, pz, vx, vy, vz);
+    auto const sq = rgpr(l, l); // = alpha * I, alpha = -|v|^2 (elliptic)
+    T const alpha = T(gr5(sq));
+    hd::ga::detail::check_normalization<T>(std::abs(alpha), "rotation axis line");
+    auto const lu = T(1.0) / std::sqrt(-alpha) * l;
+    return exp(TriVec3dc<T>(T(0.5) * theta * lu));
+}
+
+// dilation about (mx, my, mz) by the scale factor sigma > 0; the generator is
+// the ANTIDUAL of the flat point at m (hyperbolic, regressive square +I; the
+// antidual carries the star role in this library, as for the properties)
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dc_U<T> get_dilation(T mx, T my, T mz, T sigma)
+{
+    hd::ga::detail::check_normalization<T>(sigma, "dilation scale factor");
+    T const delta = -T(0.5) * std::log(sigma);
+    auto const g = antidual(flat_point3dc(mx, my, mz));
+    return exp(TriVec3dc<T>(delta * g));
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

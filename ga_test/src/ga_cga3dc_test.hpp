@@ -501,6 +501,93 @@ TEST_SUITE("CGA 3dc Tests")
               bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
     }
 
+    TEST_CASE("cga3dc: exp/log/sqrt and conformal transformations")
+    {
+        fmt::println("cga3dc: exp/log/sqrt and conformal transformations");
+
+        auto const I_u = mvec3dc_u(
+            vec3dc(0.0, 0.0, 0.0, 0.0, 0.0),
+            trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), pscalar3dc(1.0));
+        auto euclid = [](vec3dc const& q) {
+            auto u = unitize(q);
+            return vec3dc(u.x, u.y, u.z, 0.0, 0.0);
+        };
+
+        // exp(0) = I; unit versors for all three builders
+        CHECK(exp(trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)) == I_u);
+        auto Tm = get_translation(2.0, 0.0, 0.0);
+        auto Rm = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 2.0);
+        auto Dm = get_dilation(0.0, 0.0, 0.0, 4.0);
+        CHECK(is_close(rgpr(Tm, rrev(Tm)), I_u));
+        CHECK(is_close(rgpr(Rm, rrev(Rm)), I_u));
+        CHECK(is_close(rgpr(Dm, rrev(Dm)), I_u));
+
+        // translation is EXACT (parabolic, series terminates)
+        CHECK(transform(round_point3dc(1.0, 2.0, 3.0, 0.0), Tm) ==
+              round_point3dc(3.0, 2.0, 3.0, 0.0));
+        // matches the two-plane reflection composition by construction; the
+        // generator is exactly parabolic
+        CHECK(rgpr(gr3(Tm), gr3(Tm)) ==
+              mvec3dc_u(vec3dc(0.0, 0.0, 0.0, 0.0, 0.0),
+                        trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        pscalar3dc(0.0)));
+
+        // rotation: right-handed about +z; radius invariant under rigid motion
+        CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), Rm)),
+                       vec3dc(0.0, 1.0, 0.0, 0.0, 0.0)));
+        auto s = sphere3dc(1.0, 2.0, 3.0, 2.0);
+        CHECK(std::abs(radius_sq(unitize(transform(s, Rm))) - 4.0) < 1e-12);
+
+        // dilation: sigma = 4 about the origin; radius_sq scales by sigma^2
+        CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), Dm)),
+                       vec3dc(4.0, 0.0, 0.0, 0.0, 0.0)));
+        CHECK(std::abs(radius_sq(unitize(transform(sphere3dc(0.0, 0.0, 0.0, 1.0), Dm))) -
+                       16.0) < 1e-12);
+        CHECK_THROWS(get_dilation(0.0, 0.0, 0.0, 0.0));
+
+        // inversion on the unit sphere: reciprocal distance, fixed sphere
+        // points, involution
+        auto S1 = sphere3dc(0.0, 0.0, 0.0, 1.0);
+        CHECK(is_close(euclid(invert_on(round_point3dc(2.0, 0.0, 0.0, 0.0), S1)),
+                       vec3dc(0.5, 0.0, 0.0, 0.0, 0.0)));
+        CHECK(is_close(euclid(invert_on(round_point3dc(1.0, 0.0, 0.0, 0.0), S1)),
+                       vec3dc(1.0, 0.0, 0.0, 0.0, 0.0)));
+        auto q = round_point3dc(1.0, 2.0, 3.0, 0.0);
+        CHECK(is_close(unitize(invert_on(invert_on(q, S1), S1)), unitize(q)));
+
+        // log/exp round trip (elliptic + hyperbolic + parabolic) and sqrt
+        CHECK(is_close(exp(log(Rm)), Rm));
+        CHECK(is_close(exp(log(Dm)), Dm));
+        CHECK(is_close(exp(log(Tm)), Tm));
+        CHECK(is_close(rgpr(sqrt(Rm), sqrt(Rm)), Rm));
+        CHECK(is_close(rgpr(sqrt(Dm), sqrt(Dm)), Dm));
+
+        // one-parameter group: R(a) v R(b) = R(a+b)
+        auto Ra = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.4);
+        auto Rb = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.9);
+        CHECK(is_close(rgpr(Ra, Rb), get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.3)));
+
+        // conjugation identity: T(m) R T(-m) = rotation about the shifted line
+        // (compared by ACTION -- versors double-cover, the conjugate may land
+        // on the -M sheet)
+        auto Tsh = get_translation(1.0, 2.0, 0.0);
+        auto Rsh = get_rotation(1.0, 2.0, 0.0, 0.0, 0.0, 1.0, pi / 2.0);
+        auto Mc = rgpr(rgpr(Tsh, Rm), rrev(Tsh));
+        auto qc = round_point3dc(2.0, 2.0, 0.0, 0.0);
+        CHECK(is_close(euclid(transform(qc, Mc)), euclid(transform(qc, Rsh))));
+        CHECK(is_close(euclid(transform(qc, Rsh)), vec3dc(1.0, 3.0, 0.0, 0.0, 0.0)));
+
+        // non-simple (screw) generators throw; composed motors still work
+        auto lz = gr3(get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0));
+        auto tz = gr3(get_translation(0.0, 0.0, 2.0));
+        CHECK_THROWS(exp(trivec3dc(lz + tz)));
+        auto screw = rgpr(get_translation(0.0, 0.0, 2.0), Rm); // compose instead
+        CHECK(is_close(rgpr(screw, rrev(screw)), I_u));
+        CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), screw)),
+                       vec3dc(0.0, 1.0, 2.0, 0.0, 0.0)));
+        CHECK_THROWS(log(screw)); // outside the simple-generator image
+    }
+
     TEST_CASE("cga3dc: fmt printing")
     {
         fmt::println("cga3dc: fmt printing");
