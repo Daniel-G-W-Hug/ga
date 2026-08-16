@@ -1,0 +1,58 @@
+#!/bin/sh
+# pre-commit: refuse a commit whose STAGED C/C++ content is not clang-format clean.
+#
+# Why this exists: an editor's format-on-save covers only files a human opens and
+# saves, and any tool-side auto-formatter covers only the paths it is wired to. A
+# mechanical multi-file sweep (sed -i, a script, a rename across the tree) goes
+# through neither, and the drift it leaves is invisible in review -- comment lines
+# one column over the limit, shifted trailing-comment alignment -- until it
+# surfaces later as unrelated-looking churn in someone else's change. This hook is
+# the guard at the one point every path has to pass through.
+#
+# Checks the STAGED content (not the working tree), so a `git add -p` of a clean
+# hunk cannot be defeated by unstaged mess, and vice versa.
+#
+# Tracked hook -- activated once per clone with:  git config core.hooksPath .githooks
+# Bypass for a deliberate exception:              git commit --no-verify
+
+# clang-format major the tree is formatted with; a different major reflows the
+# whole tree, so a mismatch SKIPS (with a warning) rather than fighting it. See
+# CLAUDE.md, "C++ Formatting (clang-format)", for the version baseline.
+REQUIRED_MAJOR=22
+
+if ! command -v clang-format >/dev/null 2>&1; then
+    echo "pre-commit: clang-format not found -- format check SKIPPED." >&2
+    exit 0
+fi
+
+major=$(clang-format --version | sed -n 's/.*version \([0-9][0-9]*\).*/\1/p')
+if [ "$major" != "$REQUIRED_MAJOR" ]; then
+    echo "pre-commit: clang-format $major on PATH, tree is formatted with" \
+         "$REQUIRED_MAJOR -- format check SKIPPED (see CLAUDE.md)." >&2
+    exit 0
+fi
+
+# Staged (Added/Copied/Modified/Renamed) C/C++ files, NUL-separated for odd names.
+staged=$(git diff --cached --name-only --diff-filter=ACMR -z |
+         tr '\0' '\n' | grep -E '\.(hpp|cpp|h|cc|cxx|hxx|ipp|inl)$')
+[ -z "$staged" ] && exit 0
+
+bad=""
+for f in $staged; do
+    # --assume-filename lets clang-format pick the repo style for content on stdin
+    if ! git show ":$f" | clang-format --assume-filename="$f" --dry-run -Werror \
+         >/dev/null 2>&1; then
+        bad="$bad  $f
+"
+    fi
+done
+
+[ -z "$bad" ] && exit 0
+
+echo "pre-commit: REFUSED -- staged content is not clang-format clean:" >&2
+printf '%s' "$bad" >&2
+echo "Fix with:" >&2
+printf '%s' "$bad" | sed 's/^  /  clang-format -i /' >&2
+echo "then re-stage (git add) and commit again." >&2
+echo "(Deliberate exception: git commit --no-verify)" >&2
+exit 1
