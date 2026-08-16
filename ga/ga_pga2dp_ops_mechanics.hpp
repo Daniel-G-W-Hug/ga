@@ -321,15 +321,15 @@ struct pose2dp {
 
 
 // Build the body->parent motor M = translate(origin) (x) rotate(phi) from a pose. The
-// rotation about the parent origin is exp(0.5 * vec2dp(0,0,phi)); the translation by
-// origin is exp(0.5 * vec2dp(-origin.y, origin.x, 0)). Parallel to the 3D
+// rotation about the parent origin is rexp(0.5 * vec2dp(0,0,phi)); the translation by
+// origin is rexp(0.5 * vec2dp(-origin.y, origin.x, 0)). Parallel to the 3D
 // motor_from_pose3dp (the 2D rotation generator is a scalar phi where 3D uses an
 // axis*angle bivector). Inverse of pose2dp_from_motor. (static_system2dp::step_pos_trafo
 // returns its regressive reverse, the parent->child transform.)
 inline mvec2dp_u motor_from_pose2dp(pose2dp const& p)
 {
-    auto const M_rot = exp(0.5 * vec2dp(0.0, 0.0, p.phi));
-    auto const M_tra = exp(0.5 * vec2dp(-p.origin.y, p.origin.x, 0.0));
+    auto const M_rot = rexp(0.5 * vec2dp(0.0, 0.0, p.phi));
+    auto const M_tra = rexp(0.5 * vec2dp(-p.origin.y, p.origin.x, 0.0));
     return rgpr(M_tra, M_rot); // rotate about origin, then translate -> body->parent
 }
 
@@ -581,7 +581,7 @@ class static_system2dp {
 // right-handed system, i.e. in the positive direction of the bivector e12.
 //
 // The components encode the pga2dp motor generator twist2dp(.x, .y, .z) = (-v_y, v_x,
-// omega) so that M = exp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint.
+// omega) so that M = rexp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint.
 // Decode as omega = .z and v = (.y, -.x). The alias documents this intent at every
 // signature and adds no overloads (its type IS vec2dp).
 using twist2dp = vec2dp;
@@ -670,7 +670,7 @@ class kinematic_system2dp : public static_system2dp {
     // Each non-root frame's relative pose is evolved on the motor manifold by its
     // body-frame relative twist:
     //
-    //     P_new = P (x) exp(0.5 * B_rel * dt)        [P = body->parent motor]
+    //     P_new = P (x) rexp(0.5 * B_rel * dt)        [P = body->parent motor]
     //
     // which is EXACT for a constant twist (N steps of dt == one step of N*dt). Its
     // relative velocity twist is then ramped by the relative acceleration (explicit
@@ -682,7 +682,7 @@ class kinematic_system2dp : public static_system2dp {
         for (size_t i = 1; i < size(); ++i) { // frame 0 is the root (left unchanged)
             // evolve the body->parent relative motor by the relative twist over dt
             auto const P = rrev(step_pos_trafo(i)); // T(origin) (x) R(phi)
-            auto const P_new = rgpr(P, exp(0.5 * rel_vtwist[i] * dt));
+            auto const P_new = rgpr(P, rexp(0.5 * rel_vtwist[i] * dt));
             // decode the new relative pose (origin, phi) and store it
             set_pose(i, pose2dp_from_motor(P_new));
             // ramp the relative velocity by the (constant) relative acceleration
@@ -951,7 +951,7 @@ inline body2dp make_disc_body(value_t m, value_t r)
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
 // Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
-// unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw), relative
+// unification of rotation and translation): M(q) = rest (x) rexp(1/2 q * screw), relative
 // twist = q-dot * screw, Jacobian = velocity_field(screw, .).
 //
 //   free      : unconstrained 3-DOF rigid body; state lives in the base layer.
@@ -1081,7 +1081,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // add a revolute-jointed body: a 1-DOF hinge about the body-fixed pivot Q_b. The
     // frame `f` provides the REST pose (q = 0); the body then rotates about Q_b by q. The
-    // joint screw is the pivot point itself (a finite point, z = 1) -- exp(1/2 q Q_b) is
+    // joint screw is the pivot point itself (a finite point, z = 1) -- rexp(1/2 q Q_b) is
     // a rotation. The effective hinge inertia (Steiner) emerges automatically from the
     // spatial Jacobian in the forward dynamics; nothing extra to precompute.
     void add_revolute_body(static_frame2dp const& f, body2dp const& b,
@@ -1093,7 +1093,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // add a prismatic-jointed body: a 1-DOF slider along the body-fixed unit direction
     // `dir`. The joint screw is the translation generator (an ideal point, z = 0):
-    // exp(1/2 s * screw) is a pure translation by s along dir. The machinery is IDENTICAL
+    // rexp(1/2 s * screw) is a pure translation by s along dir. The machinery is IDENTICAL
     // to the revolute joint -- only the generator differs (the PGA unification).
     void add_prismatic_body(static_frame2dp const& f, body2dp const& b, vec2dp const& dir,
                             value_t s0 = 0.0, value_t v0 = 0.0,
@@ -1299,7 +1299,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
     // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
-    // accumulated from the current relative pose M0 (so M(t) = M0 (x) exp(1/2 B)), Omega
+    // accumulated from the current relative pose M0 (so M(t) = M0 (x) rexp(1/2 B)), Omega
     // the body twist. dB/dt = Omega; dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ].
     void step_free_body(size_t idx, value_t dt)
     {
@@ -1310,14 +1310,14 @@ class dynamic_system2dp : public kinematic_system2dp {
 
         // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
         auto omega_dot = [&](vec2dp const& B, twist2dp const& Om) -> twist2dp {
-            auto const M = rgpr(M0, exp(0.5 * B));             // pose at this stage
+            auto const M = rgpr(M0, rexp(0.5 * B));             // pose at this stage
             auto const W_w = wdg(move2dp(O_2dp, M), m * grav); // gravity wrench (world)
             auto const W_b = move2dp(W_w, rrev(M)); // pulled into the body frame
             return compute_omega_dot(I_inv, W_b, Om, I);
         };
 
         // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = Omega,
-        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) exp(1/2 B)).
+        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) rexp(1/2 B)).
         std::array<twist2dp, 2> u_mem{twist2dp{}, relative_twist(idx)};
         std::array<twist2dp, 4> uh_mem{};
         std::array<twist2dp, 2> rhs_mem{};
@@ -1333,7 +1333,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
         // decode the evolved pose (origin, phi) and write pose + twist into the base
         // layer
-        set_pose(idx, pose2dp_from_motor(rgpr(M0, exp(0.5 * u[0]))));
+        set_pose(idx, pose2dp_from_motor(rgpr(M0, rexp(0.5 * u[0]))));
         set_twist(idx, u[1]);
     }
 
@@ -1356,12 +1356,12 @@ class dynamic_system2dp : public kinematic_system2dp {
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
     }
 
-    // body->parent motor at generalised coordinate q: M(q) = rest (x) exp(1/2 q * screw).
+    // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q * screw).
     // The SAME exponential builds a rotation (revolute, screw = finite point) or a
     // translation (prismatic, screw = ideal point); the operators do not change.
     mvec2dp_u joint_motor(size_t idx, value_t q) const
     {
-        return rgpr(joint[idx].rest, exp(0.5 * q * joint[idx].screw_b));
+        return rgpr(joint[idx].rest, rexp(0.5 * q * joint[idx].screw_b));
     }
 
     // Write the joint state (q, q-dot) into the base pose + relative twist, so all

@@ -13,9 +13,9 @@ namespace hd::ga::pga {
 // provides functionality that is based on pga2dp ops basics and products:
 //
 // - angle()                             -> angle operations
-// - exp()                               -> exponential (w.r.t. rgpr)
-// - log()                               -> logarithm (w.r.t. rgpr, inverse of exp)
-// - sqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
+// - rexp()                               -> exponential (w.r.t. rgpr)
+// - rlog()                               -> logarithm (w.r.t. rgpr, inverse of rexp)
+// - rsqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
 // - get_motor()                         -> provide a motor from (point, phi), or (delta),
 // - get_motor_from_lines()              -> provide a motor from (from two lines moved
 //                                                                into each other)
@@ -85,11 +85,11 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp(motor) and sqrt(motor) with respect to the regressive geometric product rgpr()
+// rexp(motor) and rsqrt(motor) with respect to the regressive geometric product rgpr()
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
+constexpr MVec2dp_U<T> rexp(Vec2dp<T> const& arg)
 {
     auto w_sq = weight_nrm_sq(arg); // rotation angle^2
     if (w_sq == T(0.0)) {
@@ -107,24 +107,24 @@ constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec2dp_U<T> sqrt(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> rsqrt(MVec2dp_U<T> const& M)
 {
     return unitize(M + PScalar2dp<T>(1.0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// log() with respect to rgpr() -- the inverse of exp(): for a (unit) motor M it returns
-// the vector generator arg with exp(arg) == M.
+// rlog() with respect to rgpr() -- the inverse of rexp(): for a (unit) motor M it returns
+// the vector generator arg with rexp(arg) == M.
 //
 // A 2dp motor is M = p*sin(phi) + e321*cos(phi) (rotation by phi about the point p), so
 // for a unit motor the e3 (weight) component is sin(phi) and the pseudoscalar is
-// cos(phi). exp() builds the rotation branch as arg * sin(phi)/arg.z with arg.z = phi, so
+// cos(phi). rexp() builds the rotation branch as arg * sin(phi)/arg.z with arg.z = phi, so
 // the inverse is arg = M_vec * (phi / sin(phi)) with arg.z = phi. A pure translation (phi
 // ~ 0) has arg.z = 0 and M = (arg, 1), so arg is just the vector part.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec2dp<T> log(MVec2dp_U<T> const& M_in)
+constexpr Vec2dp<T> rlog(MVec2dp_U<T> const& M_in)
 {
     auto const M = unitize(M_in);
     T const vz = M.c2;                // e3 (weight) component = sin(phi)
@@ -132,11 +132,11 @@ constexpr Vec2dp<T> log(MVec2dp_U<T> const& M_in)
     T const phi = std::atan2(vz, ps); // rotation angle
     T const s = std::sin(phi);
     if (std::abs(s) < eps) {
-        // phi ~ 0: pure translation (or identity). exp(arg) with arg.z = 0 gives (arg,
+        // phi ~ 0: pure translation (or identity). rexp(arg) with arg.z = 0 gives (arg,
         // 1).
         return Vec2dp<T>(M.c0, M.c1, T(0.0));
     }
-    T const scale = phi / s; // inverse of exp()'s sin(phi)/phi
+    T const scale = phi / s; // inverse of rexp()'s sin(phi)/phi
     return Vec2dp<T>(M.c0 * scale, M.c1 * scale, phi);
 }
 

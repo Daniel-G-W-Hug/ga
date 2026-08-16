@@ -3970,11 +3970,11 @@ TEST_SUITE("PGA 2DP Tests")
 
         fmt::println("B_tra                 = {}", B);
         fmt::println("M (from get_motor())  = {}", M);
-        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
+        fmt::println("M (from rexp(0.5 * B)) = {}", rexp(0.5 * B));
         fmt::println("");
 
         CHECK(X == move2dp(X0, M)); // motor moves to X
-        CHECK(M == exp(0.5 * B));   // bivector creates motor via exp()
+        CHECK(M == rexp(0.5 * B));   // bivector creates motor via rexp()
 
         auto P_fix = vec2dp{-2, -3, 1};
         auto X_rot = vec2dp{-2, -3 + std::sqrt(18), 1};
@@ -3984,25 +3984,25 @@ TEST_SUITE("PGA 2DP Tests")
 
         fmt::println("B_rot                 = {}", B);
         fmt::println("M (from get_motor())  = {}", M);
-        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
+        fmt::println("M (from rexp(0.5 * B)) = {}", rexp(0.5 * B));
         fmt::println("");
 
         CHECK(X_rot == move2dp(X0, M));
-        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
+        CHECK(M == rexp(0.5 * B)); // bivector creates motor via rexp()
 
         auto B0 = vec2dp{0, 0, deg2rad(45)};
         auto M0 = get_motor(O_2dp, deg2rad(45));
-        fmt::println("B0 = {}, exp(0.5 * B0) = {}", B0, exp(0.5 * B0));
+        fmt::println("B0 = {}, rexp(0.5 * B0) = {}", B0, rexp(0.5 * B0));
         fmt::println("M0 = {}", M0);
-        CHECK(M0 == exp(0.5 * B0));
+        CHECK(M0 == rexp(0.5 * B0));
         CHECK(move2dp(X0, M0) == vec2dp{0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2), 1});
         CHECK(move2dp(O_2dp, M0) == O_2dp); // fixed point
         //
         auto B1 = vec2dp{1, 1, 1} * deg2rad(45);
         auto M1 = get_motor(vec2dp{1, 1, 1}, deg2rad(45));
-        fmt::println("B1 = {}, exp(0.5 * B1) = {}", B1, exp(0.5 * B1));
+        fmt::println("B1 = {}, rexp(0.5 * B1) = {}", B1, rexp(0.5 * B1));
         fmt::println("M1 = {}", M1);
-        CHECK(M1 == exp(0.5 * B1));
+        CHECK(M1 == rexp(0.5 * B1));
         CHECK(move2dp(X0, M1) ==
               vec2dp{1.0 + 0.5 * std::sqrt(2.0), 1.0 - 0.5 * std::sqrt(2), 1});
         CHECK(move2dp(vec2dp{1, 1, 1}, M1) == vec2dp{1, 1, 1}); // fixed point
@@ -4026,17 +4026,17 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(M_res == M1);
 
         CHECK(rgpr(vec2dp{0, 0, 1}, vec2dp{0, 0, 1}) == mvec2dp_u{pscalar2dp{-1}});
-        CHECK(exp(vec2dp{0, 0, 1} * pi) == mvec2dp_u{pscalar2dp{-1}});
+        CHECK(rexp(vec2dp{0, 0, 1} * pi) == mvec2dp_u{pscalar2dp{-1}});
     }
 
-    TEST_CASE("G<2,0,1>: sqrt(motor) function")
+    TEST_CASE("G<2,0,1>: rsqrt(motor) function")
     {
-        fmt::println("G<2,0,1>: sqrt(motor) function");
+        fmt::println("G<2,0,1>: rsqrt(motor) function");
 
         // how to transfer line l1 into line l2, such that l2 = M ⟇ l1 ⟇ rrev(M)?
         //
         // We know R = l2 ⟇ l1 represents two consequtive reflections across l1 and l2.
-        // So we need "half of the transformation" M = R^{1/2} = sqrt(R)
+        // So we need "half of the transformation" M = R^{1/2} = rsqrt(R)
 
         // case a) rotation as defined by consequtive mirroring across intersecting lines
         fmt::println("\nG<2,0,1>: case a) rotation:\n");
@@ -4051,7 +4051,7 @@ TEST_SUITE("PGA 2DP Tests")
         auto phi = angle(l1, l2);
         auto P_fix = unitize(rwdg(l1, l2));
 
-        auto R = sqrt(M);
+        auto R = rsqrt(M);
 
         fmt::println("l1            = {}", l1);
         fmt::println("l1 ⟇ l1       = {}", rgpr(l1, l1));
@@ -4069,7 +4069,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move2dp(P0, M));
         fmt::println("");
-        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R = rsqrt(M) = {}", R);
         fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
         fmt::println("");
         fmt::println("P0                    = {}", P0);
@@ -4094,7 +4094,7 @@ TEST_SUITE("PGA 2DP Tests")
 
         P0 = vec2dp{0, 7, 1};
 
-        R = sqrt(M);
+        R = rsqrt(M);
 
         fmt::println("l1            = {}", l1);
         fmt::println("l1 ⟇ l1       = {}", rgpr(l1, l1));
@@ -4109,7 +4109,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move2dp(P0, M));
         fmt::println("");
-        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R = rsqrt(M) = {}", R);
         fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
         fmt::println("");
         fmt::println("P0                    = {}", P0);
@@ -4125,27 +4125,27 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
-    TEST_CASE("G<2,0,1>: log(motor) function")
+    TEST_CASE("G<2,0,1>: rlog(motor) function")
     {
-        fmt::println("G<2,0,1>: log(motor) function");
+        fmt::println("G<2,0,1>: rlog(motor) function");
 
-        // log() is the inverse of exp(): exp(log(M)) == M for every motor M. Validated as
+        // rlog() is the inverse of rexp(): rexp(rlog(M)) == M for every motor M. Validated as
         // a round-trip gate over translations and rotations about a point.
 
         // a) pure translation: log recovers the (z = 0) translation generator exactly
         {
             auto const arg = vec2dp{-2, 3, 0}; // translation generator
-            auto const M = exp(arg);
-            CHECK(M == exp(log(M)));
-            CHECK(log(M) == arg);
+            auto const M = rexp(arg);
+            CHECK(M == rexp(rlog(M)));
+            CHECK(rlog(M) == arg);
         }
 
         // b) rotation about a point P by angle phi
         {
             double const phi = deg2rad(50);
             auto const arg = vec2dp{1.5, -0.5, phi}; // rotation generator about a point
-            auto const M = exp(arg);
-            CHECK(M == exp(log(M)));
+            auto const M = rexp(arg);
+            CHECK(M == rexp(rlog(M)));
         }
     }
 

@@ -227,7 +227,7 @@ TEST_SUITE("PGA2DP: physics tests prep")
         auto X11 = vec2dp{1, 1, 1}; // pos. of X1 after 1s
         auto X12 = vec2dp{2, 1, 1}; // pos. of X1 after 2s
 
-        // auto v = vec2dp{1, 1, 0};   // v_x = 1 m/s, v_y = 1 m/s v' = |v|*sqrt(2))
+        // auto v = vec2dp{1, 1, 0};   // v_x = 1 m/s, v_y = 1 m/s v' = |v|*rsqrt(2))
         // auto X11 = vec2dp{1, 2, 1}; // pos. of X1 after 1s
         // auto X12 = vec2dp{2, 3, 1}; // pos. of X1 after 2s
 
@@ -277,9 +277,9 @@ TEST_SUITE("PGA2DP: physics tests prep")
         fmt::println("omega_tra               = {:>-7.3f}", omega_tra);
         fmt::println("B(1s) = omega_tra * 1s  = {:>-7.3f}", B_1s);
         fmt::println("B(2s) = omega_tra * 2s  = {:>-7.3f}", B_2s);
-        fmt::println("M(1s) = exp(0.5 * B_1s) = {:>-7.3f}", M_1s);
+        fmt::println("M(1s) = rexp(0.5 * B_1s) = {:>-7.3f}", M_1s);
         fmt::println("M(1s)_alt               = {:>-7.3f}", M_1s_alt);
-        fmt::println("M(2s) = exp(0.5 * B_2s) = {:>-7.3f}", M_2s);
+        fmt::println("M(2s) = rexp(0.5 * B_2s) = {:>-7.3f}", M_2s);
         fmt::println("M(2s)_alt               = {:>-7.3f}", M_2s_alt);
         fmt::println("");
         fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_1s));
@@ -288,8 +288,8 @@ TEST_SUITE("PGA2DP: physics tests prep")
 
         CHECK(X11 == move2dp(X1, M_1s));
         CHECK(X12 == move2dp(X1, M_2s));
-        CHECK(M_1s == exp(0.5 * B_1s));
-        CHECK(M_2s == exp(0.5 * B_2s));
+        CHECK(M_1s == rexp(0.5 * B_1s));
+        CHECK(M_2s == rexp(0.5 * B_2s));
 
         // pre-study: speed defined from constant linear motion
         //            result: -> speed must be const (position independent)
@@ -707,7 +707,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B    = B_rot + B_tra
                 //
                 //  CAUTION (generators add only at the velocity level):
-                //  B = B_rot + B_tra is the additive split of ONE twist. exp(0.5*B) of
+                //  B = B_rot + B_tra is the additive split of ONE twist. rexp(0.5*B) of
                 //  that single B is ONE finite screw (3D) / rotation about a shifted
                 //  pivot (2D) -- NOT "translate, then rotate". To compose two SEPARATE
                 //  finite motions, MULTIPLY their motors: M = rgpr(M2, M1), which is
@@ -716,7 +716,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  solely the 3D screw case, never in 2D.
                 //
                 //  typical starting value is "no initial transformation":
-                //  B0=(0,0,0) => M0 = exp(0.5 * B0) = pscalar2dp(1)
+                //  B0=(0,0,0) => M0 = rexp(0.5 * B0) = pscalar2dp(1)
                 //                (=identity transformation at t=0)
                 //
                 u[0] = vec2dp(0.0, 0.0, 0.0);
@@ -793,7 +793,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     // calculate current position from B via M = 0.5 * B) ⟇ M0
                     // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
                     //
-                    auto M = exp(0.5 * B);
+                    auto M = rexp(0.5 * B);
                     auto pt = move2dp(pts[n], M);
                     // fmt::println(
                     //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
@@ -1119,7 +1119,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B    = B_rot + B_tra
                 //
                 //  CAUTION (generators add only at the velocity level):
-                //  B = B_rot + B_tra is the additive split of ONE twist. exp(0.5*B) of
+                //  B = B_rot + B_tra is the additive split of ONE twist. rexp(0.5*B) of
                 //  that single B is ONE finite screw (3D) / rotation about a shifted
                 //  pivot (2D) -- NOT "translate, then rotate". To compose two SEPARATE
                 //  finite motions, MULTIPLY their motors: M = rgpr(M2, M1), which is
@@ -1128,7 +1128,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  solely the 3D screw case, never in 2D.
                 //
                 //  typical starting value is "no initial transformation":
-                //  B0=(0,0,0) => M0 = exp(0.5 * B0) = pscalar(1)
+                //  B0=(0,0,0) => M0 = rexp(0.5 * B0) = pscalar(1)
                 //                (=identity transformation at t=0)
                 //
                 u[0] = vec2dp(0.0, 0.0, 0.0);
@@ -1205,11 +1205,11 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     vec2dp B = u[0];     // B = Omega * t + B0 (from integration)
                     vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-                    // calculate current position from B via M = exp(0.5 * B) ⟇ M0
+                    // calculate current position from B via M = rexp(0.5 * B) ⟇ M0
                     // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
                     // and d(pts(t))/dt = rcmt(Omega, pts(t))
 
-                    auto M = exp(0.5 * B);
+                    auto M = rexp(0.5 * B);
                     auto pt = move2dp(pts[n], M);
                     // fmt::println(
                     //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
@@ -1300,12 +1300,12 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //   Omega_b - velocity generator in body frame (constant here)
     //   Omega_w - velocity generator in world frame (= move2dp(Omega_b, M))
     //   M0    - initial motor: maps body frame to world frame at t=0
-    //   M(t)  - current motor: M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+    //   M(t)  - current motor: M0 ⟇ rexp(½ B_b(t))  [body-frame formulation]
     //   P_b   - a fixed point in the body frame
     //   P_w   - P_b expressed in world frame: move2dp(P_b, M)
     //
     // Key identity that reveals the bug in the original code:
-    //   move2dp(B, exp(½B)) == B   always (B commutes with its own exponential)
+    //   move2dp(B, rexp(½B)) == B   always (B commutes with its own exponential)
     //   => B_w differs from B_b only when M0 != ps (non-trivial initial state)
     //
     // Extensibility: body-frame velocity vectors v_b = vec2dp{vx, vy, 0} (z=0)
@@ -1346,13 +1346,13 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity (body starts at world origin) ---");
         {
-            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0}); // ps (identity)
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0}); // ps (identity)
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 // Q_w_check: body origin in world (should equal P_w here)
@@ -1371,13 +1371,13 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             // M0: pure translation motor placing body origin at world (2, 1)
             // Translation encoding: P_tra = (-ty, tx, 0) = (-1, 2, 0)
             vec2dp const cm0{2.0, 1.0, 1.0};
-            mvec2dp_u const M0 = exp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 vec2dp const Q_w = P_w; // body origin in world
@@ -1419,7 +1419,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity (Q_b is at world origin) ---");
         {
-            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
             // pivot world position (should stay fixed)
@@ -1427,7 +1427,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 vec2dp const Q_w_chk = move2dp(Q_b, M); // pivot must stay fixed
@@ -1447,13 +1447,13 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             // Translation encoding: P_tra = (-ty, tx, 0) = (-1, 1, 0)
             vec2dp const Q_world{2.0, 1.0, 1.0};
             vec2dp const trans{Q_world.x - Q_b.x, Q_world.y - Q_b.y, 1.0};
-            mvec2dp_u const M0 = exp(0.5 * vec2dp{-trans.y, trans.x, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{-trans.y, trans.x, 0.0});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 vec2dp const Q_w_chk = move2dp(Q_b, M); // pivot must stay at (2,1)
@@ -1493,13 +1493,13 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity ---");
         {
-            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 vec2dp const Q_w_chk = move2dp(Q_b, M);
@@ -1517,12 +1517,12 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         {
             // M0 encodes the REST position (phi=0) of the body in world frame.
             // The initial rotation phi0 is encoded in B_b(0) = phi0 * Q_b.
-            // By the conjugation identity: M0_tra ⟇ exp(½ phi0 Q_b)
+            // By the conjugation identity: M0_tra ⟇ rexp(½ phi0 Q_b)
             //   == (rotation by phi0 about Q_world) ⟇ M0_tra
             // so this correctly places the plate at the phi0-rotated rest position.
             vec2dp const cm0{3.0, 2.0, 1.0}; // rest cm world position (phi=0)
             mvec2dp_u const M0 =
-                exp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0}); // pure translation
+                rexp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0}); // pure translation
 
             double const phi0 = pi / 4.0;
             vec2dp B_b = phi0 * Q_b; // initial B_b: phi0 rotation about body-frame Q_b
@@ -1530,7 +1530,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
-                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                mvec2dp_u const M = rgpr(M0, rexp(0.5 * B_b));
                 vec2dp const Omega_w = move2dp(Omega_b, M);
                 vec2dp const P_w = move2dp(P_b, M);
                 vec2dp const Q_w_chk = move2dp(Q_b, M);
@@ -1599,8 +1599,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
                 // Body origin = CM. Pivot = TR corner = Q_b = (hw, hh, 1) in body frame.
                 // M0: pure translation placing body origin (= cm) at cm_w_pos0.
-                // Encoding: translation by (tx, ty) -> motor exp(0.5*(-ty, tx, 0))
-                M0 = exp(0.5 * vec2dp{-cm_w_pos0.y, cm_w_pos0.x, 0.0});
+                // Encoding: translation by (tx, ty) -> motor rexp(0.5*(-ty, tx, 0))
+                M0 = rexp(0.5 * vec2dp{-cm_w_pos0.y, cm_w_pos0.x, 0.0});
 
                 // pivot_w: world position of body-frame pivot Q_b via M0 (stays fixed)
                 vec2dp const Q_b{hw, hh, 1.0};
@@ -1609,7 +1609,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                              pivot_w);
 
                 // B_b(0): initial rotation by phi0 about body-frame pivot Q_b.
-                // move2dp(Q_b, exp(½*phi*Q_b)) = Q_b for all phi (pivot invariant).
+                // move2dp(Q_b, rexp(½*phi*Q_b)) = Q_b for all phi (pivot invariant).
                 u[0] = cm_w_phi0 * Q_b;
 
                 // Omega_b(0): initial angular velocity about pivot Q_b.
@@ -1629,8 +1629,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 vec2dp const B = u[0];     // position transformation B is in u[0]
                 vec2dp const Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
 
-                // current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
-                auto const M = rgpr(M0, exp(0.5 * B));
+                // current motor: M(t) = M0 ⟇ rexp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, rexp(0.5 * B));
 
                 // cm world position: body origin = cm = (0,0,1) in body frame
                 vec2dp const O_b{0.0, 0.0, 1.0};
@@ -1698,8 +1698,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
                 vec2dp const B = u[0]; // B_b = phi * Q_b (accumulated rotation)
 
-                // current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
-                auto const M = rgpr(M0, exp(0.5 * B));
+                // current motor: M(t) = M0 ⟇ rexp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, rexp(0.5 * B));
 
                 // B_b = phi * Q_b, so B.z = phi (rotation angle about Q_b)
                 value_t const phi_b = B.z;
@@ -1723,7 +1723,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             vec2dp get_cm_world() const
             {
                 auto u = mdspan<vec2dp const, dextents<size_t, 1>>(u_mem.data(), 2);
-                auto const M = rgpr(M0, exp(0.5 * u[0]));
+                auto const M = rgpr(M0, rexp(0.5 * u[0]));
                 return move2dp(vec2dp{0.0, 0.0, 1.0}, M);
             }
 
@@ -1822,7 +1822,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             value_t const V_pot = m * g * cm_w.y;
             CHECK((T_kin + V_pot) == doctest::Approx(E_0).epsilon(1e-3));
 
-            // Pivot constraint: distance from pivot (0,0) to cm = sqrt(hw^2+hh^2)
+            // Pivot constraint: distance from pivot (0,0) to cm = rsqrt(hw^2+hh^2)
             value_t const r_sq = cm_w.x * cm_w.x + cm_w.y * cm_w.y;
             CHECK(r_sq == doctest::Approx(pivot_dist_sq).epsilon(1e-3));
         }
@@ -2230,16 +2230,16 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     // active_frame_trafo). Each scene's body is modelled as a kinematic_system2dp frame
     // "B" at the scene's M0 pose with the scene's body twist Omega_b. We verify our API
     // reproduces the two quantities ga_view tracks:
-    //   - the body->world motor  M = M0          (ga_view: M(t) = M0 (x) exp(0.5 B_b))
+    //   - the body->world motor  M = M0          (ga_view: M(t) = M0 (x) rexp(0.5 B_b))
     //   - the world generator    B_w = move2dp(Omega_b, M0)   (ga_view's Omega_w)
     /////////////////////////////////////////////////////////////////////////////////////
 
     // ga_view's M0 builders (mirror make_M0_trans / make_M0_rot in w_mainwindow.cpp)
     inline mvec2dp_u gv_M0_trans(double tx, double ty)
     {
-        return exp(0.5 * vec2dp{-ty, tx, 0.0});
+        return rexp(0.5 * vec2dp{-ty, tx, 0.0});
     }
-    inline mvec2dp_u gv_M0_rot(double phi) { return exp(0.5 * vec2dp{0.0, 0.0, phi}); }
+    inline mvec2dp_u gv_M0_rot(double phi) { return rexp(0.5 * vec2dp{0.0, 0.0, phi}); }
 
     inline void cross_check_scene(vec2dp const& origin, value_t phi,
                                   twist2dp const& Omega_b, mvec2dp_u const& M0_ref,
@@ -2516,7 +2516,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         // merry-go-round invariants: every turntable sits at radius r from the centre
         // (the platform rotation preserves it), and 120 deg spacing makes adjacent
-        // turntables equidistant with chord length r * sqrt(3)
+        // turntables equidistant with chord length r * rsqrt(3)
         CHECK(to_val(bulk_nrm(g0 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
         CHECK(to_val(bulk_nrm(g1 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
         CHECK(to_val(bulk_nrm(g2 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
@@ -2832,7 +2832,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     TEST_CASE("pga2dp: kinematic_system2dp - step(dt) time evolution")
     {
         // step(dt) advances each frame's relative pose on the motor manifold by
-        // exp(0.5 B dt) and ramps its velocity by the relative acceleration. For CONSTANT
+        // rexp(0.5 B dt) and ramps its velocity by the relative acceleration. For CONSTANT
         // twist the pose evolution is EXACT: N steps of dt match a single rebuild at
         // t = N*dt to ~machine precision.
         fmt::println("pga2dp: kinematic_system2dp - step(dt) time evolution");
@@ -3205,10 +3205,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //                 vec2dp B = u[n, 0];     // B = Omega * t + B0 (from integration)
     //                 vec2dp Omega = u[n, 1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-    //                 // calculate current position from B via M = exp(0.5 * B) ⟇ M0
+    //                 // calculate current position from B via M = rexp(0.5 * B) ⟇ M0
     //                 // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
     //                 //
-    //                 auto M = exp(0.5 * B);
+    //                 auto M = rexp(0.5 * B);
     //                 fmt::println(
     //                     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
     //                     n, B, Omega, M);
@@ -3367,7 +3367,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         CHECK(alpha_init == doctest::Approx(alpha0).epsilon(1e-12));
 
         // 2. energy conservation over several swing periods
-        //    T = 2*pi*sqrt(I_hinge / (m g d)), d = |Q_b| = sqrt(2)  ->  T ~ 2.76 s
+        //    T = 2*pi*rsqrt(I_hinge / (m g d)), d = |Q_b| = rsqrt(2)  ->  T ~ 2.76 s
         value_t const dt = 0.0005;
         size_t const N = 8000; // 4 s (~1.5 periods)
         value_t const E0 = sys.total_energy();
@@ -3384,7 +3384,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         CHECK(drift < 1e-5);
 
         // 3. the lowest point (cm directly below the hinge) reaches the energy-predicted
-        //    kinetic energy: KE_low = m g dh, dh = |Q_b| - 1 = sqrt(2) - 1
+        //    kinetic energy: KE_low = m g dh, dh = |Q_b| - 1 = rsqrt(2) - 1
         CHECK(KEmax == doctest::Approx(m * 9.81 * (std::sqrt(2.0) - 1.0)).epsilon(1e-3));
 
         // 4. the relative twist is exactly the hinge rotation (encoding consistency)
@@ -3593,7 +3593,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // + RK4 sub-step time threading drive a single prismatic joint (mass mt) with a
         // spring/damper, giving the forced damped oscillator mt q'' + R q' + K q =
         // F0 cos(Omega t). The steady-state amplitude matches the closed form
-        // A = F0 / sqrt((Omega R)^2 + (K - mt Omega^2)^2) -- B.1's Eq. (4) with F0 = m e
+        // A = F0 / rsqrt((Omega R)^2 + (K - mt Omega^2)^2) -- B.1's Eq. (4) with F0 = m e
         // Omega^2 (the 2D radial plane is e1-e2).
         value_t const mt = 7.35, K = 2000.0, R = 5.0;
         value_t const me = 4.9 * 0.008336; // unbalance m*e [kg m]
@@ -3762,7 +3762,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("pga2dp: closed_loop_system2dp - four-bar assembly (Phase 1)");
 
         // four-bar lengths chosen so a clean closed configuration exists at crank = pi/2:
-        //   a (crank) = 2, b (coupler) = 3, c (rocker) = sqrt(5), d (ground) = 4
+        //   a (crank) = 2, b (coupler) = 3, c (rocker) = rsqrt(5), d (ground) = 4
         //   O2 = (0,0), O4 = (4,0); at theta2 = pi/2: A = (0,2), B = B' = (3,2)
         //   -> dependent angles theta3 = -pi/2 (coupler vs crank), theta4 = atan2(2,-1)
         value_t const a = 2.0, b = 3.0, c = std::sqrt(5.0), d = 4.0;
