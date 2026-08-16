@@ -506,8 +506,14 @@ auto const e324_2dc_mv_u = MVec2dc_U<value_t>{e324_2dc}; // e324_2dc as odd mult
 auto const e124_2dc_mv_u = MVec2dc_U<value_t>{e124_2dc}; // e124_2dc as odd multivector
 auto const e321_2dc_mv_u = MVec2dc_U<value_t>{e321_2dc}; // e321_2dc as odd multivector
 
+auto const one_2dc = Scalar2dc<value_t>(1.0);          // Basis element 1
+auto const one_2dc_mv = MVec2dc<value_t>{one_2dc};     // 1 as multivector
+auto const one_2dc_mv_e = MVec2dc_E<value_t>{one_2dc}; // 1 as even-grade multivector
+
 auto const e1234_2dc = PScalar2dc<value_t>(1.0);
-auto const I_2dc = e1234_2dc; // the pseudoscalar of cga2dc
+auto const I_2dc = e1234_2dc;                      // the pseudoscalar of cga2dc
+auto const I_2dc_mv = MVec2dc<value_t>{I_2dc};     // I_2dc as multivector
+auto const I_2dc_mv_e = MVec2dc_E<value_t>{I_2dc}; // I_2dc as even-grade multivector
 
 // extended metric for cga2dc (16×16 matrix, 256 elements)
 // Basis: 1, e1, e2, e3, e4, e31, e32, e12, e14, e24, e34, e314, e324, e124, e321, e1234
@@ -682,8 +688,14 @@ auto const e3215_3dc_mv_e =
 auto const e1234_3dc_mv_e =
     MVec3dc_E<value_t>{e1234_3dc}; // e1234_3dc as even multivector
 
+auto const one_3dc = Scalar3dc<value_t>(1.0);          // Basis element 1
+auto const one_3dc_mv = MVec3dc<value_t>{one_3dc};     // 1 as multivector
+auto const one_3dc_mv_e = MVec3dc_E<value_t>{one_3dc}; // 1 as even-grade multivector
+
 auto const e12345_3dc = PScalar3dc<value_t>(1.0);
-auto const I_3dc = e12345_3dc; // the pseudoscalar of cga3dc
+auto const I_3dc = e12345_3dc;                     // the pseudoscalar of cga3dc
+auto const I_3dc_mv = MVec3dc<value_t>{I_3dc};     // I_3dc as multivector
+auto const I_3dc_mv_u = MVec3dc_U<value_t>{I_3dc}; // I_3dc as odd-grade multivector
 
 // extended metric for cga3dc (32×32 matrix, 1024 elements)
 // Basis: 1, e1, e2, e3, e4, e5, e41, e42, e43, e23, e31, e12, e15, e25, e35, e45, e415,
