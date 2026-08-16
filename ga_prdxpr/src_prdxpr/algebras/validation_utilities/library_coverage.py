@@ -455,36 +455,66 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
     print()
 
 
+# How far up to look for an enclosing build tree (mirrors ga_py/tests/conftest.py,
+# which solves the same problem for the Python extension).
+_ENCLOSING_LEVELS = 4
+
+
+def _binary_dirs(proj_root):
+    """Directories that may hold the ga_prdxpr binary, nearest shape first.
+
+    The binary directory is conventionally `build/` beside the source root. When
+    this repository is configured as part of a larger enclosing build (added via
+    add_subdirectory), CMake mirrors the source layout underneath that build's
+    binary directory --- the artifacts then sit at `<ancestor>/build/<this root's
+    path relative to that ancestor>/ga_prdxpr`. Walking a few ancestors and
+    deriving that relative path covers both shapes without hardcoding either.
+    """
+    dirs = [os.path.join(proj_root, "build", "ga_prdxpr")]
+    root = os.path.abspath(proj_root)
+    ancestor = root
+    for _ in range(_ENCLOSING_LEVELS):
+        parent = os.path.dirname(ancestor)
+        if parent == ancestor:  # filesystem root reached
+            break
+        ancestor = parent
+        rel = os.path.relpath(root, ancestor)
+        dirs.append(os.path.join(ancestor, "build", rel, "ga_prdxpr"))
+    return dirs
+
+
 def find_binary(proj_root):
     """Locate the ga_prdxpr binary.
 
-    Unix/macOS single-config builds put it at build/ga_prdxpr/ga_prdxpr;
-    Windows MSVC multi-config builds put it under build/ga_prdxpr/<Config>/
-    with a .exe suffix. We probe both shapes. When the binary lives somewhere
-    else entirely (e.g. this repo is built inside an enclosing project whose
-    build tree nests it differently), point GA_PRDXPR at it directly.
+    Single-config generators (Ninja, Makefiles) leave it directly in the target's
+    binary directory; multi-config ones (Visual Studio, Xcode) nest it in a
+    per-configuration subdirectory and add .exe. Both shapes are probed, in each
+    candidate directory. GA_PRDXPR overrides the search entirely.
     """
     env = os.environ.get("GA_PRDXPR")
     if env:
         if os.path.isfile(env):
             return env
         sys.exit(f"GA_PRDXPR is set but is not a file: {env}")
-    base = os.path.join(proj_root, "build", "ga_prdxpr")
-    candidates = [
-        os.path.join(base, "ga_prdxpr"),  # Unix / Ninja / make
-        os.path.join(base, "ga_prdxpr.exe"),  # MinGW / Ninja on Win
-        os.path.join(base, "Debug", "ga_prdxpr.exe"),  # MSVC Debug
-        os.path.join(base, "Release", "ga_prdxpr.exe"),  # MSVC Release
-        os.path.join(base, "RelWithDebInfo", "ga_prdxpr.exe"),
-    ]
+
+    candidates = []
+    for base in _binary_dirs(proj_root):
+        candidates += [
+            os.path.join(base, "ga_prdxpr"),  # Unix / Ninja / make
+            os.path.join(base, "ga_prdxpr.exe"),  # MinGW / Ninja on Win
+            os.path.join(base, "Release", "ga_prdxpr.exe"),  # multi-config,
+            os.path.join(base, "RelWithDebInfo", "ga_prdxpr.exe"),  # optimized
+            os.path.join(base, "Debug", "ga_prdxpr.exe"),  # configs first
+        ]
     for c in candidates:
         if os.path.isfile(c):
             return c
     sys.exit(
         "ga_prdxpr binary not found. Looked in:\n  "
         + "\n  ".join(candidates)
-        + f"\nBuild it first, e.g.:\n  cd {os.path.join(proj_root, 'build')}"
-        f" && cmake --build . --target ga_prdxpr"
+        + "\nBuild it first (from the build directory):\n"
+        "  cmake --build . --target ga_prdxpr\n"
+        "or point GA_PRDXPR at the binary directly."
     )
 
 

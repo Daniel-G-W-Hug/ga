@@ -26,7 +26,7 @@ Run the coverage diff again afterwards; it should report `0 differ`.
 
 Prerequisites
 -------------
-- `ga_prdxpr` built (default: build/ga_prdxpr/ga_prdxpr under the repo root).
+- `ga_prdxpr` built (located in the build tree automatically; --ga-prdxpr overrides).
 - `clang-format` on PATH (or pass --clang-format). The project style is the global
   ~/.clang-format; clang-format finds it by searching up from the formatted file,
   so the temp file is written *inside the repo* on purpose.
@@ -91,6 +91,38 @@ def decl_key(block):
     return re.sub(r"\s+", " ", m.group(1) + m.group(2)).strip()
 
 
+# How far up to look for an enclosing build tree. Same search as
+# validation_utilities/library_coverage.py and ga_py/tests/conftest.py: the binary
+# directory is conventionally `build/` beside the source root, but when this
+# repository is configured as part of a larger enclosing build (added via
+# add_subdirectory), CMake mirrors the source layout underneath that build's binary
+# directory. Deriving the relative path covers both shapes without hardcoding either.
+_ENCLOSING_LEVELS = 4
+
+
+def find_ga_prdxpr(repo_root):
+    """Default location of the ga_prdxpr binary; --ga-prdxpr overrides it."""
+    dirs = [os.path.join(repo_root, "build", "ga_prdxpr")]
+    root = os.path.abspath(repo_root)
+    ancestor = root
+    for _ in range(_ENCLOSING_LEVELS):
+        parent = os.path.dirname(ancestor)
+        if parent == ancestor:
+            break
+        ancestor = parent
+        dirs.append(os.path.join(ancestor, "build",
+                                os.path.relpath(root, ancestor), "ga_prdxpr"))
+    names = ["ga_prdxpr", "ga_prdxpr.exe",
+             os.path.join("Release", "ga_prdxpr.exe"),
+             os.path.join("RelWithDebInfo", "ga_prdxpr.exe"),
+             os.path.join("Debug", "ga_prdxpr.exe")]
+    probed = [os.path.join(d, n) for d in dirs for n in names]
+    for c in probed:
+        if os.path.isfile(c):
+            return c
+    return probed[0]  # nothing found -> report the conventional path
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Splice ga_prdxpr --output=code functions into a library header.",
@@ -102,7 +134,7 @@ def main():
     ap.add_argument("--products", required=True,
                     help="comma-separated products to regenerate (e.g. dot,l_contract)")
     ap.add_argument("--ga-prdxpr", default=None,
-                    help="path to ga_prdxpr binary (default: build/ga_prdxpr/ga_prdxpr)")
+                    help="path to ga_prdxpr binary (default: found in the build tree)")
     ap.add_argument("--lib", default=None,
                     help="library header to patch (default: ga/ga_<algebra>_ops_products.hpp)")
     ap.add_argument("--clang-format", default="clang-format",
@@ -111,7 +143,7 @@ def main():
                     help="report changes without writing the library file")
     args = ap.parse_args()
 
-    ga_prdxpr = args.ga_prdxpr or os.path.join(REPO_ROOT, "build", "ga_prdxpr", "ga_prdxpr")
+    ga_prdxpr = args.ga_prdxpr or find_ga_prdxpr(REPO_ROOT)
     lib = args.lib or os.path.join(REPO_ROOT, "ga", f"ga_{args.algebra}_ops_products.hpp")
 
     if not os.path.isfile(ga_prdxpr):

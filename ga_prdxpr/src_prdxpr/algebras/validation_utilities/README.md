@@ -89,6 +89,11 @@ ga_prdxpr/src_prdxpr/algebras/validation_utilities/pair_coverage.sh
   lookup probes both Unix-style (`build/ga_prdxpr/ga_prdxpr`) and the MSVC
   multi-config layout (`build/ga_prdxpr/<Config>/ga_prdxpr.exe`), so it
   works without modification after a Visual Studio build.
+- **Build directory**: the lookup also handles the case where this repository is
+  configured as part of a larger enclosing build (added via `add_subdirectory`) —
+  CMake then mirrors the source layout under that build's binary directory, and the
+  script derives that path rather than assuming `build/` beside this root. Set
+  `GA_PRDXPR=<path>` to point it at a binary anywhere else.
 
 ## When NOT to use these
 
