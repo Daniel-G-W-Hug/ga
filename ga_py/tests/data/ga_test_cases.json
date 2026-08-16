@@ -799,6 +799,681 @@
       "tolerance": 1e-09
     },
     {
+      "id": "cga_vec3dc_dot",
+      "submodule": "cga",
+      "op": "dot",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]},
+        {"type": "vec3dc", "fields": [0, 1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "scalar3dc", "fields": [-1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_add",
+      "submodule": "cga",
+      "op": "+",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]},
+        {"type": "vec3dc", "fields": [0, 1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [1, 1, 0, 2, 1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_sub",
+      "submodule": "cga",
+      "op": "-",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]},
+        {"type": "vec3dc", "fields": [0, 1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [1, -1, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_neg",
+      "submodule": "cga",
+      "op": "neg",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [-1, -0, -0, -1, -0.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_wdg_dipole",
+      "submodule": "cga",
+      "op": "wdg",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]},
+        {"type": "vec3dc", "fields": [0, 1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_wdg_circle",
+      "submodule": "cga",
+      "op": "wdg",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]},
+        {"type": "vec3dc", "fields": [0, 0, 1, 1, 0.5]}
+      ],
+      "expected": {"type": "trivec3dc", "fields": [0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_wdg_sphere",
+      "submodule": "cga",
+      "op": "wdg",
+      "args": [
+        {"type": "trivec3dc", "fields": [0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, -1]},
+        {"type": "vec3dc", "fields": [-1, 0, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [0, 0, 0, -1, 2]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_gpr",
+      "submodule": "cga",
+      "op": "*",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 0, 0, 1, 0.5]},
+        {"type": "vec3dc", "fields": [0, 1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "mvec3dc_e", "fields": [-1, -1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0, 0, 0, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_rev",
+      "submodule": "cga",
+      "op": "rev",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [1, -1, -0, -0, -0, -1, -0.5, 0.5, -0, -0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_conj",
+      "submodule": "cga",
+      "op": "conj",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [1, -1, -0, -0, -0, -1, -0.5, 0.5, -0, -0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_cconj",
+      "submodule": "cga",
+      "op": "cconj",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, -0.5, 0.5, -0, -0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_gr_inv",
+      "submodule": "cga",
+      "op": "gr_inv",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [-1, 1, 0, 0, 0, 1, 0.5, -0.5, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_radius_sq",
+      "submodule": "cga",
+      "op": "radius_sq",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "double", "fields": [4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_center_nrm_sq",
+      "submodule": "cga",
+      "op": "center_nrm_sq",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "double", "fields": [25]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_cen",
+      "submodule": "cga",
+      "op": "cen",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [3, 4, 0, 1, 14.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_par",
+      "submodule": "cga",
+      "op": "par",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [3, 4, 0, -14.5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_unitize",
+      "submodule": "cga",
+      "op": "unitize",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere3dc_dot_self",
+      "submodule": "cga",
+      "op": "dot",
+      "args": [
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]},
+        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+      ],
+      "expected": {"type": "scalar3dc", "fields": [-4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle3dc_car",
+      "submodule": "cga",
+      "op": "car",
+      "args": [
+        {"type": "trivec3dc", "fields": [2, -1, -0, 3, 6, 4, 0, 0, 1, -3]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [0, 0, 1, -3, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle3dc_con",
+      "submodule": "cga",
+      "op": "con",
+      "args": [
+        {"type": "trivec3dc", "fields": [2, -1, -0, 3, 6, 4, 0, 0, 1, -3]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [1, 2, 3, -5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle3dc_ccr",
+      "submodule": "cga",
+      "op": "ccr",
+      "args": [
+        {"type": "trivec3dc", "fields": [2, -1, -0, 3, 6, 4, 0, 0, 1, -3]}
+      ],
+      "expected": {"type": "trivec3dc", "fields": [0, 0, -1, -2, 1, 0, 0, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle3dc_att",
+      "submodule": "cga",
+      "op": "att",
+      "args": [
+        {"type": "trivec3dc", "fields": [2, -1, -0, 3, 6, 4, 0, 0, 1, -3]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [0, 0, 0, 0, 0, 1, 2, -1, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_round_point3dc_con",
+      "submodule": "cga",
+      "op": "con",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 9]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [1, 2, 3, -5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_round_point3dc_radius_sq",
+      "submodule": "cga",
+      "op": "radius_sq",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 9]}
+      ],
+      "expected": {"type": "double", "fields": [4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_round_point3dc_round_bulk",
+      "submodule": "cga",
+      "op": "round_bulk",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 9]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [1, 2, 3, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_round_point3dc_round_weight",
+      "submodule": "cga",
+      "op": "round_weight",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 9]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [0, 0, 0, 1, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_flat_point3dc_flat_bulk",
+      "submodule": "cga",
+      "op": "flat_bulk",
+      "args": [
+        {"type": "bivec3dc", "fields": [0, 0, 0, 0, 0, 0, 1, 2, 3, 1]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [0, 0, 0, 0, 0, 0, 1, 2, 3, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_flat_point3dc_flat_weight",
+      "submodule": "cga",
+      "op": "flat_weight",
+      "args": [
+        {"type": "bivec3dc", "fields": [0, 0, 0, 0, 0, 0, 1, 2, 3, 1]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere_line_rwdg",
+      "submodule": "cga",
+      "op": "rwdg",
+      "args": [
+        {"type": "quadvec3dc", "fields": [0, 0, 0, 2, -1]},
+        {"type": "trivec3dc", "fields": [1, 0, 0, 0, 0, -1, 0, 0, 0, 0]}
+      ],
+      "expected": {"type": "bivec3dc", "fields": [-1, 0, 0, 0, 0, 1, 2, 0, 0, -0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_dipole3dc_radius_sq",
+      "submodule": "cga",
+      "op": "radius_sq",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 0, 0, 0, 0, 1, 2, 0, 0, -0]}
+      ],
+      "expected": {"type": "double", "fields": [3]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_dipole3dc_cen",
+      "submodule": "cga",
+      "op": "cen",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 0, 0, 0, 0, 1, 2, 0, 0, -0]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [0, 1, 0, 1, 2]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_dipole3dc_att",
+      "submodule": "cga",
+      "op": "att",
+      "args": [
+        {"type": "bivec3dc", "fields": [-1, 0, 0, 0, 0, 1, 2, 0, 0, -0]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [-1, 0, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_sphere_plane_rwdg",
+      "submodule": "cga",
+      "op": "rwdg",
+      "args": [
+        {"type": "quadvec3dc", "fields": [0, 0, 0, 2, -1]},
+        {"type": "quadvec3dc", "fields": [0, 0, 1, -1, 0]}
+      ],
+      "expected": {"type": "trivec3dc", "fields": [0, 0, 0, -0, -0, -2, -0, -0, -1, 1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_cmpl",
+      "submodule": "cga",
+      "op": "cmpl",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 7.5]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [1, 2, 3, 1, 7.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_dual",
+      "submodule": "cga",
+      "op": "dual",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 7.5]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [1, 2, 3, -7.5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_antidual",
+      "submodule": "cga",
+      "op": "antidual",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 7.5]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [-1, -2, -3, 7.5, 1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec3dc_inv",
+      "submodule": "cga",
+      "op": "inv",
+      "args": [
+        {"type": "vec3dc", "fields": [1, 2, 3, 1, 7.5]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [-1, -2, -3, -1, -7.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_get_translation",
+      "submodule": "cga",
+      "op": "get_translation",
+      "args": [
+        {"type": "double", "fields": [1]},
+        {"type": "double", "fields": [2]},
+        {"type": "double", "fields": [3]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -2.3967599979211653e-16, -7.323277272074796e-17, 1.274626460581139e-16, 0.43112244897959201, 0.86224489795918402, 1.2933673469387759, 0, 0, 0, 0, 0.8622448979591838]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_get_rotation",
+      "submodule": "cga",
+      "op": "get_rotation",
+      "args": [
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [1]},
+        {"type": "double", "fields": [0.5]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_get_dilation",
+      "submodule": "cga",
+      "op": "get_dilation",
+      "args": [
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [3]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -0, -0, -0, -0, -0, -0, -0, -0, -0, 0.57735026918962584, 1.1547005383792515]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_transform_sphere_translate",
+      "submodule": "cga",
+      "op": "transform",
+      "args": [
+        {"type": "quadvec3dc", "fields": [0, 0, 0, 2, -1]},
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -2.3967599979211653e-16, -7.323277272074796e-17, 1.274626460581139e-16, 0.43112244897959201, 0.86224489795918402, 1.2933673469387759, 0, 0, 0, 0, 0.8622448979591838]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [0.74346626405664307, 1.4869325281132877, 2.2303987921699298, -3.7173313202832188, -0.74346626405664329]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_transform_sphere_dilate",
+      "submodule": "cga",
+      "op": "transform",
+      "args": [
+        {"type": "quadvec3dc", "fields": [0, 0, 0, 2, -1]},
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -0, -0, -0, -0, -0, -0, -0, -0, -0, 0.57735026918962584, 1.1547005383792515]}
+      ],
+      "expected": {"type": "quadvec3dc", "fields": [0, 0, 0, 5.9999999999999991, -0.33333333333333315]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rgpr_versor_compose",
+      "submodule": "cga",
+      "op": "rgpr",
+      "args": [
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -2.3967599979211653e-16, -7.323277272074796e-17, 1.274626460581139e-16, 0.43112244897959201, 0.86224489795918402, 1.2933673469387759, 0, 0, 0, 0, 0.8622448979591838]},
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, -0.31998420240317133, -2.5034313130279927e-16, -1.1659351878589299e-17, 0.21332280160211431, 0.63104269769675458, 0.72877839138822365, 1.2531596882839209, 0, 0, 0, 0, 0.83543979218928055]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rlog_rotation",
+      "submodule": "cga",
+      "op": "rlog",
+      "args": [
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]}
+      ],
+      "expected": {"type": "trivec3dc", "fields": [0, 0, 0.25, 0, 0, 0, 0, 0, 0, -0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rexp_rlog_rotation",
+      "submodule": "cga",
+      "op": "rexp",
+      "args": [
+        {"type": "trivec3dc", "fields": [0, 0, 0.25, 0, 0, 0, 0, 0, 0, -0]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rsqrt_rotation",
+      "submodule": "cga",
+      "op": "rsqrt",
+      "args": [
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.12467473338522769, 0, 0, 0, 0, 0, 0, -0, 0.99219766722932901]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rrev_versor",
+      "submodule": "cga",
+      "op": "rrev",
+      "args": [
+        {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, 0, 0, 0.24740395925452294, 0, 0, 0, 0, 0, 0, -0, 0.96891242171064473]}
+      ],
+      "expected": {"type": "mvec3dc_u", "fields": [0, 0, 0, 0, 0, -0, -0, -0.24740395925452294, -0, -0, -0, -0, -0, -0, 0, 0.96891242171064473]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_invert_on_sphere",
+      "submodule": "cga",
+      "op": "invert_on",
+      "args": [
+        {"type": "vec3dc", "fields": [2, 0, 0, 1, 2]},
+        {"type": "quadvec3dc", "fields": [0, 0, 0, 0.5, -1]}
+      ],
+      "expected": {"type": "vec3dc", "fields": [2, -0, -0, 4, 0.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec2dc_dot",
+      "submodule": "cga",
+      "op": "dot",
+      "args": [
+        {"type": "vec2dc", "fields": [1, 0, 1, 0.5]},
+        {"type": "vec2dc", "fields": [0, 1, 1, 0.5]}
+      ],
+      "expected": {"type": "scalar2dc", "fields": [-1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec2dc_wdg_dipole",
+      "submodule": "cga",
+      "op": "wdg",
+      "args": [
+        {"type": "vec2dc", "fields": [1, 0, 1, 0.5]},
+        {"type": "vec2dc", "fields": [0, 1, 1, 0.5]}
+      ],
+      "expected": {"type": "bivec2dc", "fields": [-1, 1, 1, 0.5, -0.5, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec2dc_wdg_circle",
+      "submodule": "cga",
+      "op": "wdg",
+      "args": [
+        {"type": "bivec2dc", "fields": [-1, 1, 1, 0.5, -0.5, 0]},
+        {"type": "vec2dc", "fields": [-1, 0, 1, 0.5]}
+      ],
+      "expected": {"type": "trivec2dc", "fields": [0, 0, 1, -2]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_vec2dc_gpr",
+      "submodule": "cga",
+      "op": "*",
+      "args": [
+        {"type": "vec2dc", "fields": [1, 0, 1, 0.5]},
+        {"type": "vec2dc", "fields": [0, 1, 1, 0.5]}
+      ],
+      "expected": {"type": "mvec2dc_e", "fields": [-1, -1, 1, 1, 0.5, -0.5, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle2dc_rwdg",
+      "submodule": "cga",
+      "op": "rwdg",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -0, 2, -1]},
+        {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]}
+      ],
+      "expected": {"type": "bivec2dc", "fields": [0, -3, -4.5, -0, 6, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle2dc_radius_sq",
+      "submodule": "cga",
+      "op": "radius_sq",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -0, 2, -1]}
+      ],
+      "expected": {"type": "double", "fields": [4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle2dc_cen",
+      "submodule": "cga",
+      "op": "cen",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]}
+      ],
+      "expected": {"type": "vec2dc", "fields": [3, 0, 1, 6.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle2dc_att",
+      "submodule": "cga",
+      "op": "att",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -0, 2, -1]}
+      ],
+      "expected": {"type": "bivec2dc", "fields": [0, -0, 1, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_circle2dc_unitize",
+      "submodule": "cga",
+      "op": "unitize",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]}
+      ],
+      "expected": {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_dipole2dc_radius_sq",
+      "submodule": "cga",
+      "op": "radius_sq",
+      "args": [
+        {"type": "bivec2dc", "fields": [0, -1, -0, -0, 0.5, 0]}
+      ],
+      "expected": {"type": "double", "fields": [1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_dipole2dc_car",
+      "submodule": "cga",
+      "op": "car",
+      "args": [
+        {"type": "bivec2dc", "fields": [0, -1, -0, -0, 0.5, 0]}
+      ],
+      "expected": {"type": "trivec2dc", "fields": [0, -1, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_get_translation2dc",
+      "submodule": "cga",
+      "op": "get_translation",
+      "args": [
+        {"type": "double", "fields": [1]},
+        {"type": "double", "fields": [2]}
+      ],
+      "expected": {"type": "mvec2dc_e", "fields": [0, 0, 0, 0, 1, -0.5, 0, 1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_get_rotation2dc",
+      "submodule": "cga",
+      "op": "get_rotation",
+      "args": [
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0]},
+        {"type": "double", "fields": [0.59999999999999998]}
+      ],
+      "expected": {"type": "mvec2dc_e", "fields": [5.428618127567607e-18, 0, 0, 5.4614715581353668e-19, 0, -0, -0.29552020666133955, 0.95533648912560598]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_transform_circle2dc",
+      "submodule": "cga",
+      "op": "transform",
+      "args": [
+        {"type": "trivec2dc", "fields": [0, -0, 2, -1]},
+        {"type": "mvec2dc_e", "fields": [0, 0, 0, 0, 1, -0.5, 0, 1]}
+      ],
+      "expected": {"type": "trivec2dc", "fields": [2, -1, -0.5, -1]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rgpr_versor_compose2dc",
+      "submodule": "cga",
+      "op": "rgpr",
+      "args": [
+        {"type": "mvec2dc_e", "fields": [0, 0, 0, 0, 1, -0.5, 0, 1]},
+        {"type": "mvec2dc_e", "fields": [5.428618127567607e-18, 0, 0, 5.4614715581353668e-19, 0, -0, -0.29552020666133955, 0.95533648912560598]}
+      ],
+      "expected": {"type": "mvec2dc_e", "fields": [5.428618127567607e-18, 0, 0, 5.4614715581353668e-19, 0.80757638579493618, -0.77318845122414248, -0.29552020666133955, 0.95533648912560598]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "cga_rlog_rotation2dc",
+      "submodule": "cga",
+      "op": "rlog",
+      "args": [
+        {"type": "mvec2dc_e", "fields": [5.428618127567607e-18, 0, 0, 5.4614715581353668e-19, 0, -0, -0.29552020666133955, 0.95533648912560598]}
+      ],
+      "expected": {"type": "bivec2dc", "fields": [0, 0, 5.5442620521656325e-19, 0, 0, -0.30000000000000004]},
+      "tolerance": 1e-12
+    },
+    {
       "id": "sta_vec4ds_dot",
       "submodule": "sta",
       "op": "dot",
@@ -1114,9 +1789,9 @@
       "op": "transform",
       "args": [
         {"type": "vec4ds", "fields": [1, 0, 0, 0]},
-        {"type": "mvec4ds_e", "fields": [0.70710678118654757, -0, -0, -0, -0, -0, -0.70710678118654746, 0]}
+        {"type": "mvec4ds_e", "fields": [0.70710678118654757, 0, 0, 0, 0, 0, 0.70710678118654746, 0]}
       ],
-      "expected": {"type": "vec4ds", "fields": [1.7938038903913487e-16, -1, 0, 0]},
+      "expected": {"type": "vec4ds", "fields": [1.7938038903913487e-16, 1, 0, 0]},
       "tolerance": 1e-09
     },
     {
@@ -1135,9 +1810,9 @@
       "submodule": "sta",
       "op": "sqrt",
       "args": [
-        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, -0.074652044068349674, 0, 0, 0, 0.30480341242962433, 0]}
       ],
-      "expected": {"type": "mvec4ds_e", "fields": [0.99632990763027618, 0.12110936447917754, 0.037463516600593695, 0, 0, 0, -0.15296309490226229, 0]},
+      "expected": {"type": "mvec4ds_e", "fields": [0.99632990763027618, 0.12110936447917754, -0.037463516600593695, 0, 0, 0, 0.15296309490226229, 0]},
       "tolerance": 1e-09
     },
     {
@@ -1146,9 +1821,9 @@
       "op": "transform_opt",
       "args": [
         {"type": "vec4ds", "fields": [2, 3, 5, 7]},
-        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, -0.074652044068349674, 0, 0, 0, 0.30480341242962433, 0]}
       ],
-      "expected": {"type": "vec4ds", "fields": [7.4191234193954712, 1.3467218979389644, 4.9999999999999991, 9.6362364117227148]},
+      "expected": {"type": "vec4ds", "fields": [3.5988903350439019, 3.6052917915191056, 4.9999999999999991, 7.8708411587115288]},
       "tolerance": 1e-09
     },
     {
@@ -1157,9 +1832,9 @@
       "op": "transform_opt",
       "args": [
         {"type": "bivec4ds", "fields": [1, 2, 3, 4, 5, 6]},
-        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, -0.074652044068349674, 0, 0, 0, 0.30480341242962433, 0]}
       ],
-      "expected": {"type": "bivec4ds", "fields": [1.9546205616997485, -1.9019376082576227, 4.3563402988761615, 6.1245548266138901, 3.6698132071555021, 6.1998313046343583]},
+      "expected": {"type": "bivec4ds", "fields": [-0.30394933188039203, -0.62852658014043294, 6.7102006362244095, 0.47813009266353701, 8.7634573196242602, 5.6113662202972954]},
       "tolerance": 1e-09
     },
     {
@@ -1168,9 +1843,9 @@
       "op": "transform_opt",
       "args": [
         {"type": "trivec4ds", "fields": [1, 2, 3, 4]},
-        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, -0.074652044068349674, 0, 0, 0, 0.30480341242962433, 0]}
       ],
-      "expected": {"type": "trivec4ds", "fields": [4.2884621194739072, 1.0860287564243212, 2.9999999999999996, 5.5290474595488135]},
+      "expected": {"type": "trivec4ds", "fields": [1.7416400632395272, 2.2153137032143917, 2.9999999999999996, 4.3521172908746895]},
       "tolerance": 1e-09
     },
     {

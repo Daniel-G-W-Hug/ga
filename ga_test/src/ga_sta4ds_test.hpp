@@ -598,9 +598,9 @@ TEST_SUITE("STA 3D Tests")
 
         // builders carry the half-angle for the sandwich (validated semantically in
         // step 2); here check their form and that they are unit rotors rev(R)*R == 1.
-        auto const Rr = get_rotor(g12_4ds, a); // cos(a/2) + sin(-a/2) g12
+        auto const Rr = get_rotor(g12_4ds, a); // cos(a/2) + sin(a/2) g12
         CHECK(value_t(gr0(Rr)) == doctest::Approx(std::cos(a / 2)));
-        CHECK(gr2(Rr).mz == doctest::Approx(std::sin(-a / 2)));
+        CHECK(gr2(Rr).mz == doctest::Approx(std::sin(a / 2)));
         CHECK(value_t(gr0(rev(Rr) * Rr)) == doctest::Approx(1.0));
         CHECK(nrm_sq(gr2(rev(Rr) * Rr)) == doctest::Approx(0.0)); // no leftover bivector
 
@@ -676,11 +676,11 @@ TEST_SUITE("STA 3D Tests")
         CHECK(nrm_sq(transform(B, Rb)) == doctest::Approx(nrm_sq(B)));
         CHECK(nrm_sq(transform(t, Rb)) == doctest::Approx(nrm_sq(t)));
 
-        // ---- spatial rotation in the g1-g2 plane: g1 -> cos(th) g1 - sin(th) g2 ----
+        // ---- spatial rotation in the g1-g2 plane: g1 -> cos(th) g1 + sin(th) g2 ----
         // (identical to a 3D rotation; the time direction g4 is untouched)
         auto const vr = transform(g1_4ds, Rr);
         CHECK(vr.x == doctest::Approx(std::cos(th)));
-        CHECK(vr.y == doctest::Approx(-std::sin(th)));
+        CHECK(vr.y == doctest::Approx(std::sin(th)));
         CHECK(vr.z == doctest::Approx(0.0));
         CHECK(vr.w == doctest::Approx(0.0));
 
@@ -748,6 +748,55 @@ TEST_SUITE("STA 3D Tests")
     ////////////////////////////////////////////////////////////////////////////////
     // ops.hpp step 3: spacetime split of a vector (time + relative space)
     ////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // convention gate: a positive parameter must produce a positive-sense transform,
+    // and it must mean the SAME thing as in ega3d. Both builders use the POSITIVE
+    // half-argument, exp(+p/2 B_hat) -- the sign flip that ega3d's get_rotor gets from
+    // its explicit -theta/2 is supplied here by the metric instead (spatial vectors
+    // square to -1), so copying ega3d's literal sign would reverse the rotation.
+    // Guarded because nothing else in the suite compares the two algebras' senses:
+    // angle() and rapidity() are magnitude-only and cannot see a reversed rotation.
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: rotation and boost sense (convention gate vs. ega3d)")
+    {
+        fmt::println("G<1,3,0>: rotation and boost sense (convention gate vs. ega3d)");
+
+        value_t const th = 0.6;  // rotation angle
+        value_t const phi = 0.5; // boost rapidity
+
+        // ---- both builders are the POSITIVE half-argument exponential ----
+        // (is_close compares component-wise: nrm_sq would be a broken witness here,
+        //  since a NULL difference also has nrm_sq == 0)
+        CHECK(is_close(get_rotor(g12_4ds, th), exp(0.5 * th * g12_4ds)));
+        CHECK(is_close(get_boost(g14_4ds, phi), exp(0.5 * phi * g14_4ds)));
+
+        // ---- rotation turns g1 TOWARD g2, as ega3d turns e1 toward e2 ----
+        // (ga_ega3d_test.hpp pins rotate(e1_3d, get_rotor(e12_3d, phi)) == (cos, sin, 0))
+        auto const Rr = get_rotor(g12_4ds, th);
+        auto const g1r = transform(g1_4ds, Rr);
+        CHECK(g1r.x == doctest::Approx(std::cos(th)));
+        CHECK(g1r.y == doctest::Approx(std::sin(th)));
+        // and g2 goes to -sin(th) g1 + cos(th) g2 -- the same sense, one plane
+        auto const g2r = transform(g2_4ds, Rr);
+        CHECK(g2r.x == doctest::Approx(-std::sin(th)));
+        CHECK(g2r.y == doctest::Approx(std::cos(th)));
+        // the orthogonal directions are untouched
+        CHECK(is_close(transform(g3_4ds, Rr), g3_4ds));
+        CHECK(is_close(transform(g4_4ds, Rr), g4_4ds));
+
+        // ---- boost carries g4 TOWARD +g1, the first factor of the plane g14 ----
+        auto const u = transform(g4_4ds, get_boost(g14_4ds, phi));
+        CHECK(u.x == doctest::Approx(std::sinh(phi)));
+        CHECK(u.w == doctest::Approx(std::cosh(phi)));
+
+        // ---- a negative parameter reverses each, exactly ----
+        CHECK(is_close(transform(g1_4ds, get_rotor(g12_4ds, -th)),
+                       vec4ds{std::cos(th), -std::sin(th), 0.0, 0.0}));
+        CHECK(transform(g4_4ds, get_boost(g14_4ds, -phi)).x ==
+              doctest::Approx(-std::sinh(phi)));
+    }
 
     TEST_CASE("G<1,3,0>: spacetime split of a vector")
     {
@@ -904,10 +953,11 @@ TEST_SUITE("STA 3D Tests")
         auto const twice = reflect_on_vec(reflect_on_vec(v, g1_4ds), b);
         CHECK(nrm_sq(twice) == doctest::Approx(nrm_sq(v)));
         // composite of the two spatial reflections is a rotation by 2a in the g12
-        // plane; the rotor turns g1 toward -g2 for positive angle, so the mirror
-        // order (g1 then b) corresponds to angle -2a in get_rotor's convention
-        auto const Rrot = get_rotor(g12_4ds, -2.0 * a);
-        CHECK(nrm_sq(twice - transform(v, Rrot)) == doctest::Approx(0.0));
+        // plane, in the sense from the first mirror toward the second (g1 -> b), which
+        // is get_rotor's positive sense (is_close, not nrm_sq: a NULL difference would
+        // also have nrm_sq == 0)
+        auto const Rrot = get_rotor(g12_4ds, 2.0 * a);
+        CHECK(is_close(twice, transform(v, Rrot)));
 
         fmt::println("reflections: T / P symmetries; interval-preserving involutions; "
                      "two reflections == one rotation");

@@ -342,21 +342,23 @@ inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
 ////////////////////////////////////////////////////////////////////////////////
 // rotor for a spatial rotation by angle theta in the oriented plane B
 // (B a spatial bivector, B*B < 0; need not be normalized).
-// Apply via the sandwich transform(X, R) = R * X * rev(R): rotates by +theta.
-// Half-angle and sign convention match ega3d get_rotor().
+// Apply via the sandwich transform(X, R) = R * X * rev(R): rotates by +theta, i.e.
+// it turns the plane's first basis direction toward its second (g1 -> g2 for g12),
+// which is the same sense ega3d's get_rotor() produces (e1 -> e2 for e12).
 //
-// SIGN (do not "unify" with get_boost): this negates the half-angle (-theta/2), but
-// get_boost() does NOT (+phi/2). The opposite signs are deliberate -- each is the one
-// that makes a positive parameter a positive-sense active transform (a +theta
-// right-handed rotation here; a boost with gamma = cosh(phi) there). Forcing both to the
-// same sign silently reverses one of them. Documented in ga_docu ("Motion in STA").
+// SIGN (this is where the metric bites): the half-angle enters POSITIVELY here,
+// exp(+theta/2 * B_hat) -- the SAME sign get_boost() uses. ega3d needs an explicit
+// -theta/2 for the equivalent sense; here that flip is already supplied by the metric,
+// since the spatial basis vectors square to -1. Copying ega3d's literal -theta/2
+// therefore REVERSES the rotation (it did, until 2026-08-16). Guarded by the test case
+// "rotation and boost sense (convention gate vs. ega3d)".
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline MVec4ds_E<std::common_type_t<T, U>> get_rotor(BiVec4ds<T> const& B, U theta)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const half = -0.5 * theta;
+    ctype const half = 0.5 * theta;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(std::cos(half)),
                             normalize(B) * std::sin(half));
 }
@@ -366,10 +368,12 @@ inline MVec4ds_E<std::common_type_t<T, U>> get_rotor(BiVec4ds<T> const& B, U the
 // rotor for a Lorentz boost by rapidity phi in the oriented time-space plane B
 // (B a boost bivector, B*B > 0; need not be normalized).
 // rapidity relates to velocity by  beta = tanh(phi),  gamma = cosh(phi).
-// Apply via the sandwich transform(X, R) = R * X * rev(R).
+// Apply via the sandwich transform(X, R) = R * X * rev(R): boosts toward the plane's
+// first basis direction (g4 -> +g1 for g14), with gamma = cosh(phi).
 // (The +phi/2 sign convention is validated against gamma = cosh(phi) in step 2.)
-// NOTE the +phi/2 here vs the -theta/2 in get_rotor() -- the opposite sign is BY DESIGN
-// (see the SIGN note there), not an inconsistency to be "fixed".
+// Same POSITIVE half-argument as get_rotor() -- in STA both builders are
+// exp(+p/2 * B_hat); see the SIGN note there for why ega3d's rotor needs -theta/2
+// for the equivalent sense and this one does not.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
