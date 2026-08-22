@@ -443,6 +443,15 @@ bool is_close(MVec2d_E<T> const& a, MVec2d_E<U> const& b, value_t rel_tol = eps_
                                    {value_t(b.c0), value_t(b.c1)}, rel_tol);
 }
 
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec2d<T> const& a, MVec2d<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3)}, rel_tol);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // is_same_rotation(): do two rotors describe the same rotation?

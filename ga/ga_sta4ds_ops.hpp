@@ -147,6 +147,58 @@ inline BiVec4ds<T> sta4ds_biv_dual(BiVec4ds<T> const& B)
     return gr2(PScalar4ds<T>(1.0) * MVec4ds_E<T>(B));
 }
 
+// Invariant (Study-projector) decomposition of an STA bivector into two orthogonal,
+// commuting, SIMPLE bivectors B = b_boost + b_rot (De Keninck & Roelfs sec. 6). Both
+// the geometric square and the wedge square are proper Lorentz invariants, so the
+// decomposition is observer-INDEPENDENT -- unlike the spacetime split rel_vec_split() /
+// rel_bivec_split(), which is taken relative to a chosen time direction u.
+//
+// With I^2 = -1 the two squares straddle zero, lambda_boost >= 0 >= lambda_rot, so
+// b_boost generates a Lorentz boost and b_rot a spatial rotation.
+//
+// A SIMPLE B (B ^ B == 0) already lies in a single plane; it is then returned in the
+// slot matching its own causal character, with the other slot zero. This keeps the
+// invariant "b_boost never squares negative, b_rot never squares positive" in all cases.
+//
+// Shared by exp() and by the public boost_part() / rot_part().
+template <typename T> struct sta4ds_biv_parts {
+    BiVec4ds<T> b_boost; // time-like part,  b_boost^2 = lambda_boost >= 0
+    BiVec4ds<T> b_rot;   // space-like part, b_rot^2   = lambda_rot   <= 0
+    T lambda_boost;
+    T lambda_rot;
+    T geom_sq;   // <B^2>_0, the geometric square of the input
+    bool simple; // true if B ^ B == 0
+};
+
+template <typename T>
+    requires(numeric_type<T>)
+inline sta4ds_biv_parts<T> sta4ds_biv_decompose(BiVec4ds<T> const& B)
+{
+    using sta::operator*;
+    BiVec4ds<T> const zero(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0));
+
+    T const bb_s = sta4ds_geom_sq(B);            // <B^2>_0 (geometric square)
+    T const bb_ps = T(gr4(MVec4ds_E<T>(B) * B)); // <B^2>_4 (wedge B^B)
+
+    if (std::abs(bb_ps) <= safe_epsilon<T>()) {
+        // SIMPLE: a single plane -- sort it by its own causal character
+        if (bb_s < T(0.0)) return {zero, B, T(0.0), bb_s, bb_s, true};
+        return {B, zero, bb_s, T(0.0), bb_s, true};
+    }
+
+    // NON-simple: Study projectors P_+/- = (1 +/- conj(B^2)/||B^2||_S)/2,
+    // with conj(B^2) = bb_s - bb_ps I
+    T const nS = std::sqrt(bb_s * bb_s + bb_ps * bb_ps); // ||B^2||_S
+    BiVec4ds<T> const proj =
+        (bb_s * B - bb_ps * sta4ds_biv_dual(B)) / nS; // conj(B^2) B / ||B^2||_S
+    return {T(0.5) * (B + proj),
+            T(0.5) * (B - proj),
+            T(0.5) * (bb_s + nS),
+            T(0.5) * (bb_s - nS),
+            bb_s,
+            false};
+}
+
 // Nearest rotor to an even element X (De Keninck & Roelfs eq. 24): the signature-agnostic
 // renormalisation via the self-reverse Study number  X*rev(X) = s + t*I  (I^2 = -1),
 //   R = (X rev(X))^{-1/2} X = alpha X + beta (I X),
@@ -201,6 +253,9 @@ namespace hd::ga::sta {
 //                                        (scalar + std::vector batch overloads)
 //   - time_split() / space_split()    -> spacetime split of a vector (time + rel. space)
 //   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
+//   - is_simple()                     -> does the bivector lie in a single plane?
+//   - boost_part() / rot_part()       -> invariant (observer-independent) decomposition
+//                                        of a bivector into its two orthogonal planes
 //   - project_onto() / reject_from()  -> projection / rejection (onto vector or bivector)
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
 //
@@ -242,24 +297,17 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
 {
-    T const bb_s = detail::sta4ds_geom_sq(B);    // <B^2>_0 (geometric square)
-    T const bb_ps = T(gr4(MVec4ds_E<T>(B) * B)); // <B^2>_4 (wedge B^B)
+    auto const p = detail::sta4ds_biv_decompose(B);
 
-    if (std::abs(bb_ps) <= detail::safe_epsilon<T>()) {
+    if (p.simple) {
         // SIMPLE bivector -> closed-form generalised Euler formula
-        return detail::sta4ds_exp_simple(B, bb_s);
+        return detail::sta4ds_exp_simple(B, p.geom_sq);
     }
 
-    // NON-simple bivector: invariant decomposition B = b_boost + b_rot via the Study
-    // projectors P_+/- = (1 +/- conj(B^2)/||B^2||_S)/2, with conj(B^2) = bb_s - bb_ps I.
-    T const nS = std::sqrt(bb_s * bb_s + bb_ps * bb_ps); // ||B^2||_S
-    BiVec4ds<T> const proj =
-        (bb_s * B - bb_ps * detail::sta4ds_biv_dual(B)) / nS; // conj(B^2) B / ||B^2||_S
-    BiVec4ds<T> const b_boost = T(0.5) * (B + proj); // b_boost^2 = (bb_s+nS)/2>=0
-    BiVec4ds<T> const b_rot = T(0.5) * (B - proj);   // b_rot^2   = (bb_s-nS)/2<=0
+    // NON-simple bivector: the two invariant planes commute, so the exponentials factor
     using sta::operator*;
-    return detail::sta4ds_exp_simple(b_boost, T(0.5) * (bb_s + nS)) *
-           detail::sta4ds_exp_simple(b_rot, T(0.5) * (bb_s - nS));
+    return detail::sta4ds_exp_simple(p.b_boost, p.lambda_boost) *
+           detail::sta4ds_exp_simple(p.b_rot, p.lambda_rot);
 }
 
 
@@ -724,6 +772,53 @@ constexpr BiVec4ds<std::common_type_t<T, U>> rel_bivec_split(BiVec4ds<T> const& 
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// invariant decomposition of a bivector (the OBSERVER-INDEPENDENT split)
+////////////////////////////////////////////////////////////////////////////////
+//
+// Every bivector B splits uniquely into two orthogonal, commuting, SIMPLE bivectors
+//
+//     B = boost_part(B) + rot_part(B)
+//
+// whose squares straddle zero: boost_part(B)^2 >= 0 >= rot_part(B)^2. The time-like
+// part generates a Lorentz boost, the space-like part a spatial rotation, and because
+// they commute the rotor factors: exp(B) = exp(boost_part(B)) * exp(rot_part(B)).
+//
+// Both parts are built from the two Lorentz invariants of B -- its geometric square
+// <B^2>_0 and its wedge square B^B -- so the decomposition depends on B ALONE. That is
+// the difference to rel_vec_split() / rel_bivec_split() above, which split relative to a
+// chosen time direction u and mix under a boost.
+//
+// A SIMPLE bivector (B ^ B == 0) already lies in one plane and is returned unchanged in
+// the slot matching its causal character, the other part being zero.
+////////////////////////////////////////////////////////////////////////////////
+
+// true if the bivector lies in a single plane, i.e. B ^ B == 0 (always true in 3d, but
+// NOT in 4d: a generic sta bivector is a sum of two volutors)
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_simple(BiVec4ds<T> const& B)
+{
+    return std::abs(T(gr4(MVec4ds_E<T>(B) * B))) <= detail::safe_epsilon<T>();
+}
+
+// the time-like (boost-generating) part; squares to >= 0
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec4ds<T> boost_part(BiVec4ds<T> const& B)
+{
+    return detail::sta4ds_biv_decompose(B).b_boost;
+}
+
+// the space-like (rotation-generating) part; squares to <= 0
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec4ds<T> rot_part(BiVec4ds<T> const& B)
+{
+    return detail::sta4ds_biv_decompose(B).b_rot;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // projections and rejections (geometric-product based, as in ega3d)
 //
 //   project_onto(a, b): component of a parallel to / lying in b
@@ -998,6 +1093,44 @@ bool is_close(MVec4ds_E<T> const& a, MVec4ds_E<U> const& b,
         {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
          value_t(b.c5), value_t(b.c6), value_t(b.c7)},
         rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec4ds_U<T> const& a, MVec4ds_U<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<8>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7)},
+        rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec4ds<T> const& a, MVec4ds<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<16>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7), value_t(a.c8), value_t(a.c9),
+         value_t(a.c10), value_t(a.c11), value_t(a.c12), value_t(a.c13), value_t(a.c14),
+         value_t(a.c15)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7), value_t(b.c8), value_t(b.c9),
+         value_t(b.c10), value_t(b.c11), value_t(b.c12), value_t(b.c13), value_t(b.c14),
+         value_t(b.c15)},
+        rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(DualNum4ds<T> const& a, DualNum4ds<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<2>({value_t(a.c0), value_t(a.c1)},
+                                   {value_t(b.c0), value_t(b.c1)}, rel_tol);
 }
 
 

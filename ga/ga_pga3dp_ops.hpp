@@ -1304,6 +1304,44 @@ bool is_close(MVec3dp_E<T> const& a, MVec3dp_E<U> const& b,
         rel_tol);
 }
 
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec3dp_U<T> const& a, MVec3dp_U<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<8>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7)},
+        rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec3dp<T> const& a, MVec3dp<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<16>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7), value_t(a.c8), value_t(a.c9),
+         value_t(a.c10), value_t(a.c11), value_t(a.c12), value_t(a.c13), value_t(a.c14),
+         value_t(a.c15)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7), value_t(b.c8), value_t(b.c9),
+         value_t(b.c10), value_t(b.c11), value_t(b.c12), value_t(b.c13), value_t(b.c14),
+         value_t(b.c15)},
+        rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(DualNum3dp<T> const& a, DualNum3dp<U> const& b,
+              value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<2>({value_t(a.c0), value_t(a.c1)},
+                                   {value_t(b.c0), value_t(b.c1)}, rel_tol);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // is_same_motion(): do two motors describe the same rigid motion?

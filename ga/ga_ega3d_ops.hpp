@@ -791,6 +791,27 @@ bool is_close(MVec3d_E<T> const& a, MVec3d_E<U> const& b, value_t rel_tol = eps_
         {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3)}, rel_tol);
 }
 
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec3d_U<T> const& a, MVec3d_U<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<4>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3)}, rel_tol);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+bool is_close(MVec3d<T> const& a, MVec3d<U> const& b, value_t rel_tol = eps_congruent)
+{
+    return detail::coeffs_close<8>(
+        {value_t(a.c0), value_t(a.c1), value_t(a.c2), value_t(a.c3), value_t(a.c4),
+         value_t(a.c5), value_t(a.c6), value_t(a.c7)},
+        {value_t(b.c0), value_t(b.c1), value_t(b.c2), value_t(b.c3), value_t(b.c4),
+         value_t(b.c5), value_t(b.c6), value_t(b.c7)},
+        rel_tol);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // is_same_rotation(): do two rotors describe the same rotation?
