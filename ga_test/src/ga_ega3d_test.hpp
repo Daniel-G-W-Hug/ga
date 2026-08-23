@@ -3803,4 +3803,179 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(is_close(cos(An + A2), cos(An) * cos(A2) - sin(An) * sin(A2)));
     }
 
+
+    TEST_CASE("ega3d calculus: the four derivative types of nabla")
+    {
+        fmt::println("ega3d calculus: the four derivative types of nabla");
+
+        auto r0 = vec3d{0.37, -0.62, 0.81};
+        auto A = [](vec3d const& r) {
+            return vec3d{r.y * r.z, r.x * r.x - r.z, std::sin(r.x) * r.y};
+        };
+        auto Bf = [&](vec3d const& r) { return cmpl(A(r)); };
+        auto phi = [](vec3d const& r) {
+            return scalar3d(std::sin(r.x) * r.y * r.y + r.z * r.z);
+        };
+        auto Tf = [](vec3d const& r) {
+            return pscalar3d(std::cos(r.x) * r.y + r.z * r.z);
+        };
+
+        // classical references, computed independently
+        auto curlA = [&](vec3d const& q) {
+            vec3d c{0.0, 0.0, 0.0};
+            double const h = 1.0e-5;
+            for (int i = 0; i < 3; ++i) {
+                auto e = i == 0 ? e1_3d : (i == 1 ? e2_3d : e3_3d);
+                c = c + cross(e, (A(q + h * e) - A(q - h * e)) * (1.0 / (2 * h)));
+            }
+            return c;
+        };
+        auto divA = [&](vec3d const& q) {
+            double d = 0.0;
+            double const h = 1.0e-5;
+            for (int i = 0; i < 3; ++i) {
+                auto e = i == 0 ? e1_3d : (i == 1 ? e2_3d : e3_3d);
+                d += value_t(dot(e, (A(q + h * e) - A(q - h * e)) * (1.0 / (2 * h))));
+            }
+            return d;
+        };
+
+        // scalar field: the outer derivative is the gradient, the inner one vanishes
+        CHECK(nrm(nabla_wdg(phi, r0) - vec3d{std::cos(r0.x) * r0.y * r0.y,
+                                             2 * std::sin(r0.x) * r0.y, 2 * r0.z}) <
+              1.0e-6);
+        CHECK(std::abs(value_t(nabla_dot(phi, r0))) < eps);
+
+        // vector field: inner = div, outer = I curl
+        CHECK(std::abs(value_t(nabla_dot(A, r0)) - divA(r0)) < 1.0e-6);
+        CHECK(nrm(nabla_wdg(A, r0) - cmpl(curlA(r0))) < 1.0e-6);
+
+        // bivector field: inner = -curl of its dual, outer = I div of its dual
+        CHECK(nrm(nabla_dot(Bf, r0) - (-curlA(r0))) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_wdg(Bf, r0)) - divA(r0)) < 1.0e-6);
+
+        // trivector field: inner = I grad of its coefficient, outer vanishes (no grade 4)
+        auto gt = vec3d{-std::sin(r0.x) * r0.y, std::cos(r0.x), 2 * r0.z};
+        CHECK(nrm(nabla_dot(Tf, r0) - cmpl(gt)) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_wdg(Tf, r0))) < eps);
+
+        // the Laplacian is a scalar operator: it preserves the grade of the field
+        CHECK(nrm(gr0(laplacian(A, r0))) < 1.0e-6);
+        CHECK(nrm(gr2(laplacian(A, r0))) < 1.0e-6);
+    }
+
+    TEST_CASE("ega3d calculus: nabla identities and rotation covariance")
+    {
+        fmt::println("ega3d calculus: nabla identities and rotation covariance");
+
+        auto r0 = vec3d{0.37, -0.62, 0.81};
+        auto A = [](vec3d const& r) {
+            return vec3d{r.y * r.z, r.x * r.x - r.z, std::sin(r.x) * r.y};
+        };
+        auto Bf = [&](vec3d const& r) { return cmpl(A(r)); };
+
+        // nabla ^ (nabla ^ M) = 0 and nabla . (nabla . M) = 0 -- these contain
+        // curl(grad) = 0 and div(curl) = 0 as their classical cases
+        auto outer = [&](vec3d const& q) { return nabla_wdg(A, q, 1.0e-3); };
+        auto inner = [&](vec3d const& q) { return nabla_dot(Bf, q, 1.0e-3); };
+        CHECK(std::abs(value_t(nabla_wdg(outer, r0, 1.0e-3))) < 1.0e-4);
+        CHECK(std::abs(value_t(nabla_dot(inner, r0, 1.0e-3))) < 1.0e-4);
+
+        // nabla . (nabla ^ X) + nabla ^ (nabla . X) = laplacian X: the vector derivative
+        // is a square root of the Laplacian
+        auto cA = [&](vec3d const& q) { return nabla_wdg(A, q, 1.0e-3); };
+        auto dA = [&](vec3d const& q) { return nabla_dot(A, q, 1.0e-3); };
+        CHECK(nrm(nabla_dot(cA, r0, 1.0e-3) + nabla_wdg(dA, r0, 1.0e-3) -
+                  gr1(laplacian(A, r0, 1.0e-3))) < 1.0e-3);
+
+        // nabla f' = (nabla f)': the operator is rotation covariant
+        auto R = exp(wdg(e1_3d, e2_3d), 0.4) * exp(wdg(e2_3d, e3_3d), 0.25);
+        auto fr = [&](vec3d const& q) { return rotate(A(rotate(q, rev(R))), R); };
+        auto N = nabla(A, rotate(r0, rev(R)));
+        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < 1.0e-6);
+        CHECK(nrm(gr2(nabla(fr, r0)) - rotate(gr2(N), R)) < 1.0e-6);
+
+        // book problems: nabla . r = 3, nabla ^ r = 0, laplacian(1/r) = 0, nabla x_1 = e1
+        auto rf = [](vec3d const& q) { return q; };
+        CHECK(std::abs(value_t(nabla_dot(rf, r0)) - 3.0) < 1.0e-8);
+        CHECK(nrm(nabla_wdg(rf, r0)) < 1.0e-8);
+        auto inv_r = [](vec3d const& q) { return scalar3d(1.0 / nrm(q)); };
+        CHECK(std::abs(value_t(gr0(laplacian(inv_r, r0)))) < 1.0e-4);
+        auto x1 = [](vec3d const& q) { return scalar3d(q.x); };
+        CHECK(nrm(nabla_wdg(x1, r0) - e1_3d) < 1.0e-8);
+    }
+
+    TEST_CASE("ega3d calculus: stencil schemes deliver their advertised order")
+    {
+        fmt::println("ega3d calculus: stencil schemes deliver their advertised order");
+
+        auto r0 = vec3d{0.37, -0.62, 0.81};
+        auto A = [](vec3d const& r) {
+            return vec3d{std::sin(r.x) * r.y, std::exp(0.3 * r.y) * r.z,
+                         std::cos(r.z) * r.x};
+        };
+        auto div_exact = [&](vec3d const& r) {
+            return std::cos(r.x) * r.y + 0.3 * std::exp(0.3 * r.y) * r.z -
+                   std::sin(r.z) * r.x;
+        };
+
+        // the generator reports what it achieved
+        CHECK(central_scheme(1, 2).order == 2);
+        CHECK(central_scheme(1, 4).order == 4);
+        CHECK(central_scheme(1, 6).order == 6);
+        CHECK(central_scheme(2, 2).order == 2);
+        // and the classical central weights come out
+        auto d2 = central_scheme(2, 2);
+        CHECK(std::abs(d2.weights[0] - 1.0) < eps);
+        CHECK(std::abs(d2.weights[1] + 2.0) < eps);
+        CHECK(std::abs(d2.weights[2] - 1.0) < eps);
+
+        // halving h must reduce the error by 2^order -- this is what routing through
+        // stencil_t buys over a hard-coded 3-point difference
+        for (int ord : {2, 4, 6}) {
+            auto sc = central_scheme(1, ord);
+            double const h1 = 0.1, h2 = 0.05;
+            double const e1 =
+                std::abs(value_t(gr0(nabla(A, r0, sc, h1))) - div_exact(r0));
+            double const e2 =
+                std::abs(value_t(gr0(nabla(A, r0, sc, h2))) - div_exact(r0));
+            double const observed = std::log2(e1 / e2);
+            CHECK(observed > ord - 0.3);
+            CHECK(observed < ord + 0.3);
+        }
+
+        // the default step tracks the scheme's order, so a higher order is more accurate
+        // at its own default step too
+        double const err2 = std::abs(value_t(gr0(nabla(A, r0))) - div_exact(r0));
+        double const err6 =
+            std::abs(value_t(gr0(nabla(A, r0, central_scheme(1, 6)))) - div_exact(r0));
+        CHECK(err6 < err2);
+    }
+
+    TEST_CASE("ega3d calculus: the single Maxwell equation on a plane wave")
+    {
+        fmt::println("ega3d calculus: the single Maxwell equation on a plane wave");
+
+        // a vacuum plane wave as the electromagnetic multivector f = e + I b, with
+        // e along e1, b along e2 and propagation along e3 (natural units, sqrt(eps mu) =
+        // 1)
+        double const w = 1.3, E0 = 0.8;
+        auto wave = [&](vec3d const& q, double t) {
+            double const ph = w * (q.z - t);
+            return mvec3d(E0 * std::cos(ph) * e1_3d) +
+                   mvec3d(cmpl(E0 * std::cos(ph) * e2_3d));
+        };
+        auto r0 = vec3d{0.37, -0.62, 0.81};
+        double const t0 = 0.29;
+
+        // D f = (nabla + sqrt(eps mu) d/dt) f = 0
+        auto Df = nabla(wave, r0, t0, 1.0e-5) + d_dt(wave, r0, t0, 1.0e-5);
+        CHECK(nrm(Df) < 1.0e-7);
+
+        // the wave equation follows: box f = laplacian f - eps mu d2f/dt2 = 0
+        auto lap = laplacian([&](vec3d const& q) { return wave(q, t0); }, r0, 1.0e-3);
+        auto d2t = d_dt(wave, r0, t0, central_scheme(2, 2), 1.0e-3);
+        CHECK(nrm(lap - d2t) < 1.0e-4);
+    }
+
 } // EGA 3D Tests
