@@ -1128,6 +1128,43 @@ systems"): velocity `rcmt(Omega, X)`, centripetal `rcmt(Omega, rcmt(Omega, r))`,
 `2*rcmt(Omega, v_rel)`, frame/Euler `rcmt(Omega_dot, r)`. Full derivations in the `ga_docu`
 PDF (modelling-motion chapter).
 
+### Pseudoscalar centrality: `I` commutes with everything iff the dimension is ODD
+
+For a grade-`k` element `A_k` in `n` dimensions the pseudoscalar obeys
+`I * A_k = (-1)^{k(n-1)} * A_k * I`, so **`I` is central (commutes with every multivector)
+exactly when `n` is odd**; for even `n` it commutes with the even grades and anticommutes
+with the odd ones. Centrality follows from the DIMENSION alone — the metric fixes `I^2`
+independently, and the two vary independently:
+
+| algebra | `n` | `I^2` | `I` central | centre |
+| ------- | --- | ----- | ----------- | ------ |
+| ega2d | 2 | -1 | no | scalars |
+| ega3d | 3 | -1 | **yes** | `span{1, I}` ≅ ℂ |
+| pga2dp | 3 | 0 | **yes** | `span{1, I}` ≅ dual numbers |
+| pga3dp | 4 | 0 | no | scalars |
+| sta4ds | 4 | -1 | no | scalars |
+| cga2dc | 4 | -1 | no | scalars |
+| cga3dc | 5 | -1 | **yes** | `span{1, I}` ≅ ℂ |
+
+Three consequences that bite in code:
+
+- **`cmt(X, I) == 0` identically wherever `I` is central** — the commutator with a central
+  element vanishes by definition. So `cmt` cannot stand in for a product against a
+  pseudoscalar in ega3d/pga2dp/cga3dc; `cmt(vec, pscalar)`, `cmt(bivec, pscalar)` and
+  `cmt(pscalar, pscalar)` are all zero there.
+- **A unit central versor generates no motion**: `E * X * rev(E) = X * E * rev(E) = X`.
+  That is why `exp(PScalar3d)` (ega3d) is NOT a rotor despite having unit magnitude — it
+  acts by left multiplication (a duality rotation), not by the sandwich. Contrast
+  `exp(PScalar2d)`
+  (ega2d), where the pseudoscalar is the bivector and the result IS a rotor.
+- **Left multiplication by `I` is the dual of the REVERSE**, not the dual:
+  `I * X == l_dual(rev(X))` (verified across grades; in EGA the dual and the complement
+  coincide, so `I * X == cmpl(rev(X))` there). The reversion sign is easy to drop — it
+  flips at grades 2 and 3.
+
+Reader-facing statement with the derivation and the per-algebra table: the "Central
+element" and "Duality rotation" entries in `ga_docu/8_ga_glossary.tex`.
+
 ### Supported Algebra Types
 
 **EGA2D - G(2,0,0)**: Euclidean 2D

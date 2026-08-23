@@ -98,6 +98,18 @@ constexpr MVec2d_E<T> exp(PScalar2d<T> B)
     // with
     // B = phi * e12 and e12^2 = -1
     // (e12 is the basis bivector representing the 2D plane)
+    //
+    // In 2d the pseudoscalar IS the bivector, so this is the ROTOR: it is a unit
+    // versor (R rev(R) = 1) and the sandwich rotate(v, R) turns v by 2*phi, while
+    // left multiplication R*v turns it by phi.
+    //
+    // The same closed form exists for the higher-dimensional pseudoscalars, but the
+    // object it produces is no longer a motion:
+    //   - ega3d exp(PScalar3d): I is CENTRAL, so the sandwich returns its argument
+    //     unchanged. It acts by left multiplication as a duality rotation instead.
+    //   - sta4ds exp(PScalar4ds): I commutes with bivectors only, and the result is
+    //     not even a unit versor.
+    // See those two blocks for the details.
 
     auto phi = sign(B) * nrm(B);
     return MVec2d_E<T>(Scalar2d<T>(std::cos(phi)), PScalar2d<T>(std::sin(phi)));
