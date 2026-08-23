@@ -16,6 +16,8 @@ namespace hd::ga::ega {
 //
 // - angle()                        -> angle operations
 // - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - exp(pscalar)                   -> exponential of a pseudoscalar: cos + I sin,
+//                                     a duality-rotation factor, NOT a rotor
 // - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
@@ -164,6 +166,44 @@ constexpr MVec3d_E<T> exp(BiVec3d<T> const& B)
 
     auto phi = B_nrm;
     return MVec3d_E<T>(Scalar3d<T>(std::cos(phi)), B_hat * std::sin(phi));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 3d exponential function of a PSEUDOSCALAR argument
+////////////////////////////////////////////////////////////////////////////////
+//
+// In 3d the pseudoscalar is CENTRAL -- it commutes with every multivector -- and
+// squares to -1, so scalars and pseudoscalars together span a subalgebra
+// isomorphic to the complex numbers. Hence
+//
+//     exp(alpha*I_3d) = cos(alpha) + I_3d sin(alpha)
+//
+// behaves exactly like a complex phase factor.
+//
+// This is NOT a rotor. Because I_3d commutes, the sandwich R X rev(R) leaves
+// every object unchanged; what the factor does is act by LEFT multiplication,
+// mixing grades in dual pairs (vector <-> bivector, scalar <-> pseudoscalar).
+// That is why it shows up as a symmetry of field equations rather than as a
+// motion. Use rotate() for motions and plain multiplication for this.
+//
+// The result spans grades 0 and 3, for which 3d has no dedicated composite type
+// (MVec3d_E is scalar + bivector, MVec3d_U is vector + pseudoscalar), so the
+// return type is the full MVec3d.
+//
+// 2d has the analogous exp(PScalar2d) -- there the pseudoscalar IS the bivector,
+// so the result is a rotor and lands in MVec2d_E. The other algebras have no
+// counterpart: sta4ds' pseudoscalar anticommutes with odd grades (so it is not
+// central), and the pga pseudoscalars are degenerate.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d<T> exp(PScalar3d<T> ps)
+{
+    // I_3d is a UNIT pseudoscalar, so the coefficient is the angle itself
+    T const alpha = T(ps);
+    return MVec3d<T>(Scalar3d<T>(std::cos(alpha)), Vec3d<T>(0.0, 0.0, 0.0),
+                     BiVec3d<T>(0.0, 0.0, 0.0), PScalar3d<T>(std::sin(alpha)));
 }
 
 

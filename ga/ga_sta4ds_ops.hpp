@@ -243,6 +243,8 @@ namespace hd::ga::sta {
 //
 // Implemented:
 //   - exp(BiVec)                      -> rotor exponential of a bivector (simple or not)
+//   - exp(PScalar)                    -> cos + I sin: a duality-rotation factor for
+//                                        bivector fields, NOT a rotor (see the block)
 //   - log(rotor)                      -> bivector log of a rotor (inverse of exp)
 //   - get_rotor(plane, angle)         -> rotor for a spatial rotation
 //   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
@@ -308,6 +310,42 @@ inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
     using sta::operator*;
     return detail::sta4ds_exp_simple(p.b_boost, p.lambda_boost) *
            detail::sta4ds_exp_simple(p.b_rot, p.lambda_rot);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// exponential of a PSEUDOSCALAR argument
+////////////////////////////////////////////////////////////////////////////////
+//
+// I_4ds^2 = -1, so the power series closes into
+//
+//     exp(alpha*I_4ds) = cos(alpha) + I_4ds sin(alpha)
+//
+// Scalar and pseudoscalar are both EVEN in four dimensions, so the result is an
+// MVec4ds_E with a zero bivector part.
+//
+// Two warnings, both different from the 3d case:
+//
+//  - I_4ds is NOT central here. It commutes with even elements and ANTIcommutes
+//    with odd ones, so exp(alpha*I) passes through bivectors but not through
+//    vectors or trivectors.
+//  - it is not a unit versor: rev(I_4ds) = I_4ds, so exp(a*I) rev(exp(a*I))
+//    = exp(2a*I), not 1. Do not feed it to transform() expecting a motion.
+//
+// Its use is the DUALITY ROTATION of a bivector field: because it commutes with
+// bivectors, F -> exp(alpha*I) F maps a bivector to a bivector, rotating the two
+// parts of the spacetime split into each other. At alpha = pi/2 it is the Hodge
+// map. ega3d's exp(PScalar3d) is the same transformation one algebra down.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec4ds_E<T> exp(PScalar4ds<T> ps)
+{
+    // I_4ds is a UNIT pseudoscalar, so the coefficient is the angle itself
+    T const alpha = T(ps);
+    return MVec4ds_E<T>(Scalar4ds<T>(std::cos(alpha)),
+                        BiVec4ds<T>(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0)),
+                        PScalar4ds<T>(std::sin(alpha)));
 }
 
 
