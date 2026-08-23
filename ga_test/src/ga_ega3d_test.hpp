@@ -4135,6 +4135,108 @@ TEST_SUITE("EGA 3D Tests")
         }
     }
 
+    TEST_CASE("ega3d calculus: Jancewicz P34-P40 -- nabla on the standard fields")
+    {
+        fmt::println("ega3d calculus: Jancewicz P34-P40 -- nabla on the standard fields");
+
+        // Jancewicz Problems 0.34-0.40 (p. 67-68): the standard closed-form derivatives,
+        // with a a constant vector, Bc a constant bivector and r the position field.
+        // These are the reference values a reader checks a calculus layer against, and
+        // they reach parts the product-rule case does not: the radial fields r^k and 1/r
+        // (no polynomial, so the stencil's truncation error is live), the Laplacian, and
+        // the FULL Clifford derivative nabla(f) rather than only its graded parts.
+        //
+        // The cases split by whether the stencil is exact for the field:
+        //
+        //  - a 2nd-order central difference is EXACT for polynomials of degree <= 2, so
+        //    every linear/bilinear field below is reproduced to roundoff (~1e-15) and is
+        //    asserted tightly. That is a property of the scheme, not a coincidence.
+        //  - the radial fields are not polynomial, so their residual IS the truncation
+        //    error and only its h^2 decay says the closed form is right. Same reasoning
+        //    as the P28 case.
+
+        using Mv = MVec3d<value_t>;
+        vec3d const r{0.42, -0.31, 0.57};
+        vec3d const a{0.7, 1.3, -0.5};
+        bivec3d const Bc{0.6, -1.1, 0.35};
+        value_t const h = 1.0e-3;
+        auto rad = [](vec3d const& p) { return std::sqrt(value_t(dot(p, p))); };
+        value_t const R = rad(r);
+
+        // ---- exact for the scheme: polynomial fields, asserted to roundoff ----
+        value_t const tight = 1.0e-10;
+
+        // P34: grad(r.a) = a ; P40: grad x_j = e_j ; (a.grad)r = a is the same statement
+        CHECK(nrm(nabla_wdg([&](vec3d const& p) { return scalar3d(value_t(dot(p, a))); },
+                            r, h) -
+                  a) < tight);
+        CHECK(nrm(nabla_wdg([](vec3d const& p) { return scalar3d(p.y); }, r, h) -
+                  detail::ega3d_basis<value_t>(1)) < tight);
+
+        // P34: div(a^r) = -2a and curl(a^r) = 0 -- note div is NOT zero although a is
+        // constant: the r factor carries the divergence
+        auto awr = [&](vec3d const& p) { return wdg(a, p); };
+        CHECK(nrm(nabla_dot(awr, r, h) - (-2.0) * a) < tight);
+        CHECK(std::abs(value_t(nabla_wdg(awr, r, h))) < tight);
+
+        // P34 with a constant BIVECTOR: div(Bc^r) = Bc and curl(r.Bc) = 2 Bc, div(r.Bc) =
+        // 0. The factors 1 and 2 follow from the contraction convention; they are exact
+        // rationals here, which is why they can be pinned at roundoff.
+        CHECK(
+            nrm(gr2(nabla_dot([&](vec3d const& p) { return wdg(Mv(Bc), Mv(p)); }, r, h)) -
+                Bc) < tight);
+        auto rdB = [&](vec3d const& p) { return gr1(Mv(p) * Mv(Bc)); };
+        CHECK(nrm(nabla_wdg(rdB, r, h) - 2.0 * Bc) < tight);
+        CHECK(std::abs(value_t(nabla_dot(rdB, r, h))) < tight);
+
+        // P35: the full Clifford derivatives. grad r = 3 is the divergence of the
+        // position field; grad(ar) and grad(ra) differ because a and r do not commute.
+        CHECK(nrm(nabla([](vec3d const& p) { return p; }, r, h) - Mv(scalar3d(3.0))) <
+              tight);
+        CHECK(nrm(nabla([&](vec3d const& p) { return Mv(a) * Mv(p); }, r, h) - Mv(-a)) <
+              tight);
+        CHECK(nrm(nabla([&](vec3d const& p) { return Mv(p) * Mv(a); }, r, h) -
+                  Mv(3.0 * a)) < tight);
+        CHECK(nrm(nabla(awr, r, h) - Mv((-2.0) * a)) < tight);
+
+        // P36: grad r^k = k r^(k-2) r -- exact for k = 2, truncation-limited otherwise
+        CHECK(nrm(nabla_wdg([&](vec3d const& p) { return scalar3d(rad(p) * rad(p)); }, r,
+                            h) -
+                  2.0 * r) < tight);
+
+        // ---- truncation-limited: radial fields, pinned by h^2 decay ----
+        auto residuals = [&](value_t hh) {
+            std::vector<value_t> d;
+            // P34: grad((r.a)/r^3)
+            d.push_back(nrm(
+                nabla_wdg(
+                    [&](vec3d const& p) {
+                        return scalar3d(value_t(dot(p, a)) / std::pow(rad(p), 3));
+                    },
+                    r, hh) -
+                (a / std::pow(R, 3) - 3.0 * value_t(dot(r, a)) / std::pow(R, 5) * r)));
+            // P36: k = 3 and k = -1
+            for (int k : {3, -1})
+                d.push_back(nrm(nabla_wdg(
+                                    [&](vec3d const& p) {
+                                        return scalar3d(std::pow(rad(p), value_t(k)));
+                                    },
+                                    r, hh) -
+                                value_t(k) * std::pow(R, value_t(k - 2)) * r));
+            // P39: the Laplacian of the fundamental solution vanishes off the source
+            d.push_back(std::abs(value_t(gr0(laplacian(
+                [&](vec3d const& p) { return scalar3d(1.0 / rad(p)); }, r, hh)))));
+            return d;
+        };
+        auto const d1 = residuals(1.0e-3);
+        auto const d2 = residuals(5.0e-4);
+        for (std::size_t i = 0; i < d1.size(); ++i) {
+            CHECK(d1[i] < 1.0e-4);
+            CHECK(d1[i] / d2[i] > 3.8);
+            CHECK(d1[i] / d2[i] < 4.2);
+        }
+    }
+
 
     TEST_CASE("ega3d calculus: compact (Pade) schemes and grid derivatives")
     {
