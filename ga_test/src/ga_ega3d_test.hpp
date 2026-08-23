@@ -3985,6 +3985,156 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(nrm(lap - d2t) < 1.0e-4);
     }
 
+    TEST_CASE("ega3d calculus: Jancewicz P28 product rules and P29")
+    {
+        fmt::println("ega3d calculus: Jancewicz P28 product rules and P29");
+
+        // Jancewicz Problems 0.28 (i)-(vi) and 0.29 (pp. 66-67) -- the product rules for
+        // nabla acting on products of a vector field with a vector or a bivector field.
+        // A, B are vector fields; Ab, Bb are bivector fields ("hatted" in the book):
+        //
+        //   (i)   grad.(A.Bb) = (grad^A).Bb - A.(grad.Bb)
+        //   (ii)  grad^(A.B)  = (A.grad)B + (B.grad)A - B.(grad^A) - A.(grad^B)
+        //   (iii) grad.(A^B)  = B(grad.A) - A(grad.B) + (A.grad)B - (B.grad)A
+        //   (iv)  grad^(Ab Bb) = (Ab^grad).Bb + (Bb^grad).Ab - Bb.(grad.Ab) -
+        //   Ab.(grad.Bb) (v)   grad^(A.Bb) = Bb(grad.A) - A(grad^Bb) + (A.grad)Bb -
+        //   (Bb^grad)A (vi)  grad.(A^Bb) = (A.grad)Bb + (Bb^grad)A - Bb (x) (grad^A) -
+        //   A^(grad.Bb) (29)  grad(A Bb)  = (grad A)Bb - A(grad Bb) + 2(A.grad)Bb
+        //
+        // The book's "." is gr_{|r-s|}(X * Y), so the terms are built as graded parts of
+        // a geometric product rather than through the library contractions -- those
+        // differ from it by a side swap at grade 1x2 and by a reversion sign at grades
+        // 2 and 3.
+        //
+        // (vi)'s third term, written "(x)" above, is the MINGLED product (a wedge with a
+        // dot over it in the book, eq. 31) = cmt. Both operands are bivectors there, so a
+        // plain wedge would be grade 4 -- identically zero in 3d -- and a dot would be a
+        // scalar, while the term has to be a bivector to match the left side.
+        //
+        // (iv) holds on the GRADE-1 part only. Its left side differentiates a cliffor
+        // carrying grade 0 and grade 2, so the result has a trivector part as well
+        // (measured |gr3| = 0.98 here, not a rounding artefact) which no term on the
+        // right accounts for. Assert the vector part, not the whole.
+
+        using Mv = MVec3d<value_t>;
+
+        auto A = [](vec3d const& r) {
+            return vec3d{std::sin(r.x) * r.y, r.x * r.z * r.z,
+                         std::exp(0.3 * r.z) * r.x + r.y};
+        };
+        auto B = [](vec3d const& r) {
+            return vec3d{std::cos(r.x) + r.z, r.x * r.y, r.y * r.y - r.z};
+        };
+        auto Bb = [](vec3d const& r) {
+            return bivec3d{r.x * r.y + r.z, std::cos(r.z) * r.x, r.y * r.z + r.x * r.x};
+        };
+        auto Ab = [](vec3d const& r) {
+            return bivec3d{std::sin(r.x), r.y * r.z, r.x + 2.0 * r.z};
+        };
+        vec3d const r{0.3, -0.4, 0.55};
+
+        auto pd = [](auto&& f, vec3d const& p, int i, value_t h) {
+            return detail::ega3d_axis_deriv(f, p, i, detail::ega3d_default_scheme(1), h);
+        };
+        auto cmp = [](vec3d const& v, int i) {
+            return (i == 0) ? v.x : ((i == 1) ? v.y : v.z);
+        };
+        auto e = [](int i) { return detail::ega3d_basis<value_t>(i); };
+
+        // |lhs - rhs| for all seven identities at step size h
+        auto residuals = [&](value_t h) {
+            auto Ar = A(r);
+            auto Br = B(r);
+            auto Bbr = Bb(r);
+            auto Abr = Ab(r);
+            auto curlA = nabla_wdg(A, r, h);
+            auto divA = value_t(nabla_dot(A, r, h));
+            auto curlB = nabla_wdg(B, r, h);
+            auto divB = value_t(nabla_dot(B, r, h));
+            auto divBb = nabla_dot(Bb, r, h); // vector
+            auto wdgBb = nabla_wdg(Bb, r, h); // pseudoscalar
+            auto divAb = nabla_dot(Ab, r, h);
+
+            vec3d t1{}, t2{}, u1{}, u2{};
+            bivec3d s1{};
+            Mv s2{};
+            for (int i = 0; i < 3; ++i) {
+                t1 = t1 + cmp(Ar, i) * gr1(pd(B, r, i, h));             // (A.grad)B
+                t2 = t2 + cmp(Br, i) * gr1(pd(A, r, i, h));             // (B.grad)A
+                s1 = s1 + cmp(Ar, i) * gr2(pd(Bb, r, i, h));            // (A.grad)Bb
+                s2 = s2 + Mv(wdg(Bbr, e(i))) * Mv(gr1(pd(A, r, i, h))); // (Bb^grad)A
+                u1 = u1 +
+                     gr1(Mv(wdg(Abr, e(i))) * Mv(gr2(pd(Bb, r, i, h)))); // (Ab^grad).Bb
+                u2 = u2 +
+                     gr1(Mv(wdg(Bbr, e(i))) * Mv(gr2(pd(Ab, r, i, h)))); // (Bb^grad).Ab
+            }
+            bivec3d const s2b = gr2(s2);
+
+            auto AdotBb = [&](vec3d const& p) { return gr1(Mv(A(p)) * Mv(Bb(p))); };
+
+            std::vector<value_t> d;
+            d.push_back(
+                std::abs(value_t(nabla_dot(AdotBb, r, h)) -
+                         (value_t(gr0(Mv(curlA) * Mv(Bbr))) - value_t(dot(Ar, divBb)))));
+            d.push_back(nrm(
+                nabla_wdg(
+                    [&](vec3d const& p) { return scalar3d(value_t(dot(A(p), B(p)))); }, r,
+                    h) -
+                (t1 + t2 - gr1(Mv(Br) * Mv(curlA)) - gr1(Mv(Ar) * Mv(curlB)))));
+            d.push_back(
+                nrm(nabla_dot([&](vec3d const& p) { return wdg(A(p), B(p)); }, r, h) -
+                    (divA * Br - divB * Ar + t1 - t2)));
+
+            Mv lhs_iv{};
+            for (int i = 0; i < 3; ++i)
+                lhs_iv =
+                    lhs_iv + wdg(Mv(e(i)),
+                                 pd([&](vec3d const& p) { return Mv(Ab(p)) * Mv(Bb(p)); },
+                                    r, i, h));
+            d.push_back(nrm(gr1(lhs_iv) - (u1 + u2 - gr1(Mv(Bbr) * Mv(divAb)) -
+                                           gr1(Mv(Abr) * Mv(divBb)))));
+
+            d.push_back(nrm(nabla_wdg(AdotBb, r, h) -
+                            (divA * Bbr - gr2(Mv(Ar) * Mv(wdgBb)) + s1 - s2b)));
+            d.push_back(
+                nrm(nabla_dot([&](vec3d const& p) { return wdg(A(p), Bb(p)); }, r, h) -
+                    (s1 + s2b - cmt(Bbr, curlA) - wdg(Ar, divBb))));
+
+            Mv lhs29{}, gA{}, gB{};
+            for (int i = 0; i < 3; ++i) {
+                lhs29 =
+                    lhs29 +
+                    Mv(e(i)) *
+                        pd([&](vec3d const& p) { return Mv(A(p)) * Mv(Bb(p)); }, r, i, h);
+                gA = gA + Mv(e(i)) * pd(A, r, i, h);
+                gB = gB + Mv(e(i)) * pd(Bb, r, i, h);
+            }
+            d.push_back(nrm(lhs29 - (gA * Mv(Bbr) - Mv(Ar) * gB + 2.0 * Mv(s1))));
+            return d;
+        };
+
+        auto const d1 = residuals(1.0e-3);
+        auto const d2 = residuals(5.0e-4);
+
+        for (std::size_t i = 0; i < d1.size(); ++i) {
+            CHECK(d1[i] < 1.0e-5);
+
+            // The identities are EXACT, so the residual is nothing but the 2nd-order
+            // scheme's truncation error and halving h must QUARTER it. Without this the
+            // threshold above is nearly vacuous: at h = 1e-3 the truncation error IS
+            // ~1e-6, so scaling one term of (vi) by 1.00002 -- a relative error of 2e-5,
+            // a real mistake -- leaves a residual of 1.96e-6 that sails through the
+            // threshold, while this ratio collapses from 4.00 to 1.04 and catches it.
+            //
+            // Measured 4.00 for all seven, so the band is tight. Its detection floor is
+            // around 1e-6 relative error (a 2e-6 perturbation of (vi) gives 3.74); below
+            // that the perturbation is lost in the truncation error and only a smaller h
+            // would separate them.
+            CHECK(d1[i] / d2[i] > 3.8);
+            CHECK(d1[i] / d2[i] < 4.2);
+        }
+    }
+
 
     TEST_CASE("ega3d calculus: compact (Pade) schemes and grid derivatives")
     {
