@@ -32,7 +32,8 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // EGA-specific operations are in namespace hd::ga::ega
-#include "ga_ega2d_ops.hpp" // ega2d operations (includes basics and products)
+#include "ga_ega2d_ops.hpp"          // ega2d operations (basics and products)
+#include "ga_ega2d_ops_calculus.hpp" // ega2d field operators
 #include "ga_ega3d_ops.hpp"
 #include "ga_ega3d_ops_calculus.hpp" // ega3d operations (includes basics and products)
 

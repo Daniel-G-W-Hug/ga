@@ -3171,4 +3171,80 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(is_close(exp(hyp) * exp(-hyp), one()));
     }
 
+
+    TEST_CASE("ega2d calculus: the derivative types, identities and schemes")
+    {
+        fmt::println("ega2d calculus: the derivative types, identities and schemes");
+
+        auto r0 = vec2d{0.37, -0.62};
+        auto phi = [](vec2d const& r) {
+            return scalar2d(std::sin(r.x) * r.y * r.y + r.x);
+        };
+        auto A = [](vec2d const& r) { return vec2d{r.y * r.y, std::sin(r.x) * r.y}; };
+        auto P = [](vec2d const& r) { return pscalar2d(std::cos(r.x) + r.y * r.y); };
+
+        // scalar field: the outer derivative is the gradient, the inner one vanishes
+        CHECK(nrm(nabla_wdg(phi, r0) - vec2d{std::cos(r0.x) * r0.y * r0.y + 1.0,
+                                             2 * std::sin(r0.x) * r0.y}) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_dot(phi, r0))) < eps);
+
+        // vector field: inner = div; outer = the SCALAR curl, carried by the
+        // pseudoscalar -- the grade ladder is one rung shorter than in 3d
+        CHECK(std::abs(value_t(nabla_dot(A, r0)) - std::sin(r0.x)) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_wdg(A, r0)) - (std::cos(r0.x) * r0.y - 2 * r0.y)) <
+              1.0e-6);
+
+        // pseudoscalar field: inner derivative is a vector, outer one vanishes (no grade
+        // 3)
+        CHECK(nrm(nabla_dot(P, r0)) > 1.0e-6);
+        CHECK(std::abs(value_t(nabla_wdg(P, r0))) < eps);
+
+        // curl(grad) = 0, and div(grad phi) = laplacian phi
+        auto g = [&](vec2d const& q) { return nabla_wdg(phi, q, 1.0e-3); };
+        CHECK(std::abs(value_t(nabla_wdg(g, r0, 1.0e-3))) < 1.0e-4);
+        CHECK(std::abs(value_t(nabla_dot(g, r0, 1.0e-3)) -
+                       value_t(gr0(laplacian(phi, r0, 1.0e-3)))) < 1.0e-4);
+        // the Laplacian is a scalar operator: it preserves the grade
+        CHECK(nrm(gr1(laplacian(phi, r0))) < 1.0e-6);
+
+        // nabla f' = (nabla f)': rotation covariant in 2d as well
+        auto R = exp(pscalar2d(0.4));
+        auto fr = [&](vec2d const& q) { return rotate(A(rotate(q, rev(R))), R); };
+        auto N = nabla(A, rotate(r0, rev(R)));
+        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < 1.0e-6);
+        CHECK(std::abs(value_t(gr2(nabla(fr, r0))) - value_t(gr2(N))) < 1.0e-6);
+
+        // the shared scheme layer applies here too
+        auto Aex = [](vec2d const& r) {
+            return vec2d{std::sin(3 * r.x) * r.y, std::exp(0.4 * r.y)};
+        };
+        auto div_exact = [](vec2d const& r) {
+            return 3 * std::cos(3 * r.x) * r.y + 0.4 * std::exp(0.4 * r.y);
+        };
+        double const e2 = std::abs(
+            value_t(gr0(nabla(Aex, r0, central_scheme(1, 2), 0.05))) - div_exact(r0));
+        double const e4 = std::abs(
+            value_t(gr0(nabla(Aex, r0, central_scheme(1, 4), 0.05))) - div_exact(r0));
+        CHECK(e4 < e2 / 50.0);
+
+        // compact schemes are implicit here too, and the grid layer is shared
+        CHECK_THROWS_AS(nabla(phi, r0, compact_scheme(1)), std::invalid_argument);
+
+        std::vector<double> x;
+        for (int i = 0; i < 41; ++i)
+            x.push_back(double(i) / 40.0);
+        std::vector<mvec2d> mf;
+        for (auto s : x) {
+            mf.push_back(mvec2d(scalar2d(std::sin(3 * s))) +
+                         mvec2d(std::cos(2 * s) * e1_2d));
+        }
+        auto md = fd_derivative(x, mf, 1, fd_kind::compact_fd);
+        double mm = 0.0;
+        for (std::size_t i = 2; i + 2 < x.size(); ++i) {
+            mm = std::max(mm, std::abs(value_t(gr0(md[i])) - 3 * std::cos(3 * x[i])));
+            mm = std::max(mm, nrm(gr1(md[i]) - (-2 * std::sin(2 * x[i])) * e1_2d));
+        }
+        CHECK(mm < 1.0e-5);
+    }
+
 } // EGA 2D Tests
