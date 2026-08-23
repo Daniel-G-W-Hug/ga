@@ -42,24 +42,15 @@ template <typename T> inline Vec4ds<T> sta4ds_rec_basis(int mu)
     return (mu == 3) ? sta4ds_basis<T>(mu) : Vec4ds<T>(-sta4ds_basis<T>(mu));
 }
 
-// apply a scheme along coordinate mu to get the directional derivative of a field
+// directional derivative of a field along coordinate mu -- apply_scheme() owns the
+// weight loop and rejects a scheme that cannot be evaluated at a single point
 template <typename F>
 inline MVec4ds<value_t> sta4ds_axis_deriv(F&& f, Vec4ds<value_t> const& x, int mu,
                                           fd_scheme const& sc, value_t h)
 {
-    if (sc.is_compact()) {
-        throw std::invalid_argument(
-            "nabla/dalembertian: compact schemes are implicit and need a grid; "
-            "use fd_derivative() or pass an explicit scheme");
-    }
     Vec4ds<value_t> const e = sta4ds_basis<value_t>(mu);
-    MVec4ds<value_t> acc{};
-    for (std::size_t k = 0; k < sc.nodes.size(); ++k) {
-        if (sc.weights[k] == 0.0) continue;
-        acc = acc + sc.weights[k] * MVec4ds<value_t>(f(x + (sc.nodes[k] * h) * e));
-    }
-    value_t const scale = (sc.deriv == 1) ? (value_t(1.0) / h) : (value_t(1.0) / (h * h));
-    return acc * scale;
+    return apply_scheme<MVec4ds<value_t>>(
+        sc, [&](value_t off) { return f(x + off * e); }, h);
 }
 
 } // namespace hd::ga::detail

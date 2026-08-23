@@ -24,24 +24,15 @@ template <typename T> inline Vec2d<T> ega2d_basis(int i)
     return (i == 0) ? Vec2d<T>(T(1.0), T(0.0)) : Vec2d<T>(T(0.0), T(1.0));
 }
 
-// apply a scheme along axis i to get the directional derivative of a field at r
+// directional derivative of a field along axis i -- apply_scheme() owns the weight
+// loop and rejects a scheme that cannot be evaluated at a single point
 template <typename F>
 inline MVec2d<value_t> ega2d_axis_deriv(F&& f, Vec2d<value_t> const& r, int i,
                                         fd_scheme const& sc, value_t h)
 {
-    if (sc.is_compact()) {
-        throw std::invalid_argument(
-            "nabla/laplacian: compact schemes are implicit and need a grid; "
-            "use fd_derivative() or pass an explicit scheme");
-    }
     Vec2d<value_t> const e = ega2d_basis<value_t>(i);
-    MVec2d<value_t> acc{};
-    for (std::size_t k = 0; k < sc.nodes.size(); ++k) {
-        if (sc.weights[k] == 0.0) continue; // the centre point drops out of odd stencils
-        acc = acc + sc.weights[k] * MVec2d<value_t>(f(r + (sc.nodes[k] * h) * e));
-    }
-    value_t const scale = (sc.deriv == 1) ? (value_t(1.0) / h) : (value_t(1.0) / (h * h));
-    return acc * scale;
+    return apply_scheme<MVec2d<value_t>>(
+        sc, [&](value_t off) { return f(r + off * e); }, h);
 }
 
 
@@ -228,13 +219,8 @@ inline auto d_dt(F&& f, Vec2d<value_t> const& r, value_t t, fd_scheme const& sc,
 {
     if (h <= value_t(0.0)) h = fd_step(sc, t);
 
-    MVec2d<value_t> acc{};
-    for (std::size_t k = 0; k < sc.nodes.size(); ++k) {
-        if (sc.weights[k] == 0.0) continue;
-        acc = acc + sc.weights[k] * MVec2d<value_t>(f(r, t + sc.nodes[k] * h));
-    }
-    value_t const scale = (sc.deriv == 1) ? (value_t(1.0) / h) : (value_t(1.0) / (h * h));
-    return acc * scale;
+    return apply_scheme<MVec2d<value_t>>(
+        sc, [&](value_t off) { return f(r, t + off); }, h);
 }
 
 template <typename F>

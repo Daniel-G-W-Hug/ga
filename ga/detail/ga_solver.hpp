@@ -23,6 +23,10 @@
 //   3.) Matrix determinant via LU factorization:
 //       T d = hd::ga::det(A);
 //
+//   4.) Tridiagonal systems (compact/Pade finite differences, 1d diffusion) do NOT
+//       need any of the above -- they are solved in O(n) without forming a matrix:
+//       auto x = hd::ga::tridiag_solve(a, b, c, d);
+//
 // Adapted from the hd utility library and made internal to the ga library
 // so the physics ops carry no external dependency.
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -201,6 +205,161 @@ std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, 
     std::vector<T> x(n);
     for (size_t i = 0; i < n; ++i)
         x[i] = static_cast<T>(b[i]);
+    return x;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Tridiagonal solve (Thomas algorithm): forward elimination + back substitution.
+//
+//     a[i] x_{i-1} + b[i] x_i + c[i] x_{i+1} = d[i]
+//
+// with a[0] and c[n-1] outside the matrix and ignored. The three diagonals are given
+// as separate length-n vectors -- the n*n matrix is never formed.
+//
+// This is the solver the COMPACT (Pade) finite-difference schemes ask for. A compact
+// scheme states the derivative implicitly, coupling its values at i-1, i and i+1, so
+// evaluating one over a grid IS a tridiagonal system: one row per node, three entries
+// each. Routing that through lu_decomp/lu_backsubs would build the full n*n matrix and
+// factor it in O(n^3) to recover an O(n) answer -- for a 10^3-node grid, ~10^6 stored
+// doubles and ~10^9 operations in place of ~10^4. Hence this one, which allocates two
+// length-n work vectors and touches each row twice.
+//
+// The rhs and the solution are a GENERIC type: the coefficients are scalars while the
+// unknowns may be multivectors (the derivative of a multivector field at every node).
+// Only T + T and double * T are required of it -- which is why the elimination below
+// adds (-a[i]) * x rather than subtracting, T needing no operator-.
+//
+// NO PIVOTING is done. That is what makes the algorithm O(n), and it is safe here
+// because the systems this serves are DIAGONALLY DOMINANT -- for the compact first
+// derivative |2/3| > |1/6| + |1/6|, for the second |5/6| > 2*|1/12|, and a
+// discretized diffusion operator is dominant by construction. Dominance also bounds
+// the multipliers, so no growth factor appears. A pivot that collapses anyway means
+// the system is not of that kind, and throws rather than returning noise.
+//
+// -------------------------------------------------------------------------------------
+// BOUNDARY ROWS -- how the first and last rows are built
+// -------------------------------------------------------------------------------------
+//
+// The caller assembles a, b, c and d; this routine applies no boundary conditions of
+// its own. The ONE rule it imposes is the band: row i may reference columns i-1, i and
+// i+1 and nothing else. Interior rows of a 3-point stencil satisfy that automatically.
+// The first and last rows do not, because a centred stencil has no neighbour to one
+// side, so each needs a deliberate choice. The four that come up:
+//
+// 1.) DIRICHLET, as an identity row (simplest; the boundary node stays an unknown).
+//     Give the row the trivial equation u_0 = g_0:
+//
+//         a[0] = 0      b[0] = 1      c[0] = 0      d[0] = g_0
+//
+//     Indexing stays 1:1 with the grid and the solution comes back including the
+//     boundary values. It also makes that row strictly dominant, which is what braces
+//     an interior that is only weakly so. This is what fd_derivative() does, and the
+//     route to reach for unless the extra unknown is a problem.
+//
+// 2.) DIRICHLET, by ELIMINATION (the boundary node is not an unknown at all).
+//     Solve for the interior only. Row 1's coefficient a[1] multiplies the KNOWN u_0,
+//     so move that product to the right-hand side and zero the coefficient:
+//
+//         d[1] -= a[1] * g_0        a[1] = 0
+//         d[n-2] -= c[n-2] * g_1    c[n-2] = 0
+//
+//     (with the system then assembled over the interior nodes alone). The minus sign
+//     is the whole content of "bringing a known term to the other side": the equation
+//     reads sum_k coeff_k u_k = rhs, so a term whose u is known leaves the left side
+//     as MINUS its contribution. Both routes give the same interior values -- a test
+//     in ga_stencil_test.cpp solves one problem both ways and compares.
+//
+// 3.) NEUMANN -- a derivative is prescribed, so the row IS a one-sided fd stencil,
+//     and this is where the band rule bites. The 2-point one-sided stencil for u'
+//     touches columns 0 and 1 and fits as it stands. The 2nd-order one-sided stencil
+//     touches columns 0, 1 AND 2 -- one column too many. Restore the band with a
+//     single step of Gaussian elimination against row 1, the only other row that
+//     touches column 2:
+//
+//         f = w_2 / c[1]                          [w_2 = the out-of-band weight]
+//         b[0] = w_0 - f * a[1]
+//         c[0] = w_1 - f * b[1]
+//         d[0] = g_0 - f * d[1]                   [g_0 = the prescribed derivative]
+//
+//     and symmetrically at the far end against row n-2. This is the general answer
+//     whenever ONE row overhangs the band by a column, Neumann or not.
+//
+//     What it does NOT buy is accuracy, and it is worth being clear about that: a
+//     boundary row one order below the interior scheme does not generally cost global
+//     order. Measured on the advection-diffusion problem in ga_stencil_test.cpp, the
+//     folded 2nd-order row and the plain 1st-order 2-point row BOTH converge at rate
+//     2.00, and the 2-point row is the more accurate of the two by ~1.6x. So reach
+//     for the elimination when the wide row is what you have -- not in the
+//     expectation that a higher-order flux row will improve the solution. A ghost
+//     node is the other classical answer and needs no elimination, at the cost of one
+//     extra unknown.
+//
+// 4.) IMPLICITLY, by a BC-AWARE STENCIL -- the boundary condition built into the
+//     boundary row's stencil rather than stated as a row of its own. A prescribed
+//     derivative IS supplied derivative data, which is what make_scheme()'s aux_nodes
+//     argument takes (ga_usr_fd.hpp), so the stencil is generated knowing it:
+//
+//         auto sc = make_scheme(x[0], 2, {x[0], x[1]}, {x[0]}, {x[0]});
+//         //                            ^ f samples    ^ lhs   ^ f' supplied here
+//
+//     The prescribed value g_0 then enters the right-hand side through sc.aux_weights
+//     and the u-columns stay on the left:
+//
+//         u''(x_0) = sc.weights[0] u_0 + sc.weights[1] u_1 + sc.aux_weights[0] g_0
+//
+//     What this buys is FOOTPRINT: one supplied derivative value is worth one node.
+//     u'' from {x_0, x_1} plus a prescribed u'(x_0) is 1st order and touches columns
+//     0 and 1; the plain one-sided u'' needs {x_0, x_1, x_2} for the same order and
+//     overhangs the band. Supplying the condition is therefore the way to make a
+//     boundary row fit the three diagonals WITHOUT the elimination of recipe 3 --
+//     and it holds one order up too: 3 f-nodes plus u'(x_0) reach 2nd order where the
+//     plain form needs 4. A homogeneous condition (u' = 0, the reflective boundary)
+//     is the same construction with g_0 = 0, where the rhs term simply drops out.
+//
+// The same four apply to any operator assembled this way -- the shape of the boundary
+// row is a property of the boundary condition, not of the equation being discretized.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> tridiag_solve(std::vector<double> const& a, std::vector<double> const& b,
+                             std::vector<double> const& c, std::vector<T> const& d)
+{
+    size_t const n = b.size();
+    if (n < 2 || a.size() != n || c.size() != n || d.size() != n) {
+        throw Solver_error("hd::ga::tridiag_solve: diagonals and rhs must have the "
+                           "same length n >= 2.");
+    }
+
+    // a pivot is judged against the size of the row it came from, so the test means
+    // the same thing whatever the system is scaled in
+    auto checked_pivot = [&](double piv, size_t i) {
+        double const row = std::abs(a[i]) + std::abs(b[i]) + std::abs(c[i]);
+        if (std::abs(piv) <= 1.0e-14 * (row > 0.0 ? row : 1.0)) {
+            throw Solver_error("hd::ga::tridiag_solve: vanishing pivot -- the system "
+                               "is singular or not diagonally dominant.");
+        }
+        return piv;
+    };
+
+    std::vector<double> cp(n, 0.0); // eliminated super-diagonal
+    std::vector<T> dp(n, T{});      // eliminated right-hand side
+
+    // forward elimination -- sweep down, removing the sub-diagonal
+    double piv = checked_pivot(b[0], 0);
+    cp[0] = c[0] / piv;
+    dp[0] = (1.0 / piv) * d[0];
+    for (size_t i = 1; i < n; ++i) {
+        piv = checked_pivot(b[i] - a[i] * cp[i - 1], i);
+        cp[i] = c[i] / piv;
+        dp[i] = (1.0 / piv) * (d[i] + (-a[i]) * dp[i - 1]);
+    }
+
+    // back substitution -- sweep up
+    std::vector<T> x(n, T{});
+    x[n - 1] = dp[n - 1];
+    for (size_t i = n - 1; i-- > 0;) {
+        x[i] = dp[i] + (-cp[i]) * x[i + 1];
+    }
     return x;
 }
 

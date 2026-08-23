@@ -27,26 +27,15 @@ template <typename T> inline Vec3d<T> ega3d_basis(int i)
                                 : Vec3d<T>(T(0.0), T(0.0), T(1.0)));
 }
 
-// apply a scheme along axis i to get the directional derivative of a field at r
+// directional derivative of a field along axis i -- apply_scheme() owns the weight
+// loop and rejects a scheme that cannot be evaluated at a single point
 template <typename F>
 inline MVec3d<value_t> ega3d_axis_deriv(F&& f, Vec3d<value_t> const& r, int i,
                                         fd_scheme const& sc, value_t h)
 {
-    // a compact scheme is implicit: it couples derivative values at neighbouring nodes
-    // and cannot be evaluated at a single point. Use fd_derivative() on a grid instead.
-    if (sc.is_compact()) {
-        throw std::invalid_argument(
-            "nabla/laplacian: compact schemes are implicit and need a grid; "
-            "use fd_derivative() or pass an explicit scheme");
-    }
     Vec3d<value_t> const e = ega3d_basis<value_t>(i);
-    MVec3d<value_t> acc{};
-    for (std::size_t k = 0; k < sc.nodes.size(); ++k) {
-        if (sc.weights[k] == 0.0) continue; // the centre point drops out of odd stencils
-        acc = acc + sc.weights[k] * MVec3d<value_t>(f(r + (sc.nodes[k] * h) * e));
-    }
-    value_t const scale = (sc.deriv == 1) ? (value_t(1.0) / h) : (value_t(1.0) / (h * h));
-    return acc * scale;
+    return apply_scheme<MVec3d<value_t>>(
+        sc, [&](value_t off) { return f(r + off * e); }, h);
 }
 
 // the cached default schemes (2nd-order central), built once
@@ -273,13 +262,8 @@ inline auto d_dt(F&& f, Vec3d<value_t> const& r, value_t t, fd_scheme const& sc,
 {
     if (h <= value_t(0.0)) h = fd_step(sc, t);
 
-    MVec3d<value_t> acc{};
-    for (std::size_t k = 0; k < sc.nodes.size(); ++k) {
-        if (sc.weights[k] == 0.0) continue;
-        acc = acc + sc.weights[k] * MVec3d<value_t>(f(r, t + sc.nodes[k] * h));
-    }
-    value_t const scale = (sc.deriv == 1) ? (value_t(1.0) / h) : (value_t(1.0) / (h * h));
-    return acc * scale;
+    return apply_scheme<MVec3d<value_t>>(
+        sc, [&](value_t off) { return f(r, t + off); }, h);
 }
 
 template <typename F>

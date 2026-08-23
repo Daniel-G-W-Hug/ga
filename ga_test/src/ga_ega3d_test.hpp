@@ -3926,11 +3926,15 @@ TEST_SUITE("EGA 3D Tests")
                    std::sin(r.z) * r.x;
         };
 
-        // the generator reports what it achieved
-        CHECK(central_scheme(1, 2).order == 2);
-        CHECK(central_scheme(1, 4).order == 4);
-        CHECK(central_scheme(1, 6).order == 6);
-        CHECK(central_scheme(2, 2).order == 2);
+        // the generator reports what it achieved -- at EVERY order, not only the low
+        // ones. This used to stop at 6: order 8 and up came back reporting order 0,
+        // which sent fd_step() to machine eps and made nabla wrong by ~45 % with no
+        // error raised. Asking for more accuracy must never give less.
+        for (int ord = 2; ord <= 12; ord += 2) {
+            CAPTURE(ord);
+            CHECK(central_scheme(1, ord).order == ord);
+            CHECK(central_scheme(2, ord).order == ord);
+        }
         // and the classical central weights come out
         auto d2 = central_scheme(2, 2);
         CHECK(std::abs(d2.weights[0] - 1.0) < eps);
@@ -3957,6 +3961,23 @@ TEST_SUITE("EGA 3D Tests")
         double const err6 =
             std::abs(value_t(gr0(nabla(A, r0, central_scheme(1, 6)))) - div_exact(r0));
         CHECK(err6 < err2);
+
+        // ... and that must still hold past order 6, at the DEFAULT step: this is the
+        // end-to-end form of the regression above, where the divergence came back as
+        // 0.83 instead of 1.50 because the step had collapsed
+        for (int ord : {8, 10}) {
+            CAPTURE(ord);
+            double const err = std::abs(
+                value_t(gr0(nabla(A, r0, central_scheme(1, ord)))) - div_exact(r0));
+            CHECK(err < err2);
+            CHECK(err < 1.0e-9);
+        }
+
+        // a staggered scheme samples on the half-offsets and develops between them,
+        // so it never evaluates the field at r0 itself -- and still gets the answer
+        double const err_stag =
+            std::abs(value_t(gr0(nabla(A, r0, staggered_scheme(1, 4)))) - div_exact(r0));
+        CHECK(err_stag < 1.0e-9);
     }
 
     TEST_CASE("ega3d calculus: the single Maxwell equation on a plane wave")
