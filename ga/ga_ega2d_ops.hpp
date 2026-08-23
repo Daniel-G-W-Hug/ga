@@ -6,7 +6,32 @@
 #include "ga_ega2d_ops_basics.hpp"   // ega2d ops basics
 #include "ga_ega2d_ops_products.hpp" // ega2d ops products
 
+#include <utility> // std::pair
 #include <vector>
+
+namespace hd::ga::detail {
+
+// (cosh(r), sinh(r)/r) for r^2 = w2, with the branch chosen by the sign of w2 and both
+// values continued to their limits (1, 1) at w2 = 0 -- which is also the exact answer
+// for a null argument, where the series terminate after the linear term.
+// Passing -w2 instead yields (cos(r), sin(r)/r), so one helper serves exp and cos/sin.
+template <typename T>
+    requires(numeric_type<T>)
+inline std::pair<T, T> ega2d_euler_pair(T w2)
+{
+    if (w2 > safe_epsilon<T>()) {
+        T const r = std::sqrt(w2);
+        return {std::cosh(r), std::sinh(r) / r};
+    }
+    if (w2 < -safe_epsilon<T>()) {
+        T const r = std::sqrt(-w2);
+        return {std::cos(r), std::sin(r) / r};
+    }
+    return {T(1.0), T(1.0)};
+}
+
+} // namespace hd::ga::detail
+
 
 namespace hd::ga::ega {
 
@@ -15,6 +40,7 @@ namespace hd::ga::ega {
 //
 // - angle(), angle_to_re()         -> angle operations
 // - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
 // - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
@@ -113,6 +139,74 @@ constexpr MVec2d_E<T> exp(PScalar2d<T> B)
 
     auto phi = sign(B) * nrm(B);
     return MVec2d_E<T>(Scalar2d<T>(std::cos(phi)), PScalar2d<T>(std::sin(phi)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 2d exp / cos / sin of a GENERAL multivector (closed form, no series)
+////////////////////////////////////////////////////////////////////////////////
+//
+// The 2d counterpart of the ega3d construction. Here the centre of the algebra is
+// just the scalars (the pseudoscalar anticommutes with vectors, so it is NOT
+// central), which splits a general multivector as
+//
+//     Z = a + W ,    a = gr0(Z)  (central),   W = gr1(Z) + gr2(Z)
+//
+// The remaining part again squares back into the centre, now to a REAL scalar,
+//
+//     W^2 = |v|^2 - p^2          [v = gr1(Z), p = gr2(Z)]
+//
+// because the pseudoscalar anticommutes with the vector and the cross terms drop
+// out. So with r = sqrt(W^2) the series close as
+//
+//     exp(W) = cosh(r) + W sinh(r)/r ,  cos(W) = cos(r) ,  sin(W) = W sin(r)/r
+//
+// and, since a commutes with W, the addition theorems finish the job. Unlike the
+// 3d case the branch is chosen by the SIGN of W^2 (the centre is R, not C): a
+// vector-dominated W gives hyperbolic behaviour, a pseudoscalar-dominated one
+// gives circular, and the null case W^2 = 0 terminates the series exactly.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2d<T> exp(MVec2d<T> const& Z)
+{
+    T const a = T(gr0(Z));
+    Vec2d<T> const v = gr1(Z);
+    T const p = T(gr2(Z));
+    MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+
+    auto const [c, s] = detail::ega2d_euler_pair<T>(nrm_sq(v) - p * p);
+    return std::exp(a) * (c * one + s * W);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2d<T> cos(MVec2d<T> const& Z)
+{
+    T const a = T(gr0(Z));
+    Vec2d<T> const v = gr1(Z);
+    T const p = T(gr2(Z));
+    MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+
+    auto const [c, s] = detail::ega2d_euler_pair<T>(-(nrm_sq(v) - p * p));
+    return std::cos(a) * (c * one) - std::sin(a) * (s * W);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2d<T> sin(MVec2d<T> const& Z)
+{
+    T const a = T(gr0(Z));
+    Vec2d<T> const v = gr1(Z);
+    T const p = T(gr2(Z));
+    MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+
+    auto const [c, s] = detail::ega2d_euler_pair<T>(-(nrm_sq(v) - p * p));
+    return std::sin(a) * (c * one) + std::cos(a) * (s * W);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

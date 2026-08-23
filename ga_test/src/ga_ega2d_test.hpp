@@ -3096,4 +3096,79 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("");
     }
 
+
+    TEST_CASE("MVec2d: is_close for the full multivector")
+    {
+        fmt::println("MVec2d: is_close for the full multivector");
+
+        auto A = mvec2d{1.0, 2.0, 3.0, 4.0};
+        auto B = A;
+        CHECK(is_close(A, B));
+
+        // a perturbation well beyond eps_congruent is NOT close
+        B.c0 += 1.0e-6;
+        CHECK(!is_close(A, B));
+
+        // the threshold is RELATIVE: at a large scale a small absolute difference is
+        // still close, while operator== (absolute eps) already says different
+        auto big = mvec2d{1.0e9, 2.0e9, 3.0e9, 4.0e9};
+        auto near = big;
+        near.c3 += 1.0e-4;
+        CHECK(is_close(big, near));
+        CHECK(!(big == near));
+    }
+
+    TEST_CASE("MVec2d: exp, cos and sin of a general multivector")
+    {
+        fmt::println("MVec2d: exp, cos and sin of a general multivector");
+
+        // reference: the defining power series, summed far enough to converge
+        auto one = []() { return mvec2d{scalar2d(1.0)}; };
+        auto series_exp = [&](mvec2d const& Z) {
+            mvec2d acc = one(), term = one();
+            for (int m = 1; m <= 80; ++m) {
+                term = term * Z * (1.0 / m);
+                acc = acc + term;
+            }
+            return acc;
+        };
+        auto series_trig = [&](mvec2d const& Z, bool sine) {
+            mvec2d acc{}, p = one();
+            double f = 1.0;
+            for (int m = 0; m <= 80; ++m) {
+                if (m > 0) {
+                    p = p * Z;
+                    f *= m;
+                }
+                bool const take = sine ? (m % 2 == 1) : (m % 2 == 0);
+                if (take) {
+                    int const k = sine ? (m - 1) / 2 : m / 2;
+                    acc = acc + ((k % 2 ? -1.0 : 1.0) / f) * p;
+                }
+            }
+            return acc;
+        };
+
+        // W^2 = |v|^2 - p^2 selects the branch: hyperbolic, circular or null
+        auto hyp = mvec2d{scalar2d(0.2), vec2d{1.3, 0.4}, pscalar2d(0.1)}; // W^2 > 0
+        auto cir = mvec2d{scalar2d(0.2), vec2d{0.1, 0.2}, pscalar2d(1.4)}; // W^2 < 0
+        auto nul = mvec2d{scalar2d(0.3), vec2d{0.9, 0.0}, pscalar2d(0.9)}; // W^2 = 0
+        auto zero = mvec2d{};
+
+        for (auto const& Z : {hyp, cir, nul, zero}) {
+            CHECK(is_close(exp(Z), series_exp(Z)));
+            CHECK(is_close(cos(Z), series_trig(Z, false)));
+            CHECK(is_close(sin(Z), series_trig(Z, true)));
+        }
+
+        // consistent with the pseudoscalar overload (which is the 2d rotor)
+        CHECK(is_close(exp(mvec2d{pscalar2d(0.63)}), mvec2d{exp(pscalar2d(0.63))}));
+
+        // identities
+        CHECK(is_close(exp(zero), one()));
+        CHECK(is_close(cos(zero), one()));
+        CHECK(nrm(sin(zero)) < eps);
+        CHECK(is_close(exp(hyp) * exp(-hyp), one()));
+    }
+
 } // EGA 2D Tests

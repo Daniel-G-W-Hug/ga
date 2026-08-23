@@ -3680,4 +3680,127 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("");
     }
 
+
+    TEST_CASE("MVec3d: is_close for the odd and the full multivector")
+    {
+        fmt::println("MVec3d: is_close for the odd and the full multivector");
+
+        auto A = mvec3d{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+        auto B = A;
+        CHECK(is_close(A, B));
+        B.c0 += 1.0e-6;
+        CHECK(!is_close(A, B));
+
+        auto U = mvec3d_u{1.0, 2.0, 3.0, 4.0};
+        auto V = U;
+        CHECK(is_close(U, V));
+        V.c0 += 1.0e-6;
+        CHECK(!is_close(U, V));
+
+        // relative, not absolute: cf. operator==
+        auto big = mvec3d{1.0e9, 2.0e9, 3.0e9, 4.0e9, 5.0e9, 6.0e9, 7.0e9, 8.0e9};
+        auto near = big;
+        near.c3 += 1.0e-4;
+        CHECK(is_close(big, near));
+        CHECK(!(big == near));
+    }
+
+    TEST_CASE("PScalar3d: exp of a pseudoscalar (duality rotation, NOT a rotor)")
+    {
+        fmt::println("PScalar3d: exp of a pseudoscalar (duality rotation, NOT a rotor)");
+
+        auto const al = 0.63;
+        auto E = exp(pscalar3d(al));
+
+        // cos(alpha) + I sin(alpha), and nothing at grades 1 and 2
+        CHECK(std::abs(value_t(gr0(E)) - std::cos(al)) < eps);
+        CHECK(std::abs(value_t(gr3(E)) - std::sin(al)) < eps);
+        CHECK(nrm(gr1(E)) < eps);
+        CHECK(nrm(gr2(E)) < eps);
+
+        // composes like a complex phase and has unit magnitude
+        CHECK(is_close(exp(pscalar3d(al)) * exp(pscalar3d(-0.41)),
+                       exp(pscalar3d(al - 0.41))));
+        CHECK(std::abs(nrm(E) - 1.0) < eps);
+
+        // I_3d is CENTRAL, so the sandwich returns its argument unchanged: this is a
+        // duality rotation acting by multiplication, not a motion
+        auto X = mvec3d{scalar3d(0.5), vec3d{1.0, 2.0, 3.0}, bivec3d{-2.0, 1.0, 0.5},
+                        pscalar3d(1.3)};
+        CHECK(is_close(E * X, X * E));
+        CHECK(is_close(E * X * rev(E), X));
+
+        // alpha = pi/2 is the Hodge map: e -> -b, b -> e
+        auto ev = vec3d{0.7, -0.3, 0.5};
+        auto bv = vec3d{0.2, 0.9, -0.4};
+        auto f = mvec3d{ev} + mvec3d{cmpl(bv)};
+        auto fd = exp(pscalar3d(0.5 * pi)) * f;
+        CHECK(is_close(gr1(fd), -bv));
+        CHECK(is_close(gr2(fd), cmpl(ev)));
+    }
+
+    TEST_CASE("MVec3d: exp, cos and sin of a general multivector")
+    {
+        fmt::println("MVec3d: exp, cos and sin of a general multivector");
+
+        auto one = []() { return mvec3d{scalar3d(1.0)}; };
+        auto series_exp = [&](mvec3d const& Z) {
+            mvec3d acc = one(), term = one();
+            for (int m = 1; m <= 80; ++m) {
+                term = term * Z * (1.0 / m);
+                acc = acc + term;
+            }
+            return acc;
+        };
+        auto series_trig = [&](mvec3d const& Z, bool sine) {
+            mvec3d acc{}, p = one();
+            double f = 1.0;
+            for (int m = 0; m <= 80; ++m) {
+                if (m > 0) {
+                    p = p * Z;
+                    f *= m;
+                }
+                bool const take = sine ? (m % 2 == 1) : (m % 2 == 0);
+                if (take) {
+                    int const k = sine ? (m - 1) / 2 : m / 2;
+                    acc = acc + ((k % 2 ? -1.0 : 1.0) / f) * p;
+                }
+            }
+            return acc;
+        };
+
+        auto gen = mvec3d{scalar3d(0.4), vec3d{1.1, -0.7, 0.9}, bivec3d{0.3, -1.2, 0.6},
+                          pscalar3d(1.5)};
+        // an element of the subalgebra A(n) = span{1, n, I n, I} (the plane-wave case)
+        auto n = normalize(vec3d{1.0, 2.0, -0.5});
+        auto An = mvec3d{scalar3d(0.4)} + mvec3d{-0.7 * n} + mvec3d{0.9 * cmpl(n)} +
+                  mvec3d{pscalar3d(1.3)};
+        // a null W: |v| = |B| and v ^ B = 0, so W^2 = 0 and the series terminate
+        auto nul = mvec3d{e1_3d} + mvec3d{cmpl(e1_3d)};
+        auto zero = mvec3d{};
+
+        for (auto const& Z : {gen, An, nul, zero, 3.7 * gen}) {
+            CHECK(is_close(exp(Z), series_exp(Z)));
+            CHECK(is_close(cos(Z), series_trig(Z, false)));
+            CHECK(is_close(sin(Z), series_trig(Z, true)));
+        }
+
+        // consistent with the single-grade overloads
+        auto B = bivec3d{0.3, -1.2, 0.6};
+        CHECK(is_close(exp(mvec3d{B}), mvec3d{exp(B)}));
+        CHECK(is_close(exp(mvec3d{pscalar3d(1.5)}), exp(pscalar3d(1.5))));
+
+        // identities
+        CHECK(is_close(exp(zero), one()));
+        CHECK(is_close(cos(gen) * cos(gen) + sin(gen) * sin(gen), one()));
+        CHECK(is_close(exp(gen) * exp(-gen), one()));
+        // Euler with the CENTRAL pseudoscalar
+        CHECK(is_close(exp(mvec3d{I_3d} * gen), cos(gen) + mvec3d{I_3d} * sin(gen)));
+        // addition theorems hold for COMMUTING arguments
+        auto A2 = mvec3d{I_3d} * An;
+        CHECK(is_close(An * A2, A2 * An));
+        CHECK(is_close(exp(An + A2), exp(An) * exp(A2)));
+        CHECK(is_close(cos(An + A2), cos(An) * cos(A2) - sin(An) * sin(A2)));
+    }
+
 } // EGA 3D Tests

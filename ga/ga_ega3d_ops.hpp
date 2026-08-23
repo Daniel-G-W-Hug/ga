@@ -6,7 +6,52 @@
 #include "ga_ega3d_ops_basics.hpp"   // ega3d ops basics
 #include "ga_ega3d_ops_products.hpp" // ega3d ops products
 
+#include <complex> // std::complex (the centre span{1, I_3d} of ega3d)
 #include <vector>
+
+
+namespace hd::ga::detail {
+
+// Helpers for the closed-form ega3d exp/cos/sin of a general multivector. Kept in
+// hd::ga::detail (not hd::ga::ega::detail) so they stay out of the binding generator's
+// scan AND do not shadow the hd::ga::detail names used unqualified inside hd::ga::ega.
+
+// (z, W, r, sinh(r)/r) of the central/non-central split used by exp, cos and sin
+template <typename T> struct ega3d_mv_split {
+    std::complex<T> z; // gr0 + gr3, the central part
+    MVec3d<T> W;       // gr1 + gr2, the rest
+    std::complex<T> r; // sqrt(W^2), taken in the centre
+};
+
+template <typename T>
+    requires(numeric_type<T>)
+inline ega3d_mv_split<T> ega3d_split(MVec3d<T> const& Z)
+{
+    Vec3d<T> const v = gr1(Z);
+    BiVec3d<T> const B = gr2(Z);
+    std::complex<T> const w2(ega::nrm_sq(v) - ega::nrm_sq(B), T(2.0) * T(ega::wdg(v, B)));
+    return {std::complex<T>(T(gr0(Z)), T(gr3(Z))),
+            MVec3d<T>(Scalar3d<T>(0.0), v, B, PScalar3d<T>(0.0)), std::sqrt(w2)};
+}
+
+// a complex number of span{1, I_3d} as a multivector
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d<T> ega3d_central(std::complex<T> const& c)
+{
+    return MVec3d<T>(Scalar3d<T>(c.real()), Vec3d<T>(0.0, 0.0, 0.0),
+                     BiVec3d<T>(0.0, 0.0, 0.0), PScalar3d<T>(c.imag()));
+}
+
+// f(r)/r continued by its limit 1 at r = 0 (exact for a null W)
+template <typename T>
+inline std::complex<T> ega3d_sinc(std::complex<T> const& f, std::complex<T> const& r)
+{
+    return (std::abs(r) <= safe_epsilon<T>()) ? std::complex<T>(T(1.0), T(0.0)) : f / r;
+}
+
+
+} // namespace hd::ga::detail
 
 
 namespace hd::ga::ega {
@@ -18,6 +63,9 @@ namespace hd::ga::ega {
 // - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
 // - exp(pscalar)                   -> exponential of a pseudoscalar: cos + I sin,
 //                                     a duality-rotation factor, NOT a rotor
+// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
+//                                     (the centre span{1, I_3d} acts as the complex
+//                                     numbers, so the series close)
 // - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
@@ -204,6 +252,77 @@ constexpr MVec3d<T> exp(PScalar3d<T> ps)
     T const alpha = T(ps);
     return MVec3d<T>(Scalar3d<T>(std::cos(alpha)), Vec3d<T>(0.0, 0.0, 0.0),
                      BiVec3d<T>(0.0, 0.0, 0.0), PScalar3d<T>(std::sin(alpha)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 3d exp / cos / sin of a GENERAL multivector (closed form, no series)
+////////////////////////////////////////////////////////////////////////////////
+//
+// In 3d the scalar and the pseudoscalar span the CENTRE of the algebra (I_3d
+// commutes with everything and squares to -1), so span{1, I_3d} behaves exactly
+// as the complex numbers. That lets a general multivector split as
+//
+//     Z = z + W ,   z = gr0(Z) + gr3(Z)  (central, "complex"),  W = gr1(Z) + gr2(Z)
+//
+// with z commuting with W. The remaining part squares back INTO the centre,
+//
+//     W^2 = (|v|^2 - |B|^2) + 2 (v ^ B)          [v = gr1(Z), B = gr2(Z)]
+//
+// -- the two invariants of the vector/bivector pair -- so with r = sqrt(W^2)
+// taken in the centre the series close into the generalised Euler formulas
+//
+//     exp(W) = cosh(r) + W sinh(r)/r ,   cos(W) = cos(r) ,   sin(W) = W sin(r)/r
+//
+// and the addition theorems apply because z and W commute:
+//
+//     exp(Z) = exp(z) exp(W)
+//     cos(Z) = cos(z) cos(W) - sin(z) sin(W)
+//     sin(Z) = sin(z) cos(W) + cos(z) sin(W)
+//
+// with cos(W) = cos(r), sin(W) = W sin(r)/r. All of z, r and the scalar factors
+// are complex numbers in span{1, I_3d}; sinh(r)/r and sin(r)/r are continued to
+// r = 0 by their limit 1, which is also the exact answer for a null W (W^2 = 0),
+// where the series terminate after the linear term.
+//
+// The whole construction rests on the pseudoscalar being CENTRAL, which holds
+// only in odd dimensions -- see the "Central element" entry in the glossary. It
+// therefore has a counterpart in ega2d (centre = the scalars, so r is real and
+// the branch is chosen by the sign of W^2) but none in sta4ds, where W^2 is not
+// central and the series do not close.
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d<T> exp(MVec3d<T> const& Z)
+{
+    auto const p = detail::ega3d_split(Z);
+    auto const cw = detail::ega3d_central(std::cosh(p.r));
+    auto const sw = detail::ega3d_central(detail::ega3d_sinc(std::sinh(p.r), p.r));
+    return detail::ega3d_central(std::exp(p.z)) * (cw + p.W * sw);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d<T> cos(MVec3d<T> const& Z)
+{
+    auto const p = detail::ega3d_split(Z);
+    auto const cw = detail::ega3d_central(std::cos(p.r));
+    auto const sw = detail::ega3d_central(detail::ega3d_sinc(std::sin(p.r), p.r));
+    return detail::ega3d_central(std::cos(p.z)) * cw -
+           detail::ega3d_central(std::sin(p.z)) * (p.W * sw);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d<T> sin(MVec3d<T> const& Z)
+{
+    auto const p = detail::ega3d_split(Z);
+    auto const cw = detail::ega3d_central(std::cos(p.r));
+    auto const sw = detail::ega3d_central(detail::ega3d_sinc(std::sin(p.r), p.r));
+    return detail::ega3d_central(std::sin(p.z)) * cw +
+           detail::ega3d_central(std::cos(p.z)) * (p.W * sw);
 }
 
 

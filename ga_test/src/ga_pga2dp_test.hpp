@@ -4149,6 +4149,31 @@ TEST_SUITE("PGA 2DP Tests")
         }
     }
 
+
+    TEST_CASE("MVec2dp: is_close for the even, the full multivector and the dual number")
+    {
+        fmt::println(
+            "MVec2dp: is_close for the even, the full multivector, the dual number");
+
+        auto A = mvec2dp{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+        auto B = A;
+        CHECK(is_close(A, B));
+        B.c0 += 1.0e-6;
+        CHECK(!is_close(A, B));
+
+        auto E = mvec2dp_e{1.0, 2.0, 3.0, 4.0};
+        auto F = E;
+        CHECK(is_close(E, F));
+        F.c0 += 1.0e-6;
+        CHECK(!is_close(E, F));
+
+        auto D = dualnum2dp{2.0, -3.0};
+        auto G = D;
+        CHECK(is_close(D, G));
+        G.c0 += 1.0e-6;
+        CHECK(!is_close(D, G));
+    }
+
 } // PGA 2DP Tests
 
 // | ⟑ | U+27D1 | (direct Unicode) | Geometric product |

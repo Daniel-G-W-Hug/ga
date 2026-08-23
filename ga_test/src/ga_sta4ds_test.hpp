@@ -2254,4 +2254,121 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("");
     }
 
+
+    TEST_CASE("MVec4ds: is_close for the odd, the full multivector and the dual number")
+    {
+        fmt::println(
+            "MVec4ds: is_close for the odd, the full multivector, the dual number");
+
+        auto A = mvec4ds{1.0, 2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                         9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
+        auto B = A;
+        CHECK(is_close(A, B));
+        B.c0 += 1.0e-6;
+        CHECK(!is_close(A, B));
+
+        auto U = mvec4ds_u{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+        auto V = U;
+        CHECK(is_close(U, V));
+        V.c0 += 1.0e-6;
+        CHECK(!is_close(U, V));
+
+        auto D = dualnum4ds{2.0, -3.0};
+        auto E = D;
+        CHECK(is_close(D, E));
+        E.c0 += 1.0e-6;
+        CHECK(!is_close(D, E));
+    }
+
+    TEST_CASE("PScalar4ds: exp of a pseudoscalar (duality rotation on bivectors)")
+    {
+        fmt::println("PScalar4ds: exp of a pseudoscalar (duality rotation on bivectors)");
+
+        auto const al = 0.63;
+        auto E = exp(pscalar4ds(al));
+
+        CHECK(std::abs(value_t(gr0(E)) - std::cos(al)) < eps);
+        CHECK(std::abs(value_t(gr4(E)) - std::sin(al)) < eps);
+        CHECK(nrm(gr2(E)) < eps);
+        CHECK(is_close(exp(pscalar4ds(al)) * exp(pscalar4ds(-0.41)),
+                       exp(pscalar4ds(al - 0.41))));
+
+        // I_4ds is NOT central: it commutes with bivectors and anticommutes with the
+        // odd grades, the anticommuting part surfacing in grade 3 rather than grade 1
+        auto F = bivec4ds{1.0, 0.3, -0.2, 0.5, 1.1, -0.7};
+        auto v = vec4ds{0.3, -0.5, 0.2, 1.4};
+        CHECK(is_close(bivec4ds(gr2(mvec4ds(E) * mvec4ds(F))),
+                       bivec4ds(gr2(mvec4ds(F) * mvec4ds(E)))));
+        CHECK(is_close(trivec4ds(gr3(mvec4ds(E) * mvec4ds(v))),
+                       trivec4ds(-gr3(mvec4ds(v) * mvec4ds(E)))));
+
+        // and it is not a unit versor: E rev(E) = exp(2 alpha I), not 1
+        CHECK(is_close(E * rev(E), exp(pscalar4ds(2.0 * al))));
+    }
+
+    TEST_CASE("BiVec4ds: invariant decomposition (is_simple, boost_part, rot_part)")
+    {
+        fmt::println(
+            "BiVec4ds: invariant decomposition (is_simple, boost_part, rot_part)");
+
+        auto F = bivec4ds{1.0, 0.3, -0.2, 0.5, 1.1, -0.7}; // non-simple
+        auto S = wdg(vec4ds{0.3, -0.5, 0.2, 1.4}, vec4ds{1.1, 0.4, -0.7, 2.0}); // simple
+        auto Tl = g14_4ds;                      // simple, time-like
+        auto Sp = g12_4ds;                      // simple, space-like
+        auto Nl = wdg(g4_4ds + g1_4ds, g2_4ds); // simple, light-like
+
+        CHECK(!is_simple(F));
+        CHECK(is_simple(S));
+        CHECK(is_simple(Tl));
+        CHECK(is_simple(Sp));
+        CHECK(is_simple(Nl));
+
+        // B = boost_part + rot_part, both simple, squares straddling zero
+        CHECK(is_close(F, boost_part(F) + rot_part(F)));
+        CHECK(is_simple(boost_part(F)));
+        CHECK(is_simple(rot_part(F)));
+        CHECK(value_t(gr0(boost_part(F) * boost_part(F))) >= 0.0);
+        CHECK(value_t(gr0(rot_part(F) * rot_part(F))) <= 0.0);
+
+        // orthogonal and commuting
+        CHECK(std::abs(value_t(dot(boost_part(F), rot_part(F)))) < eps);
+        CHECK(nrm(cmt(boost_part(F), rot_part(F))) < eps);
+
+        // the two planes commute, so the rotor factors -- this is what exp() relies on
+        CHECK(is_close(exp(F), exp(boost_part(F)) * exp(rot_part(F))));
+        CHECK(is_close(exp(boost_part(F)) * exp(rot_part(F)),
+                       exp(rot_part(F)) * exp(boost_part(F))));
+
+        // a simple input lands in the slot matching its causal character
+        CHECK(is_close(boost_part(Tl), Tl));
+        CHECK(nrm(rot_part(Tl)) < eps);
+        CHECK(is_close(rot_part(Sp), Sp));
+        CHECK(nrm(boost_part(Sp)) < eps);
+        CHECK(is_close(boost_part(Nl), Nl));
+        CHECK(nrm(rot_part(Nl)) < eps);
+    }
+
+    TEST_CASE("MVec4ds_E: exp / log / sqrt unchanged by the shared decomposition")
+    {
+        fmt::println("MVec4ds_E: exp / log / sqrt unchanged by the shared decomposition");
+
+        // regression guard: exp() was refactored onto detail::sta4ds_biv_decompose()
+        auto F = bivec4ds{1.0, 0.3, -0.2, 0.5, 1.1, -0.7}; // non-simple
+        auto S = wdg(vec4ds{0.3, -0.5, 0.2, 1.4}, vec4ds{1.1, 0.4, -0.7, 2.0});
+        auto Tl = 0.6 * g14_4ds;
+        auto Sp = 0.4 * g12_4ds;
+        auto Nl = wdg(g4_4ds + g1_4ds, g2_4ds);
+        auto Z = bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+        for (auto const& B : {F, S, Tl, Sp, Nl, Z}) {
+            auto R = exp(B);
+            CHECK(std::abs(value_t(gr0(R * rev(R))) - 1.0) < eps); // unit rotor
+        }
+        // round trips
+        CHECK(is_close(exp(log(exp(Tl))), exp(Tl)));
+        CHECK(is_close(exp(log(exp(Sp))), exp(Sp)));
+        CHECK(is_close(exp(log(exp(F))), exp(F)));
+        CHECK(is_close(sqrt(exp(F)) * sqrt(exp(F)), exp(F)));
+    }
+
 } // STA 3D Tests
