@@ -3978,4 +3978,105 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(nrm(lap - d2t) < 1.0e-4);
     }
 
+
+    TEST_CASE("ega3d calculus: compact (Pade) schemes and grid derivatives")
+    {
+        fmt::println("ega3d calculus: compact (Pade) schemes and grid derivatives");
+
+        // the compact schemes on i-1, i, i+1 are the textbook Pade forms:
+        //   f'_{i-1} + 4 f'_i + f'_{i+1}      = 3 (f_{i+1} - f_{i-1}) / h
+        //   f''_{i-1} + 10 f''_i + f''_{i+1}  = 12 (f_{i-1} - 2 f_i + f_{i+1}) / h^2
+        // normalised so the lhs weights sum to 1
+        auto c1 = compact_scheme(1);
+        CHECK(c1.is_compact());
+        CHECK(c1.order == 4);
+        CHECK(std::abs(c1.lhs_weights[0] - 1.0 / 6.0) < eps);
+        CHECK(std::abs(c1.lhs_weights[1] - 2.0 / 3.0) < eps);
+        CHECK(std::abs(c1.lhs_weights[2] - 1.0 / 6.0) < eps);
+        CHECK(std::abs(c1.weights[0] + 0.5) < eps);
+        CHECK(std::abs(c1.weights[2] - 0.5) < eps);
+
+        auto c2 = compact_scheme(2);
+        CHECK(c2.is_compact());
+        CHECK(c2.order == 4);
+        CHECK(std::abs(c2.lhs_weights[0] - 1.0 / 12.0) < eps);
+        CHECK(std::abs(c2.lhs_weights[1] - 10.0 / 12.0) < eps);
+        CHECK(std::abs(c2.weights[1] + 2.0) < eps);
+
+        // an explicit scheme is not compact, and the point operators reject compact ones
+        CHECK(!central_scheme(1, 2).is_compact());
+        CHECK_THROWS_AS(nabla([](vec3d const& q) { return scalar3d(q.x); },
+                              vec3d{1.0, 0.0, 0.0}, compact_scheme(1)),
+                        std::invalid_argument);
+
+        // a test function with known derivatives
+        auto fn = [](double s) { return std::sin(3 * s) * std::exp(0.5 * s); };
+        auto d1 = [](double s) {
+            return std::exp(0.5 * s) * (3 * std::cos(3 * s) + 0.5 * std::sin(3 * s));
+        };
+        auto max_err = [&](std::vector<double> const& x, fd_kind kind) {
+            std::vector<double> f;
+            for (auto s : x)
+                f.push_back(fn(s));
+            auto d = fd_derivative(x, f, 1, kind, 2);
+            double m = 0.0;
+            for (std::size_t i = 2; i + 2 < x.size(); ++i) {
+                m = std::max(m, std::abs(d[i] - d1(x[i])));
+            }
+            return m;
+        };
+        auto uniform = [](int n) {
+            std::vector<double> x;
+            for (int i = 0; i < n; ++i)
+                x.push_back(double(i) / (n - 1));
+            return x;
+        };
+        auto stretched = [](int n) { // smooth geometric stretching
+            std::vector<double> x;
+            for (int i = 0; i < n; ++i) {
+                double const s = double(i) / (n - 1);
+                x.push_back(s * s * (3 - 2 * s));
+            }
+            return x;
+        };
+
+        // EQUIDISTANT: compact reaches 4th order from a three-point footprint where the
+        // explicit stencil of the same width reaches only 2nd
+        double const e41 = max_err(uniform(41), fd_kind::explicit_fd);
+        double const c41 = max_err(uniform(41), fd_kind::compact_fd);
+        double const c81 = max_err(uniform(81), fd_kind::compact_fd);
+        CHECK(c41 < e41 / 100.0);
+        double const observed = std::log2(c41 / c81);
+        CHECK(observed > 3.7);
+        CHECK(observed < 4.3);
+
+        // NON-EQUIDISTANT: the grid coordinates are the input, so the weights differ
+        // from node to node
+        auto xs = stretched(41);
+        CHECK(max_err(xs, fd_kind::compact_fd) <
+              max_err(xs, fd_kind::explicit_fd) / 10.0);
+        auto s5 = scheme_at(xs, 5, 1, fd_kind::compact_fd);
+        auto s30 = scheme_at(xs, 30, 1, fd_kind::compact_fd);
+        CHECK(std::abs(s5.lhs_weights[0] - s30.lhs_weights[0]) > 1.0e-6);
+        // the first-derivative compact scheme keeps 4th order on a stretched grid,
+        // the second-derivative one drops to 3rd -- ask, do not assume
+        CHECK(s5.order == 4);
+        CHECK(scheme_at(xs, 5, 2, fd_kind::compact_fd).order == 3);
+
+        // the grid path is value-type generic: multivector samples work unchanged
+        auto xu = uniform(41);
+        std::vector<mvec3d> mf;
+        for (auto s : xu) {
+            mf.push_back(mvec3d(scalar3d(std::sin(3 * s))) +
+                         mvec3d(std::cos(2 * s) * e1_3d));
+        }
+        auto md = fd_derivative(xu, mf, 1, fd_kind::compact_fd);
+        double mm = 0.0;
+        for (std::size_t i = 2; i + 2 < xu.size(); ++i) {
+            mm = std::max(mm, std::abs(value_t(gr0(md[i])) - 3 * std::cos(3 * xu[i])));
+            mm = std::max(mm, nrm(gr1(md[i]) - (-2 * std::sin(2 * xu[i])) * e1_3d));
+        }
+        CHECK(mm < 1.0e-5);
+    }
+
 } // EGA 3D Tests
