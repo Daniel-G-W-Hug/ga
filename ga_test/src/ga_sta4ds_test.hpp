@@ -2408,4 +2408,100 @@ TEST_SUITE("STA 3D Tests")
                         std::invalid_argument);
     }
 
+
+    TEST_CASE("sta4ds calculus: the spacetime vector derivative and Maxwell")
+    {
+        fmt::println("sta4ds calculus: the spacetime vector derivative and Maxwell");
+
+        // nrm() is NULL-CAPABLE in a Minkowski metric: nrm(X) == 0 does NOT mean X == 0,
+        // so a result is tested for zero COMPONENTWISE
+        auto is_zero = [](mvec4ds const& M, double tol) {
+            double const* c = &M.c0;
+            for (int i = 0; i < 16; ++i) {
+                if (std::abs(c[i]) > tol) return false;
+            }
+            return true;
+        };
+
+        auto x0 = vec4ds{0.31, -0.22, 0.44, 0.57}; // (x, y, z, t)
+
+        // the operator sums over the RECIPROCAL basis, so the space components of a
+        // gradient carry the metric sign: grad(2x + 3t) = -2 g1 + 3 g4
+        auto phi = [](vec4ds const& x) { return scalar4ds(2.0 * x.x + 3.0 * x.w); };
+        CHECK(is_zero(mvec4ds(nabla_wdg(phi, x0) - vec4ds{-2.0, 0.0, 0.0, 3.0}), 1.0e-8));
+
+        // a vacuum plane wave is built on the NULL propagation vector k = g4 + g3
+        double const w = 1.1, E0 = 0.7;
+        auto F = [&](vec4ds const& x) {
+            double const ph = w * (x.z - x.w);
+            return E0 * std::cos(ph) * wdg(g4_4ds + g3_4ds, g1_4ds);
+        };
+        // Maxwell in one equation, and its two grade halves: sources and monopoles
+        CHECK(is_zero(nabla(F, x0, 1.0e-5), 1.0e-8));
+        CHECK(is_zero(mvec4ds(nabla_dot(F, x0, 1.0e-5)), 1.0e-8));
+        CHECK(is_zero(mvec4ds(nabla_wdg(F, x0, 1.0e-5)), 1.0e-8));
+        CHECK(is_zero(dalembertian(F, x0, 1.0e-3), 1.0e-5));
+
+        // a field that does not solve Maxwell must be detected -- otherwise the checks
+        // above would pass for anything
+        auto G = [](vec4ds const& x) { return (x.x * x.w) * g14_4ds + x.y * g23_4ds; };
+        CHECK(!is_zero(nabla(G, x0, 1.0e-5), 1.0e-3));
+
+        // the specific trap: this wave has the WRONG magnetic pairing, so nabla F has
+        // components of order 0.1 -- yet its Minkowski norm is exactly zero. A test
+        // written with nrm() would pass here; a componentwise one does not.
+        auto Bad = [&](vec4ds const& x) {
+            double const ph = w * (x.z - x.w);
+            return E0 * std::cos(ph) * g14_4ds + E0 * std::cos(ph) * g12_4ds;
+        };
+        auto Nb = nabla(Bad, x0, 1.0e-5);
+        CHECK(std::abs(value_t(nrm(Nb))) < 1.0e-12); // the norm sees nothing
+        CHECK(!is_zero(Nb, 1.0e-3));                 // the components do
+
+        // the d'Alembertian carries the signature: box = d_t^2 - d_x^2 - d_y^2 - d_z^2,
+        // so box(t^2 + 2x^2) = 2 - 4 = -2
+        auto q = [](vec4ds const& x) { return scalar4ds(x.w * x.w + 2.0 * x.x * x.x); };
+        CHECK(std::abs(value_t(gr0(dalembertian(q, x0, 1.0e-3))) + 2.0) < 1.0e-5);
+
+        // grade extremes vanish, and compact schemes are rejected as elsewhere
+        auto ps = [](vec4ds const& x) { return pscalar4ds(x.x * x.w); };
+        auto sc = [](vec4ds const& x) { return scalar4ds(x.y); };
+        CHECK(std::abs(value_t(nabla_wdg(ps, x0))) < eps);
+        CHECK(std::abs(value_t(nabla_dot(sc, x0))) < eps);
+        CHECK_THROWS_AS(nabla(sc, x0, compact_scheme(1)), std::invalid_argument);
+    }
+
+    TEST_CASE("sta4ds: the complement is NOT the dual (ega cannot see this)")
+    {
+        fmt::println("sta4ds: the complement is NOT the dual (ega cannot see this)");
+
+        // Two maps that ega conflates: the complement is combinatorial (which basis
+        // blade completes this one to the pseudoscalar), the dual is that composed with
+        // the metric. Under an identity metric they are the same function, so every
+        // ega relation reads correctly with either name and a wrong choice there is
+        // invisible. This algebra separates them, and pins which one is which.
+
+        vec4ds const v{0.3, -0.5, 0.2, 1.4};
+        bivec4ds const B{1.0, 0.3, -0.2, 0.5, 1.1, -0.7};
+        trivec4ds const T{1.0, 2.0, 3.0, 0.5};
+
+        // they differ on exactly the blades whose extended-metric entry is -1
+        CHECK(!is_close(l_cmpl(v), l_dual(v)));
+        CHECK(!is_close(l_cmpl(B), l_dual(B)));
+        CHECK(!is_close(l_cmpl(T), l_dual(T)));
+
+        // the pseudoscalar picks out the DUAL, and of the REVERSE -- both halves of
+        // that statement are load-bearing, and each fails on its own
+        CHECK(is_close(trivec4ds(I_4ds * v), l_dual(rev(v))));
+        CHECK(is_close(bivec4ds(I_4ds * B), l_dual(rev(B))));
+        CHECK(is_close(vec4ds(I_4ds * T), l_dual(rev(T))));
+
+        CHECK(!is_close(trivec4ds(I_4ds * v), l_cmpl(rev(v)))); // not the complement
+        CHECK(!is_close(bivec4ds(I_4ds * B), l_cmpl(rev(B))));
+        CHECK(!is_close(vec4ds(I_4ds * T), l_cmpl(rev(T))));
+
+        CHECK(!is_close(bivec4ds(I_4ds * B), l_dual(B))); // not without rev()
+        CHECK(!is_close(vec4ds(I_4ds * T), l_dual(T)));
+    }
+
 } // STA 3D Tests

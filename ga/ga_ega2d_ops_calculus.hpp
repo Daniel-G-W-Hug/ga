@@ -71,6 +71,37 @@ namespace hd::ga::ega {
 //                         nabla ^ A   = the scalar curl       (a pseudoscalar)
 //     pseudoscalar  p   : nabla . p                           (a vector)
 //
+// NAMING -- why these are not called div and curl
+//
+// The classical trio are single GRADES of the pair above, not operators in their own
+// right, so naming the operators after them would be wrong almost everywhere:
+//
+//     grad = the OUTER derivative of a SCALAR field
+//     div  = the INNER derivative of a VECTOR field
+//     curl = the DUAL of the outer derivative of a vector field, in 3d only
+//
+// Three consequences:
+//
+//   - nabla_dot is a divergence at exactly one grade. On a bivector field it returns a
+//     vector, on a trivector field a bivector; neither is a divergence in any classical
+//     sense. Likewise nabla_wdg is a gradient only on a scalar field.
+//   - nabla_wdg(A) is not curl A but its DUAL: the two carry the same components and
+//     different meaning, a bivector (the plane) versus a vector (the axis). The
+//     classical vector is dual(nabla_wdg(A)) -- the DUAL, which carries the metric,
+//     not the complement (ega cannot distinguish them, sta4ds can) and not I * (...),
+//     which is a different map again away from grades 0 and 1.
+//   - curl is 3d-only. The outer derivative of a vector field is a pseudoscalar in 2d
+//     and a trivector in sta4ds, so the name would mean something different, or
+//     nothing, per algebra. nabla_dot / nabla_wdg mean the same in all of them.
+//
+// A COMMON MISREADING: "gradient = divergence + curl". The identity is
+//
+//     nabla A = nabla . A + nabla ^ A          for a VECTOR field A
+//
+// whose left side is the vector derivative, not the gradient, and whose second term is
+// the dual of the curl. For a SCALAR field the inner part vanishes identically, so
+// there nabla phi IS the gradient and nothing is added to it.
+//
 // The 2d curl is a pseudoscalar rather than a bivector-valued object, which is the
 // usual "curl is a scalar in the plane" statement read off the grade structure.
 /////////////////////////////////////////////////////////////////////////////////////////

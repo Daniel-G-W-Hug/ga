@@ -94,12 +94,60 @@ namespace hd::ga::ega {
 // so gradient, divergence and curl are not three operators but three projections of
 // one. In 3d, for the four field grades:
 //
-//     scalar field  phi : nabla phi          = grad phi                (a vector)
-//     vector field  A   : gr0(nabla A)       = div A                   (a scalar)
-//                         gr2(nabla A)       = I (curl A)              (a bivector)
-//     bivector field B  : gr1(nabla B)       = -curl of its dual       (a vector)
-//                         gr3(nabla B)       = I div of its dual       (a trivector)
-//     trivector field T : gr2(nabla T)       = I grad of its coeff     (a bivector)
+//     scalar field  phi : nabla phi     = grad phi                 (a vector)
+//     vector field  A   : gr0(nabla A)  = div A                    (a scalar)
+//                         gr2(nabla A)  = dual(curl A)             (a bivector)
+//     bivector field B  : gr1(nabla B)  = -curl of its dual        (a vector)
+//                         gr3(nabla B)  = dual(div of its dual)    (a trivector)
+//     trivector field T : gr2(nabla T)  = dual(grad of its coeff)  (a bivector)
+//
+// The map is the DUAL -- dual(), which carries the metric -- and NOT the complement,
+// even though ega cannot tell the two apart: with an identity metric cmpl(X) == dual(X)
+// at every grade, so either name reads correctly here and only one of them survives a
+// port. sta4ds settles it, its metric being {-1,-1,-1,+1}:
+//
+//     l_cmpl(v) = TriVec4ds(-0.3, 0.5, -0.2, 1.4)
+//     l_dual(v) = TriVec4ds( 0.3,-0.5,  0.2, 1.4)      -- different maps
+//
+// and the identity that relates the pseudoscalar to them, I * X = l_dual(rev(X)),
+// holds for the DUAL at every grade and for the complement at none.
+//
+// Nor is the dual multiplication by the pseudoscalar. I * X = l_dual(rev(X)) carries a
+// reversion, so the two agree at grades 0 and 1 and differ in sign from grade 2. Writing
+// "I (curl A)" above would happen to be right -- curl A is a vector -- while teaching a
+// rule that is wrong one grade over. dual() is an involution here, so the relation reads
+// both ways: dual(gr2(nabla A)) = curl A.
+//
+// NAMING -- why these are not called div and curl
+//
+// The classical trio are single GRADES of the pair above, not operators in their own
+// right, so naming the operators after them would be wrong almost everywhere:
+//
+//     grad = the OUTER derivative of a SCALAR field
+//     div  = the INNER derivative of a VECTOR field
+//     curl = the DUAL of the outer derivative of a vector field, in 3d only
+//
+// Three consequences:
+//
+//   - nabla_dot is a divergence at exactly one grade. On a bivector field it returns a
+//     vector, on a trivector field a bivector; neither is a divergence in any classical
+//     sense. Likewise nabla_wdg is a gradient only on a scalar field.
+//   - nabla_wdg(A) is not curl A but its DUAL: the two carry the same components and
+//     different meaning, a bivector (the plane) versus a vector (the axis). The
+//     classical vector is dual(nabla_wdg(A)) -- the DUAL, which carries the metric,
+//     not the complement (ega cannot distinguish them, sta4ds can) and not I * (...),
+//     which is a different map again away from grades 0 and 1.
+//   - curl is 3d-only. The outer derivative of a vector field is a pseudoscalar in 2d
+//     and a trivector in sta4ds, so the name would mean something different, or
+//     nothing, per algebra. nabla_dot / nabla_wdg mean the same in all of them.
+//
+// A COMMON MISREADING: "gradient = divergence + curl". The identity is
+//
+//     nabla A = nabla . A + nabla ^ A          for a VECTOR field A
+//
+// whose left side is the vector derivative, not the gradient, and whose second term is
+// the dual of the curl. For a SCALAR field the inner part vanishes identically, so
+// there nabla phi IS the gradient and nothing is added to it.
 //
 // The identities nabla ^ (nabla ^ M) = 0 and nabla . (nabla . M) = 0 hold, and contain
 // curl(grad) = 0 and div(curl) = 0 as their classical cases. The Laplacian factors as

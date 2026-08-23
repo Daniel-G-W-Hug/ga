@@ -3846,17 +3846,24 @@ TEST_SUITE("EGA 3D Tests")
               1.0e-6);
         CHECK(std::abs(value_t(nabla_dot(phi, r0))) < eps);
 
-        // vector field: inner = div, outer = I curl
+        // vector field: inner = div, outer = dual(curl)
         CHECK(std::abs(value_t(nabla_dot(A, r0)) - divA(r0)) < 1.0e-6);
-        CHECK(nrm(nabla_wdg(A, r0) - cmpl(curlA(r0))) < 1.0e-6);
+        CHECK(nrm(nabla_wdg(A, r0) - dual(curlA(r0))) < 1.0e-6);
 
-        // bivector field: inner = -curl of its dual, outer = I div of its dual
+        // the relations here are pinned with dual(), the map that carries the metric and
+        // so survives a port to sta4ds, where cmpl and dual differ. ega3d cannot tell
+        // the two apart -- that coincidence is what this pins, so a change to either map
+        // fails here rather than silently in another algebra
+        CHECK(is_close(cmpl(curlA(r0)), dual(curlA(r0))));
+        CHECK(is_close(cmpl(nabla_wdg(A, r0)), dual(nabla_wdg(A, r0))));
+
+        // bivector field: inner = -curl of its dual, outer = div of its dual
         CHECK(nrm(nabla_dot(Bf, r0) - (-curlA(r0))) < 1.0e-6);
         CHECK(std::abs(value_t(nabla_wdg(Bf, r0)) - divA(r0)) < 1.0e-6);
 
-        // trivector field: inner = I grad of its coefficient, outer vanishes (no grade 4)
+        // trivector field: inner = dual(grad of its coeff), outer vanishes (no grade 4)
         auto gt = vec3d{-std::sin(r0.x) * r0.y, std::cos(r0.x), 2 * r0.z};
-        CHECK(nrm(nabla_dot(Tf, r0) - cmpl(gt)) < 1.0e-6);
+        CHECK(nrm(nabla_dot(Tf, r0) - dual(gt)) < 1.0e-6);
         CHECK(std::abs(value_t(nabla_wdg(Tf, r0))) < eps);
 
         // the Laplacian is a scalar operator: it preserves the grade of the field
