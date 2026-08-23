@@ -2471,6 +2471,73 @@ TEST_SUITE("STA 3D Tests")
         CHECK_THROWS_AS(nabla(sc, x0, compact_scheme(1)), std::invalid_argument);
     }
 
+    TEST_CASE("MVec4ds_E: the null rotor -- the third kind of Lorentz transformation")
+    {
+        fmt::println(
+            "MVec4ds_E: the null rotor -- the third kind of Lorentz transformation");
+
+        // Jancewicz sec.6.3 names three kinds of Lorentz transformation, one per causal
+        // character of the generating plane: a BOOST from a time-like volutor, a spatial
+        // ROTATION from a space-like one, and "a Lorentz transformation of a new kind"
+        // from a LIGHT-LIKE volutor W = k ^ n with k^2 = 0, k.n = 0, n^2 = 1. The third
+        // is the null (parabolic) rotation. Because W^2 = 0 the exponential series
+        // truncates after two terms -- exp(W) = 1 + W, exactly, no cos/cosh involved.
+        //
+        // This is the branch of sta4ds_exp_simple() that neither ega nor a Euclidean
+        // metric can reach: it exists only because a non-zero plane can square to zero.
+
+        auto k = g4_4ds + g1_4ds; // null vector, k^2 = +1 - 1 = 0
+        auto n = g2_4ds;          // unit space-like, orthogonal to k
+        auto W = wdg(k, n);
+
+        CHECK(is_lightlike(k));
+        CHECK(std::abs(value_t(dot(k, n))) < eps);
+        CHECK(is_lightlike(W)); // W^2 = 0 -- neither a boost nor a rotation plane
+        CHECK(is_simple(W));
+
+        // the series truncates: exp(W) == 1 + W with no transcendental factor
+        auto R = exp(W);
+        CHECK(is_close(R, mvec4ds_e(scalar4ds(1.0), W, pscalar4ds(0.0))));
+
+        // it is a genuine unit versor, so transform() is a motion
+        CHECK(std::abs(value_t(gr0(rev(R) * R)) - 1.0) < eps);
+
+        // log inverts the null branch as well (bn ~ 0 -> return Bv)
+        CHECK(is_close(log(R), W));
+
+        // PARABOLIC: R - 1 is nilpotent. This is what separates the null rotor from the
+        // other two kinds -- a boost or a rotation rotor has no nilpotent part.
+        auto Rm1 = mvec4ds_e(scalar4ds(0.0), W, pscalar4ds(0.0));
+        CHECK(is_close(Rm1 * Rm1,
+                       mvec4ds_e(scalar4ds(0.0), bivec4ds(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                                 pscalar4ds(0.0))));
+
+        // the book's defining property: k W = -W k = 0, so the null rotation FIXES its
+        // own null direction while moving everything else -- the parabolic signature
+        CHECK(nrm(mvec4ds(k) * mvec4ds_e(W)) < eps);
+        CHECK(is_close(transform(k, R), k));
+        CHECK(!is_close(transform(n, R), n)); // not the identity
+
+        // and it IS a Lorentz transformation: the pseudolength is preserved at every
+        // grade, exactly as for a boost or a rotation
+        // RELATIVE tolerance: these pass through a sandwich product, so the difference
+        // accumulates several roundings and machine eps is not the right yardstick for
+        // an O(1)..O(10) quantity (the vec case lands at 1.3e-15, just over it)
+        auto preserved = [](value_t before, value_t after) {
+            return std::abs(after - before) <=
+                   eps_congruent * std::max(std::abs(before), 1.0);
+        };
+        vec4ds const x{0.3, -0.5, 0.2, 1.4};
+        bivec4ds const B{1.0, 0.3, -0.2, 0.5, 1.1, -0.7};
+        trivec4ds const T{1.0, 2.0, 3.0, 0.5};
+        CHECK(preserved(value_t(gr0(x * x)),
+                        value_t(gr0(transform(x, R) * transform(x, R)))));
+        CHECK(preserved(value_t(gr0(B * B)),
+                        value_t(gr0(transform(B, R) * transform(B, R)))));
+        CHECK(preserved(value_t(gr0(T * T)),
+                        value_t(gr0(transform(T, R) * transform(T, R)))));
+    }
+
     TEST_CASE("sta4ds: the complement is NOT the dual (ega cannot see this)")
     {
         fmt::println("sta4ds: the complement is NOT the dual (ega cannot see this)");
@@ -2502,6 +2569,30 @@ TEST_SUITE("STA 3D Tests")
 
         CHECK(!is_close(bivec4ds(I_4ds * B), l_dual(B))); // not without rev()
         CHECK(!is_close(vec4ds(I_4ds * T), l_dual(T)));
+
+        // Jancewicz Problem 6.14: the Hodge map of a time-like volutor is space-like and
+        // vice versa; of a light-like volutor, light-like. The book DEFINES the Hodge map
+        // as left multiplication by the unit quadrivector (sec.6.3, "M -> J M") -- which
+        // is the identity pinned just above, our l_dual composed with a reversion.
+        auto const Tl = bivec4ds(g14_4ds);            // time-like,  B^2 = +1
+        auto const Sp = bivec4ds(g12_4ds);            // space-like, B^2 = -1
+        auto const Nl = wdg(g4_4ds + g1_4ds, g2_4ds); // light-like, B^2 =  0
+        auto csq = [](bivec4ds const& b) { return value_t(gr0(b * b)); };
+
+        CHECK(csq(Tl) > 0.0);
+        CHECK(csq(l_dual(Tl)) < 0.0); // time  -> space
+        CHECK(csq(Sp) < 0.0);
+        CHECK(csq(l_dual(Sp)) > 0.0); // space -> time
+        CHECK(std::abs(csq(Nl)) < eps);
+        CHECK(std::abs(csq(l_dual(Nl))) < eps); // null  -> null
+
+        // This does NOT discriminate the dual from the complement, though it reads as if
+        // it should: the two differ by a per-blade metric sign, and causal character is
+        // QUADRATIC in the blade, so the sign cancels and l_cmpl reproduces the table
+        // exactly. The discriminating checks are the ones above; do not let this weaker
+        // property be substituted for them.
+        CHECK(csq(l_cmpl(Tl)) < 0.0); // the complement passes it too
+        CHECK(csq(l_cmpl(Sp)) > 0.0);
     }
 
 } // STA 3D Tests
