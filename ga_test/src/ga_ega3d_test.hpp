@@ -4079,4 +4079,35 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(mm < 1.0e-5);
     }
 
+
+    TEST_CASE("Vec3d: reciprocal_frame")
+    {
+        fmt::println("Vec3d: reciprocal_frame");
+
+        auto a1 = vec3d{1.0, 0.0, 0.0};
+        auto a2 = vec3d{1.0, 1.0, 0.0};
+        auto a3 = vec3d{0.0, 1.0, 2.0}; // skewed
+        auto r = reciprocal_frame(a1, a2, a3);
+        vec3d const a[3] = {a1, a2, a3};
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                CHECK(std::abs(value_t(dot(r[i], a[j])) - (i == j ? 1.0 : 0.0)) < eps);
+            }
+        }
+        // orthonormal: the reciprocal frame is the frame itself
+        auto ro = reciprocal_frame(e1_3d, e2_3d, e3_3d);
+        CHECK(is_close(ro[0], e1_3d));
+        CHECK(is_close(ro[1], e2_3d));
+        CHECK(is_close(ro[2], e3_3d));
+        // merely ORTHOGONAL: the shortcut a^i = inv(a_i) must agree
+        auto b1 = 2.0 * e1_3d, b2 = 3.0 * e2_3d, b3 = 0.5 * e3_3d;
+        auto rb = reciprocal_frame(b1, b2, b3);
+        CHECK(is_close(rb[0], inv(b1)));
+        CHECK(is_close(rb[1], inv(b2)));
+        CHECK(is_close(rb[2], inv(b3)));
+        // a degenerate frame is rejected explicitly, not left to produce infinities
+        CHECK_THROWS_AS(reciprocal_frame(e1_3d, e2_3d, e1_3d + e2_3d),
+                        std::invalid_argument);
+    }
+
 } // EGA 3D Tests

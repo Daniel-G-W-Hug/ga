@@ -3247,4 +3247,25 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(mm < 1.0e-5);
     }
 
+
+    TEST_CASE("Vec2d: reciprocal_frame")
+    {
+        fmt::println("Vec2d: reciprocal_frame");
+
+        auto a1 = vec2d{1.0, 0.0};
+        auto a2 = vec2d{1.0, 2.0}; // skewed
+        auto r = reciprocal_frame(a1, a2);
+        vec2d const a[2] = {a1, a2};
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                CHECK(std::abs(value_t(dot(r[i], a[j])) - (i == j ? 1.0 : 0.0)) < eps);
+            }
+        }
+        // for an orthonormal frame the reciprocal is the frame itself
+        auto ro = reciprocal_frame(e1_2d, e2_2d);
+        CHECK(is_close(ro[0], e1_2d));
+        CHECK(is_close(ro[1], e2_2d));
+        CHECK_THROWS_AS(reciprocal_frame(e1_2d, 2.0 * e1_2d), std::invalid_argument);
+    }
+
 } // EGA 2D Tests

@@ -2371,4 +2371,41 @@ TEST_SUITE("STA 3D Tests")
         CHECK(is_close(sqrt(exp(F)) * sqrt(exp(F)), exp(F)));
     }
 
+
+    TEST_CASE("Vec4ds: reciprocal_frame (the non-Euclidean case)")
+    {
+        fmt::println("Vec4ds: reciprocal_frame (the non-Euclidean case)");
+
+        // with the metric {-1,-1,-1,+1} the reciprocals of the BASIS are not the basis:
+        // this is what a vector derivative written over e_mu instead of e^mu gets wrong
+        auto r = reciprocal_frame(g1_4ds, g2_4ds, g3_4ds, g4_4ds);
+        CHECK(is_close(r[0], -g1_4ds));
+        CHECK(is_close(r[1], -g2_4ds));
+        CHECK(is_close(r[2], -g3_4ds));
+        CHECK(is_close(r[3], g4_4ds));
+
+        vec4ds const a[4] = {g1_4ds, g2_4ds, g3_4ds, g4_4ds};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                CHECK(std::abs(value_t(dot(r[i], a[j])) - (i == j ? 1.0 : 0.0)) < eps);
+            }
+        }
+        // the frame is orthogonal, so the shortcut inv(a_i) agrees
+        CHECK(is_close(r[0], inv(g1_4ds)));
+        CHECK(is_close(r[3], inv(g4_4ds)));
+
+        // a genuinely skewed spacetime frame: boosted, with one axis tilted
+        auto R = get_boost(wdg(g1_4ds, g4_4ds), 0.4);
+        vec4ds const b[4] = {transform(g1_4ds, R), transform(g2_4ds, R) + 0.3 * g1_4ds,
+                             transform(g3_4ds, R), transform(g4_4ds, R)};
+        auto rb = reciprocal_frame(b[0], b[1], b[2], b[3]);
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                CHECK(std::abs(value_t(dot(rb[i], b[j])) - (i == j ? 1.0 : 0.0)) < eps);
+            }
+        }
+        CHECK_THROWS_AS(reciprocal_frame(g1_4ds, g2_4ds, g3_4ds, g1_4ds + g2_4ds),
+                        std::invalid_argument);
+    }
+
 } // STA 3D Tests

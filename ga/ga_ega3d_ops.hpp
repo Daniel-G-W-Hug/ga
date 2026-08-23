@@ -73,6 +73,7 @@ namespace hd::ga::ega {
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
+// - reciprocal_frame()             -> the frame {a^i} with a^i . a_j = delta
 //
 // - is_congruent()                 -> Same up to a scalar factor (is same subspace)
 // - is_close()                     -> Same value within a RELATIVE tolerance
@@ -999,6 +1000,56 @@ bool is_same_rotation(MVec3d_E<T> const& R1, MVec3d_E<U> const& R2,
     return is_close(rotate(e1_3d, R1), rotate(e1_3d, R2), rel_tol) &&
            is_close(rotate(e2_3d, R1), rotate(e2_3d, R2), rel_tol) &&
            is_close(rotate(e3_3d, R1), rotate(e3_3d, R2), rel_tol);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// reciprocal frame
+////////////////////////////////////////////////////////////////////////////////
+//
+// For a frame {a_1, ..., a_n} of linearly independent vectors the RECIPROCAL frame
+// {a^1, ..., a^n} is defined by
+//
+//     a^i . a_j = delta^i_j
+//
+// and is what the vector derivative is properly written over: nabla = a^i d_i. The
+// distinction is invisible for an ORTHONORMAL frame in a Euclidean metric, where
+// a^i = a_i, and that is the only reason the ega field operators can use the basis
+// vectors directly. It is visible as soon as either assumption drops:
+//
+//   - non-Euclidean metric: in sta4ds {-1,-1,-1,+1} the reciprocals of the basis
+//     are -g1, -g2, -g3, +g4, so a derivative written over the basis instead of the
+//     reciprocal basis flips the sign of every spacelike term;
+//   - non-orthogonal frame: curvilinear coordinates, a crystal lattice or an
+//     element basis, where a^i is not parallel to a_i at all.
+//
+// Computed by the standard construction (Hestenes), with A = a_1 ^ ... ^ a_n the
+// frame pseudoscalar:
+//
+//     a^i = (-1)^{i-1} (a_1 ^ ... ^ a^_i ^ ... ^ a_n) A^{-1}
+//
+// SHORTCUT: for an ORTHOGONAL frame this reduces to a^i = a_i / (a_i . a_i), which
+// is exactly inv(a_i) -- no need to call this function.
+//
+// Throws if the frame is degenerate (linearly dependent), since A is then not
+// invertible. The check is explicit rather than left to inv(): the library's
+// division-by-zero guard is compiled out unless _HD_GA_EXTENDED_TEST_DIV_BY_ZERO is
+// defined, so a degenerate frame would otherwise return infinities silently in a
+// default build. PGA has no reciprocal frame at all: its pseudoscalar is degenerate
+// by construction.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline std::array<Vec3d<T>, 3> reciprocal_frame(Vec3d<T> const& a1, Vec3d<T> const& a2,
+                                                Vec3d<T> const& a3)
+{
+    PScalar3d<T> const A = wdg(wdg(a1, a2), a3);
+    if (std::abs(T(A)) <= detail::safe_epsilon<T>()) {
+        throw std::invalid_argument("reciprocal_frame: degenerate frame");
+    }
+    PScalar3d<T> const Ai = inv(A);
+    return {wdg(a2, a3) * Ai, -(wdg(a1, a3) * Ai), wdg(a1, a2) * Ai};
 }
 
 } // namespace hd::ga::ega
