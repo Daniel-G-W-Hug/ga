@@ -4006,6 +4006,187 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(nrm(lap - d2t) < 1.0e-4);
     }
 
+    TEST_CASE("ega3d: Griffiths -- the Gibbs dictionary in one algebra")
+    {
+        fmt::println("ega3d: Griffiths -- the Gibbs dictionary in one algebra");
+
+        // The translation table between classical vector algebra (Griffiths,
+        // Introduction to Electrodynamics 4th ed., ch. 1) and this library. Every row
+        // is checked against a reference written out by hand, not against another
+        // library call.
+        vec3d const a{1.3, -0.7, 2.1}, b{-0.4, 1.9, 0.6}, c{0.8, 0.5, -1.7};
+        auto cross_ref = [](vec3d const& u, vec3d const& v) {
+            return vec3d{u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z,
+                         u.x * v.y - u.y * v.x};
+        };
+
+        // (1.4)/(1.12)/(1.14): the cross product is the DUAL of the wedge. Both
+        // spellings exist; wdg is the primitive and carries the plane, cross the axis
+        CHECK(nrm(cross(a, b) - cross_ref(a, b)) < eps);
+        CHECK(nrm(dual(wdg(a, b)) - cross_ref(a, b)) < eps);
+        CHECK(dual(wdg(e1_3d, e2_3d)) == e3_3d);
+        // the magnitude |a x b| = AB sin(theta) is the AREA -- no dual involved
+        CHECK(nrm(cross(a, b)) == doctest::Approx(value_t(nrm(wdg(a, b)))));
+
+        // (1.15)/(1.16): the scalar triple product is the trivector, cyclic by the
+        // antisymmetry of wdg rather than by a rule to remember
+        CHECK(value_t(wdg(a, wdg(b, c))) ==
+              doctest::Approx(value_t(dot(a, cross_ref(b, c)))));
+        CHECK(value_t(wdg(a, wdg(b, c))) == doctest::Approx(value_t(wdg(b, wdg(c, a)))));
+
+        // (1.17) BAC-CAB is not a mnemonic but a vector contracted into a blade
+        CHECK(nrm(cross_ref(a, cross_ref(b, c)) - (a << wdg(b, c))) < 1.0e-14);
+        CHECK(nrm(cross_ref(a, cross_ref(b, c)) + (wdg(b, c) >> a)) < 1.0e-14);
+        // and it agrees with the book's right-hand side
+        CHECK(nrm((a << wdg(b, c)) - (b * value_t(dot(a, c)) - c * value_t(dot(a, b)))) <
+              1.0e-14);
+
+        // (11.56): the double cross product that runs through the radiation chapters
+        // is a REJECTION -- the part of X perpendicular to the line of sight
+        vec3d const n = normalize(c);
+        vec3d const X{0.3, 0.9, -0.2};
+        CHECK(nrm(cross_ref(n, cross_ref(n, X)) + reject_from(X, n)) < 1.0e-14);
+
+        // (3.104)/(5.89): the field of a point dipole. Griffiths sets both as
+        // problems (3.36, 5.34) because the coordinate-free form is the non-obvious
+        // one. The GA form is a single REFLECTION in the separation direction, and
+        // this pins the identity that rewrites it, at vector grade:
+        //
+        //     3 (p.rhat) rhat - p  ==  1/2 (p + 3 rhat (x) p (x) rhat)
+        //
+        // together with the split reading that says where the "3" went: writing
+        // p = p_parallel + p_perp, the bracket is just 2 p_parallel - p_perp -- twice
+        // the axial part minus the equatorial one. Gibbs notation has no name for
+        // p_perp, which is why it has to write 3(p.rhat)rhat and subtract all of p.
+        vec3d const p{0.7, -1.3, 0.4};
+        vec3d const gibbs = 3.0 * value_t(dot(p, n)) * n - p;
+        CHECK(nrm(0.5 * (p + 3.0 * gr1(n * p * n)) - gibbs) < 1.0e-14);
+        CHECK(nrm(2.0 * project_onto(p, n) - reject_from(p, n) - gibbs) < 1.0e-14);
+        // the sandwich itself is the axis reflection, 2(p.rhat)rhat - p
+        CHECK(nrm(gr1(n * p * n) - (2.0 * value_t(dot(p, n)) * n - p)) < 1.0e-14);
+        CHECK(nrm(gr1(n * p * n) - reflect_on_vec(p, n)) < eps);
+
+        fmt::println("Gibbs dictionary: cross = dual(wdg), triple product = trivector, "
+                     "BAC-CAB = contraction, double cross = rejection");
+    }
+
+    TEST_CASE("ega3d calculus: Maxwell WITH sources, and the field invariants")
+    {
+        fmt::println("ega3d calculus: Maxwell WITH sources, and the field invariants");
+
+        // The plane-wave case above solves the source-free equation. Here the sources
+        // are switched on, and the FOUR GRADES of one product are Griffiths' four
+        // Maxwell equations (7.40). Natural units: c = eps0 = mu0 = 1.
+        //
+        //   gr0(nabla f) = div E          = rho / eps0        (2.14) Gauss
+        //   gr1(nabla f) = -c curl B      = -mu0 c J          (5.56) Ampere
+        //   gr2(nabla f) = I curl E       = 0     (static)    (7.16) Faraday
+        //   gr3(nabla f) = I c div B      = 0                 (5.50) no monopoles
+        //
+        // fields with hand-computable sources: E = (rho/3) r has div E = rho and no
+        // curl; B = (1/2) J x r has curl B = J and no divergence
+        double const rho = 0.9;
+        vec3d const J{0.0, 0.0, 1.4};
+        auto cross_ref = [](vec3d const& u, vec3d const& v) {
+            return vec3d{u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z,
+                         u.x * v.y - u.y * v.x};
+        };
+        auto f = [&](vec3d const& q) {
+            vec3d const E = (rho / 3.0) * q;
+            vec3d const B = 0.5 * cross_ref(J, q);
+            return mvec3d(E) + mvec3d(dual(B)); // f = e + I b
+        };
+        vec3d const r0{0.6, -0.3, 0.8};
+        auto const N = nabla(f, r0, 1.0e-4);
+        CHECK(value_t(gr0(N)) == doctest::Approx(rho)); // Gauss
+        CHECK(nrm(gr1(N) + J) < 1.0e-8);                // Ampere
+        CHECK(nrm(gr2(N)) < 1.0e-8);                    // Faraday (static)
+        CHECK(std::abs(value_t(gr3(N))) < 1.0e-8);      // no magnetic monopoles
+
+        // falsify: a field with the wrong 1/3 factor reports a different charge density
+        auto fbad = [&](vec3d const& q) {
+            return mvec3d(0.5 * rho * q) + mvec3d(dual(0.5 * cross_ref(J, q)));
+        };
+        CHECK(value_t(gr0(nabla(fbad, r0, 1.0e-4))) != doctest::Approx(rho));
+
+        // ---- the two field invariants and the two energy-momentum scalars ----------
+        // Griffiths Prob. 12.47 asks the reader to show that (E.B) and (E^2 - c^2 B^2)
+        // are relativistically invariant; they are the two grade parts of f * f
+        vec3d const E{0.3, -1.2, 0.8}, B{1.1, 0.4, -0.6};
+        auto const F = mvec3d(E) + mvec3d(dual(B));
+        auto const FF = F * F;
+        CHECK(value_t(gr0(FF)) ==
+              doctest::Approx(value_t(nrm_sq(E)) - value_t(nrm_sq(B))));
+        CHECK(value_t(gr3(FF)) == doctest::Approx(2.0 * value_t(dot(E, B))));
+        // and f * rev(f) carries the energy density (8.5) and the Poynting vector
+        // (8.10) -- the two halves of Poynting's theorem, in one product
+        auto const FR = F * rev(F);
+        CHECK(value_t(gr0(FR)) ==
+              doctest::Approx(value_t(nrm_sq(E)) + value_t(nrm_sq(B))));
+        CHECK(nrm(gr1(FR) - 2.0 * cross_ref(E, B)) < 1.0e-13);
+
+        fmt::println("nabla f = rho - J: four grades, four Maxwell equations; f*f and "
+                     "f*rev(f) carry the invariants and the energy/Poynting pair");
+    }
+
+    TEST_CASE("ega3d calculus: the pointwise nabla cannot see a delta function")
+    {
+        fmt::println("ega3d calculus: the pointwise nabla cannot see a delta function");
+
+        // Griffiths sect. 1.5.1 opens with the paradox that motivates the Dirac delta:
+        // E = rhat/r^2 has div E = 0 EVERYWHERE it can be evaluated, yet its flux
+        // through any enclosing surface is 4 pi. The resolution is (1.99),
+        // div(rhat/r^2) = 4 pi delta^3(r).
+        //
+        // The library has no delta and needs none -- a distribution is not an element of
+        // any geometric algebra, and both reference books use delta symbolically. But
+        // the consequence for THIS layer is a live trap and is pinned here: a field's
+        // singular sources are invisible to the pointwise operator, so a numerical Gauss
+        // law must be evaluated as a FLUX, never as a volume integral of nabla_dot.
+        auto E = [](vec3d const& r) { return r / std::pow(value_t(nrm(r)), 3.0); };
+
+        // (a) the pointwise divergence, summed over a ball that CONTAINS the source
+        value_t const R = 1.0;
+        int const N = 20;
+        value_t const hc = 2.0 * R / N;
+        value_t vol_sum = 0.0;
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                for (int k = 0; k < N; ++k) {
+                    vec3d const c{-R + (i + 0.5) * hc, -R + (j + 0.5) * hc,
+                                  -R + (k + 0.5) * hc};
+                    if (value_t(nrm(c)) > R) continue;
+                    vol_sum += value_t(nabla_dot(E, c, 1.0e-4)) * hc * hc * hc;
+                }
+            }
+        }
+        CHECK(std::abs(vol_sum) < 1.0e-2); // ... reports essentially nothing
+
+        // (b) the flux of the same field through the bounding sphere
+        int const Nt = 100, Np = 200;
+        value_t flux = 0.0;
+        for (int a = 0; a < Nt; ++a) {
+            for (int b = 0; b < Np; ++b) {
+                value_t const th = (a + 0.5) * pi / Nt, ph = (b + 0.5) * 2.0 * pi / Np;
+                vec3d const n{std::sin(th) * std::cos(ph), std::sin(th) * std::sin(ph),
+                              std::cos(th)};
+                flux += value_t(dot(E(R * n), n)) * R * R * std::sin(th) * (pi / Nt) *
+                        (2.0 * pi / Np);
+            }
+        }
+        CHECK(flux == doctest::Approx(4.0 * pi).epsilon(1.0e-4)); // ... the whole charge
+
+        // (c) the entire source sits in the difference -- that difference IS the delta
+        CHECK(flux - vol_sum == doctest::Approx(4.0 * pi).epsilon(1.0e-3));
+
+        // (d) and sampling AT the singularity returns a finite-difference artefact of
+        // order 1/h^2, not a delta: ~3e12 for h = 1e-4. Never read it as a value.
+        CHECK(std::abs(value_t(nabla_dot(E, vec3d{0.0, 0.0, 0.0}, 1.0e-4))) > 1.0e10);
+
+        fmt::println("delta trap: div = 0 pointwise, flux = 4 pi; a numerical Gauss law "
+                     "must be a flux, never a volume integral of nabla_dot");
+    }
+
     TEST_CASE("ega3d calculus: Jancewicz P28 product rules and P29")
     {
         fmt::println("ega3d calculus: Jancewicz P28 product rules and P29");

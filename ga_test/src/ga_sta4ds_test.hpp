@@ -863,6 +863,261 @@ TEST_SUITE("STA 3D Tests")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // the Faraday bivector and the relativistic particle (electrodynamics tier)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: the Faraday bivector -- E/B convention pinned by the force law")
+    {
+        fmt::println("G<1,3,0>: the Faraday bivector -- E/B convention pinned by the "
+                     "force law");
+
+        // THE CONVENTION, stated once and pinned here -- nothing else in the library
+        // fixes it, and it cannot be read off the transformation law (see step 4):
+        //
+        //     F = Ex g14 + Ey g24 + Ez g34 - (Bx g23 + By g31 + Bz g12)
+        //
+        // The electric field enters the time-space slots with a PLUS, the magnetic
+        // field the space-space slots with a MINUS. Its companion is that
+        // transform(X, get_boost(B, phi)) is an ACTIVE boost (it carries g4 -> +g1 for
+        // g14, see the header), so a PASSIVE change to a frame moving at +v uses -phi.
+        //
+        // The PAIR is what matters: flipping either half alone breaks the physics, and
+        // the field transformation law alone cannot see the difference. Natural units,
+        // c = 1. Griffiths, Introduction to Electrodynamics 4th ed., Ch. 12.3.
+        auto faraday = [](double Ex, double Ey, double Ez, double Bx, double By,
+                          double Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
+        auto four_vel = [](double vx, double vy, double vz) {
+            double const g = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
+            return vec4ds{g * vx, g * vy, g * vz, g};
+        };
+
+        // ---- 1. the boost sense the convention is matched to: ACTIVE ---------------
+        value_t const phi = 0.55;
+        auto const ub = transform(g4_4ds, get_boost(g14_4ds, phi));
+        CHECK(ub.x == doctest::Approx(std::sinh(phi)));
+        CHECK(ub.w == doctest::Approx(std::cosh(phi)));
+
+        // ---- 2. the hand-checkable case, worked on paper before the library --------
+        // B along +z, motion along +x:  q v x B = q (v g1) x (Bz g3) = -q v Bz g2
+        {
+            double const Bz = 1.3, v = 0.4;
+            double const g = 1.0 / std::sqrt(1.0 - v * v);
+            auto const K = gr1(faraday(0.0, 0.0, 0.0, 0.0, 0.0, Bz) * four_vel(v, 0, 0));
+            CHECK(K.x == doctest::Approx(0.0).epsilon(1.0e-12));
+            CHECK(K.y == doctest::Approx(-g * v * Bz));
+            CHECK(K.z == doctest::Approx(0.0).epsilon(1.0e-12));
+            // magnetic forces do no work (Griffiths 5.11): the time component vanishes
+            CHECK(K.w == doctest::Approx(0.0).epsilon(1.0e-12));
+        }
+
+        // ---- 3. the general Lorentz force, K = q gr1(F u)  (Griffiths 12.128) ------
+        double const Ex = 0.3, Ey = -1.2, Ez = 0.8, Bx = 1.1, By = 0.4, Bz = -0.6;
+        double const vx = 0.2, vy = -0.35, vz = 0.1;
+        double const gv = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
+        auto const F = faraday(Ex, Ey, Ez, Bx, By, Bz);
+        auto const u = four_vel(vx, vy, vz);
+        auto const K = gr1(F * u);
+        // classical reference v x B, written out independently
+        double const cx = vy * Bz - vz * By;
+        double const cy = vz * Bx - vx * Bz;
+        double const cz = vx * By - vy * Bx;
+        CHECK(K.x == doctest::Approx(gv * (Ex + cx))); // Griffiths (12.129)
+        CHECK(K.y == doctest::Approx(gv * (Ey + cy)));
+        CHECK(K.z == doctest::Approx(gv * (Ez + cz)));
+        CHECK(K.w == doctest::Approx(gv * (Ex * vx + Ey * vy + Ez * vz))); // the power
+        // F . u is orthogonal to u, so u . u = 1 is preserved by the motion
+        CHECK(value_t(dot(K, u)) == doctest::Approx(0.0).epsilon(1.0e-12));
+
+        // ---- 4. all SIX field transformation rules, from ONE boost (12.109) --------
+        double const v = 0.6;
+        double const gam = 1.0 / std::sqrt(1.0 - v * v), ph = std::atanh(v);
+        auto const Fb = transform(F, get_boost(g14_4ds, -ph)); // passive, frame at +v
+        CHECK(Fb.vx == doctest::Approx(Ex));                   // Ex unchanged
+        CHECK(Fb.vy == doctest::Approx(gam * (Ey - v * Bz)));
+        CHECK(Fb.vz == doctest::Approx(gam * (Ez + v * By)));
+        CHECK(-Fb.mx == doctest::Approx(Bx)); // Bx unchanged
+        CHECK(-Fb.my == doctest::Approx(gam * (By + v * Ez)));
+        CHECK(-Fb.mz == doctest::Approx(gam * (Bz - v * Ey)));
+
+        // ---- 5. THE TRAP: the transformation law cannot see the magnetic sign ------
+        // the WRONG embedding (+B) combined with the opposite boost satisfies the same
+        // six rules -- the two sign errors cancel. Only the force law separates them,
+        // which is why both are asserted in one test case.
+        auto const Fw = bivec4ds{Ex, Ey, Ez, Bx, By, Bz}; // +B: wrong
+        auto const Fwb = transform(Fw, get_boost(g14_4ds, ph));
+        CHECK(Fwb.vy == doctest::Approx(gam * (Ey - v * Bz))); // still passes
+        CHECK(Fwb.mz == doctest::Approx(gam * (Bz - v * Ey))); // still passes
+        auto const Kw = gr1(Fw * u);
+        CHECK(Kw.y != doctest::Approx(gv * (Ey + cy))); // only this fires ...
+        CHECK(Kw.y == doctest::Approx(gv * (Ey - cy))); // ... it is E - v x B
+
+        // ---- 6. the observer split reads the two halves back out ------------------
+        CHECK(rel_vec_split(F, g4_4ds) == bivec4ds{Ex, Ey, Ez, 0.0, 0.0, 0.0});
+        CHECK(rel_bivec_split(F, g4_4ds) == bivec4ds{0.0, 0.0, 0.0, -Bx, -By, -Bz});
+
+        fmt::println("Faraday bivector: E on g_k4 (+), B on g_jk (-); the force law "
+                     "fixes the sign the boost law cannot see");
+    }
+
+    TEST_CASE("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, E x B)")
+    {
+        fmt::println("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, "
+                     "E x B)");
+
+        // The relativistic charge in an electromagnetic field, carried by a rotor:
+        //
+        //     dR/dtau = (q/2m) F R ,   u = transform(g4, R) ,   dx/dtau = u
+        //
+        // For constant F this integrates in closed form to R(tau) = exp((q tau/2m) F) R0
+        // -- ONE exp of a general bivector (a boost times a rotation). RK4 (the shared
+        // rk4_step) is checked against that closed form, and both against the textbook
+        // answers. Same Faraday convention and natural units as the test above.
+        auto faraday = [](double Ex, double Ey, double Ez, double Bx, double By,
+                          double Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
+        // the VERSOR norm -- NOT nrm_sq, which is the grade-wise Lorentzian sum and is
+        // not 1 for a unit rotor (see the sqrt(rotor) note in the ops header)
+        auto versor_nrm = [](mvec4ds_e const& R) {
+            return std::sqrt(std::abs(value_t(gr0(rev(R) * R))));
+        };
+
+        // proper-time RK4 on the 12-component state (rotor: 8, world line: 4)
+        auto integrate = [&](bivec4ds const& F, double qo2m, mvec4ds_e R0, vec4ds x0,
+                             double dtau, int nsteps) {
+            std::array<value_t, 12> u_mem{}, rhs_mem{};
+            std::array<value_t, 24> uh_mem{};
+            auto pack = [&](mvec4ds_e const& R, vec4ds const& x) {
+                u_mem = {R.c0, R.c1, R.c2, R.c3, R.c4, R.c5,
+                         R.c6, R.c7, x.x,  x.y,  x.z,  x.w};
+            };
+            auto unpack_R = [&]() {
+                return mvec4ds_e{u_mem[0], u_mem[1], u_mem[2], u_mem[3],
+                                 u_mem[4], u_mem[5], u_mem[6], u_mem[7]};
+            };
+            auto unpack_x = [&]() {
+                return vec4ds{u_mem[8], u_mem[9], u_mem[10], u_mem[11]};
+            };
+            pack(R0, x0);
+            auto uv = mdspan<value_t, dextents<size_t, 1>>(u_mem.data(), 12);
+            auto uh = mdspan<value_t, dextents<size_t, 2>>(uh_mem.data(), 2, 12);
+            auto rhs = mdspan<value_t const, dextents<size_t, 1>>(rhs_mem.data(), 12);
+            for (int n = 0; n < nsteps; ++n) {
+                for (size_t rk = 1; rk <= 4; ++rk) {
+                    auto const R = unpack_R();
+                    auto const dR = qo2m * (F * R); // bivector * even -> even
+                    auto const uu = transform(g4_4ds, R);
+                    rhs_mem = {dR.c0, dR.c1, dR.c2, dR.c3, dR.c4, dR.c5,
+                               dR.c6, dR.c7, uu.x,  uu.y,  uu.z,  uu.w};
+                    rk4_step(uv, uh, rhs, dtau, rk);
+                }
+                auto R = unpack_R();
+                R = R * (1.0 / versor_nrm(R)); // renormalise the rotor
+                pack(R, unpack_x());
+            }
+            return std::pair{unpack_R(), unpack_x()};
+        };
+
+        // nrm_sq is NULL-CAPABLE in a Minkowski metric: it can vanish (or go negative)
+        // for a non-zero operand, so every "is this zero?" here is COMPONENTWISE -- the
+        // same rule the source-free calculus case states
+        auto max_abs = [](mvec4ds const& M) {
+            value_t const* c = &M.c0;
+            value_t m = 0.0;
+            for (int i = 0; i < 16; ++i)
+                m = std::max(m, std::abs(c[i]));
+            return m;
+        };
+
+        auto const R_id = mvec4ds_e{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        auto const x_0 = vec4ds{0.0, 0.0, 0.0, 0.0};
+
+        // ---- gate 1: cyclotron motion in a constant magnetic field ----------------
+        {
+            double const Bz = 0.8, qo2m = 0.5; // q/m = 1
+            double const v0 = 0.5, g0 = 1.0 / std::sqrt(1.0 - v0 * v0);
+            double const om_p = 2.0 * qo2m * Bz; // proper-time turn rate q B / m
+            auto const F = faraday(0.0, 0.0, 0.0, 0.0, 0.0, Bz);
+            auto const R0 = get_boost(g14_4ds, std::atanh(v0)); // start along +x
+
+            double const tau = 0.9;
+            auto const [R, x] = integrate(F, qo2m, R0, x_0, tau / 2000, 2000);
+
+            // RK4 reproduces the closed form R(tau) = exp((q tau / 2m) F) R0
+            auto const Rc = exp((qo2m * tau) * F) * R0;
+            CHECK(value_t(gr0(R)) == doctest::Approx(value_t(gr0(Rc))));
+            CHECK(max_abs(mvec4ds(gr2(R) - gr2(Rc))) < 1.0e-8);
+
+            // gamma is constant: a magnetic field does no work (Griffiths 5.11)
+            auto const uu = transform(g4_4ds, R);
+            CHECK(uu.w == doctest::Approx(g0));
+            CHECK(value_t(dot(uu, uu)) == doctest::Approx(1.0));
+
+            // the velocity turns CLOCKWISE in the xy plane (q > 0, B along +z) at the
+            // proper rate q B / m -- so in coordinate time at q B / (gamma m). The sign
+            // is asserted, not its magnitude: it is the second gate on the B convention
+            CHECK(std::atan2(uu.y, uu.x) == doctest::Approx(-om_p * tau));
+
+            // half a proper period turns the velocity around and displaces the particle
+            // by one orbit diameter: r = gamma m v / (q B), i.e. Griffiths (5.3) p = QBR
+            double const tau_half = pi / om_p;
+            auto const [Rh, xh] = integrate(F, qo2m, R0, x_0, tau_half / 4000, 4000);
+            double const r_orbit = g0 * v0 / (2.0 * qo2m * Bz);
+            CHECK(xh.x == doctest::Approx(0.0).epsilon(1.0e-8));
+            CHECK(xh.y == doctest::Approx(-2.0 * r_orbit));
+            CHECK(xh.z == doctest::Approx(0.0).epsilon(1.0e-12));
+            CHECK(xh.w == doctest::Approx(g0 * tau_half)); // dt = gamma dtau
+        }
+
+        // ---- gate 2: hyperbolic motion in a constant electric field ---------------
+        {
+            double const Ex = 0.7, qo2m = 0.5;    // q/m = 1
+            double const alpha = 2.0 * qo2m * Ex; // proper acceleration q E / m
+            auto const F = faraday(Ex, 0.0, 0.0, 0.0, 0.0, 0.0);
+            double const tau = 1.3;
+            auto const [R, x] = integrate(F, qo2m, R_id, x_0, tau / 2000, 2000);
+            auto const uu = transform(g4_4ds, R);
+
+            // the world line is a boost with rapidity linear in proper time
+            CHECK(uu.w == doctest::Approx(std::cosh(alpha * tau)));        // gamma
+            CHECK(uu.x == doctest::Approx(std::sinh(alpha * tau)));        // gamma v
+            CHECK(x.w == doctest::Approx(std::sinh(alpha * tau) / alpha)); // t(tau)
+
+            // Griffiths (12.60)/(12.61) in COORDINATE time -- independent statements,
+            // since t here came from integrating dx/dtau alongside the rotor
+            double const t = x.w, at = alpha * t;
+            CHECK(uu.x / uu.w == doctest::Approx(at / std::sqrt(1.0 + at * at)));
+            CHECK(x.x == doctest::Approx((std::sqrt(1.0 + at * at) - 1.0) / alpha));
+        }
+
+        // ---- gate 3: the E x B drift ---------------------------------------------
+        {
+            double const Ey = 0.35, Bz = 0.9, qo2m = 0.5;
+            double const vd = Ey / Bz; // Griffiths (5.10): the drift speed is E/B
+            double const gd = 1.0 / std::sqrt(1.0 - vd * vd);
+            auto const F = faraday(0.0, Ey, 0.0, 0.0, 0.0, Bz);
+
+            // (a) boosting into the drift frame kills the electric field entirely and
+            // leaves a pure magnetic field, weaker by 1/gamma_d
+            auto const Fd = transform(F, get_boost(g14_4ds, -std::atanh(vd)));
+            // (the E-part lies entirely in the g_k4 slots, whose metric signs agree,
+            // so here nrm_sq IS definite -- checked componentwise anyway)
+            CHECK(max_abs(mvec4ds(rel_vec_split(Fd, g4_4ds))) < 1.0e-12);
+            CHECK(-rel_bivec_split(Fd, g4_4ds).mz == doctest::Approx(Bz / gd));
+
+            // (b) |E| < |B| makes F rotation-like, so the rotor closes after an exact
+            // proper period tau_c = 2 pi m / (q sqrt(B^2 - E^2)). Over one period the
+            // cycloid returns to its guiding centre and only the drift remains.
+            CHECK(is_simple(F));
+            double const tau_c = 2.0 * pi / (2.0 * qo2m * std::sqrt(Bz * Bz - Ey * Ey));
+            auto const [R, x] = integrate(F, qo2m, R_id, x_0, tau_c / 4000, 4000);
+            CHECK(x.y == doctest::Approx(0.0).epsilon(1.0e-6));
+            CHECK(x.z == doctest::Approx(0.0).epsilon(1.0e-12));
+            CHECK(x.x / x.w == doctest::Approx(vd).epsilon(1.0e-6)); // Griffiths (5.10)
+        }
+
+        fmt::println("rotor EOM: cyclotron orbit, hyperbolic motion and the E x B drift");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // ops.hpp step 4: projections and rejections (onto vector / bivector)
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -2469,6 +2724,105 @@ TEST_SUITE("STA 3D Tests")
         CHECK(std::abs(value_t(nabla_wdg(ps, x0))) < eps);
         CHECK(std::abs(value_t(nabla_dot(sc, x0))) < eps);
         CHECK_THROWS_AS(nabla(sc, x0, compact_scheme(1)), std::invalid_argument);
+    }
+
+    TEST_CASE("sta4ds calculus: Maxwell WITH sources -- nabla F = J from a potential")
+    {
+        fmt::println("sta4ds calculus: Maxwell WITH sources -- nabla F = J from a "
+                     "potential");
+
+        // The existing calculus case above solves the SOURCE-FREE equation. This one
+        // closes the other half: a four-potential in Lorenz gauge, its Faraday bivector
+        // F = nabla ^ A, and the four-current it carries.
+        //
+        //   Griffiths (12.133)  F^{mu nu} = d^mu A^nu - d^nu A^mu     ->  F = nabla ^ A
+        //   Griffiths (12.136)  d_mu A^mu = 0        (Lorenz gauge)  ->  nabla . A = 0
+        //   Griffiths (12.127)  d_nu F^{mu nu} = mu0 J^mu            ->  gr1(nabla F) = J
+        //                       d_nu G^{mu nu} = 0   (no monopoles)  ->  gr3(nabla F) = 0
+        //   Griffiths (12.137)  box A^mu = -mu0 J^mu                 ->  dalembertian(A)
+        //
+        // Griffiths' box is nabla^2 - (1/c^2) d_t^2; the library's dalembertian is its
+        // NEGATIVE (d_t^2 - nabla^2, see the header), which is why the two signs agree
+        // here without a minus. Natural units, c = eps0 = mu0 = 1.
+        //
+        // A = (0, 0, Az, V) with Az = (x^2+y^2)/2 and V = (x^2+y^2+z^2)/2: static, so
+        // the gauge condition holds identically, and both fields are QUADRATIC, so the
+        // central differences are exact and the nested application below carries only
+        // round-off.
+        // nrm_sq is NULL-CAPABLE in a Minkowski metric: it can vanish (or go negative)
+        // for a non-zero operand, so every "is this zero?" here is COMPONENTWISE -- the
+        // same rule the source-free calculus case states
+        auto max_abs = [](mvec4ds const& M) {
+            value_t const* c = &M.c0;
+            value_t m = 0.0;
+            for (int i = 0; i < 16; ++i)
+                m = std::max(m, std::abs(c[i]));
+            return m;
+        };
+
+        value_t const h = 1.0e-3;
+        auto A = [](vec4ds const& y) {
+            return vec4ds{0.0, 0.0, 0.5 * (y.x * y.x + y.y * y.y),
+                          0.5 * (y.x * y.x + y.y * y.y + y.z * y.z)};
+        };
+        auto x0 = vec4ds{0.31, -0.22, 0.44, 0.57}; // (x, y, z, t)
+
+        // ---- the gauge condition, and the four-current from the wave operator -------
+        CHECK(std::abs(value_t(nabla_dot(A, x0, h))) < 1.0e-9);
+        auto const J = gr1(dalembertian(A, x0, h));
+        CHECK(J.x == doctest::Approx(0.0).epsilon(1.0e-9));
+        CHECK(J.y == doctest::Approx(0.0).epsilon(1.0e-9));
+        CHECK(J.z == doctest::Approx(-2.0)); // -laplacian(Az) = -2
+        CHECK(J.w == doctest::Approx(-3.0)); // -laplacian(V)  = -3
+
+        // ---- the Faraday bivector, and the classical fields it carries --------------
+        auto Ffield = [&](vec4ds const& y) { return nabla_wdg(A, y, h); };
+        auto const F = Ffield(x0);
+        // read E and B back out for the standard observer, in the convention of the
+        // "Faraday bivector" test case (E on g_k4 with +, B on g_jk with -)
+        auto const Ep = rel_vec_split(F, g4_4ds);
+        auto const Bp = rel_bivec_split(F, g4_4ds);
+        // classical references, computed by hand from A: E = -grad V = -r (static),
+        // B = curl A = (y, -x, 0)
+        CHECK(Ep.vx == doctest::Approx(-x0.x));
+        CHECK(Ep.vy == doctest::Approx(-x0.y));
+        CHECK(Ep.vz == doctest::Approx(-x0.z));
+        CHECK(-Bp.mx == doctest::Approx(x0.y));  // Bx =  y
+        CHECK(-Bp.my == doctest::Approx(-x0.x)); // By = -x
+        CHECK(-Bp.mz == doctest::Approx(0.0).epsilon(1.0e-9));
+
+        // ---- Maxwell in ONE equation: nabla F = J ----------------------------------
+        auto const N = nabla(Ffield, x0, h);
+        CHECK(max_abs(mvec4ds(gr1(N) - J)) < 1.0e-9); // (12.127) first equation
+        CHECK(max_abs(mvec4ds(gr3(N))) < 1.0e-9);     // (12.127) second: no monopoles
+        // the remaining grades are empty: nabla F has no scalar, bivector or
+        // pseudoscalar part for a bivector field
+        CHECK(std::abs(value_t(gr0(N))) < 1.0e-9);
+        CHECK(max_abs(mvec4ds(gr2(N))) < 1.0e-9);
+        CHECK(std::abs(value_t(gr4(N))) < 1.0e-9);
+
+        // the classical reading of the same four numbers, computed by hand:
+        //   div E   = -3      -> c rho = J_w = -3           (Gauss, Griffiths 2.14)
+        //   curl B  = (0,0,-2) -> mu0 J_z = J_z = -2        (Ampere, Griffiths 5.56)
+        CHECK(J.w == doctest::Approx(-3.0));
+        CHECK(J.z == doctest::Approx(-2.0));
+
+        // ---- falsify: break the gauge and the source no longer equals box A ---------
+        // adding a t-dependent piece to V violates nabla . A = 0, and then
+        // nabla F = box A - nabla(nabla . A) picks up the extra term
+        auto Ag = [](vec4ds const& y) {
+            return vec4ds{0.0, 0.0, 0.5 * (y.x * y.x + y.y * y.y),
+                          0.5 * (y.x * y.x + y.y * y.y + y.z * y.z) + 0.7 * y.w * y.z};
+        };
+        CHECK(std::abs(value_t(nabla_dot(Ag, x0, h))) > 0.1); // gauge broken
+        auto Fg = [&](vec4ds const& y) { return nabla_wdg(Ag, y, h); };
+        // NOTE the componentwise form: the difference here has nrm_sq = -0.49, so a
+        // "> 0.1" test on nrm_sq FAILS on a residual that is plainly non-zero
+        CHECK(max_abs(mvec4ds(gr1(nabla(Fg, x0, h)) - gr1(dalembertian(Ag, x0, h)))) >
+              0.1);
+
+        fmt::println("nabla F = J from a Lorenz-gauge potential; grade 1 = sources, "
+                     "grade 3 = no monopoles");
     }
 
     TEST_CASE("MVec4ds_E: the null rotor -- the third kind of Lorentz transformation")
