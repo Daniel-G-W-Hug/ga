@@ -154,8 +154,8 @@
            documentation on rotational accelerations; added active_ode_plate vector
            addition in ga_view; restructured ga_py / ga_bindgen documentation for
            first-time users (six-section ga_py/README with quick-start, demo script at
-           ga_py/demo/hello_ga.py, retired TODO/considerations_python_wrapper.md with
-           content folded into the READMEs); various documentation improvements and a
+           ga_py/demo/hello_ga.py, with earlier scratch notes folded into the
+           READMEs); various documentation improvements and a
            spellchecking pass
 - 2026/07: added STA4D (space-time algebra, G(1,3,0)) with geometric-product rotor
            sandwich transforms, boosts, exp/log/sqrt, and closed-form transform_opt

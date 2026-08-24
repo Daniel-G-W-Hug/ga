@@ -1845,7 +1845,7 @@ TEST_SUITE("STA 3D Tests")
         // is_minkowski override that used to store Q = sigma(k)*P was removed). P is
         // multiplicative, so BOTH verdicts are YES. (Q -- which differs from P at grades
         // 2,3 -- now lives only in the geometric square gr0(X*X), used for causal
-        // character, NOT in the metric; see TODO/sta_metric_considerations.md.)
+        // character, NOT in the metric.)
         ////////////////////////////////////////////////////////////////////////////////
 
         int const m[4] = {-1, -1, -1, 1}; // g1^2, g2^2, g3^2, g4^2 (g4 timelike)
@@ -1915,8 +1915,9 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("");
 
         CHECK(det == -1);
-        // Under P-unify (see TODO/sta_metric_considerations.md sec.6/13/14) sta4ds stores
-        // the metric exomorphism P, exactly like ega/pga: g_S == P at every blade, so
+        // sta4ds stores the metric exomorphism P, exactly like ega and pga -- the
+        // extended metric is the wedge exomorphism seeded by the vector signature, and
+        // it is a different object from the blade square: g_S == P at every blade, so
         // BOTH verdicts are YES -- the stored metric is a wedge exomorphism and its
         // antimetric rG = g_{S^c} is an antiwedge exomorphism. (The blade square Q, which
         // is NOT multiplicative, was moved out of the metric slot into the geometric
