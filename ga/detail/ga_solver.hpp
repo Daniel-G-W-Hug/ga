@@ -210,6 +210,61 @@ std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Guarded dense solve: lu_decomp + lu_backsubs, but REFUSING a numerically rank-deficient
+// matrix instead of returning a silently inflated answer.
+//
+// lu_decomp substitutes TINY (1e-20) for a vanishing pivot, so a singular system does not
+// raise -- it produces a solution scaled by that pivot's reciprocal. That is the right
+// behaviour for a solver that must never abort mid-iteration, and the wrong behaviour for
+// a caller that believes it asked for a pseudo-inverse. This wrapper compares the
+// smallest and largest |U_ii| after factorization (a reciprocal condition estimate) and
+// throws when the ratio falls below `rcond_min`.
+//
+// Used by lstsq_solve for the normal-equation solves; not part of the public solver API.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> lu_solve_guarded(std::vector<T> const& A_in, std::vector<T> const& b_in,
+                                size_t n, double rcond_min, char const* what)
+{
+    std::vector<double> a(n * n), b(n);
+    for (size_t i = 0; i < n * n; ++i)
+        a[i] = static_cast<double>(A_in[i]);
+    for (size_t i = 0; i < n; ++i)
+        b[i] = static_cast<double>(b_in[i]);
+
+    std::vector<int> perm(n);
+    std::mdspan<double, std::dextents<size_t, 2>> am(a.data(), n, n);
+    std::mdspan<int, std::dextents<size_t, 1>> pm(perm.data(), n);
+    lu_decomp(am, pm);
+
+    // reciprocal condition estimate from the U diagonal
+    double umin = std::abs(a[0]), umax = std::abs(a[0]);
+    for (size_t i = 1; i < n; ++i) {
+        double const u = std::abs(a[i * n + i]);
+        if (u < umin) umin = u;
+        if (u > umax) umax = u;
+    }
+    if (umax == 0.0 || umin <= rcond_min * umax) {
+        throw Solver_error(std::string("hd::ga::") + what +
+                           ": matrix is numerically rank-deficient (reciprocal condition "
+                           "estimate below tolerance); the normal-equation route cannot "
+                           "form a pseudo-inverse here -- pass a damping factor, or "
+                           "reformulate.");
+    }
+
+    std::mdspan<double const, std::dextents<size_t, 2>> ac(a.data(), n, n);
+    std::mdspan<int const, std::dextents<size_t, 1>> pc(perm.data(), n);
+    std::mdspan<double, std::dextents<size_t, 1>> bm(b.data(), n);
+    lu_backsubs(ac, pc, bm);
+
+    std::vector<T> x(n);
+    for (size_t i = 0; i < n; ++i)
+        x[i] = static_cast<T>(b[i]);
+    return x;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // Tridiagonal solve (Thomas algorithm): forward elimination + back substitution.
 //
 //     a[i] x_{i-1} + b[i] x_i + c[i] x_{i+1} = d[i]
@@ -367,13 +422,29 @@ std::vector<T> tridiag_solve(std::vector<double> const& a, std::vector<double> c
 /////////////////////////////////////////////////////////////////////////////////////////
 // Least-squares / minimum-norm dense solve of a (possibly non-square) system A x = b,
 // where A is m x ncols (flat ROW-MAJOR, m = b.size()). Returns x (length ncols). Routed
-// through the shared square lu_solve via the normal equations, so the whole library
-// shares ONE dense LU. Three regimes (the Moore-Penrose pseudo-inverse solution x = A^+
-// b):
+// through the shared dense LU via the normal equations, so the whole library shares ONE
+// factorization. Three regimes:
 //
 //   ncols == m : square          -> solve A x = b directly
 //   ncols >  m : underdetermined  -> minimum-norm   x = A^T (A A^T)^-1 b
 //   ncols <  m : overdetermined   -> least-squares  x = (A^T A)^-1 A^T b
+//
+// FULL RANK IS REQUIRED, and this is the limit of the normal-equation route. Where A has
+// full rank these three ARE the Moore-Penrose solution x = A^+ b. Where it does not, the
+// Gram matrix is singular and no amount of pivoting recovers A^+: the true pseudo-inverse
+// needs a rank-revealing factorization (SVD or QR with column pivoting), which this
+// solver does not carry. A rank-deficient input therefore THROWS Solver_error rather than
+// returning the inflated answer a TINY pivot would produce -- silence there was a real
+// hazard, since a mechanism passing through a singularity hits exactly this case.
+//
+// `damping` (default 0 = off) applies Tikhonov regularization to the normal equations,
+// adding lambda^2 = damping * trace(Gram)/rows to the diagonal before factorizing. That
+// trades exactness for a finite, continuous answer through a singularity -- the standard
+// damped-least-squares / Levenberg step. With damping > 0 the rank guard is not applied,
+// because regularizing IS the answer to a rank-deficient input. The scaling is relative
+// to the Gram trace so one damping value works across problem scales. Note the result is
+// then the damped solution, not A^+ b. Ignored for the square regime, which forms no
+// Gram matrix.
 //
 // Domain- and dimension-agnostic (pure linear algebra over T): used by the closed-loop
 // constraint solver for the position Newton step (A = constraint Jacobian G, b = -g), the
@@ -381,12 +452,27 @@ std::vector<T> tridiag_solve(std::vector<double> const& a, std::vector<double> c
 // and available to any other caller (it carries no GA or physics knowledge).
 /////////////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols)
+std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
+                           double damping = 0.0)
 {
     size_t const m = b.size();
 
+    // add lambda^2 = damping * trace(G)/n to the diagonal of an n x n Gram matrix
+    auto const regularize = [damping](std::vector<T>& G, size_t n) {
+        if (damping <= 0.0) return;
+        T tr = T(0);
+        for (size_t i = 0; i < n; ++i)
+            tr += G[i * n + i];
+        T const lam2 = T(damping) * tr / T(n);
+        for (size_t i = 0; i < n; ++i)
+            G[i * n + i] += lam2;
+    };
+    // rank guard only where the caller has NOT asked for regularization
+    double const rcond_min = (damping > 0.0) ? 0.0 : 1.0e-13;
+
     if (ncols == m) {
-        return lu_solve(A, b, m); // square A
+        // square A: no Gram matrix is formed, so damping does not apply
+        return lu_solve_guarded(A, b, m, 1.0e-13, "lstsq_solve");
     }
     if (ncols > m) {
         // minimum-norm: solve (A A^T) y = b (m x m), then x = A^T y
@@ -398,7 +484,8 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
                     s += A[i * ncols + k] * A[j * ncols + k];
                 AAt[i * m + j] = s;
             }
-        std::vector<T> const y = lu_solve(AAt, b, m);
+        regularize(AAt, m);
+        std::vector<T> const y = lu_solve_guarded(AAt, b, m, rcond_min, "lstsq_solve");
         std::vector<T> x(ncols, T(0));
         for (size_t k = 0; k < ncols; ++k) {
             T s = T(0);
@@ -420,7 +507,45 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
             AtA[a * ncols + bb] = s;
         }
     }
-    return lu_solve(AtA, Atb, ncols);
+    regularize(AtA, ncols);
+    return lu_solve_guarded(AtA, Atb, ncols, rcond_min, "lstsq_solve");
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Null-space projection of a secondary objective: given an m x ncols map A and a desired
+// rate v (length ncols), return the part of v that A cannot see,
+//
+//     v_ns = (I - A^+ A) v = v - A^+ (A v) ,
+//
+// so that A v_ns == 0 to the accuracy of the solve. This is the standard redundancy
+// resolution step: a redundant system's primary task fixes only m of its ncols freedoms,
+// and the remaining ncols - m can serve a secondary objective WITHOUT disturbing the
+// task -- posture centering, joint-limit avoidance, obstacle repulsion.
+//
+// `damping` is forwarded to lstsq_solve; pass a small positive value when A may approach
+// rank deficiency, which is exactly where an unprojected secondary objective would
+// otherwise be amplified.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> nullspace_project(std::vector<T> const& A, std::vector<T> const& v,
+                                 size_t rows, size_t ncols, double damping = 0.0)
+{
+    if (v.size() != ncols) {
+        throw Solver_error("hd::ga::nullspace_project: v must have ncols entries.");
+    }
+    std::vector<T> Av(rows, T(0)); // the task component of v
+    for (size_t i = 0; i < rows; ++i) {
+        T s = T(0);
+        for (size_t k = 0; k < ncols; ++k)
+            s += A[i * ncols + k] * v[k];
+        Av[i] = s;
+    }
+    std::vector<T> const corr = lstsq_solve(A, Av, ncols, damping); // A^+ (A v)
+    std::vector<T> out(ncols);
+    for (size_t k = 0; k < ncols; ++k)
+        out[k] = v[k] - corr[k];
+    return out;
 }
 
 

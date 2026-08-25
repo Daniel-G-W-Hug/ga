@@ -5125,6 +5125,54 @@ TEST_SUITE("PGA 3DP Tests")
             auto const M = rexp(B);
             CHECK(M == rexp(rlog(M)));
         }
+
+        // d) A FULL TURN with pitch -- the degenerate branch. sin(phi) ~ 0 has two roots:
+        //    phi ~ 0 (identity / pure translation) and phi ~ pi (a 2 pi turn). Both are
+        //    pure translations as MOTIONS, but the second sits on the far sheet of the
+        //    motor double cover, where the bulk carries the opposite sign. Treating them
+        //    alike returns the translation negated -- an error of exactly twice the
+        //    pitch. Cases (a)-(c) never approach this branch, which is why it went
+        //    unnoticed.
+        {
+            double const isr = 1.0 / std::sqrt(3.0);
+            vec3dp const q{1, 2, -1, 1}, s{isr, isr, isr, 0};
+            auto const L = wdg(q, s);                         // axis line through q
+            auto const Tr = bivec3dp{0, 0, 0, s.x, s.y, s.z}; // ideal line along s
+            double const pitch = 0.7;
+            for (double turns : {1.0, 2.0}) {
+                auto const B = 0.5 * (turns * 2.0 * pi * L + pitch * Tr);
+                auto const M = rexp(B);
+                REQUIRE(std::abs(unitize(M).c7) > 1.0 - 1.0e-9); // on the branch
+                // the MOTION is a pure translation by `pitch` along s -- the turn is
+                // the identity, so compare where a point lands, not the generators
+                vec3dp const P{1.7, -0.4, 0.9, 1.0};
+                auto const moved = unitize(move3dp(P, rexp(rlog(M))));
+                CHECK(moved.x == doctest::Approx(P.x + pitch * s.x));
+                CHECK(moved.y == doctest::Approx(P.y + pitch * s.y));
+                CHECK(moved.z == doctest::Approx(P.z + pitch * s.z));
+            }
+        }
+
+        // e) approaching the branch is ILL-CONDITIONED, and that is not a defect: any
+        //    versor logarithm divides by sin(phi) there. Documented as a domain
+        //    statement rather than "fixed" -- the error grows smoothly as the full turn
+        //    is approached and collapses to zero AT it (case d).
+        {
+            double const isr = 1.0 / std::sqrt(3.0);
+            auto const L = wdg(vec3dp{1, 2, -1, 1}, vec3dp{isr, isr, isr, 0});
+            auto const Tr = bivec3dp{0, 0, 0, isr, isr, isr};
+            vec3dp const P{1.7, -0.4, 0.9, 1.0};
+            auto const err = [&](double d) {
+                auto const M = rexp(0.5 * ((2.0 * pi - d) * L + 0.7 * Tr));
+                auto const a = unitize(move3dp(P, M));
+                auto const b = unitize(move3dp(P, rexp(rlog(M))));
+                return std::sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) +
+                                 (a.z - b.z) * (a.z - b.z));
+            };
+            CHECK(err(0.5) < 1.0e-12);   // far from the branch: exact
+            CHECK(err(1.0e-2) < 1.0e-9); // still exact for practical purposes
+            CHECK(err(1.0e-8) > 1.0e-9); // close in: conditioning is visible
+        }
     }
 
     TEST_CASE("G<3,0,1>: screw conventions -- twist, wrench and the half-angle")

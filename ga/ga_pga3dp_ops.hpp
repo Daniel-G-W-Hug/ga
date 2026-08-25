@@ -230,9 +230,21 @@ constexpr BiVec3dp<T> rlog(MVec3dp_E<T> const& M_in)
 
     T const sin_phi = std::sqrt(Bm.vx * Bm.vx + Bm.vy * Bm.vy + Bm.vz * Bm.vz);
     if (sin_phi < eps) {
-        // phi ~ 0: pure translation (or identity). The bulk of gr2(M) is the translation
-        // generator; the weight (rotation) part is ~ 0.
-        return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), Bm.mx, Bm.my, Bm.mz);
+        // sin(phi) ~ 0 has TWO roots, and they are different motions:
+        //
+        //   phi ~ 0  (c7 ~ +1): identity or pure translation -- the bulk of gr2(M) IS the
+        //                       translation generator.
+        //   phi ~ pi (c7 ~ -1): a FULL turn. The rotation is the identity, so the motion
+        //                       is again a pure translation -- but M sits on the far
+        //                       sheet of the motor double cover, where the bulk carries
+        //                       the opposite sign. -M is the same motion with phi ~ 0, so
+        //                       the generator is the bulk of gr2(-M).
+        //
+        // Treating both roots as the first branch returns the translation NEGATED for a
+        // full turn (an error of exactly twice the pitch). The rotation being dropped is
+        // correct -- a 2 pi turn is the identity; only the sign was wrong.
+        return (c7 < T(0.0)) ? BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -Bm.mx, -Bm.my, -Bm.mz)
+                             : BiVec3dp<T>(T(0.0), T(0.0), T(0.0), Bm.mx, Bm.my, Bm.mz);
     }
 
     T const phi = std::atan2(sin_phi, c7); // rotation angle in [0, pi]
