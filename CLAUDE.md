@@ -126,6 +126,25 @@ suites; the remaining suites finish in a few seconds each. For a fast full-suite
 configure a separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where it
 drops to a few seconds — at the cost of a longer one-off compile.
 
+**Selecting a test case whose name contains a comma — escape it as `\,`.** doctest
+tokenises every filter string (`-tc`/`--test-case`, `-tce`, `-ts`, `-tse`, `-sc`, …) on
+commas, so an UNESCAPED comma splits the pattern in two and the filter matches nothing —
+while reporting `0 passed / N skipped`, which reads exactly like a pass rather than like a
+filter that selected nothing. `parseCommaSepArgs` honours a backslash escape, so the case
+is perfectly selectable; a comma in a `TEST_CASE` name is allowed and needs no rename.
+About a third of this tree's case names contain one, so this comes up often. Verified on
+doctest 2.5.3, both directions and for exclusion filters too:
+
+```bash
+./ga_test/ga_pga_test -tc="some case, with a comma"    # 0 cases — matches NOTHING
+./ga_test/ga_pga_test -tc='some case\, with a comma'   # 1 case  — the intended one
+```
+
+Use SINGLE quotes in the shell, or it eats the backslash before doctest sees it. When a
+filter returns an unexpected count, check the escaping before concluding anything about
+the tests: prefer exact full case names over wildcard substrings, since a wildcard can
+widen a selection silently while an exact name fails loudly.
+
 ## Running Applications
 
 Execute applications from the build directory:
