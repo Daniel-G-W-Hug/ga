@@ -5408,6 +5408,126 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<3,0,1>: rcmt makes the bivectors a Lie ALGEBRA, not just a bracket")
+    {
+        fmt::println("G<3,0,1>: rcmt makes the bivectors a Lie ALGEBRA, not just a "
+                     "bracket");
+
+        // The case above pins rcmt against the two classical bracket FORMULAS. That
+        // says the coefficients are right; it does not say the operation is a Lie
+        // bracket, which is a statement about the two axioms every bracket must obey
+        // (Murray/Li/Sastry, A Mathematical Introduction to Robotic Manipulation,
+        // Prop. 7.1):
+        //
+        //     skew-symmetry :  [A,B] = -[B,A]
+        //     Jacobi        :  [A,[B,C]] + [C,[A,B]] + [B,[C,A]] = 0
+        //
+        // se(3) is the Lie algebra rigid-body kinematics actually runs on, so these are
+        // worth asserting where the twists live. Both are exact identities, not
+        // approximations -- the tolerance below is accumulated rounding only.
+        //
+        // Generic operands on purpose: any special structure (parallel axes, zero
+        // pitch, a shared plane) can satisfy Jacobi for reasons that have nothing to do
+        // with the bracket.
+
+        bivec3dp const A{0.31, -0.72, 0.44, 0.18, 0.95, -0.27};
+        bivec3dp const B{-0.63, 0.12, 0.87, -0.41, 0.36, 0.59};
+        bivec3dp const C{0.22, 0.68, -0.15, 0.73, -0.84, 0.09};
+
+        // guard the operands themselves: a bracket that vanishes proves nothing
+        CHECK(bulk_nrm_sq(rcmt(A, B)) + weight_nrm_sq(rcmt(A, B)) > 0.1);
+
+        auto const skew = rcmt(A, B) + rcmt(B, A);
+        CHECK(skew.vx == doctest::Approx(0.0));
+        CHECK(skew.vy == doctest::Approx(0.0));
+        CHECK(skew.vz == doctest::Approx(0.0));
+        CHECK(skew.mx == doctest::Approx(0.0));
+        CHECK(skew.my == doctest::Approx(0.0));
+        CHECK(skew.mz == doctest::Approx(0.0));
+
+        auto const jac = rcmt(A, rcmt(B, C)) + rcmt(C, rcmt(A, B)) + rcmt(B, rcmt(C, A));
+        CHECK(jac.vx == doctest::Approx(0.0));
+        CHECK(jac.vy == doctest::Approx(0.0));
+        CHECK(jac.vz == doctest::Approx(0.0));
+        CHECK(jac.mx == doctest::Approx(0.0));
+        CHECK(jac.my == doctest::Approx(0.0));
+        CHECK(jac.mz == doctest::Approx(0.0));
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: rwdg on bivectors IS the classical reciprocal product")
+    {
+        fmt::println("G<3,0,1>: rwdg on bivectors IS the classical reciprocal product");
+
+        // Screw theory calls two screws RECIPROCAL when a twist about one does no work
+        // against a wrench along the other. Classically that is decided by a closed
+        // form in the two screws' own geometry (Murray/Li/Sastry, eq. 2.72):
+        //
+        //     S1 (.) S2 = M1 M2 ( (h1 + h2) cos(alpha) - d sin(alpha) )
+        //
+        // with alpha the angle between the axes and d their common-perpendicular
+        // distance; equivalently, in twist coordinates, v1.w2 + v2.w1.
+        //
+        // This is `rwdg` of the two bivectors, up to the sign convention. The value of
+        // the check is that the right-hand side is built from FOUR independently
+        // computed geometric quantities -- two pitches, an angle and a distance -- none
+        // of which comes from the algebra, so it pins rwdg against geometry rather than
+        // against another GA expression.
+
+        auto const cross = [](vec3dp const& a, vec3dp const& b) {
+            return vec3dp{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+                          a.x * b.y - a.y * b.x, 0.0};
+        };
+        auto const d3 = [](vec3dp const& a, vec3dp const& b) {
+            return a.x * b.x + a.y * b.y + a.z * b.z;
+        };
+
+        // two screws given CLASSICALLY: unit axis direction, a point on the axis, a
+        // pitch and a magnitude. Skew axes, opposite-signed pitches -- so that neither
+        // term of the closed form can drop out unnoticed.
+        vec3dp const w1{0.0, 0.0, 1.0, 0.0}, q1{0.0, 0.0, 0.0, 0.0};
+        double const h1 = 0.35, M1 = 1.7;
+        vec3dp w2{1.0, 0.6, -0.2, 0.0};
+        w2 = w2 / std::sqrt(d3(w2, w2));
+        vec3dp const q2{0.9, -0.4, 0.5, 0.0};
+        double const h2 = -0.22, M2 = 0.8;
+
+        // the twist of a screw: V = M ( q x w + h w , w )
+        auto const v1 = M1 * (cross(q1, w1) + h1 * w1);
+        auto const W1 = M1 * w1;
+        auto const v2 = M2 * (cross(q2, w2) + h2 * w2);
+        auto const W2 = M2 * w2;
+
+        auto const B1 = bivec3dp{W1.x, W1.y, W1.z, v1.x, v1.y, v1.z};
+        auto const B2 = bivec3dp{W2.x, W2.y, W2.z, v2.x, v2.y, v2.z};
+
+        // a) the coordinate form
+        double const coord = d3(v1, W2) + d3(v2, W1);
+        CHECK(value_t(rwdg(B1, B2)) == doctest::Approx(-coord));
+
+        // b) the classical closed form, from the axes' own geometry
+        vec3dp n = cross(w1, w2);
+        n = n / std::sqrt(d3(n, n)); // common perpendicular
+        double const alpha = std::atan2(d3(cross(w1, w2), n), d3(w1, w2));
+        double const dist = d3(q2 - q1, n); // signed, along n
+        double const classical =
+            M1 * M2 * ((h1 + h2) * std::cos(alpha) - dist * std::sin(alpha));
+        CHECK(value_t(rwdg(B1, B2)) == doctest::Approx(-classical));
+
+        // neither term is negligible, so (b) is not passing on one of them alone
+        CHECK(std::abs((h1 + h2) * std::cos(alpha)) > 0.01);
+        CHECK(std::abs(dist * std::sin(alpha)) > 0.1);
+
+        // c) and the defining property: reciprocal means zero. Two screws on the SAME
+        // axis with opposite pitches are reciprocal (alpha = 0, d = 0, h1 + h2 = 0).
+        auto const Ba =
+            bivec3dp{w1.x, w1.y, w1.z, (0.4 * w1).x, (0.4 * w1).y, (0.4 * w1).z};
+        auto const Bb =
+            bivec3dp{w1.x, w1.y, w1.z, (-0.4 * w1).x, (-0.4 * w1).y, (-0.4 * w1).z};
+        CHECK(value_t(rwdg(Ba, Bb)) == doctest::Approx(0.0));
+        fmt::println("");
+    }
+
     TEST_CASE("G<3,0,1>: motor interpolation follows a CONSTANT screw axis")
     {
         fmt::println("G<3,0,1>: motor interpolation follows a CONSTANT screw axis");
