@@ -363,3 +363,78 @@ TEST_SUITE("integrators: ABM2 adaptive (variable dt)")
     }
 
 } // TEST_SUITE("integrators: ABM2 adaptive (variable dt)")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// step / easing functions (ga/ga_usr_utilities.hpp)
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("usr_utilities: step functions")
+{
+
+    using hd::ga::linear_step;
+    using hd::ga::smooth_step;
+    using hd::ga::smoother_step;
+
+    TEST_CASE("smooth_step / smoother_step are the standard polynomial time scalings")
+    {
+        fmt::println("smooth_step / smoother_step are the standard polynomial time "
+                     "scalings");
+
+        // These two are the cubic and quintic TIME SCALINGS of trajectory generation
+        // (Lynch & Park, Modern Robotics, eqn. 9.11 and Fig. 9.4): a point-to-point
+        // motion over [0, T] is s(t) applied to a path, and the polynomial is chosen by
+        // how many endpoint derivatives must vanish.
+        //
+        //   cubic   s = 3x^2 - 2x^3            s' = 0 at both ends (bounded velocity)
+        //   quintic s = 6x^5 - 15x^4 + 10x^3   s' = s'' = 0 at both ends (finite jerk)
+        //
+        // The quintic exists because the cubic's acceleration jumps discontinuously at
+        // t = 0 and t = T, which excites vibration in a real machine.
+
+        double const T = 2.5;
+        for (int i = 0; i <= 50; ++i) {
+            double const t = T * double(i) / 50.0;
+            double const x = t / T;
+            CHECK(smooth_step(0.0, T, t) ==
+                  doctest::Approx(3.0 * x * x - 2.0 * x * x * x));
+            CHECK(smoother_step(0.0, T, t) ==
+                  doctest::Approx(6.0 * std::pow(x, 5) - 15.0 * std::pow(x, 4) +
+                                  10.0 * std::pow(x, 3)));
+        }
+
+        // endpoint conditions, which are the whole reason for the two forms
+        CHECK(smooth_step(0.0, T, 0.0) == doctest::Approx(0.0));
+        CHECK(smooth_step(0.0, T, T) == doctest::Approx(1.0));
+        CHECK(smoother_step(0.0, T, 0.0) == doctest::Approx(0.0));
+        CHECK(smoother_step(0.0, T, T) == doctest::Approx(1.0));
+
+        // first derivative vanishes at both ends for BOTH; the second only for the
+        // quintic
+        auto const d1 = [T](auto f, double t) {
+            double const h = 1.0e-6;
+            return (f(0.0, T, t + h) - f(0.0, T, t - h)) / (2.0 * h);
+        };
+        auto const d2 = [T](auto f, double t) {
+            double const h = 1.0e-4;
+            return (f(0.0, T, t + h) - 2.0 * f(0.0, T, t) + f(0.0, T, t - h)) / (h * h);
+        };
+        CHECK(std::abs(d1(smooth_step, 1.0e-5)) < 1.0e-4);
+        CHECK(std::abs(d1(smoother_step, 1.0e-5)) < 1.0e-4);
+        CHECK(std::abs(d2(smoother_step, 1.0e-3)) < 1.0e-2); // quintic: jerk-free start
+        CHECK(std::abs(d2(smooth_step, 1.0e-3)) > 0.5);      // cubic: acceleration jumps
+
+        // clamping outside the interval (both are steps, not extrapolations)
+        CHECK(smooth_step(0.0, T, -1.0) == doctest::Approx(0.0));
+        CHECK(smooth_step(0.0, T, 2.0 * T) == doctest::Approx(1.0));
+        CHECK(smoother_step(0.0, T, -1.0) == doctest::Approx(0.0));
+        CHECK(smoother_step(0.0, T, 2.0 * T) == doctest::Approx(1.0));
+
+        // linear_step is the un-eased sibling: no derivative conditions at all
+        CHECK(linear_step(0.0, T, 0.5 * T) == doctest::Approx(0.5));
+        CHECK(linear_step(0.0, T, -1.0) == doctest::Approx(0.0));
+        CHECK(linear_step(0.0, T, 2.0 * T) == doctest::Approx(1.0));
+        fmt::println("");
+    }
+
+} // TEST_SUITE("usr_utilities: step functions")

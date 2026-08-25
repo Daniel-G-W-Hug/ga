@@ -5127,6 +5127,190 @@ TEST_SUITE("PGA 3DP Tests")
         }
     }
 
+    TEST_CASE("G<3,0,1>: screw conventions -- twist, wrench and the half-angle")
+    {
+        fmt::println("G<3,0,1>: screw conventions -- twist, wrench and the half-angle");
+
+        // Screw theory as the robotics literature states it (Lynch & Park, Modern
+        // Robotics, ch. 3) packs a twist as the six-vector V = (omega, v) and a wrench as
+        // F = (m, f), and needs a separate 6x6 adjoint matrix [Ad_T] for a twist and its
+        // TRANSPOSE for a wrench. This case pins the three conventions that let one
+        // bivector and one sandwich stand in for all of that.
+
+        // a) HALF-ANGLE. rexp() consumes the versor generator, which is HALF the
+        // classical
+        //    exponential coordinate S*theta: rexp(theta/2 * L) rotates by theta about L.
+        //    Getting this wrong is a silent factor of two in every joint angle.
+        {
+            auto const Lz = z_axis_3dp; // z axis through the origin
+            double const theta = 0.7;
+            auto const P = unitize(move3dp(vec3dp{1, 0, 0, 1}, rexp(0.5 * theta * Lz)));
+            CHECK(P.x == doctest::Approx(std::cos(theta)));
+            CHECK(P.y == doctest::Approx(std::sin(theta)));
+            CHECK(P.z == doctest::Approx(0.0));
+            // the unhalved generator turns by 2*theta -- the trap, stated as a gate
+            auto const Q = unitize(move3dp(vec3dp{1, 0, 0, 1}, rexp(theta * Lz)));
+            CHECK(Q.x == doctest::Approx(std::cos(2.0 * theta)));
+        }
+
+        // b) SLOT ROLES, and that they are OPPOSITE for a twist and a wrench.
+        //    A twist carries the angular part in the WEIGHT slots (e41,e42,e43) and the
+        //    linear part in the BULK slots (e23,e31,e12). A wrench built as the force
+        //    line wdg(P, f) carries the FORCE in the weight slots and the MOMENT in the
+        //    bulk. That is not an inconsistency: twists and wrenches are dual, which is
+        //    why they pair through the regressive product rather than a dot product (part
+        //    d).
+        {
+            vec3dp const v{1, 2, 3, 0}, om{10, 20, 30, 0};
+            auto const V = bivec3dp{om.x, om.y, om.z, v.x, v.y, v.z};
+            CHECK(V.vx == 10.0); // weight slots hold omega
+            CHECK(V.mx == 1.0);  // bulk slots hold v
+
+            vec3dp const Pt{4, 0, 0, 1}, f{0, 0, 7, 0};
+            auto const W = wdg(Pt, f);
+            CHECK(W.vz == doctest::Approx(7.0));   // weight slots hold the force
+            CHECK(W.my == doctest::Approx(-28.0)); // bulk slots hold the moment r x f
+            CHECK(W.vx == doctest::Approx(0.0));
+            CHECK(W.mz == doctest::Approx(0.0));
+        }
+
+        // c) ONE SANDWICH FOR ALL OF THEM. move3dp() is the adjoint for a twist, the
+        //    adjoint-transpose for a wrench, and the point map -- the same operation.
+        //    For a wrench this is just the outermorphism property of wdg.
+        {
+            auto const M =
+                rgpr(get_motor(vec3dp{1, 2, 3, 0}), rexp(0.5 * 0.6 * z_axis_3dp));
+            vec3dp const Pt{4, 0, 0, 1}, f{0, 0, 7, 0};
+            // is_close(), not ==: the moment components are of order 30 here, where an
+            // absolute-eps comparison cannot resolve a correct result (CLAUDE.md's
+            // congruence note -- operator== is blind once coordinates carry a scale).
+            CHECK(is_close(move3dp(wdg(Pt, f), M),
+                           wdg(unitize(move3dp(Pt, M)), move3dp(f, M))));
+
+            // a screw AXIS transports the same way: the moved z axis is the line through
+            // the moved point along the moved direction
+            auto const T = get_motor(vec3dp{2, 1, 0, 0});
+            CHECK(move3dp(z_axis_3dp, T) == wdg(vec3dp{2, 1, 0, 1}, z_dir_3dp));
+        }
+
+        // d) THE PAIRING IS FRAME-INDEPENDENT. <xi, W> = -rwdg(xi, W) is the rate of work
+        //    of a wrench under a twist; moving both by a common motor cannot change it.
+        //    In the matrix formulation this identity is what FORCES the adjoint transpose
+        //    on wrenches; here there is nothing left to force.
+        {
+            auto const M = rgpr(get_motor(vec3dp{-0.4, 1.1, 0.2, 0}),
+                                rexp(0.5 * 1.3 * wdg(vec3dp{1, 0, 1, 1}, y_dir_3dp)));
+            auto const V = bivec3dp{0.4, -0.2, 0.9, 1.0, 2.0, 3.0};
+            auto const W = wdg(vec3dp{4, 0, 0, 1}, vec3dp{0, 0, 7, 0}) +
+                           wdg(vec3dp{0, 1, 0, 1}, vec3dp{2, 0, 0, 0});
+            CHECK(value_t(rwdg(V, W)) ==
+                  doctest::Approx(value_t(rwdg(move3dp(V, M), move3dp(W, M)))));
+        }
+
+        // e) TWO LINES MEET IFF THEY ARE COPLANAR. rwdg of two line bivectors is the
+        //    classical mutual moment of the two screws: zero exactly when the lines are
+        //    parallel or intersecting, non-zero when they are skew. This is the incidence
+        //    test behind the standard catalogue of kinematic singularities (collinear,
+        //    coplanar-parallel and concurrent joint axes).
+        {
+            auto const Lz = z_axis_3dp;
+            CHECK(value_t(rwdg(Lz, wdg(vec3dp{1, 0, 0, 1}, z_dir_3dp))) ==
+                  doctest::Approx(0.0)); // parallel
+            CHECK(value_t(rwdg(Lz, wdg(vec3dp{0, 0, 2, 1}, x_dir_3dp))) ==
+                  doctest::Approx(0.0)); // intersecting
+            CHECK(value_t(rwdg(Lz, wdg(vec3dp{1, 0, 0, 1}, y_dir_3dp))) !=
+                  doctest::Approx(0.0)); // skew
+        }
+    }
+
+    TEST_CASE("G<3,0,1>: rcmt is the se(3) bracket AND its dual on a wrench")
+    {
+        fmt::println("G<3,0,1>: rcmt is the se(3) bracket AND its dual on a wrench");
+
+        // The spatial-vector literature (Lynch & Park, Modern Robotics, Def. 8.3 / 8.4)
+        // needs TWO distinct 6x6 matrices here: ad_V, the Lie bracket of two twists,
+        //
+        //     ad_{V1}(V2) = ( [w1] w2 , [v1] w2 + [w1] v2 )
+        //
+        // and its transpose ad_V^T acting on a wrench F = (m, f),
+        //
+        //     ad_V^T(F) = ( -[w] m - [v] f , -[w] f ) .
+        //
+        // Both are the SAME regressive commutator here, differing only by a sign, because
+        // the twist and the wrench are the two sides of one bivector. This case pins that
+        // against the two classical formulas written out by hand.
+
+        auto const cross = [](vec3dp const& a, vec3dp const& b) {
+            return vec3dp{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+                          a.x * b.y - a.y * b.x, 0.0};
+        };
+
+        vec3dp const w1{0.3, -0.7, 1.1, 0}, v1{2.0, 0.5, -1.3, 0};
+        vec3dp const w2{-1.0, 0.4, 0.2, 0}, v2{0.7, -0.9, 1.5, 0};
+        vec3dp const m{0.9, 1.4, -0.2, 0}, f{-0.6, 2.2, 0.8, 0};
+
+        auto const V1 = bivec3dp{w1.x, w1.y, w1.z, v1.x, v1.y, v1.z};
+        auto const V2 = bivec3dp{w2.x, w2.y, w2.z, v2.x, v2.y, v2.z};
+        // a wrench puts the FORCE in the weight slots and the MOMENT in the bulk
+        auto const W = bivec3dp{f.x, f.y, f.z, m.x, m.y, m.z};
+
+        // a) twist-twist bracket
+        {
+            auto const ang = cross(w1, w2);                 // [w1] w2
+            auto const lin = cross(v1, w2) + cross(w1, v2); // [v1] w2 + [w1] v2
+            auto const B = rcmt(V1, V2);
+            CHECK(B.vx == doctest::Approx(ang.x));
+            CHECK(B.vy == doctest::Approx(ang.y));
+            CHECK(B.vz == doctest::Approx(ang.z));
+            CHECK(B.mx == doctest::Approx(lin.x));
+            CHECK(B.my == doctest::Approx(lin.y));
+            CHECK(B.mz == doctest::Approx(lin.z));
+        }
+
+        // b) twist-wrench dual bracket: the SAME product, negated
+        {
+            auto const mom = -cross(w1, m) - cross(v1, f); // -[w] m - [v] f
+            auto const frc = -cross(w1, f);                // -[w] f
+            auto const D = -rcmt(V1, W);
+            CHECK(D.mx == doctest::Approx(mom.x)); // moment lives in the bulk slots
+            CHECK(D.my == doctest::Approx(mom.y));
+            CHECK(D.mz == doctest::Approx(mom.z));
+            CHECK(D.vx == doctest::Approx(frc.x)); // force lives in the weight slots
+            CHECK(D.vy == doctest::Approx(frc.y));
+            CHECK(D.vz == doctest::Approx(frc.z));
+        }
+    }
+
+    TEST_CASE("G<3,0,1>: motor interpolation follows a CONSTANT screw axis")
+    {
+        fmt::println("G<3,0,1>: motor interpolation follows a CONSTANT screw axis");
+
+        // Interpolating between two poses by M(s) = M0 (x) rexp(s * rlog(rrev(M0) (x)
+        // M1)) is the motor form of the "straight line in SE(3)" used for Cartesian
+        // motion (Lynch & Park, Modern Robotics, eqn. 9.6). What makes it straight is
+        // that the screw axis is the SAME at every s -- so equal parameter steps are
+        // equal screw steps. Endpoints and that constancy are both pinned here.
+
+        auto const M0 =
+            rgpr(get_motor(vec3dp{0.2, -0.1, 0.4, 0}), rexp(0.5 * 0.5 * z_axis_3dp));
+        auto const M1 = rgpr(
+            get_motor(vec3dp{1.3, 0.8, -0.2, 0}),
+            rexp(0.5 * 1.9 *
+                 wdg(vec3dp{0.3, 0.1, 0, 1}, bulk_normalize(vec3dp{0, 0.6, 0.8, 0}))));
+        auto const B = rlog(rgpr(rrev(M0), M1)); // generator in the START frame
+        auto const M_at = [&](double s) { return rgpr(M0, rexp(s * B)); };
+
+        vec3dp const P{0.7, -0.3, 0.25, 1.0};
+        CHECK(is_close(unitize(move3dp(P, M_at(0.0))), unitize(move3dp(P, M0))));
+        CHECK(is_close(unitize(move3dp(P, M_at(1.0))), unitize(move3dp(P, M1))));
+
+        // every quarter step is the same screw step: rlog of the increment is 0.25 * B
+        for (double s : {0.0, 0.25, 0.5, 0.75}) {
+            auto const step = rlog(rgpr(rrev(M_at(s)), M_at(s + 0.25)));
+            CHECK(step == 0.25 * B);
+        }
+    }
+
     TEST_CASE("G<3,0,1>: rsqrt(motor) round-trip (simple & non-simple screw)")
     {
         fmt::println("G<3,0,1>: rsqrt(motor) round-trip (simple & non-simple screw)");
