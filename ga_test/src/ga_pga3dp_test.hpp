@@ -3,6 +3,7 @@
 
 #include "doctest/doctest.h"
 
+#include <array>
 #include <chrono>
 #include <iostream>
 #include <tuple>
@@ -5327,6 +5328,84 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(D.vy == doctest::Approx(frc.y));
             CHECK(D.vz == doctest::Approx(frc.z));
         }
+    }
+
+    TEST_CASE("G<3,0,1>: rcmt on the basis blades is the spatial cross-product table")
+    {
+        fmt::println("G<3,0,1>: rcmt on the basis blades is the spatial cross-product "
+                     "table");
+
+        // Spatial vector algebra (Featherstone, Rigid Body Dynamics Algorithms, Fig. 2.5)
+        // fixes a Plucker basis on the 6D space of motions: three unit ROTATIONS about
+        // the coordinate axis lines Ox, Oy, Oz, and three unit TRANSLATIONS along x, y,
+        // z. Its spatial cross product is then given by a 6x6 multiplication table -- the
+        // structure constants of the algebra.
+        //
+        // Those six basis vectors are the six bivector basis blades: the axis lines are
+        // e41, e42, e43 (which this library already names x_axis_3dp, y_axis_3dp,
+        // z_axis_3dp) and the translation generators are the ideal lines e23, e31, e12.
+        // The whole table is therefore rcmt on those blades, with no adjustment and no
+        // sign convention to reconcile. All 36 entries are asserted here, which pins the
+        // structure constants completely rather than by sampling.
+
+        std::array<bivec3dp, 6> const D{e41_3dp, e42_3dp, e43_3dp,
+                                        e23_3dp, e31_3dp, e12_3dp};
+        auto const O = bivec3dp{};
+        // the table as printed, indexed [left operand][right operand]
+        std::array<std::array<bivec3dp, 6>, 6> const T{{
+            /* dOx */ {O, D[2], -D[1], O, D[5], -D[4]},
+            /* dOy */ {-D[2], O, D[0], -D[5], O, D[3]},
+            /* dOz */ {D[1], -D[0], O, D[4], -D[3], O},
+            /* dx  */ {O, D[5], -D[4], O, O, O},
+            /* dy  */ {-D[5], O, D[3], O, O, O},
+            /* dz  */ {D[4], -D[3], O, O, O, O},
+        }};
+        for (size_t i = 0; i < 6; ++i)
+            for (size_t j = 0; j < 6; ++j)
+                CHECK(rcmt(D[i], D[j]) == T[i][j]);
+
+        // and the antisymmetry the table implies, on general operands
+        auto const V = bivec3dp{0.3, -0.7, 1.1, 2.0, 0.5, -1.3};
+        auto const W = bivec3dp{-1.0, 0.4, 0.2, 0.7, -0.9, 1.5};
+        CHECK(rcmt(V, W) + rcmt(W, V) == bivec3dp{});
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: the twist-wrench pairing is dual, not Euclidean")
+    {
+        fmt::println("G<3,0,1>: the twist-wrench pairing is dual, not Euclidean");
+
+        // Featherstone (op. cit., 3.3) singles out one error as endemic in the robotics
+        // literature: treating 6D vectors as Euclidean and pairing them with a dot
+        // product instead of the dual (reciprocal) product, citing Duffy (1990). Motions
+        // and forces are elements of DIFFERENT spaces, and only the dual pairing is
+        // physically meaningful -- it is the one that gives power.
+        //
+        // Both spellings compile here, so this is a trap rather than an impossibility.
+        // What separates them is FRAME INVARIANCE: moving a twist and a wrench by the
+        // same motor cannot change the power they represent. The dual pairing has that
+        // property; the Euclidean-looking one does not. The trap is asserted so it cannot
+        // be reintroduced quietly.
+
+        auto const V = bivec3dp{0.3, -0.7, 1.1, 2.0, 0.5, -1.3};    // twist
+        auto const W = wdg(vec3dp{4, 0, 0, 1}, vec3dp{0, 0, 7, 0}); // wrench
+        auto const M = rgpr(get_motor(vec3dp{1, 2, 3, 0}), rexp(0.5 * 0.6 * z_axis_3dp));
+
+        // the dual pairing is invariant
+        CHECK(value_t(rwdg(V, W)) ==
+              doctest::Approx(value_t(rwdg(move3dp(V, M), move3dp(W, M)))));
+
+        // the Euclidean-looking one is NOT -- it changes under the very same motor
+        CHECK(value_t(dot(V, W)) !=
+              doctest::Approx(value_t(dot(move3dp(V, M), move3dp(W, M)))));
+
+        // and it is worse than merely non-invariant: the degenerate metric makes dot()
+        // read the BULK slots only, so it silently ignores half of each operand. A wrench
+        // carrying only weight (a pure force through the origin) pairs to exactly zero.
+        auto const W_weight_only = bivec3dp{W.vx, W.vy, W.vz, 0.0, 0.0, 0.0};
+        CHECK(value_t(dot(V, W_weight_only)) == doctest::Approx(0.0));
+        CHECK(value_t(rwdg(V, W_weight_only)) != doctest::Approx(0.0));
+        fmt::println("");
     }
 
     TEST_CASE("G<3,0,1>: motor interpolation follows a CONSTANT screw axis")

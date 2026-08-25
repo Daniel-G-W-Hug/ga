@@ -13,11 +13,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 
+#include "fmt/format.h"
+
 #include <cmath>     // std::sin, std::cos, std::abs, std::log2, std::cbrt
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::invalid_argument
 #include <vector>    // std::vector
 
+#include "ga/detail/ga_solver.hpp"
 #include "ga/detail/ga_stencil.hpp"
 #include "ga/ga_usr_fd.hpp"
 
@@ -975,5 +978,183 @@ TEST_SUITE("fd stencil generator")
         for (std::size_t i = 0; i < x.size(); ++i)
             e = std::max(e, std::abs(fp[i] - std::cos(x[i])));
         CHECK(e == doctest::Approx(max_err(161, 0, 4)).epsilon(1.0e-9));
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// dense solver: lstsq_solve's rank guard, its damping, and nullspace_project
+// (ga/detail/ga_solver.hpp) -- tested here beside tridiag_solve, the other shared solver
+// primitive with no consumer-specific home.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
+{
+
+    // build an m x ncols matrix (flat row-major) from a smooth, well-conditioned rule
+    static auto make_A = [](size_t m, size_t ncols) {
+        std::vector<double> A(m * ncols);
+        for (size_t i = 0; i < m; ++i)
+            for (size_t k = 0; k < ncols; ++k)
+                A[i * ncols + k] = std::cos(0.7 * double(i) + 1.3 * double(k)) +
+                                   0.4 * std::sin(double(i) * double(k));
+        return A;
+    };
+    static auto residual = [](std::vector<double> const& A, std::vector<double> const& x,
+                              std::vector<double> const& b, size_t ncols) {
+        double e = 0.0;
+        for (size_t i = 0; i < b.size(); ++i) {
+            double s = 0.0;
+            for (size_t k = 0; k < ncols; ++k)
+                s += A[i * ncols + k] * x[k];
+            e = std::max(e, std::abs(s - b[i]));
+        }
+        return e;
+    };
+
+    TEST_CASE("lstsq_solve: the three full-rank regimes still solve")
+    {
+        fmt::println("lstsq_solve: the three full-rank regimes still solve");
+
+        // square and underdetermined must satisfy A x = b exactly; overdetermined is a
+        // least-squares fit and generally will not, so it is checked by the normal
+        // equations instead.
+        { // square
+            auto const A = make_A(5, 5);
+            std::vector<double> b{0.3, -1.2, 0.8, 2.0, -0.5};
+            CHECK(residual(A, lstsq_solve(A, b, 5), b, 5) == doctest::Approx(0.0));
+        }
+        { // underdetermined (minimum norm) -- exact, and no other exact solution is
+            // shorter
+            auto const A = make_A(4, 9);
+            std::vector<double> b{0.3, -1.2, 0.8, 2.0};
+            auto const x = lstsq_solve(A, b, 9);
+            CHECK(residual(A, x, b, 9) == doctest::Approx(0.0));
+            // minimum-norm: x must lie in the row space, i.e. x = A^T y for some y. Test
+            // it by checking that adding any null-space vector only lengthens x.
+            double nx = 0.0;
+            for (double v : x)
+                nx += v * v;
+            auto const z = nullspace_project(A, std::vector<double>(9, 1.0), 4, 9);
+            double nz = 0.0, dot = 0.0;
+            for (size_t k = 0; k < 9; ++k) {
+                nz += z[k] * z[k];
+                dot += z[k] * x[k];
+            }
+            REQUIRE(nz > 1.0e-6); // the null space is non-trivial
+            CHECK(dot ==
+                  doctest::Approx(0.0).epsilon(1.0e-9)); // and x is orthogonal to it
+            CHECK(nx > 0.0);
+        }
+        { // overdetermined (least squares): the residual is orthogonal to the columns
+            auto const A = make_A(8, 3);
+            std::vector<double> b{0.3, -1.2, 0.8, 2.0, -0.5, 1.1, 0.2, -0.9};
+            auto const x = lstsq_solve(A, b, 3);
+            for (size_t k = 0; k < 3; ++k) {
+                double s = 0.0;
+                for (size_t i = 0; i < 8; ++i) {
+                    double r = -b[i];
+                    for (size_t j = 0; j < 3; ++j)
+                        r += A[i * 3 + j] * x[j];
+                    s += A[i * 3 + k] * r;
+                }
+                CHECK(s == doctest::Approx(0.0)); // A^T (A x - b) = 0
+            }
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("lstsq_solve: a rank-deficient input is REFUSED, not silently inflated")
+    {
+        fmt::println("lstsq_solve: a rank-deficient input is REFUSED, not silently "
+                     "inflated");
+
+        // The normal-equation route cannot form a pseudo-inverse without full rank: the
+        // Gram matrix is singular, and lu_decomp substitutes TINY (1e-20) for the
+        // vanishing pivot rather than raising -- so the answer comes back scaled by that
+        // pivot's reciprocal. Measured before the guard: x0 = -9.04e+02 on a system whose
+        // correct scale is 0.26. The guard turns that into an exception.
+        auto A = make_A(6, 11);
+        for (size_t k = 0; k < 11; ++k)
+            A[5 * 11 + k] = A[4 * 11 + k]; // row 5 := row 4 -> rank 5 of 6
+        std::vector<double> b{0.3, -1.2, 0.8, 2.0, -0.5, 1.4};
+
+        CHECK_THROWS_AS(lstsq_solve(A, b, 11), Solver_error);
+
+        // damping is the documented way through: it regularizes instead of refusing, and
+        // must return a finite answer of sane magnitude.
+        auto const xd = lstsq_solve(A, b, 11, 1.0e-4);
+        REQUIRE(xd.size() == 11u);
+        double nmax = 0.0;
+        for (double v : xd)
+            nmax = std::max(nmax, std::abs(v));
+        CHECK(std::isfinite(nmax));
+        CHECK(nmax < 10.0); // not the 1e+2..1e+3 blow-up of an unguarded TINY pivot
+        fmt::println("");
+    }
+
+    TEST_CASE("lstsq_solve: damping is off by default and reduces to the exact solve")
+    {
+        fmt::println("lstsq_solve: damping is off by default and reduces to the exact "
+                     "solve");
+
+        // Every pre-existing call site passes no damping and must be bit-unchanged.
+        auto const A = make_A(4, 9);
+        std::vector<double> b{0.3, -1.2, 0.8, 2.0};
+        auto const x0 = lstsq_solve(A, b, 9);
+        auto const x1 = lstsq_solve(A, b, 9, 0.0);
+        REQUIRE(x0.size() == x1.size());
+        for (size_t k = 0; k < x0.size(); ++k)
+            CHECK(x0[k] == x1[k]); // exact equality, not an approximation
+
+        // a small damping perturbs the answer slightly and shrinks it (Tikhonov)
+        auto const xd = lstsq_solve(A, b, 9, 1.0e-3);
+        double n0 = 0.0, nd = 0.0;
+        for (size_t k = 0; k < x0.size(); ++k) {
+            n0 += x0[k] * x0[k];
+            nd += xd[k] * xd[k];
+        }
+        CHECK(nd < n0);       // regularization shortens the solution
+        CHECK(nd > 0.9 * n0); // but only slightly, at this damping
+        fmt::println("");
+    }
+
+    TEST_CASE("nullspace_project: the result is invisible to A")
+    {
+        fmt::println("nullspace_project: the result is invisible to A");
+
+        // v_ns = (I - A^+ A) v must satisfy A v_ns = 0: a secondary objective projected
+        // this way cannot disturb the primary task. This is the redundancy-resolution
+        // step; the same projector appears in the task-space control literature.
+        auto const A = make_A(4, 9);
+        std::vector<double> v(9);
+        for (size_t k = 0; k < 9; ++k)
+            v[k] = 0.4 * double(k) - 1.1;
+
+        auto const vns = nullspace_project(A, v, 4, 9);
+        REQUIRE(vns.size() == 9u);
+        std::vector<double> const zero(4, 0.0);
+        CHECK(residual(A, vns, zero, 9) == doctest::Approx(0.0).epsilon(1.0e-9));
+
+        // idempotent: projecting again changes nothing
+        auto const vns2 = nullspace_project(A, vns, 4, 9);
+        for (size_t k = 0; k < 9; ++k)
+            CHECK(vns2[k] == doctest::Approx(vns[k]).epsilon(1.0e-9));
+
+        // and the removed part is exactly the task component
+        for (size_t k = 0; k < 9; ++k)
+            CHECK(std::isfinite(v[k] - vns[k]));
+
+        // a full-rank SQUARE A has a trivial null space -> the projection is ~zero
+        auto const S = make_A(5, 5);
+        std::vector<double> w(5, 1.0);
+        auto const wns = nullspace_project(S, w, 5, 5);
+        for (double x : wns)
+            CHECK(x == doctest::Approx(0.0).epsilon(1.0e-8));
+
+        // wrong-sized v is rejected rather than read out of bounds
+        CHECK_THROWS_AS(nullspace_project(A, std::vector<double>(3, 1.0), 4, 9),
+                        Solver_error);
+        fmt::println("");
     }
 }

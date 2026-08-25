@@ -1079,12 +1079,18 @@ class dynamic_system3dp : public kinematic_system3dp {
     }
 
     // add a free (6-DOF) dynamic rigid body: rest pose + inertial properties + initial
-    // kinematic state (linear & angular velocity)
+    // kinematic state (linear & angular velocity).
+    //
+    // A free body is integrated on its own (step_free_body), NOT as part of the
+    // coupled 1-DOF joint chain -- so it must not share a root-to-leaf path with a
+    // revolute or prismatic joint. That configuration is refused (see
+    // reject_mixed_chain); it is not a floating base.
     void add_body(static_frame3dp const& f, body3dp const& b,
                   kin_state3dp const& k = kin_state3dp{}, size_t parent_idx = prev_frame)
     {
         add_frame(f, k, parent_idx);
         body.back() = b;
+        reject_mixed_chain(size() - 1);
     }
 
     // add a revolute-jointed body: a 1-DOF hinge about the body-fixed axis line through
@@ -1389,6 +1395,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         js.omega = qdot0;
         joint[idx] = js;
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
+        reject_mixed_chain(idx);
     }
 
     // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q *
@@ -1435,6 +1442,51 @@ class dynamic_system3dp : public kinematic_system3dp {
                 driven_.count(i) == 0)
                 rj.push_back(i);
         return rj;
+    }
+
+    // A FREE body and a 1-DOF joint chain do NOT couple in this tier. Free bodies are
+    // integrated by step_free_body(); the 1-DOF joints are integrated together by
+    // coupled_step(); and neither sees the other's inertia. Putting both on one
+    // root-to-leaf path therefore models something OTHER than what was described, with
+    // no error: the free body's inertia never enters the mass matrix, and it falls as if
+    // unattached while its jointed descendants are carried along kinematically. Measured
+    // on a 100 kg free body carrying one revolute link: the mass matrix is byte-identical
+    // to the same chain with that body absent, and the body's origin follows -1/2 g t^2
+    // exactly.
+    //
+    // The correct construction is Featherstone's (Rigid Body Dynamics Algorithms, 9.3): a
+    // floating base IS a 6-DOF joint at the root, after which every fixed-base algorithm
+    // applies unchanged. Until this tier supports that, refuse the configuration rather
+    // than return a wrong answer quietly. Two independent subsystems hanging off the root
+    // are fine -- the check is per PATH, not per system.
+    //
+    // The test is on MASS, not on type alone, and deliberately so: a free frame carrying
+    // no mass is skipped by step_free_body() and is therefore inert, so it may sit on a
+    // jointed path as a pure carrier. That is also what keeps the default root harmless
+    // -- add_frame() leaves joint[0].type == free, and only its zero mass stops it from
+    // matching here.
+    void reject_mixed_chain(size_t idx) const
+    {
+        bool has_free = false, has_joint = false;
+        for (size_t n = idx;; n = parent(n)) {
+            if (joint[n].type == joint3dp::free && body[n].mass > value_t(0.0))
+                has_free = true;
+            if (joint[n].type == joint3dp::revolute ||
+                joint[n].type == joint3dp::prismatic)
+                has_joint = true;
+            if (parent(n) == n) break; // reached the root
+        }
+        if (has_free && has_joint) {
+            throw std::runtime_error(
+                std::string("dynamic_system3dp: frame '") + frame(idx).get_name() +
+                "' puts a free (unjointed) body carrying mass on the same chain as a "
+                "revolute/prismatic joint. These do not couple in this tier -- the free "
+                "body's inertia would be silently dropped from the mass matrix and it "
+                "would fall as if unattached. Model a moving base either as a driven "
+                "joint (set_driven_rate) or with massless intermediate frames; a genuine "
+                "floating base needs the free joint to take part in the coupled solve, "
+                "which this tier does not yet do.");
+        }
     }
 
     // Is joint frame `jf` on the path from body `bf` up to the root (inclusive)?

@@ -1384,6 +1384,91 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
 TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 {
 
+    TEST_CASE("pga3dp: a free body and a jointed chain must not share a path")
+    {
+        fmt::println("pga3dp: a free body and a jointed chain must not share a path");
+
+        // A free (6-DOF) body is integrated by step_free_body(); the 1-DOF joints are
+        // integrated together by coupled_step(). Neither sees the other's inertia, so a
+        // model that puts both on one root-to-leaf path is NOT the model that was
+        // described -- and it used to be accepted silently. Measured before the guard: a
+        // 100 kg free body carrying one revolute link produced a mass matrix
+        // byte-identical to the same chain with the body absent, and the body fell at
+        // exactly -1/2 g t^2 while its child hung off it.
+        //
+        // The correct construction is Featherstone's (Rigid Body Dynamics Algorithms,
+        // 9.3): a floating base is a 6-DOF joint at the root that takes part in the
+        // coupled solve. This tier does not do that yet, so the configuration is refused.
+
+        auto const heavy = make_cuboid_body(100.0, 1.0, 1.0, 1.0);
+        auto const link = make_cuboid_body(1.0, 0.1, 0.1, 0.4);
+
+        // a) jointed body added BELOW a free body -> refused
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            sys.add_body(static_frame3dp("base", vec3dp{0, 0, 0, 1}), heavy);
+            CHECK_THROWS_AS(
+                sys.add_revolute_body(static_frame3dp("link", vec3dp{0, 0, 0.5, 1}), link,
+                                      O_3dp, vec3dp{0, 1, 0, 0}),
+                std::runtime_error);
+        }
+
+        // b) the same mix built in the other order -> also refused
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            CHECK_NOTHROW(
+                sys.add_revolute_body(static_frame3dp("link", vec3dp{0, 0, 0.5, 1}), link,
+                                      O_3dp, vec3dp{0, 1, 0, 0}));
+            CHECK_THROWS_AS(
+                sys.add_body(static_frame3dp("base", vec3dp{0, 0, 1.0, 1}), heavy),
+                std::runtime_error);
+        }
+
+        // c) a MASSLESS free frame on the path is inert (step_free_body skips it), so it
+        //    is allowed -- the guard tests mass, not type alone
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            sys.add_body(static_frame3dp("carrier", vec3dp{0, 0, 0, 1}), body3dp{});
+            CHECK_NOTHROW(
+                sys.add_revolute_body(static_frame3dp("link", vec3dp{0, 0, 0.5, 1}), link,
+                                      O_3dp, vec3dp{0, 1, 0, 0}));
+        }
+
+        // d) two INDEPENDENT subsystems hanging off the root are fine -- the check is per
+        //    path, not per system. A free body on one branch, a chain on another.
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            sys.add_body(static_frame3dp("floater", vec3dp{2, 0, 0, 1}), heavy, {}, 0);
+            CHECK_NOTHROW(
+                sys.add_revolute_body(static_frame3dp("arm", vec3dp{0, 0, 0.5, 1}), link,
+                                      O_3dp, vec3dp{0, 1, 0, 0}, 0.0, 0.0, 0));
+        }
+
+        // e) the guard does not disturb the ordinary cases: a standalone free body, and
+        //    a plain jointed chain, both still build and step
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            CHECK_NOTHROW(sys.add_body(static_frame3dp("B", vec3dp{0, 0, 0, 1}), heavy));
+            CHECK_NOTHROW(sys.step(0.001));
+        }
+        {
+            dynamic_system3dp sys;
+            sys.add_frame(static_frame3dp("I"));
+            CHECK_NOTHROW(sys.add_revolute_body(static_frame3dp("l1"), link, O_3dp,
+                                                vec3dp{0, 1, 0, 0}, 0.3));
+            CHECK_NOTHROW(
+                sys.add_revolute_body(static_frame3dp("l2", vec3dp{0, 0, 0.4, 1}), link,
+                                      O_3dp, vec3dp{1, 0, 0, 0}, 0.2));
+            CHECK_NOTHROW(sys.step(0.001));
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: spatial double pendulum - non-parallel axes (M3)")
     {
         fmt::println("pga3dp: dynamic_system3dp - spatial double pendulum (M3)");
