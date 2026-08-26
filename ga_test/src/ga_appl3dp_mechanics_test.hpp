@@ -1626,6 +1626,128 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: dynamic_system3dp - a massless link may carry a joint (D2)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - massless carrier link in a chain");
+
+        // massive -> MASSLESS -> massive with non-parallel axes: the carrier holds a
+        // joint but no inertia (the composition of a universal joint from two revolutes
+        // with a massless link between them). Builds, and integrates with energy
+        // conserved; every joint moves some inertia so the mass matrix is regular.
+        auto const heavy = make_cuboid_body(2.0, 0.6, 0.06, 0.06);
+        auto const carrier = make_cuboid_body(0.0, 0.1, 0.03, 0.03); // massless
+        auto const light = make_cuboid_body(1.5, 0.5, 0.05, 0.05);
+        CHECK(carrier.mass == 0.0);
+        vec3dp const ez{0.0, 0.0, 1.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0};
+
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_revolute_body(static_frame3dp("A", vec3dp{0.3, 0.0, 0.0, 1.0}), heavy,
+                              vec3dp{-0.3, 0.0, 0.0, 1.0}, ez, 0.4, 0.0,
+                              sys.index_of("W"));
+        sys.add_revolute_body(static_frame3dp("C", vec3dp{0.35, 0.0, 0.0, 1.0}), carrier,
+                              vec3dp{-0.05, 0.0, 0.0, 1.0}, ey, -0.7, 0.0,
+                              sys.index_of("A"));
+        sys.add_revolute_body(static_frame3dp("B", vec3dp{0.3, 0.0, 0.0, 1.0}), light,
+                              vec3dp{-0.25, 0.0, 0.0, 1.0}, ez, 0.5, 0.0,
+                              sys.index_of("C"));
+        auto const M = sys.mass_matrix();
+        for (size_t j = 0; j < 3; ++j)
+            CHECK(M[j * 3 + j] > 0.0);
+
+        value_t const E0 = sys.total_energy();
+        value_t max_dE = 0.0;
+        for (int i = 0; i < 1500; ++i) {
+            sys.step(1.0e-3);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  heavy -> massless -> light: dE/E = {:.2e}",
+                     max_dE / std::abs(E0));
+        CHECK(max_dE / std::abs(E0) < 1e-6);
+
+        // a massless LEAF with a dof joint is refused with the cause; driven it runs
+        dynamic_system3dp leaf;
+        leaf.add_frame(static_frame3dp("W"));
+        leaf.add_revolute_body(static_frame3dp("A", vec3dp{0.3, 0.0, 0.0, 1.0}), heavy,
+                               vec3dp{-0.3, 0.0, 0.0, 1.0}, ez, 0.4, 0.0,
+                               leaf.index_of("W"));
+        leaf.add_revolute_body(static_frame3dp("C", vec3dp{0.35, 0.0, 0.0, 1.0}), carrier,
+                               vec3dp{-0.05, 0.0, 0.0, 1.0}, ey, -0.7, 0.0,
+                               leaf.index_of("A"));
+        CHECK_THROWS_WITH_AS(leaf.step(1.0e-3), doctest::Contains("moves no inertia"),
+                             std::runtime_error);
+        leaf.set_driven_rate(leaf.index_of("C"), 2.0);
+        CHECK_NOTHROW(leaf.step(1.0e-3));
+
+        // a massless FREE body is inert
+        dynamic_system3dp free;
+        free.add_frame(static_frame3dp("W"));
+        free.add_body(static_frame3dp("ghost", vec3dp{1.0, 1.0, 0.0, 1.0}), carrier);
+        CHECK_NOTHROW(free.step(1.0e-3));
+        fmt::println("  massless leaf joint refused with the cause; driven it runs; a "
+                     "massless free body is inert");
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: make_body_from_inertia and make_point_body3dp")
+    {
+        fmt::println("pga3dp: body builders from a tensor and for a point mass");
+
+        // the tensor builder reproduces the shape builder from its principal moments,
+        // byte for byte
+        value_t const m = 2.0, w = 0.6, h = 0.2, d = 0.1;
+        auto const cub = make_cuboid_body(m, w, h, d);
+        auto const gen = make_body_from_inertia(m, m * (h * h + d * d) / 12.0,
+                                                m * (w * w + d * d) / 12.0,
+                                                m * (w * w + h * h) / 12.0);
+        for (size_t i = 0; i < 36; ++i) {
+            CHECK(gen.I.data[i] == cub.I.data[i]);
+            CHECK(gen.I_inv.data[i] == cub.I_inv.data[i]);
+        }
+
+        // with products of inertia the angular block is the classical L = J omega
+        value_t const Ixx = 0.5, Iyy = 0.7, Izz = 0.9, Ixy = 0.1, Ixz = -0.05, Iyz = 0.2;
+        auto const b = make_body_from_inertia(3.0, Ixx, Iyy, Izz, Ixy, Ixz, Iyz);
+        twist3dp const Om{0.3, -1.1, 0.7, 0.0, 0.0, 0.0}; // pure angular velocity
+        bivec3dp const L = b.I(Om);
+        CHECK(L.mx == doctest::Approx(Ixx * Om.vx - Ixy * Om.vy - Ixz * Om.vz));
+        CHECK(L.my == doctest::Approx(-Ixy * Om.vx + Iyy * Om.vy - Iyz * Om.vz));
+        CHECK(L.mz == doctest::Approx(-Ixz * Om.vx - Iyz * Om.vy + Izz * Om.vz));
+        CHECK(std::abs(L.vx) + std::abs(L.vy) + std::abs(L.vz) < 1e-15); // no linear part
+        // and the cached inverse is the inverse
+        twist3dp const back = b.I_inv(L);
+        CHECK(back.vx == doctest::Approx(Om.vx));
+        CHECK(back.vy == doctest::Approx(Om.vy));
+        CHECK(back.vz == doctest::Approx(Om.vz));
+
+        // point mass on a massless rod = the simple pendulum: the initial angular
+        // acceleration is exactly -g sin(theta) / L, and the swing conserves energy.
+        // The point body carries the mass, the rod (a massless carrier) the hinge.
+        value_t const g = 9.81, Lr = 0.8, th0 = 0.6;
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        // the pendulum is ONE revolute body -- the point mass -- with its hinge L away in
+        // body coordinates: the massless rod is the pivot offset, not a body of its own.
+        // (A rigidly attached mass is the link's body; adding it as a second, unjointed
+        // body on the path would be a FREE body, which the tier refuses until Phase F.)
+        sys.add_revolute_body(static_frame3dp("bob", vec3dp{0.0, -Lr, 0.0, 1.0}),
+                              make_point_body3dp(1.7), vec3dp{0.0, Lr, 0.0, 1.0},
+                              vec3dp{0.0, 0.0, 1.0, 0.0}, th0, 0.0, sys.index_of("W"));
+        CHECK(sys.joint_accel(sys.index_of("bob")) ==
+              doctest::Approx(-g * std::sin(th0) / Lr).epsilon(1e-12));
+        value_t const E0 = sys.total_energy();
+        value_t max_dE = 0.0;
+        for (int i = 0; i < 2000; ++i) {
+            sys.step(1.0e-3);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  point bob on a massless rod: alpha0 = -g sin(th)/L exact, dE/E = "
+                     "{:.2e}",
+                     max_dE / std::abs(E0));
+        CHECK(max_dE / std::abs(E0) < 1e-8);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 
 

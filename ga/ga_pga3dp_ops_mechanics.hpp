@@ -928,19 +928,79 @@ struct body3dp {
 
 // Build a body3dp for a uniform cuboid (extents w,h,d along e1,e2,e3) of total mass m,
 // with the body origin at the centre of mass.
+//
+// m = 0 builds a MASSLESS body: a carrier link that can hold a joint (a fictitious link
+// composing multi-dof joints, a massless coupler) without contributing inertia. Its
+// inverse inertia is left zero -- the inverse serves only the free-body integrator,
+// which never runs for a massless body -- rather than refused. A dof joint that moves
+// no inertia at all is still refused, at forward_dynamics, since its mass-matrix row is
+// zero.
 inline body3dp make_cuboid_body(value_t m, value_t w, value_t h, value_t d)
 {
     auto const I =
         get_cuboid_inertia(m, w, h, d); // about cm (default pivot = body origin)
-    return body3dp{I, get_inertia_inverse(I), m};
+    return body3dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia3dp<value_t>{}, m};
 }
 
 // Build a body3dp for a uniform disc/cylinder of radius r and thickness/height t
-// (symmetry/spin axis along e3) of total mass m, body origin at the centre.
+// (symmetry/spin axis along e3) of total mass m, body origin at the centre. m = 0
+// builds a massless carrier, as for make_cuboid_body.
 inline body3dp make_disc_body(value_t m, value_t r, value_t t)
 {
     auto const I = get_disc_inertia(m, r, t); // about cm (default pivot = body origin)
-    return body3dp{I, get_inertia_inverse(I), m};
+    return body3dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia3dp<value_t>{}, m};
+}
+
+// Build a body3dp from its mass and inertia TENSOR about the centre of mass, in the
+// body axes -- the form a robot description (URDF, anthropometric tables, a CAD export)
+// supplies: the moments I_xx, I_yy, I_zz and the products I_xy, I_xz, I_yz, with the
+// tensor
+//
+//     J = [  I_xx  -I_xy  -I_xz ]
+//         [ -I_xy   I_yy  -I_yz ]        L = J omega
+//         [ -I_xz  -I_yz   I_zz ]
+//
+// filling the angular block of the inertia map (the shape builders above are special
+// cases with a diagonal J). Body origin at the cm. Non-diagonal products are allowed
+// and mean the body axes are not principal.
+inline body3dp make_body_from_inertia(value_t m, value_t Ixx, value_t Iyy, value_t Izz,
+                                      value_t Ixy = 0.0, value_t Ixz = 0.0,
+                                      value_t Iyz = 0.0)
+{
+    Inertia3dp<value_t> I;
+    auto v = I.view();
+    v[0, 3] = m; // linear velocity -> linear momentum
+    v[1, 4] = m;
+    v[2, 5] = m;
+    v[3, 0] = Ixx; // angular velocity -> angular momentum, L = J omega
+    v[3, 1] = -Ixy;
+    v[3, 2] = -Ixz;
+    v[4, 0] = -Ixy;
+    v[4, 1] = Iyy;
+    v[4, 2] = -Iyz;
+    v[5, 0] = -Ixz;
+    v[5, 1] = -Iyz;
+    v[5, 2] = Izz;
+    return body3dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia3dp<value_t>{}, m};
+}
+
+// Build a body3dp for a POINT mass m at the body origin. The point mass itself was
+// always available -- get_point_inertia(m, X) is the inertia MAP of a point mass at X,
+// and the shape builders' tests sum it over a grid -- what was missing is the BODY: a
+// point at its own frame origin has linear inertia only, no rotational inertia (a
+// rotation about its own centre carries no energy), so its inertia map is singular and
+// the eager inverse the builders used to take threw. The inverse serves only the
+// free-body integrator, which a point body never enters: it has no orientation to
+// integrate, so it cannot be a free body. It may sit in a chain -- a hip mass, a foot
+// mass, a payload, the three masses of a compass-gait walker -- where the joint moving
+// it supplies the lever arm and the mass matrix stays regular. Its inverse inertia is
+// left zero. Named by dimension because the 2D and 3D builders would otherwise share
+// one signature (the shape builders differ by arity). Compose extended bodies from
+// several point masses through the frame tree, or use make_body_from_inertia for a
+// measured tensor.
+inline body3dp make_point_body3dp(value_t m)
+{
+    return body3dp{get_point_inertia(m, O_3dp), Inertia3dp<value_t>{}, m};
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
@@ -1695,7 +1755,21 @@ class dynamic_system3dp : public kinematic_system3dp {
     std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
     {
         auto const [Mmat, RHS] = assemble_mass_bias(rj);
-        return hd::ga::lu_solve(Mmat, RHS, rj.size()); // shared LU (detail/ga_solver.hpp)
+        // A dof joint that moves no inertia -- every body it carries is massless, or
+        // their mass sits on its axis -- has an identically zero mass-matrix diagonal
+        // (the kinetic energy at unit rate), so the open chain is singular. Refuse it
+        // with the cause rather than let the LU substitute a tiny pivot and return a
+        // finite, meaningless acceleration. Closed loops do not pass through here: their
+        // constraint rows may well make such a joint determinate (a massless coupler).
+        size_t const n = rj.size();
+        for (size_t j = 0; j < n; ++j)
+            if (Mmat[j * n + j] == value_t(0.0))
+                throw std::runtime_error(
+                    std::string("dynamic_system3dp: joint '") + frame(rj[j]).get_name() +
+                    "' moves no inertia (every body it carries is massless, or their "
+                    "mass sits on its axis), so the mass matrix is singular. Give a link "
+                    "below it a mass, or drive the joint (set_driven_rate).");
+        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU (detail/ga_solver.hpp)
     }
 
     // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates

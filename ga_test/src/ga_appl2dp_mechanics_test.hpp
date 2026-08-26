@@ -4591,6 +4591,106 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: dynamic_system2dp - a massless link may carry a joint (D2)")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - massless carrier link in a chain");
+
+        // massive -> MASSLESS -> massive: the carrier holds a joint but no inertia. It
+        // used to be refused at construction (make_plate_body inverted a singular
+        // inertia); now it builds, and the chain integrates with energy conserved. The
+        // carrier's own joint moves the massive link below it, so the mass matrix stays
+        // regular.
+        auto const heavy = make_plate_body(2.0, 0.6, 0.06);
+        auto const carrier = make_plate_body(0.0, 0.3, 0.03); // massless
+        auto const light = make_plate_body(1.5, 0.5, 0.05);
+        CHECK(carrier.mass == 0.0);
+
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W"));
+        sys.add_revolute_body(static_frame2dp("A", vec2dp{0.3, 0.0, 1.0}, 0.0), heavy,
+                              vec2dp{-0.3, 0.0, 1.0}, 0.4, 0.0, sys.index_of("W"));
+        sys.add_revolute_body(static_frame2dp("C", vec2dp{0.45, 0.0, 1.0}, 0.0), carrier,
+                              vec2dp{-0.15, 0.0, 1.0}, -0.7, 0.0, sys.index_of("A"));
+        sys.add_revolute_body(static_frame2dp("B", vec2dp{0.4, 0.0, 1.0}, 0.0), light,
+                              vec2dp{-0.25, 0.0, 1.0}, 0.5, 0.0, sys.index_of("C"));
+        auto const M = sys.mass_matrix();
+        CHECK(M.size() == 9);
+        for (size_t j = 0; j < 3; ++j)
+            CHECK(M[j * 3 + j] > 0.0); // every joint moves some inertia
+
+        value_t const E0 = sys.total_energy();
+        value_t max_dE = 0.0;
+        for (int i = 0; i < 1500; ++i) {
+            sys.step(1.0e-3);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  heavy -> massless -> light: dE/E = {:.2e}",
+                     max_dE / std::abs(E0));
+        CHECK(max_dE / std::abs(E0) < 1e-6);
+
+        // a massless LEAF with a dof joint moves no inertia: refused with the cause --
+        // unless the joint is driven, which takes it out of the coupled solve
+        dynamic_system2dp leaf;
+        leaf.add_frame(static_frame2dp("W"));
+        leaf.add_revolute_body(static_frame2dp("A", vec2dp{0.3, 0.0, 1.0}, 0.0), heavy,
+                               vec2dp{-0.3, 0.0, 1.0}, 0.4, 0.0, leaf.index_of("W"));
+        leaf.add_revolute_body(static_frame2dp("C", vec2dp{0.45, 0.0, 1.0}, 0.0), carrier,
+                               vec2dp{-0.15, 0.0, 1.0}, -0.7, 0.0, leaf.index_of("A"));
+        CHECK_THROWS_WITH_AS(leaf.step(1.0e-3), doctest::Contains("moves no inertia"),
+                             std::runtime_error);
+        leaf.set_driven_rate(leaf.index_of("C"), 2.0);
+        CHECK_NOTHROW(leaf.step(1.0e-3));
+
+        // a massless FREE body is inert: skipped by the free-body integrator, no throw
+        dynamic_system2dp free;
+        free.add_frame(static_frame2dp("W"));
+        free.add_body(static_frame2dp("ghost", vec2dp{1.0, 1.0, 1.0}, 0.0), carrier);
+        CHECK_NOTHROW(free.step(1.0e-3));
+        fmt::println("  massless leaf joint refused with the cause; driven it runs; a "
+                     "massless free body is inert");
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: make_body_from_inertia and make_point_body2dp")
+    {
+        fmt::println(
+            "pga2dp: body builders from a moment of inertia and for a point mass");
+
+        // the moment builder reproduces the plate builder byte for byte
+        value_t const m = 2.0, w = 0.6, h = 0.2;
+        auto const pl = make_plate_body(m, w, h);
+        auto const gen = make_body_from_inertia(m, m * (w * w + h * h) / 12.0);
+        for (size_t i = 0; i < 9; ++i) {
+            CHECK(gen.I.data[i] == pl.I.data[i]);
+            CHECK(gen.I_inv.data[i] == pl.I_inv.data[i]);
+        }
+
+        // point mass on a massless rod = the simple pendulum: alpha0 = -g sin(theta)/L
+        // exactly, energy conserved over the swing
+        value_t const g = 9.81, Lr = 0.8, th0 = 0.6;
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W"));
+        // the pendulum is ONE revolute body -- the point mass -- with its hinge L away in
+        // body coordinates: the massless rod is the pivot offset, not a body of its own
+        // (a second, unjointed body on the path would be a FREE body, refused until F)
+        sys.add_revolute_body(static_frame2dp("bob", vec2dp{0.0, -Lr, 1.0}, 0.0),
+                              make_point_body2dp(1.7), vec2dp{0.0, Lr, 1.0}, th0, 0.0,
+                              sys.index_of("W"));
+        CHECK(sys.joint_accel(sys.index_of("bob")) ==
+              doctest::Approx(-g * std::sin(th0) / Lr).epsilon(1e-12));
+        value_t const E0 = sys.total_energy();
+        value_t max_dE = 0.0;
+        for (int i = 0; i < 2000; ++i) {
+            sys.step(1.0e-3);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  point bob on a massless rod: alpha0 = -g sin(th)/L exact, dE/E = "
+                     "{:.2e}",
+                     max_dE / std::abs(E0));
+        CHECK(max_dE / std::abs(E0) < 1e-8);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

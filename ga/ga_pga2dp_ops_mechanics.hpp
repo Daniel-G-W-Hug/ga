@@ -965,18 +965,54 @@ struct body2dp {
 
 // Build a body2dp for a uniform rectangular plate (width w along e1, height h along e2)
 // of total mass m, with the body origin at the centre of mass.
+//
+// m = 0 builds a MASSLESS body: a carrier link that can hold a joint (a fictitious link
+// composing multi-dof joints, a massless coupler) without contributing inertia. Its
+// inverse inertia is left zero -- the inverse serves only the free-body integrator,
+// which never runs for a massless body -- rather than refused. A dof joint that moves
+// no inertia at all is still refused, at forward_dynamics, since its mass-matrix row is
+// zero.
 inline body2dp make_plate_body(value_t m, value_t w, value_t h)
 {
     auto const I = get_plate_inertia(m, w, h); // about cm (default pivot = body origin)
-    return body2dp{I, get_inertia_inverse(I), m};
+    return body2dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia2dp<value_t>{}, m};
 }
 
 // Build a body2dp for a uniform disc (radius r) of total mass m, body origin at the
-// centre.
+// centre. m = 0 builds a massless carrier, as for make_plate_body.
 inline body2dp make_disc_body(value_t m, value_t r)
 {
     auto const I = get_disc_inertia(m, r); // about cm (default pivot = body origin)
-    return body2dp{I, get_inertia_inverse(I), m};
+    return body2dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia2dp<value_t>{}, m};
+}
+
+// Build a body2dp from its mass and moment of inertia I_zz about the centre of mass --
+// the form a robot description supplies (a planar body has one moment). The shape
+// builders above are special cases. Body origin at the cm.
+inline body2dp make_body_from_inertia(value_t m, value_t Izz)
+{
+    Inertia2dp<value_t> I;
+    auto v = I.view();
+    v[0, 1] = m;
+    v[1, 0] = -m;
+    v[2, 2] = Izz;
+    return body2dp{I, (m > 0.0) ? get_inertia_inverse(I) : Inertia2dp<value_t>{}, m};
+}
+
+// Build a body2dp for a POINT mass m at the body origin. The point mass itself was
+// always available -- get_point_inertia(m, X) is the inertia MAP of a point mass at X --
+// what was missing is the BODY: a point at its own frame origin has linear inertia only,
+// no rotational inertia (a rotation about its own centre carries no energy), so its
+// inertia map is singular and the eager inverse the builders used to take threw. The
+// inverse serves only the free-body integrator, which a point body never enters: it has
+// no orientation to integrate, so it cannot be a free body. It may sit in a chain -- a
+// hip mass, a foot mass, a payload, the three masses of a compass-gait walker -- where
+// the joint moving it supplies the lever arm and the mass matrix stays regular. Its
+// inverse inertia is left zero. Named by dimension because the 2D and 3D builders would
+// otherwise share one signature (the shape builders differ by arity).
+inline body2dp make_point_body2dp(value_t m)
+{
+    return body2dp{get_point_inertia(m, O_2dp), Inertia2dp<value_t>{}, m};
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
@@ -1640,7 +1676,21 @@ class dynamic_system2dp : public kinematic_system2dp {
     std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
     {
         auto const [Mmat, RHS] = assemble_mass_bias(rj);
-        return hd::ga::lu_solve(Mmat, RHS, rj.size()); // shared LU (detail/ga_solver.hpp)
+        // A dof joint that moves no inertia -- every body it carries is massless, or
+        // their mass sits on its axis -- has an identically zero mass-matrix diagonal
+        // (the kinetic energy at unit rate), so the open chain is singular. Refuse it
+        // with the cause rather than let the LU substitute a tiny pivot and return a
+        // finite, meaningless acceleration. Closed loops do not pass through here: their
+        // constraint rows may well make such a joint determinate (a massless coupler).
+        size_t const n = rj.size();
+        for (size_t j = 0; j < n; ++j)
+            if (Mmat[j * n + j] == value_t(0.0))
+                throw std::runtime_error(
+                    std::string("dynamic_system2dp: joint '") + frame(rj[j]).get_name() +
+                    "' moves no inertia (every body it carries is massless, or their "
+                    "mass sits on its axis), so the mass matrix is singular. Give a link "
+                    "below it a mass, or drive the joint (set_driven_rate).");
+        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU (detail/ga_solver.hpp)
     }
 
     // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates

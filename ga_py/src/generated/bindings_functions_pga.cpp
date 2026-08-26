@@ -404,6 +404,11 @@ void register_functions_pga(nb::module_& m)
     m.def("l_weight_dual", [](mvec3dp_e const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp_u const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp const& a0) { return l_weight_dual(a0); });
+    m.def("make_body_from_inertia",
+          [](double a0, double a1) { return make_body_from_inertia(a0, a1); });
+    m.def("make_body_from_inertia",
+          [](double a0, double a1, double a2, double a3, double a4, double a5,
+             double a6) { return make_body_from_inertia(a0, a1, a2, a3, a4, a5, a6); });
     m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) {
         return make_cuboid_body(a0, a1, a2, a3);
     });
@@ -412,6 +417,8 @@ void register_functions_pga(nb::module_& m)
           [](double a0, double a1, double a2) { return make_disc_body(a0, a1, a2); });
     m.def("make_plate_body",
           [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
+    m.def("make_point_body2dp", [](double a0) { return make_point_body2dp(a0); });
+    m.def("make_point_body3dp", [](double a0) { return make_point_body3dp(a0); });
     m.def("meet", [](bivec2dp const& a0, bivec2dp const& a1) { return meet(a0, a1); });
     m.def("meet", [](line2d const& a0, line2d const& a1) { return meet(a0, a1); });
     m.def("meet", [](trivec3dp const& a0, trivec3dp const& a1) { return meet(a0, a1); });

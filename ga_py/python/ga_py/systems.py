@@ -381,9 +381,12 @@ def _empty_inertia() -> "pga.inertia3dp":
 
 
 def make_cuboid_body(m: float, w: float, h: float, d: float) -> Body3dp:
-    """Body for a uniform cuboid (extents w,h,d along e1,e2,e3), origin at the cm."""
+    """Body for a uniform cuboid (extents w,h,d along e1,e2,e3), origin at the cm.
+    m = 0 builds a massless carrier link (a joint holder without inertia); its inverse
+    inertia stays zero, as in the C++ builder -- the inverse only serves the free-body
+    integrator, which never runs for a massless body."""
     I = pga.get_cuboid_inertia(m, w, h, d)
-    return Body3dp(I, pga.get_inertia_inverse(I), m)
+    return Body3dp(I, pga.get_inertia_inverse(I) if m > 0.0 else _empty_inertia(), m)
 
 
 class DynamicSystem3dp(KinematicSystem3dp):
