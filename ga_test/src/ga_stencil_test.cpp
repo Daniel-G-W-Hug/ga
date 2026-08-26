@@ -1064,32 +1064,172 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 
-    TEST_CASE("lstsq_solve: a rank-deficient input is REFUSED, not silently inflated")
+    TEST_CASE("lstsq_solve: a rank-deficient input gets the minimum-norm answer (W1)")
     {
-        fmt::println("lstsq_solve: a rank-deficient input is REFUSED, not silently "
-                     "inflated");
+        fmt::println("lstsq_solve: a rank-deficient input gets the minimum-norm answer");
 
-        // The normal-equation route cannot form a pseudo-inverse without full rank: the
-        // Gram matrix is singular, and lu_decomp substitutes TINY (1e-20) for the
-        // vanishing pivot rather than raising -- so the answer comes back scaled by that
-        // pivot's reciprocal. Measured before the guard: x0 = -9.04e+02 on a system whose
-        // correct scale is 0.26. The guard turns that into an exception.
+        // History: the normal-equation route could not form a pseudo-inverse without
+        // full rank -- lu_decomp substituted TINY for the vanishing pivot and the answer
+        // came back scaled by its reciprocal (measured: x0 = -9.04e+02 on a system whose
+        // correct scale is 0.26). A guard then turned that into an exception. Now the
+        // rank-revealing QR (complete orthogonal decomposition) returns A^+ b at ANY
+        // rank: the least-squares solution of least norm, finite and continuous through
+        // the singularity. The rank is reported by matrix_rank().
         auto A = make_A(6, 11);
         for (size_t k = 0; k < 11; ++k)
             A[5 * 11 + k] = A[4 * 11 + k]; // row 5 := row 4 -> rank 5 of 6
         std::vector<double> b{0.3, -1.2, 0.8, 2.0, -0.5, 1.4};
+        CHECK(matrix_rank(A, 6, 11) == 5);
 
-        CHECK_THROWS_AS(lstsq_solve(A, b, 11), Solver_error);
-
-        // damping is the documented way through: it regularizes instead of refusing, and
-        // must return a finite answer of sane magnitude.
-        auto const xd = lstsq_solve(A, b, 11, 1.0e-4);
-        REQUIRE(xd.size() == 11u);
+        auto const x = lstsq_solve(A, b, 11);
+        REQUIRE(x.size() == 11u);
         double nmax = 0.0;
-        for (double v : xd)
+        for (double v : x)
             nmax = std::max(nmax, std::abs(v));
         CHECK(std::isfinite(nmax));
         CHECK(nmax < 10.0); // not the 1e+2..1e+3 blow-up of an unguarded TINY pivot
+        // the rows are inconsistent (row 5 = row 4 with a different rhs), so the
+        // residual is the least-squares one: A^T (A x - b) = 0
+        for (size_t k = 0; k < 11; ++k) {
+            double s = 0.0;
+            for (size_t i = 0; i < 6; ++i) {
+                double r = -b[i];
+                for (size_t j = 0; j < 11; ++j)
+                    r += A[i * 11 + j] * x[j];
+                s += A[i * 11 + k] * r;
+            }
+            CHECK(s == doctest::Approx(0.0));
+        }
+        // and x is orthogonal to the null space of A (minimum norm)
+        size_t rank = 0;
+        auto const N = nullspace_basis(A, 6, 11, &rank);
+        CHECK(rank == 5);
+        REQUIRE(N.size() == 11u * 6u); // 11 x (11 - 5)
+        for (size_t c = 0; c < 6; ++c) {
+            double dot = 0.0, nn = 0.0;
+            for (size_t j = 0; j < 11; ++j) {
+                dot += x[j] * N[j * 6 + c];
+                nn += N[j * 6 + c] * N[j * 6 + c];
+            }
+            CHECK(nn == doctest::Approx(1.0)); // orthonormal basis vectors
+            CHECK(dot == doctest::Approx(0.0).epsilon(1e-9));
+            for (size_t i = 0; i < 6; ++i) { // A N = 0
+                double s = 0.0;
+                for (size_t j = 0; j < 11; ++j)
+                    s += A[i * 11 + j] * N[j * 6 + c];
+                CHECK(s == doctest::Approx(0.0).epsilon(1e-9));
+            }
+        }
+
+        // damping still selects the Tikhonov route: a finite answer of sane magnitude,
+        // and a different estimator (shorter than A^+ b)
+        auto const xd = lstsq_solve(A, b, 11, 1.0e-4);
+        REQUIRE(xd.size() == 11u);
+        double nd = 0.0, n0 = 0.0;
+        for (size_t k = 0; k < 11; ++k) {
+            nd += xd[k] * xd[k];
+            n0 += x[k] * x[k];
+        }
+        CHECK(std::isfinite(nd));
+        CHECK(nd < n0);
+        fmt::println("  rank 5 of 6: |x|_max = {:.3f}, null space 6-dimensional, damped "
+                     "|x| shorter",
+                     nmax);
+        fmt::println("");
+    }
+
+    TEST_CASE("minnorm_solve / matrix_rank: the pseudo-inverse, exactly, at every rank")
+    {
+        fmt::println("minnorm_solve / matrix_rank: the pseudo-inverse at every rank");
+
+        // A = u v^T (rank 1): A^+ = v u^T / (|u|^2 |v|^2), so A^+ b is known in closed
+        // form -- u = (1, 2), v = (1, 2), b = (1, 2): A^+ b = (0.2, 0.4)
+        std::vector<double> const A{1.0, 2.0, 2.0, 4.0};
+        std::vector<double> const b{1.0, 2.0};
+        size_t rank = 99;
+        auto const x = minnorm_solve(A, b, 2, &rank);
+        CHECK(rank == 1);
+        CHECK(x[0] == doctest::Approx(0.2).epsilon(1e-12));
+        CHECK(x[1] == doctest::Approx(0.4).epsilon(1e-12));
+        CHECK(matrix_rank(A, 2, 2) == 1);
+        CHECK(matrix_rank(std::vector<double>{1.0, 2.0, 3.0, 4.0}, 2, 2) == 2);
+        CHECK(matrix_rank(std::vector<double>(6, 0.0), 2, 3) == 0);
+
+        // the full-rank regimes agree with the normal-equation route to round-off (the
+        // consumers -- the closed-loop position, velocity and acceleration solves -- see
+        // no change beyond that)
+        auto normal_eq = [](std::vector<double> const& M, std::vector<double> const& r,
+                            size_t ncols) {
+            size_t const m = r.size();
+            if (ncols > m) { // A^T (A A^T)^-1 b
+                std::vector<double> G(m * m, 0.0);
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < m; ++j)
+                        for (size_t k = 0; k < ncols; ++k)
+                            G[i * m + j] += M[i * ncols + k] * M[j * ncols + k];
+                auto const y = lu_solve(G, r, m);
+                std::vector<double> xx(ncols, 0.0);
+                for (size_t k = 0; k < ncols; ++k)
+                    for (size_t i = 0; i < m; ++i)
+                        xx[k] += M[i * ncols + k] * y[i];
+                return xx;
+            }
+            std::vector<double> G(ncols * ncols, 0.0), c(ncols, 0.0); // (A^T A)^-1 A^T b
+            for (size_t a = 0; a < ncols; ++a) {
+                for (size_t i = 0; i < m; ++i)
+                    c[a] += M[i * ncols + a] * r[i];
+                for (size_t bb = 0; bb < ncols; ++bb)
+                    for (size_t i = 0; i < m; ++i)
+                        G[a * ncols + bb] += M[i * ncols + a] * M[i * ncols + bb];
+            }
+            return lu_solve(G, c, ncols);
+        };
+        {
+            auto const M = make_A(4, 9);
+            std::vector<double> const r{0.3, -1.2, 0.8, 2.0};
+            auto const x1 = lstsq_solve(M, r, 9), x2 = normal_eq(M, r, 9);
+            for (size_t k = 0; k < 9; ++k)
+                CHECK(x1[k] == doctest::Approx(x2[k]).epsilon(1e-11));
+        }
+        {
+            auto const M = make_A(8, 3);
+            std::vector<double> const r{0.3, -1.2, 0.8, 2.0, -0.5, 1.1, 0.2, -0.9};
+            auto const x1 = lstsq_solve(M, r, 3), x2 = normal_eq(M, r, 3);
+            for (size_t k = 0; k < 3; ++k)
+                CHECK(x1[k] == doctest::Approx(x2[k]).epsilon(1e-11));
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("kkt_solve: a rank-deficient constraint block is solved, not inflated (W1)")
+    {
+        fmt::println("kkt_solve: rank-deficient G -> unique x, minimum-norm multipliers");
+
+        // M = I (2 x 2), G with two identical rows (rank 1 of 2): the bordered matrix is
+        // singular. x is still unique -- the constraint G x = g fixes one direction, M
+        // the rest -- and the two multipliers share one force, so the minimum-norm
+        // split is equal halves. Before W1 this went through the LU's TINY pivot.
+        std::vector<double> const M{1.0, 0.0, 0.0, 1.0};
+        std::vector<double> const G{1.0, 1.0, 1.0, 1.0}; // 2 x 2, rows equal
+        std::vector<double> const f{1.0, 3.0};
+        std::vector<double> const g{2.0, 2.0}; // consistent: x1 + x2 = 2 twice
+        std::vector<double> lambda;
+        size_t rank = 99;
+        auto const x = kkt_solve(M, G, f, g, 2, 2, &lambda, &rank);
+        CHECK(rank == 1);
+        // x = f - G^T lambda with x1 + x2 = 2: lambda_total = 1, x = (0, 2)
+        CHECK(x[0] == doctest::Approx(0.0).epsilon(1e-12));
+        CHECK(x[1] == doctest::Approx(2.0).epsilon(1e-12));
+        CHECK(lambda.size() == 2);
+        CHECK(lambda[0] == doctest::Approx(0.5).epsilon(1e-12)); // minimum-norm split
+        CHECK(lambda[1] == doctest::Approx(0.5).epsilon(1e-12));
+
+        // full row rank: the LU path, exact
+        std::vector<double> const G2{1.0, 0.0, 0.0, 1.0};
+        auto const x2 = kkt_solve(M, G2, f, g, 2, 2, &lambda, &rank);
+        CHECK(rank == 2);
+        CHECK(x2[0] == doctest::Approx(2.0));
+        CHECK(x2[1] == doctest::Approx(2.0));
         fmt::println("");
     }
 

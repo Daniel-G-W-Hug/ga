@@ -76,6 +76,9 @@ void register_functions_top(nb::module_& m)
                             int a2, double a3) { return lstsq_solve(a0, a1, a2, a3); });
     m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
                          int a2) { return lu_solve(a0, a1, a2); });
+    m.def("matrix_rank", [](std::vector<double> const& a0, int a1, int a2, double a3) {
+        return matrix_rank(a0, a1, a2, a3);
+    });
     m.def("nullspace_project",
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2, int a3,
              double a4) { return nullspace_project(a0, a1, a2, a3, a4); });

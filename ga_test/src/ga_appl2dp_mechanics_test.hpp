@@ -4776,6 +4776,33 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: screw_system - span and rcmt-closure in the plane (W1)")
+    {
+        fmt::println("pga2dp: screw_system - span vs. Lie closure of planar screws");
+
+        // planar screws: a rotation about a point is the point scaled by the rate; two
+        // distinct centres bracket to a translation and close se(2) (3); a single
+        // rotation is its own subalgebra; two translations commute (closure 2)
+        vec2dp const R1{0.0, 0.0, 1.0}, R2{1.0, 0.0, 1.0};
+        vec2dp const T1{1.0, 0.0, 0.0}, T2{0.0, 1.0, 0.0};
+        auto const one = screw_system({R1});
+        CHECK(one.span == 1);
+        CHECK(one.closure == 1);
+        auto const two = screw_system({R1, R2});
+        CHECK(two.span == 2);
+        CHECK(two.closure == 3);
+        auto const trans = screw_system({T1, T2});
+        CHECK(trans.span == 2);
+        CHECK(trans.closure == 2); // translations commute: a subalgebra
+        auto const dep = screw_system({R1, 3.0 * R1});
+        CHECK(dep.span == 1);
+        fmt::println("  one rotation: ({},{})  two centres: ({},{})  two translations: "
+                     "({},{})",
+                     one.span, one.closure, two.span, two.closure, trans.span,
+                     trans.closure);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

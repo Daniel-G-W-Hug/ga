@@ -31,10 +31,12 @@
 // so the physics ops carry no external dependency.
 /////////////////////////////////////////////////////////////////////////////////////////
 
+#include <algorithm> // std::min, std::max, std::swap
 #include <cmath>     // std::abs
 #include <mdspan>    // std::mdspan, std::dextents, std::extents
 #include <stdexcept> // std::runtime_error, std::invalid_argument
 #include <string>    // std::string
+#include <utility>   // std::move
 #include <vector>    // std::vector (scratch storage in det / lu_decomp)
 
 namespace hd::ga {
@@ -419,32 +421,302 @@ std::vector<T> tridiag_solve(std::vector<double> const& a, std::vector<double> c
 }
 
 
+// The factorization primitives live in hd::ga::detail: they are the machinery behind
+// matrix_rank / minnorm_solve / nullspace_basis, not API (and a struct of public
+// fields would otherwise be picked up by the binding generator).
+namespace detail {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Rank-revealing QR: Householder reflections with column pivoting on an m x n matrix
+// (flat ROW-MAJOR, double). On return `qr` holds R on and above the diagonal and the
+// Householder vectors below it (unit leading entry implicit), `tau` the reflector
+// scalars, `perm` the column permutation (A P = Q R, column k of A P is column perm[k]
+// of A), and `rank` the numerical rank: the first k with |R_kk| <= rtol * |R_00|,
+// R_00 being the largest-norm column's pivot. Column pivoting is what makes the
+// diagonal of R reveal the rank -- it moves the largest remaining column to the front
+// at every step, so a negligible pivot means every remaining column is negligible.
+//
+// This is the factorization the library reaches for wherever the rank of a map is in
+// question: a constraint Jacobian at a singular configuration (a knee lock, a contact
+// transition -- Featherstone's varying rank), a redundant task, a screw system's
+// dimension. It replaces "throw on rank deficiency" with a rank DETERMINATION and a
+// minimum-norm answer (see lstsq_solve). Householder rather than Gram-Schmidt because it
+// is backward stable; QR rather than SVD because rank, a null-space basis and a
+// minimum-norm solve need no singular values, and the SVD's extra work would buy only
+// the manipulability ellipsoid, which belongs to a separate step.
+/////////////////////////////////////////////////////////////////////////////////////////
+struct qr_factor {
+    std::vector<double> qr;   // m x n row-major: R above the diagonal, reflectors below
+    std::vector<double> tau;  // reflector scalars, length min(m, n)
+    std::vector<size_t> perm; // column permutation, length n
+    size_t m{0}, n{0};
+    size_t rank{0};
+};
+
+inline qr_factor qr_decomp(std::vector<double> A, size_t m, size_t n,
+                           double rtol = 1.0e-12)
+{
+    if (A.size() != m * n) {
+        throw Solver_error("hd::ga::qr_decomp: matrix size does not match m x n.");
+    }
+    qr_factor f;
+    f.m = m;
+    f.n = n;
+    f.qr = std::move(A);
+    size_t const kmax = std::min(m, n);
+    f.tau.assign(kmax, 0.0);
+    f.perm.resize(n);
+    for (size_t j = 0; j < n; ++j)
+        f.perm[j] = j;
+    auto& a = f.qr;
+
+    // squared column norms of the remaining submatrix, for the pivot choice
+    std::vector<double> cn(n, 0.0);
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = 0; i < m; ++i)
+            cn[j] += a[i * n + j] * a[i * n + j];
+
+    double r00 = 0.0;
+    f.rank = kmax;
+    for (size_t k = 0; k < kmax; ++k) {
+        // pivot: the column of largest remaining norm (recomputed from scratch -- these
+        // matrices are small, and downdating norms is where pivoted QR goes wrong)
+        size_t p = k;
+        double best = -1.0;
+        for (size_t j = k; j < n; ++j) {
+            double s = 0.0;
+            for (size_t i = k; i < m; ++i)
+                s += a[i * n + j] * a[i * n + j];
+            cn[j] = s;
+            if (s > best) {
+                best = s;
+                p = j;
+            }
+        }
+        if (p != k) {
+            for (size_t i = 0; i < m; ++i)
+                std::swap(a[i * n + k], a[i * n + p]);
+            std::swap(f.perm[k], f.perm[p]);
+            std::swap(cn[k], cn[p]);
+        }
+        // Householder reflector for column k, rows k..m-1
+        double alpha = std::sqrt(best);
+        if (k == 0) r00 = alpha;
+        if (alpha <= rtol * r00) {
+            // every remaining column is negligible: the rank is k
+            f.rank = k;
+            for (size_t kk = k; kk < kmax; ++kk)
+                f.tau[kk] = 0.0;
+            break;
+        }
+        if (a[k * n + k] > 0.0) alpha = -alpha; // v = x - alpha e_1 without cancellation
+        double const v0 = a[k * n + k] - alpha;
+        // scale the reflector so its leading entry is 1: v = (1, a[k+1..]/v0)
+        for (size_t i = k + 1; i < m; ++i)
+            a[i * n + k] /= v0;
+        f.tau[k] = -v0 / alpha; // H = I - tau v v^T with v_0 = 1
+        a[k * n + k] = alpha;   // R_kk
+        // apply H to the remaining columns
+        for (size_t j = k + 1; j < n; ++j) {
+            double s = a[k * n + j];
+            for (size_t i = k + 1; i < m; ++i)
+                s += a[i * n + k] * a[i * n + j];
+            s *= f.tau[k];
+            a[k * n + j] -= s;
+            for (size_t i = k + 1; i < m; ++i)
+                a[i * n + j] -= s * a[i * n + k];
+        }
+    }
+    return f;
+}
+
+// apply Q^T (transpose = true) or Q (false) of a factorization to a length-m vector
+inline void qr_apply_q(qr_factor const& f, std::vector<double>& v, bool transpose)
+{
+    size_t const m = f.m, n = f.n;
+    size_t const kmax = std::min(m, n);
+    auto reflect = [&](size_t k) {
+        if (f.tau[k] == 0.0) return;
+        double s = v[k];
+        for (size_t i = k + 1; i < m; ++i)
+            s += f.qr[i * n + k] * v[i];
+        s *= f.tau[k];
+        v[k] -= s;
+        for (size_t i = k + 1; i < m; ++i)
+            v[i] -= s * f.qr[i * n + k];
+    };
+    if (transpose) { // Q^T = H_{kmax-1} ... H_0
+        for (size_t k = 0; k < kmax; ++k)
+            reflect(k);
+    }
+    else { // Q = H_0 ... H_{kmax-1} (each H is its own inverse)
+        for (size_t k = kmax; k-- > 0;)
+            reflect(k);
+    }
+}
+
+} // namespace detail
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Numerical rank of an m x ncols matrix (flat ROW-MAJOR): the rank revealed by the
+// pivoted QR at relative tolerance rtol. The library's answer to "how many independent
+// constraints / how much mobility here" -- Featherstone's r in mobility = n - r.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+size_t matrix_rank(std::vector<T> const& A, size_t rows, size_t ncols,
+                   double rtol = 1.0e-12)
+{
+    if (rows == 0 || ncols == 0) return 0;
+    std::vector<double> a(rows * ncols);
+    for (size_t i = 0; i < rows * ncols; ++i)
+        a[i] = static_cast<double>(A[i]);
+    return detail::qr_decomp(std::move(a), rows, ncols, rtol).rank;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Minimum-norm least-squares solve of A x = b for ANY shape and rank, through a complete
+// orthogonal decomposition: pivoted QR of A gives A P = Q [R11 R12; 0 0] with R11 the
+// r x r leading block (r = rank); a second, unpivoted QR of [R11 R12]^T gives
+// [R11 R12] = L Z^T with L lower-triangular r x r and Z orthonormal n x r, so
+//
+//     A P = Q [L Z^T; 0]      x = P Z L^-1 (Q^T b)_{1:r}
+//
+// is the solution of least residual and, among those, of least norm -- the Moore-Penrose
+// answer A^+ b, at every rank. Where r = n the second QR is skipped (the solution is
+// then plain back-substitution). This is what makes a mechanism survive a singular
+// configuration: the solve returns a finite, continuous answer instead of throwing or
+// inflating. Returns x (length ncols); writes the rank if `rank_out` is non-null.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> minnorm_solve(std::vector<T> const& A, std::vector<T> const& b,
+                             size_t ncols, size_t* rank_out = nullptr,
+                             double rtol = 1.0e-12)
+{
+    size_t const m = b.size();
+    if (A.size() != m * ncols) {
+        throw Solver_error(
+            "hd::ga::minnorm_solve: A must have b.size() * ncols entries.");
+    }
+    std::vector<double> a(m * ncols), bb(m);
+    for (size_t i = 0; i < m * ncols; ++i)
+        a[i] = static_cast<double>(A[i]);
+    for (size_t i = 0; i < m; ++i)
+        bb[i] = static_cast<double>(b[i]);
+
+    detail::qr_factor const f = detail::qr_decomp(std::move(a), m, ncols, rtol);
+    size_t const r = f.rank;
+    if (rank_out) *rank_out = r;
+    std::vector<T> x(ncols, T(0));
+    if (r == 0) return x;
+
+    detail::qr_apply_q(f, bb, true);   // c = Q^T b; only the first r entries matter
+    std::vector<double> y(ncols, 0.0); // the solution in the permuted column order
+
+    if (r == ncols) {
+        // full column rank: back-substitute R11 y = c
+        for (size_t i = r; i-- > 0;) {
+            double s = bb[i];
+            for (size_t j = i + 1; j < r; ++j)
+                s -= f.qr[i * ncols + j] * y[j];
+            y[i] = s / f.qr[i * ncols + i];
+        }
+    }
+    else {
+        // rank-deficient / underdetermined: T = [R11 R12] (r x ncols); factor T^T = Z L^T
+        std::vector<double> Tt(ncols * r, 0.0); // ncols x r row-major
+        for (size_t i = 0; i < r; ++i)
+            for (size_t j = i; j < ncols; ++j)
+                Tt[j * r + i] = f.qr[i * ncols + j];
+        detail::qr_factor const g =
+            detail::qr_decomp(std::move(Tt), ncols, r, 0.0); // no pivoting needed:
+        // T has full row rank r, and the pivot threshold 0 keeps every column
+        // T = (Z L^T)^T = L Z^T with L^T = R of the second factorization (upper, r x r),
+        // columns of Z permuted by g.perm. Solve L w = c_{1:r}, i.e. R^T w = c
+        // (forward substitution on the transposed upper factor), in g's column order.
+        std::vector<double> c(r);
+        for (size_t i = 0; i < r; ++i)
+            c[g.perm[i]] = bb[i];
+        std::vector<double> w(r, 0.0);
+        for (size_t i = 0; i < r; ++i) {
+            double s = c[i];
+            for (size_t j = 0; j < i; ++j)
+                s -= g.qr[j * r + i] * w[j];
+            w[i] = s / g.qr[i * r + i];
+        }
+        // y = Z w = Q_g [w; 0]  (Q_g is ncols x ncols, Z its first r columns)
+        std::vector<double> yy(ncols, 0.0);
+        for (size_t i = 0; i < r; ++i)
+            yy[i] = w[i];
+        detail::qr_apply_q(g, yy, false);
+        y = yy;
+    }
+    // undo the column permutation of the first factorization
+    for (size_t k = 0; k < ncols; ++k)
+        x[f.perm[k]] = static_cast<T>(y[k]);
+    return x;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Orthonormal basis of the null space of an m x ncols matrix A: the ncols - rank
+// vectors z with A z = 0, returned as an ncols x (ncols - rank) ROW-MAJOR matrix (one
+// basis vector per column). From the complete orthogonal decomposition above, they are
+// the trailing columns of Z, i.e. Q of the second factorization applied to the unit
+// vectors e_r .. e_{ncols-1}, permuted back. Empty for full column rank. This is the
+// redundancy of a task (the motions a Jacobian cannot see) and, for a screw system, the
+// reciprocal system's dimension count.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> nullspace_basis(std::vector<T> const& A, size_t rows, size_t ncols,
+                               size_t* rank_out = nullptr, double rtol = 1.0e-12)
+{
+    std::vector<double> a(rows * ncols);
+    for (size_t i = 0; i < rows * ncols; ++i)
+        a[i] = static_cast<double>(A[i]);
+    detail::qr_factor const f = detail::qr_decomp(std::move(a), rows, ncols, rtol);
+    size_t const r = f.rank;
+    if (rank_out) *rank_out = r;
+    size_t const k = ncols - r;
+    std::vector<T> N(ncols * k, T(0));
+    if (k == 0) return N;
+    // T = [R11 R12] (r x ncols), factor T^T; the null space of T is spanned by the last
+    // ncols - r columns of Q_g (r == 0: every unit vector)
+    std::vector<double> Tt(ncols * std::max<size_t>(r, 1), 0.0);
+    for (size_t i = 0; i < r; ++i)
+        for (size_t j = i; j < ncols; ++j)
+            Tt[j * r + i] = f.qr[i * ncols + j];
+    for (size_t c = 0; c < k; ++c) {
+        std::vector<double> e(ncols, 0.0);
+        e[r + c] = 1.0;
+        if (r > 0) {
+            detail::qr_factor const g = detail::qr_decomp(Tt, ncols, r, 0.0);
+            detail::qr_apply_q(g, e, false);
+        }
+        for (size_t j = 0; j < ncols; ++j)
+            N[f.perm[j] * k + c] = static_cast<T>(e[j]);
+    }
+    return N;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Least-squares / minimum-norm dense solve of a (possibly non-square) system A x = b,
-// where A is m x ncols (flat ROW-MAJOR, m = b.size()). Returns x (length ncols). Routed
-// through the shared dense LU via the normal equations, so the whole library shares ONE
-// factorization. Three regimes:
+// where A is m x ncols (flat ROW-MAJOR, m = b.size()). Returns x (length ncols).
 //
-//   ncols == m : square          -> solve A x = b directly
-//   ncols >  m : underdetermined  -> minimum-norm   x = A^T (A A^T)^-1 b
-//   ncols <  m : overdetermined   -> least-squares  x = (A^T A)^-1 A^T b
+// Without damping this IS the Moore-Penrose solution A^+ b at every shape and rank,
+// through the rank-revealing QR (minnorm_solve): square, underdetermined
+// (minimum-norm), overdetermined (least-squares) and rank-deficient inputs are one
+// case. A rank-deficient input no longer throws -- it gets the finite, continuous
+// minimum-norm answer, which is what a mechanism passing through a singular
+// configuration needs; ask matrix_rank() when the rank itself is the question.
 //
-// FULL RANK IS REQUIRED, and this is the limit of the normal-equation route. Where A has
-// full rank these three ARE the Moore-Penrose solution x = A^+ b. Where it does not, the
-// Gram matrix is singular and no amount of pivoting recovers A^+: the true pseudo-inverse
-// needs a rank-revealing factorization (SVD or QR with column pivoting), which this
-// solver does not carry. A rank-deficient input therefore THROWS Solver_error rather than
-// returning the inflated answer a TINY pivot would produce -- silence there was a real
-// hazard, since a mechanism passing through a singularity hits exactly this case.
-//
-// `damping` (default 0 = off) applies Tikhonov regularization to the normal equations,
-// adding lambda^2 = damping * trace(Gram)/rows to the diagonal before factorizing. That
-// trades exactness for a finite, continuous answer through a singularity -- the standard
-// damped-least-squares / Levenberg step. With damping > 0 the rank guard is not applied,
-// because regularizing IS the answer to a rank-deficient input. The scaling is relative
-// to the Gram trace so one damping value works across problem scales. Note the result is
-// then the damped solution, not A^+ b. Ignored for the square regime, which forms no
-// Gram matrix.
+// `damping` (default 0 = off) selects the OTHER route: Tikhonov regularization of the
+// normal equations, adding lambda^2 = damping * trace(Gram)/rows to the diagonal before
+// the shared LU. That trades exactness for a damped, continuous answer -- the standard
+// damped-least-squares / Levenberg step -- and is kept because it is a different
+// estimator, not a worse implementation of the same one: near a singularity the damped
+// step stays bounded where the pseudo-inverse step (finite, but the inverse of a small
+// pivot) grows. The scaling is relative to the Gram trace so one damping value works
+// across problem scales. Ignored for the square regime, which forms no Gram matrix.
 //
 // Domain- and dimension-agnostic (pure linear algebra over T): used by the closed-loop
 // constraint solver for the position Newton step (A = constraint Jacobian G, b = -g), the
@@ -456,10 +728,10 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
                            double damping = 0.0)
 {
     size_t const m = b.size();
+    if (damping <= 0.0) return minnorm_solve(A, b, ncols);
 
     // add lambda^2 = damping * trace(G)/n to the diagonal of an n x n Gram matrix
     auto const regularize = [damping](std::vector<T>& G, size_t n) {
-        if (damping <= 0.0) return;
         T tr = T(0);
         for (size_t i = 0; i < n; ++i)
             tr += G[i * n + i];
@@ -467,12 +739,11 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
         for (size_t i = 0; i < n; ++i)
             G[i * n + i] += lam2;
     };
-    // rank guard only where the caller has NOT asked for regularization
-    double const rcond_min = (damping > 0.0) ? 0.0 : 1.0e-13;
+    double const rcond_min = 0.0; // regularizing IS the answer to rank deficiency
 
     if (ncols == m) {
         // square A: no Gram matrix is formed, so damping does not apply
-        return lu_solve_guarded(A, b, m, 1.0e-13, "lstsq_solve");
+        return minnorm_solve(A, b, ncols);
     }
     if (ncols > m) {
         // minimum-norm: solve (A A^T) y = b (m x m), then x = A^T y
@@ -559,7 +830,18 @@ std::vector<T> nullspace_project(std::vector<T> const& A, std::vector<T> const& 
 // with M (n x n) symmetric, G (m x n) the constraint Jacobian (both flat ROW-MAJOR), f
 // (length n) and g (length m) the right-hand sides. Builds the (n+m) x (n+m) bordered
 // matrix and solves it through the shared square lu_solve. Returns x (length n); writes
-// the Lagrange multipliers l (length m) into `lambda_out` if non-null.
+// the Lagrange multipliers l (length m) into `lambda_out` if non-null, and the rank of G
+// into `rank_out` if non-null.
+//
+// G MAY BE RANK-DEFICIENT, and it is as a matter of course: the rank of a closed-loop
+// constraint matrix varies with the configuration (Featherstone 8.5, 8.10 -- a knee lock,
+// a contact transition, an over-constrained loop). The bordered matrix is then singular,
+// x stays uniquely determined while l is only determined up to the null space of G^T,
+// and the constraint rows may be slightly inconsistent -- so the system is solved in the
+// least-squares sense with the minimum-norm l (minnorm_solve). With G of full row rank
+// the LU path is taken unchanged. Before this, a singular bordered matrix went through
+// the LU's TINY pivot substitution and returned multipliers of order 1e16 without
+// complaint (measured at a biped's knee lock).
 //
 // Domain- and dimension-agnostic (pure linear algebra over T): the closed-loop dynamics
 // (2D and 3D) use it with M = joint-space mass matrix, G = constraint Jacobian, f =
@@ -569,10 +851,13 @@ std::vector<T> nullspace_project(std::vector<T> const& A, std::vector<T> const& 
 template <typename T>
 std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
                          std::vector<T> const& f, std::vector<T> const& g, size_t n,
-                         size_t m, std::vector<T>* lambda_out = nullptr)
+                         size_t m, std::vector<T>* lambda_out = nullptr,
+                         size_t* rank_out = nullptr)
 {
     size_t const N = n + m;
-    std::vector<T> K(N * N, T(0)), r(N, T(0));
+    size_t const r = (m > 0) ? matrix_rank(G, m, n) : 0;
+    if (rank_out) *rank_out = r;
+    std::vector<T> K(N * N, T(0)), rhs(N, T(0));
     for (size_t i = 0; i < n; ++i)
         for (size_t j = 0; j < n; ++j)
             K[i * N + j] = M[i * n + j]; // M block (top-left)
@@ -582,11 +867,15 @@ std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
             K[(n + c) * N + j] = G[c * n + j]; // G  block (bottom-left)
         }
     for (size_t i = 0; i < n; ++i)
-        r[i] = f[i];
+        rhs[i] = f[i];
     for (size_t c = 0; c < m; ++c)
-        r[n + c] = g[c];
+        rhs[n + c] = g[c];
 
-    std::vector<T> const sol = lu_solve(K, r, N);
+    // full row rank: the bordered matrix is regular, the shared LU is exact and cheap;
+    // otherwise the minimum-norm least-squares solve of the singular bordered system
+    std::vector<T> sol;
+    if (r == m) sol = lu_solve(K, rhs, N);
+    else sol = minnorm_solve(K, rhs, N);
     if (lambda_out) lambda_out->assign(sol.begin() + n, sol.end());
     return std::vector<T>(sol.begin(), sol.begin() + n);
 }

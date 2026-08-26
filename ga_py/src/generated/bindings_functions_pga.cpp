@@ -904,6 +904,11 @@ void register_functions_pga(nb::module_& m)
     m.def("rwdg", [](scalar3dp const& a0, scalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("screw_axis", [](vec2dp const& a0) { return screw_axis(a0); });
     m.def("screw_axis", [](mvec2dp_u const& a0) { return screw_axis(a0); });
+    m.def("screw_system",
+          [](std::vector<vec2dp> const& a0, double a1) { return screw_system(a0, a1); });
+    m.def("screw_system", [](std::vector<bivec3dp> const& a0, double a1) {
+        return screw_system(a0, a1);
+    });
     m.def("sup", [](bivec2dp const& a0) { return sup(a0); });
     m.def("sup", [](bivec3dp const& a0) { return sup(a0); });
     m.def("sup", [](trivec3dp const& a0) { return sup(a0); });

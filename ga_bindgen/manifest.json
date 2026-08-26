@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-26T20:45:05+00:00",
+  "generated_at": "2026-08-26T20:59:23+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -8174,7 +8174,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 996
+      "source_line": 1038
     },
     {
       "namespace": "hd::ga::pga",
@@ -8198,7 +8198,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 972
+      "source_line": 1024
     },
     {
       "namespace": "hd::ga::pga",
@@ -8277,7 +8277,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1068
+      "source_line": 1110
     },
     {
       "namespace": "hd::ga::pga",
@@ -8321,7 +8321,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1068
+      "source_line": 1120
     },
     {
       "namespace": "hd::ga::pga",
@@ -8349,7 +8349,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 662
+      "source_line": 704
     },
     {
       "namespace": "hd::ga::pga",
@@ -8377,7 +8377,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 760
+      "source_line": 812
     },
     {
       "namespace": "hd::ga::pga",
@@ -8525,6 +8525,46 @@
     },
     {
       "namespace": "hd::ga::pga",
+      "name": "screw_system2dp",
+      "underlying": "screw_system2dp",
+      "canonical_underlying": "hd::ga::pga::screw_system2dp",
+      "fields": [
+        {
+          "name": "span",
+          "type": "size_t"
+        },
+        {
+          "name": "closure",
+          "type": "size_t"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+      "source_line": 394
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "screw_system3dp",
+      "underlying": "screw_system3dp",
+      "canonical_underlying": "hd::ga::pga::screw_system3dp",
+      "fields": [
+        {
+          "name": "span",
+          "type": "size_t"
+        },
+        {
+          "name": "closure",
+          "type": "size_t"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
+      "source_line": 526
+    },
+    {
+      "namespace": "hd::ga::pga",
       "name": "twist2dp",
       "underlying": "vec2dp",
       "canonical_underlying": "Vec3_t<double, hd::ga::vec2dp_tag>",
@@ -8566,7 +8606,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 653
+      "source_line": 695
     },
     {
       "namespace": "hd::ga::pga",
@@ -8626,7 +8666,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 752
+      "source_line": 804
     },
     {
       "namespace": "hd::ga::pga",
@@ -9514,7 +9554,7 @@
             "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 604
+          "source_line": 893
         },
         {
           "return_type": "T",
@@ -9522,7 +9562,7 @@
             "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 604
+          "source_line": 893
         },
         {
           "return_type": "T",
@@ -9530,7 +9570,7 @@
             "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 604
+          "source_line": 893
         },
         {
           "return_type": "T",
@@ -9538,7 +9578,7 @@
             "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 604
+          "source_line": 893
         }
       ]
     },
@@ -13049,10 +13089,11 @@
             "const std::vector<T> &",
             "size_t",
             "size_t",
-            "std::vector<T> *"
+            "std::vector<T> *",
+            "size_t *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 570
+          "source_line": 852
         },
         {
           "return_type": "std::vector<T>",
@@ -13063,10 +13104,11 @@
             "const std::vector<T> &",
             "size_t",
             "size_t",
-            "std::vector<T> *"
+            "std::vector<T> *",
+            "size_t *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 570
+          "source_line": 852
         },
         {
           "return_type": "std::vector<T>",
@@ -13077,10 +13119,11 @@
             "const std::vector<T> &",
             "size_t",
             "size_t",
-            "std::vector<T> *"
+            "std::vector<T> *",
+            "size_t *"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 570
+          "source_line": 852
         },
         {
           "return_type": "std::vector<T>",
@@ -13091,10 +13134,11 @@
             "const std::vector<T> &",
             "size_t",
             "size_t",
-            "std::vector<T> *"
+            "std::vector<T> *",
+            "size_t *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 570
+          "source_line": 852
         }
       ]
     },
@@ -13157,7 +13201,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 455
+          "source_line": 727
         },
         {
           "return_type": "std::vector<T>",
@@ -13168,7 +13212,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 455
+          "source_line": 727
         },
         {
           "return_type": "std::vector<T>",
@@ -13179,7 +13223,7 @@
             "double"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 455
+          "source_line": 727
         },
         {
           "return_type": "std::vector<T>",
@@ -13190,7 +13234,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 455
+          "source_line": 727
         }
       ]
     },
@@ -13206,7 +13250,7 @@
             "std::mdspan<double, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 141
+          "source_line": 143
         },
         {
           "return_type": "void",
@@ -13216,7 +13260,7 @@
             "std::mdspan<double, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 141
+          "source_line": 143
         },
         {
           "return_type": "void",
@@ -13226,7 +13270,7 @@
             "std::mdspan<double, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 141
+          "source_line": 143
         },
         {
           "return_type": "void",
@@ -13236,7 +13280,7 @@
             "std::mdspan<double, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 141
+          "source_line": 143
         }
       ]
     },
@@ -13251,7 +13295,7 @@
             "std::mdspan<int, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 62
+          "source_line": 64
         },
         {
           "return_type": "void",
@@ -13260,7 +13304,7 @@
             "std::mdspan<int, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 62
+          "source_line": 64
         },
         {
           "return_type": "void",
@@ -13269,7 +13313,7 @@
             "std::mdspan<int, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 62
+          "source_line": 64
         },
         {
           "return_type": "void",
@@ -13278,7 +13322,7 @@
             "std::mdspan<int, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 62
+          "source_line": 64
         }
       ]
     },
@@ -13294,7 +13338,7 @@
             "size_t"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 187
+          "source_line": 189
         },
         {
           "return_type": "std::vector<T>",
@@ -13304,7 +13348,7 @@
             "size_t"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 187
+          "source_line": 189
         },
         {
           "return_type": "std::vector<T>",
@@ -13314,7 +13358,7 @@
             "size_t"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 187
+          "source_line": 189
         },
         {
           "return_type": "std::vector<T>",
@@ -13324,7 +13368,7 @@
             "size_t"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 187
+          "source_line": 189
         }
       ]
     },
@@ -13342,7 +13386,7 @@
             "const char *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 226
+          "source_line": 228
         },
         {
           "return_type": "std::vector<T>",
@@ -13354,7 +13398,7 @@
             "const char *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 226
+          "source_line": 228
         },
         {
           "return_type": "std::vector<T>",
@@ -13366,7 +13410,7 @@
             "const char *"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 226
+          "source_line": 228
         },
         {
           "return_type": "std::vector<T>",
@@ -13378,7 +13422,7 @@
             "const char *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 226
+          "source_line": 228
         }
       ]
     },
@@ -13414,6 +13458,164 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "matrix_rank",
+      "overloads": [
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 567
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 567
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 567
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 567
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "minnorm_solve",
+      "overloads": [
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 592
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 592
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 592
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 592
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "nullspace_basis",
+      "overloads": [
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 670
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 670
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 670
+        },
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 670
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
       "name": "nullspace_project",
       "overloads": [
         {
@@ -13426,7 +13628,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 531
+          "source_line": 802
         },
         {
           "return_type": "std::vector<T>",
@@ -13438,7 +13640,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 531
+          "source_line": 802
         },
         {
           "return_type": "std::vector<T>",
@@ -13450,7 +13652,7 @@
             "double"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 531
+          "source_line": 802
         },
         {
           "return_type": "std::vector<T>",
@@ -13462,7 +13664,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 531
+          "source_line": 802
         }
       ]
     },
@@ -15603,7 +15805,7 @@
             "const std::vector<T> &"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 379
+          "source_line": 381
         },
         {
           "return_type": "std::vector<T>",
@@ -15614,7 +15816,7 @@
             "const std::vector<T> &"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 379
+          "source_line": 381
         },
         {
           "return_type": "std::vector<T>",
@@ -15625,7 +15827,7 @@
             "const std::vector<T> &"
           ],
           "source_file": "ga/detail/fmt/../../detail/ga_solver.hpp",
-          "source_line": 379
+          "source_line": 381
         },
         {
           "return_type": "std::vector<T>",
@@ -15636,7 +15838,7 @@
             "const std::vector<T> &"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 379
+          "source_line": 381
         }
       ]
     },
@@ -44237,7 +44439,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1028
+          "source_line": 1070
         },
         {
           "return_type": "body3dp",
@@ -44251,7 +44453,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1015
+          "source_line": 1067
         },
         {
           "return_type": "body2dp",
@@ -44260,7 +44462,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1028
+          "source_line": 1070
         },
         {
           "return_type": "body3dp",
@@ -44274,7 +44476,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1015
+          "source_line": 1067
         },
         {
           "return_type": "body2dp",
@@ -44283,7 +44485,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1028
+          "source_line": 1070
         },
         {
           "return_type": "body3dp",
@@ -44297,7 +44499,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1015
+          "source_line": 1067
         },
         {
           "return_type": "body2dp",
@@ -44306,7 +44508,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1028
+          "source_line": 1070
         },
         {
           "return_type": "body3dp",
@@ -44320,7 +44522,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1015
+          "source_line": 1067
         }
       ]
     },
@@ -44337,7 +44539,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 987
+          "source_line": 1039
         },
         {
           "return_type": "body3dp",
@@ -44348,7 +44550,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 987
+          "source_line": 1039
         },
         {
           "return_type": "body3dp",
@@ -44359,7 +44561,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 987
+          "source_line": 1039
         },
         {
           "return_type": "body3dp",
@@ -44370,7 +44572,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 987
+          "source_line": 1039
         }
       ]
     },
@@ -44385,7 +44587,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1019
+          "source_line": 1061
         },
         {
           "return_type": "body3dp",
@@ -44395,7 +44597,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 997
+          "source_line": 1049
         },
         {
           "return_type": "body2dp",
@@ -44404,7 +44606,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1019
+          "source_line": 1061
         },
         {
           "return_type": "body3dp",
@@ -44414,7 +44616,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 997
+          "source_line": 1049
         },
         {
           "return_type": "body2dp",
@@ -44423,7 +44625,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1019
+          "source_line": 1061
         },
         {
           "return_type": "body3dp",
@@ -44433,7 +44635,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 997
+          "source_line": 1049
         },
         {
           "return_type": "body2dp",
@@ -44442,7 +44644,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1019
+          "source_line": 1061
         },
         {
           "return_type": "body3dp",
@@ -44452,7 +44654,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 997
+          "source_line": 1049
         }
       ]
     },
@@ -44468,7 +44670,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1011
+          "source_line": 1053
         },
         {
           "return_type": "body2dp",
@@ -44478,7 +44680,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1011
+          "source_line": 1053
         },
         {
           "return_type": "body2dp",
@@ -44488,7 +44690,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1011
+          "source_line": 1053
         },
         {
           "return_type": "body2dp",
@@ -44498,7 +44700,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1011
+          "source_line": 1053
         }
       ]
     },
@@ -44512,7 +44714,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1049
+          "source_line": 1091
         },
         {
           "return_type": "body2dp",
@@ -44520,7 +44722,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1049
+          "source_line": 1091
         },
         {
           "return_type": "body2dp",
@@ -44528,7 +44730,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1049
+          "source_line": 1091
         },
         {
           "return_type": "body2dp",
@@ -44536,7 +44738,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1049
+          "source_line": 1091
         }
       ]
     },
@@ -44550,7 +44752,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1050
+          "source_line": 1102
         },
         {
           "return_type": "body3dp",
@@ -44558,7 +44760,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1050
+          "source_line": 1102
         },
         {
           "return_type": "body3dp",
@@ -44566,7 +44768,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1050
+          "source_line": 1102
         },
         {
           "return_type": "body3dp",
@@ -44574,7 +44776,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1050
+          "source_line": 1102
         }
       ]
     },
@@ -44960,7 +45162,7 @@
             "const pose2dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 395
+          "source_line": 437
         },
         {
           "return_type": "mvec2dp_u",
@@ -44968,7 +45170,7 @@
             "const pose2dp &"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 395
+          "source_line": 437
         },
         {
           "return_type": "mvec2dp_u",
@@ -44976,7 +45178,7 @@
             "const pose2dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 395
+          "source_line": 437
         },
         {
           "return_type": "mvec2dp_u",
@@ -44984,7 +45186,7 @@
             "const pose2dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 395
+          "source_line": 437
         }
       ]
     },
@@ -44998,7 +45200,7 @@
             "const pose3dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 518
+          "source_line": 570
         },
         {
           "return_type": "mvec3dp_e",
@@ -45006,7 +45208,7 @@
             "const pose3dp &"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 518
+          "source_line": 570
         },
         {
           "return_type": "mvec3dp_e",
@@ -45014,7 +45216,7 @@
             "const pose3dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 518
+          "source_line": 570
         },
         {
           "return_type": "mvec3dp_e",
@@ -45022,7 +45224,7 @@
             "const pose3dp &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 518
+          "source_line": 570
         }
       ]
     },
@@ -46032,7 +46234,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 407
+          "source_line": 449
         },
         {
           "return_type": "pose2dp",
@@ -46040,7 +46242,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 407
+          "source_line": 449
         },
         {
           "return_type": "pose2dp",
@@ -46048,7 +46250,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 407
+          "source_line": 449
         },
         {
           "return_type": "pose2dp",
@@ -46056,7 +46258,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 407
+          "source_line": 449
         }
       ]
     },
@@ -46070,7 +46272,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 532
+          "source_line": 584
         },
         {
           "return_type": "pose3dp",
@@ -46078,7 +46280,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 532
+          "source_line": 584
         },
         {
           "return_type": "pose3dp",
@@ -46086,7 +46288,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 532
+          "source_line": 584
         },
         {
           "return_type": "pose3dp",
@@ -46094,7 +46296,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 532
+          "source_line": 584
         }
       ]
     },
@@ -60379,6 +60581,84 @@
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
           "source_line": 511
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "screw_system",
+      "overloads": [
+        {
+          "return_type": "screw_system2dp",
+          "param_types": [
+            "const std::vector<vec2dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+          "source_line": 399
+        },
+        {
+          "return_type": "screw_system3dp",
+          "param_types": [
+            "const std::vector<bivec3dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
+          "source_line": 531
+        },
+        {
+          "return_type": "screw_system2dp",
+          "param_types": [
+            "const std::vector<vec2dp> &",
+            "double"
+          ],
+          "source_file": "ga/ga_pga2dp_ops_mechanics.hpp",
+          "source_line": 399
+        },
+        {
+          "return_type": "screw_system3dp",
+          "param_types": [
+            "const std::vector<bivec3dp> &",
+            "double"
+          ],
+          "source_file": "ga/ga_pga3dp_ops_mechanics.hpp",
+          "source_line": 531
+        },
+        {
+          "return_type": "screw_system2dp",
+          "param_types": [
+            "const std::vector<vec2dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+          "source_line": 399
+        },
+        {
+          "return_type": "screw_system3dp",
+          "param_types": [
+            "const std::vector<bivec3dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
+          "source_line": 531
+        },
+        {
+          "return_type": "screw_system2dp",
+          "param_types": [
+            "const std::vector<vec2dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+          "source_line": 399
+        },
+        {
+          "return_type": "screw_system3dp",
+          "param_types": [
+            "const std::vector<bivec3dp> &",
+            "double"
+          ],
+          "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
+          "source_line": 531
         }
       ]
     },
@@ -117189,7 +117469,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1064
+      "source_line": 1106
     },
     {
       "namespace": "hd::ga::pga",
@@ -117202,7 +117482,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1064
+      "source_line": 1116
     }
   ]
 }

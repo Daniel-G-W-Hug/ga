@@ -225,6 +225,19 @@ class closed_loop_system3dp {
         return m;
     }
 
+    // Rank of the active constraint Jacobian over the dof joints -- the number of
+    // independent constraints at THIS configuration (Featherstone 8.10: it varies as the
+    // mechanism moves, and mobility = n - rank). Below constraint_rows() the multipliers
+    // are only determined up to the dependence; joint_accelerations() then returns
+    // their minimum-norm values.
+    size_t constraint_rank()
+    {
+        auto const rj = tree_.dof_joints();
+        size_t const m = constraint_rows();
+        if (m == 0 || rj.empty()) return 0;
+        return hd::ga::matrix_rank(constraint_jacobian(rj), m, rj.size());
+    }
+
     // access the underlying spanning tree for diagnostics shared with the open-loop tier
     dynamic_system3dp& system() { return tree_; }
     dynamic_system3dp const& system() const { return tree_; }

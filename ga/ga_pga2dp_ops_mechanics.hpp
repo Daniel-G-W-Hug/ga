@@ -385,6 +385,48 @@ inline screw_axis2dp screw_axis(vec2dp const& B)
 // screw axis of a motor: the full angle, 2 * rlog(M)
 inline screw_axis2dp screw_axis(mvec2dp_u const& M) { return screw_axis(2.0 * rlog(M)); }
 
+////////////////////////////////////////////////////////////////////////////////
+// Screw systems and mobility in the plane (see the 3D header for the account): the
+// span of a set of joint screws (twist2dp vectors) and its closure under the bracket
+// rcmt. The planar algebra se(2) is 3-dimensional, so a closure can grow at most to 3.
+////////////////////////////////////////////////////////////////////////////////
+
+struct screw_system2dp {
+    size_t span;    // dim Delta_1
+    size_t closure; // dim Delta_inf
+};
+
+inline screw_system2dp screw_system(std::vector<vec2dp> const& screws,
+                                    double rtol = 1.0e-10)
+{
+    auto rank_of = [&](std::vector<vec2dp> const& S) {
+        std::vector<value_t> A(3 * S.size());
+        for (size_t k = 0; k < S.size(); ++k) {
+            A[0 * S.size() + k] = S[k].x;
+            A[1 * S.size() + k] = S[k].y;
+            A[2 * S.size() + k] = S[k].z;
+        }
+        return S.empty() ? size_t(0) : hd::ga::matrix_rank(A, 3, S.size(), rtol);
+    };
+    std::vector<vec2dp> S = screws;
+    size_t const span = rank_of(S);
+    size_t dim = span;
+    for (;;) {
+        std::vector<vec2dp> next = S;
+        for (size_t i = 0; i < S.size(); ++i)
+            for (size_t j = i + 1; j < S.size(); ++j)
+                next.push_back(rcmt(S[i], S[j]));
+        size_t const d = rank_of(next);
+        if (d == dim || d >= 3) {
+            dim = d;
+            break;
+        }
+        dim = d;
+        S = next;
+    }
+    return screw_system2dp{span, dim};
+}
+
 
 // Build the body->parent motor M = translate(origin) (x) rotate(phi) from a pose. The
 // rotation about the parent origin is rexp(0.5 * vec2dp(0,0,phi)); the translation by

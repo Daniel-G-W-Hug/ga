@@ -70,6 +70,8 @@ void bind_scalar3dc(nb::module_& m);
 void bind_scalar3dp(nb::module_& m);
 void bind_scalar4ds(nb::module_& m);
 void bind_screw_axis2dp(nb::module_& m);
+void bind_screw_system2dp(nb::module_& m);
+void bind_screw_system3dp(nb::module_& m);
 void bind_trivec2dc(nb::module_& m);
 void bind_trivec3dc(nb::module_& m);
 void bind_trivec3dp(nb::module_& m);
@@ -167,6 +169,8 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_scalar3dp(pga);
     bind_scalar4ds(sta);
     bind_screw_axis2dp(pga);
+    bind_screw_system2dp(pga);
+    bind_screw_system3dp(pga);
     bind_trivec2dc(cga);
     bind_trivec3dc(cga);
     bind_trivec3dp(pga);

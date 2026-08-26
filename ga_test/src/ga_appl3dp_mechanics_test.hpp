@@ -1863,6 +1863,43 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: screw_system - span and rcmt-closure, mobility (W1)")
+    {
+        fmt::println("pga3dp: screw_system - span vs. Lie closure of joint screws");
+
+        // Selig ch. 8 / Featherstone 8.10: the closure of a screw system under the
+        // bracket tells momentary from full-cycle mobility. The bracket is rcmt.
+        vec3dp const O{0.0, 0.0, 0.0, 1.0}, P{1.0, 0.0, 0.0, 1.0}, Q{0.0, 1.0, 0.5, 1.0};
+        vec3dp const ez{0.0, 0.0, 1.0, 0.0}, ex{1.0, 0.0, 0.0, 0.0};
+        bivec3dp const L1 = wdg(O, ez), L2 = wdg(P, ez), L3 = wdg(Q, ez), L4 = wdg(Q, ex);
+
+        auto const one = screw_system({L1});
+        CHECK(one.span == 1);
+        CHECK(one.closure == 1); // a single screw is its own subalgebra
+
+        // two parallel axes: span 2, bracket = the translation perpendicular to the
+        // plane through them -> the planar subalgebra, closure 3, and it stops there
+        auto const par = screw_system({L1, L2});
+        CHECK(par.span == 2);
+        CHECK(par.closure == 3);
+        // three parallel axes (a planar linkage) already span the planar subalgebra
+        auto const planar = screw_system({L1, L2, L3});
+        CHECK(planar.span == 3);
+        CHECK(planar.closure == 3);
+        // two skew screws generate all of se(3)
+        auto const skew = screw_system({L1, L4});
+        CHECK(skew.span == 2);
+        CHECK(skew.closure == 6);
+        // a dependent set: the same axis twice counts once
+        auto const dep = screw_system({L1, 2.0 * L1});
+        CHECK(dep.span == 1);
+        fmt::println("  one: ({},{})  parallel pair: ({},{})  planar triple: ({},{})  "
+                     "skew pair: ({},{})",
+                     one.span, one.closure, par.span, par.closure, planar.span,
+                     planar.closure, skew.span, skew.closure);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 
 

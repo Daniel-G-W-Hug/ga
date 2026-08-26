@@ -67,6 +67,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_scalar4ds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_axis2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dp.cpp

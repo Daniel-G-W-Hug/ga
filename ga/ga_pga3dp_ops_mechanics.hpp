@@ -510,6 +510,58 @@ inline screw_axis3dp screw_axis(bivec3dp const& B)
 // screw axis of a motor: the full angle and distance, 2 * rlog(M)
 inline screw_axis3dp screw_axis(mvec3dp_e const& M) { return screw_axis(2.0 * rlog(M)); }
 
+////////////////////////////////////////////////////////////////////////////////
+// Screw systems and mobility (Selig ch. 8, Featherstone 8.10). A set of joint screws
+// spans a subspace of the bivectors, the screw system Delta_1; its dimension is the
+// instantaneous mobility the joints provide. Closing it under the Lie bracket -- here
+// rcmt, the regressive commutator that IS the se(3) bracket -- gives Delta_2 = Delta_1
+// + [Delta_1, Delta_1] and so on to Delta_inf. The system is a subalgebra (Delta_inf =
+// Delta_1) exactly when the joints keep their mobility over a full cycle; a closure
+// that grows means the mobility is momentary -- a singular configuration, not a
+// mechanism. Two parallel revolute axes span 2 and close to the 3-dimensional planar
+// subalgebra; two generic screws close to all of se(3) (6); a single screw is its own
+// subalgebra. Rank by the pivoted QR on the 6 x k matrix of bivector components.
+////////////////////////////////////////////////////////////////////////////////
+
+struct screw_system3dp {
+    size_t span;    // dim Delta_1
+    size_t closure; // dim Delta_inf
+};
+
+inline screw_system3dp screw_system(std::vector<bivec3dp> const& screws,
+                                    double rtol = 1.0e-10)
+{
+    auto rank_of = [&](std::vector<bivec3dp> const& S) {
+        std::vector<value_t> A(6 * S.size());
+        for (size_t k = 0; k < S.size(); ++k) {
+            A[0 * S.size() + k] = S[k].vx;
+            A[1 * S.size() + k] = S[k].vy;
+            A[2 * S.size() + k] = S[k].vz;
+            A[3 * S.size() + k] = S[k].mx;
+            A[4 * S.size() + k] = S[k].my;
+            A[5 * S.size() + k] = S[k].mz;
+        }
+        return S.empty() ? size_t(0) : hd::ga::matrix_rank(A, 6, S.size(), rtol);
+    };
+    std::vector<bivec3dp> S = screws;
+    size_t const span = rank_of(S);
+    size_t dim = span;
+    for (;;) {
+        std::vector<bivec3dp> next = S;
+        for (size_t i = 0; i < S.size(); ++i)
+            for (size_t j = i + 1; j < S.size(); ++j)
+                next.push_back(rcmt(S[i], S[j]));
+        size_t const d = rank_of(next);
+        if (d == dim || d >= 6) {
+            dim = d;
+            break;
+        }
+        dim = d;
+        S = next;
+    }
+    return screw_system3dp{span, dim};
+}
+
 
 // Build the body->parent motor M = translate(origin) (x) rotate(rot) from a pose. The
 // rotation about the parent origin is rexp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight

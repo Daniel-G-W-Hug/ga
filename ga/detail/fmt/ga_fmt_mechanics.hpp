@@ -451,6 +451,42 @@ template <> struct fmt::formatter<hd::ga::pga::screw_axis3dp> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// screw_system{2,3}dp - span and Lie closure dimensions of a set of joint screws
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::screw_system2dp> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto it = ctx.begin();
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        return it;
+    }
+    template <typename FormatContext>
+    auto format(hd::ga::pga::screw_system2dp const& s, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "screw_system2dp(span = {}, closure = {})",
+                              s.span, s.closure);
+    }
+};
+
+template <> struct fmt::formatter<hd::ga::pga::screw_system3dp> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto it = ctx.begin();
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        return it;
+    }
+    template <typename FormatContext>
+    auto format(hd::ga::pga::screw_system3dp const& s, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "screw_system3dp(span = {}, closure = {})",
+                              s.span, s.closure);
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // loop_constraint2dp - a closed-loop point-coincidence constraint between two
 // tree frames (anchor_a in frame_a must coincide with anchor_b in frame_b)
 ////////////////////////////////////////////////////////////////////////////////
