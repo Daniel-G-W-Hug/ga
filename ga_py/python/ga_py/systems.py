@@ -780,8 +780,14 @@ class DynamicSystem3dp(KinematicSystem3dp):
         is rcmt; the series is truncated after the double bracket, enough for fourth
         order since B = O(dt) restarts at 0 each step), dOmega/dt = I⁻¹[W_body -
         rcmt(Omega, I(Omega))] (compute_omega_dot). Pose evolves on the motor manifold
-        M(t) = M0 ⟇ rexp(½ B). Mirrors the C++ step_free_body, bracket terms included --
-        without them the scheme is only second order on the pose.
+        M(t) = M0 ⟇ rexp(½ B). Bracket terms included -- without them the scheme is only
+        second order on the pose.
+
+        Mirror scope: the C++ library integrates a massive free body as a 6-coordinate
+        motor joint INSIDE the coupled solve (a floating base: a chain hung on it loads
+        it). This mirror keeps the older separate route, which coincides with the
+        library for an isolated free body -- the case its cross-check covers -- but
+        does not reproduce a floating base carrying joints.
         """
         m0 = pga.rrev(self.step_pos_trafo(idx))  # current body -> parent motor
         bd = self._body[idx]

@@ -68,9 +68,9 @@ class DoublePendulum:
         # (trailing 0.0s = no spring/damper force elements: stiffness, damping, q_rest)
         self.joints = [
             pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest1, phi1, omega1,
-                               0.0, 0.0, 0.0),
+                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u()),
             pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest2, phi2, omega2,
-                               0.0, 0.0, 0.0),
+                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u()),
         ]
         self.inertia = [I, I]
         self._refresh()

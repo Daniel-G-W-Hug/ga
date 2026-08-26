@@ -1486,44 +1486,54 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 
     TEST_CASE("pga3dp: a free body and a jointed chain must not share a path")
     {
-        fmt::println("pga3dp: a free body and a jointed chain must not share a path");
+        fmt::println("pga3dp: a free body carrying a jointed chain is a floating base");
 
-        // A free (6-DOF) body is integrated by step_free_body(); the 1-DOF joints are
-        // integrated together by coupled_step(). Neither sees the other's inertia, so a
-        // model that puts both on one root-to-leaf path is NOT the model that was
-        // described -- and it used to be accepted silently. Measured before the guard: a
-        // 100 kg free body carrying one revolute link produced a mass matrix
-        // byte-identical to the same chain with the body absent, and the body fell at
-        // exactly -1/2 g t^2 while its child hung off it.
-        //
-        // The correct construction is Featherstone's (Rigid Body Dynamics Algorithms,
-        // 9.3): a floating base is a 6-DOF joint at the root that takes part in the
-        // coupled solve. This tier does not do that yet, so the configuration is refused.
+        // History: a free body was integrated by step_free_body() and the 1-dof joints
+        // by coupled_step(), and neither saw the other's inertia -- a 100 kg free body
+        // carrying one revolute link produced a mass matrix byte-identical to the same
+        // chain with the body absent, and fell at exactly -1/2 g t^2 while its child hung
+        // off it. A guard then refused the configuration. Phase F: the free body IS a
+        // 6-dof joint in the coupled solve (Featherstone 9.3), so the root's mass is
+        // counted -- the case the user asked for ("not neglecting the mass of the free
+        // floating root body").
 
         auto const heavy = make_cuboid_body(100.0, 1.0, 1.0, 1.0);
         auto const link = make_cuboid_body(1.0, 0.1, 0.1, 0.4);
 
-        // a) jointed body added BELOW a free body -> refused
+        // a) jointed body BELOW a free body: 6 + 1 coordinates, and the mass matrix
+        //    carries the base's 100 kg (the base's own diagonal block is its inertia)
         {
             dynamic_system3dp sys;
             sys.add_frame(static_frame3dp("I"));
             sys.add_body(static_frame3dp("base", vec3dp{0, 0, 0, 1}), heavy);
-            CHECK_THROWS_AS(
+            CHECK_NOTHROW(
                 sys.add_revolute_body(static_frame3dp("link", vec3dp{0, 0, 0.5, 1}), link,
-                                      O_3dp, vec3dp{0, 1, 0, 0}),
-                std::runtime_error);
+                                      O_3dp, vec3dp{0, 1, 0, 0}));
+            CHECK(sys.dof_coords().size() == 7);
+            auto const M = sys.mass_matrix();
+            REQUIRE(M.size() == 49);
+            // translational block of the base (coordinates 3..5 = the bulk screws):
+            // total mass 101 kg on the diagonal
+            CHECK(M[3 * 7 + 3] == doctest::Approx(101.0));
+            CHECK(M[4 * 7 + 4] == doctest::Approx(101.0));
+            CHECK(M[5 * 7 + 5] == doctest::Approx(101.0));
+            // and the whole thing falls at g: with no joint torque the base's vertical
+            // acceleration is -g, and the momentum-form cross terms are consistent
+            auto const qdd = sys.joint_accelerations();
+            REQUIRE(qdd.size() == 7);
+            CHECK(qdd[4] == doctest::Approx(-9.81).epsilon(1e-10)); // vertical (e42 slot)
         }
 
-        // b) the same mix built in the other order -> also refused
+        // b) the same mix built in the other order: also a floating assembly now
         {
             dynamic_system3dp sys;
             sys.add_frame(static_frame3dp("I"));
             CHECK_NOTHROW(
                 sys.add_revolute_body(static_frame3dp("link", vec3dp{0, 0, 0.5, 1}), link,
                                       O_3dp, vec3dp{0, 1, 0, 0}));
-            CHECK_THROWS_AS(
-                sys.add_body(static_frame3dp("base", vec3dp{0, 0, 1.0, 1}), heavy),
-                std::runtime_error);
+            CHECK_NOTHROW(sys.add_body(static_frame3dp("base", vec3dp{0, 0, 1.0, 1}),
+                                       heavy, kin_state3dp{}, sys.index_of("link")));
+            CHECK(sys.dof_coords().size() == 7);
         }
 
         // c) a MASSLESS free frame on the path is inert (step_free_body skips it), so it
@@ -1897,6 +1907,220 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
                      "skew pair: ({},{})",
                      one.span, one.closure, par.span, par.closure, planar.span,
                      planar.closure, skew.span, skew.closure);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: free-floating chain conserves momentum and energy (F)")
+    {
+        fmt::println("pga3dp: floating base - a space station: momentum and energy");
+
+        // The decisive gate of Phase F. A free-floating assembly -- a heavy hub (the
+        // free root joint) carrying two arms of two revolute links each, the arms set
+        // swinging with opposite initial rates -- with no gravity and no external wrench
+        // must conserve its total linear AND angular momentum, in the world frame, over a
+        // long integration. An incorrect floating base leaks momentum through the root;
+        // nothing tests it more sharply. Energy is conserved alongside.
+        auto const hub = make_cuboid_body(40.0, 1.2, 0.8, 0.6);
+        auto const link = make_cuboid_body(3.0, 0.8, 0.08, 0.08);
+        vec3dp const ez{0.0, 0.0, 1.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0};
+
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_body(static_frame3dp("hub", vec3dp{0.0, 0.0, 0.0, 1.0}), hub,
+                     kin_state3dp{.vel = vec3dp{0.1, 0.0, -0.05, 0.0},
+                                  .omega = vec3dp{0.02, 0.3, -0.1, 0.0}});
+        // arm A off +x: two links, hinges about z then y
+        sys.add_revolute_body(static_frame3dp("A1", vec3dp{1.0, 0.0, 0.0, 1.0}), link,
+                              vec3dp{-0.4, 0.0, 0.0, 1.0}, ez, 0.3, 1.5,
+                              sys.index_of("hub"));
+        sys.add_revolute_body(static_frame3dp("A2", vec3dp{0.8, 0.0, 0.0, 1.0}), link,
+                              vec3dp{-0.4, 0.0, 0.0, 1.0}, ey, -0.5, -2.0,
+                              sys.index_of("A1"));
+        // arm B off -x
+        sys.add_revolute_body(static_frame3dp("B1", vec3dp{-1.0, 0.0, 0.0, 1.0}), link,
+                              vec3dp{0.4, 0.0, 0.0, 1.0}, ez, -0.2, -1.0,
+                              sys.index_of("hub"));
+        sys.add_revolute_body(static_frame3dp("B2", vec3dp{-0.8, 0.0, 0.0, 1.0}), link,
+                              vec3dp{0.4, 0.0, 0.0, 1.0}, ey, 0.4, 1.2,
+                              sys.index_of("B1"));
+        CHECK(sys.dof_coords().size() == 10); // 6 + 4
+
+        auto total_momentum = [&] {
+            bivec3dp P{};
+            for (size_t i = 1; i < sys.size(); ++i)
+                P = P + sys.momentum_world(i);
+            return P;
+        };
+        bivec3dp const P0 = total_momentum();
+        value_t const E0 = sys.total_energy();
+        value_t const P0n = std::sqrt(P0.vx * P0.vx + P0.vy * P0.vy + P0.vz * P0.vz +
+                                      P0.mx * P0.mx + P0.my * P0.my + P0.mz * P0.mz);
+        value_t max_dP = 0.0, max_dE = 0.0;
+        for (int i = 0; i < 3000; ++i) { // 3 s of tumbling and swinging
+            sys.step(1.0e-3);
+            bivec3dp const d = total_momentum() - P0;
+            max_dP = std::max(max_dP, std::sqrt(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz +
+                                                d.mx * d.mx + d.my * d.my + d.mz * d.mz));
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  |P| = {:.4f}: max |dP|/|P| = {:.2e}, dE/E = {:.2e}", P0n,
+                     max_dP / P0n, max_dE / std::abs(E0));
+        CHECK(max_dP / P0n < 1e-9);
+        CHECK(max_dE / std::abs(E0) < 1e-9);
+
+        // the hub actually moved and turned (the arms' motion reacts on it): no leak
+        // means the hub's momentum changed while the total did not
+        bivec3dp const Ph = sys.momentum_world(sys.index_of("hub"));
+        bivec3dp const dh = Ph - P0;
+        CHECK(std::sqrt(dh.vx * dh.vx + dh.vy * dh.vy + dh.vz * dh.vz) > 1e-3);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: motor joints agree with their composed 1-dof twins (F1)")
+    {
+        fmt::println(
+            "pga3dp: spherical / cylindrical / planar vs. composed 1-dof chains");
+
+        // Each multi-dof joint must move exactly like the composition of 1-dof joints
+        // with massless carriers between them (the oracle the compose route provides):
+        // same pendulum, same energy, same trajectory of the body's cm. The composed
+        // chains carry the same initial rates on the corresponding screws.
+        auto const bob = make_cuboid_body(2.0, 0.3, 0.2, 0.5);
+        auto const ghost = make_cuboid_body(0.0, 0.05, 0.05, 0.05); // massless carrier
+        vec3dp const ex{1.0, 0.0, 0.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0},
+            ez{0.0, 0.0, 1.0, 0.0};
+        vec3dp const piv{0.0, 0.6, 0.0, 1.0}; // the pivot 0.6 above the body origin
+
+        auto trajectory_error = [&](dynamic_system3dp& a, dynamic_system3dp& b, size_t fa,
+                                    size_t fb, value_t dt = 1.0e-3) {
+            value_t err = 0.0;
+            for (int i = 0; i < int(std::round(0.8 / dt)); ++i) {
+                a.step(dt);
+                b.step(dt);
+                vec3dp const pa = unitize(move3dp(O_3dp, a.get_pos_trafo(fa, 0)));
+                vec3dp const pb = unitize(move3dp(O_3dp, b.get_pos_trafo(fb, 0)));
+                err = std::max(err, std::abs(pa.x - pb.x) + std::abs(pa.y - pb.y) +
+                                        std::abs(pa.z - pb.z));
+            }
+            return err;
+        };
+
+        // -- spherical: a ball-jointed pendulum vs. three revolutes (x, y, z through the
+        //    pivot) with massless carriers. Rates: spin about the pivot's y and a swing.
+        //    The two do NOT agree to round-off at one dt: the 3R chain integrates three
+        //    angle coordinates whose RK4 truncation error is ~1e5 times that of the
+        //    motor joint (measured: at dt = 1e-3 the chain moves 3.9e-7 under dt-halving,
+        //    the motor joint 2.4e-12). So the gate is convergence: the difference must
+        //    fall by 2^4 per halving, which says both approach the same trajectory
+        {
+            auto build = [&]() {
+                dynamic_system3dp sph;
+                sph.add_frame(static_frame3dp("W"));
+                sph.add_spherical_body(
+                    static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}), bob, piv,
+                    sph.index_of("W"));
+                sph.set_joint_rates(sph.index_of("bob"), {0.7, 2.0, -0.4});
+
+                dynamic_system3dp cmp;
+                cmp.add_frame(static_frame3dp("W"));
+                cmp.add_revolute_body(static_frame3dp("gx"), ghost, O_3dp, ex, 0.0, 0.7,
+                                      cmp.index_of("W"));
+                cmp.add_revolute_body(static_frame3dp("gy"), ghost, O_3dp, ey, 0.0, 2.0,
+                                      cmp.index_of("gx"));
+                cmp.add_revolute_body(static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}),
+                                      bob, piv, ez, 0.0, -0.4, cmp.index_of("gy"));
+                return std::pair{sph, cmp};
+            };
+            auto [sph, cmp] = build();
+            value_t const E1 = sph.total_energy(), E2 = cmp.total_energy();
+            CHECK(E1 == doctest::Approx(E2).epsilon(1e-10));
+            value_t const err1 =
+                trajectory_error(sph, cmp, sph.index_of("bob"), cmp.index_of("bob"));
+            CHECK(std::abs(sph.total_energy() - E1) / std::abs(E1) < 1e-8);
+            auto [sph2, cmp2] = build();
+            value_t const err2 = trajectory_error(sph2, cmp2, sph2.index_of("bob"),
+                                                  cmp2.index_of("bob"), 5.0e-4);
+            fmt::println("  spherical vs 3R: cm trajectory error {:.2e} (dt 1e-3) -> "
+                         "{:.2e} (dt 5e-4), ratio {:.1f} (4th order: 16)",
+                         err1, err2, err1 / err2);
+            CHECK(err1 < 1e-6);
+            CHECK(err1 / err2 == doctest::Approx(16.0).epsilon(0.1));
+        }
+
+        // -- cylindrical: rotation about + translation along y through the pivot, vs. a
+        //    revolute (y) carrying a prismatic (y) with a massless carrier
+        {
+            dynamic_system3dp cyl;
+            cyl.add_frame(static_frame3dp("W"));
+            cyl.add_cylindrical_body(static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}),
+                                     bob, piv, ey, cyl.index_of("W"));
+            cyl.set_joint_rates(cyl.index_of("bob"), {1.5, 0.3});
+
+            dynamic_system3dp cmp;
+            cmp.add_frame(static_frame3dp("W"));
+            cmp.add_revolute_body(static_frame3dp("gy"), ghost, O_3dp, ey, 0.0, 1.5,
+                                  cmp.index_of("W"));
+            cmp.add_prismatic_body(static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}),
+                                   bob, ey, 0.0, 0.3, cmp.index_of("gy"));
+            value_t const err =
+                trajectory_error(cyl, cmp, cyl.index_of("bob"), cmp.index_of("bob"));
+            fmt::println("  cylindrical vs R+P: cm trajectory error {:.2e}", err);
+            CHECK(err < 1e-8);
+        }
+
+        // -- planar: the x-z plane through the pivot (normal y): vs. prismatic x,
+        //    prismatic z and a revolute about y with massless carriers
+        {
+            dynamic_system3dp pl;
+            pl.add_frame(static_frame3dp("W"));
+            pl.add_planar_body(static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}), bob,
+                               piv, ey, pl.index_of("W"));
+            // the planar screws are (t1, t2, rotation) with t1, t2 an orthonormal pair
+            // perpendicular to y; read them back to set matching composed rates
+            auto const& S = pl.joint_props(pl.index_of("bob")).screws;
+            REQUIRE(S.size() == 3);
+            pl.set_joint_rates(pl.index_of("bob"), {0.4, -0.2, 1.1});
+
+            dynamic_system3dp cmp;
+            cmp.add_frame(static_frame3dp("W"));
+            cmp.add_prismatic_body(static_frame3dp("g1"), ghost,
+                                   vec3dp{S[0].mx, S[0].my, S[0].mz, 0.0}, 0.0, 0.4,
+                                   cmp.index_of("W"));
+            cmp.add_prismatic_body(static_frame3dp("g2"), ghost,
+                                   vec3dp{S[1].mx, S[1].my, S[1].mz, 0.0}, 0.0, -0.2,
+                                   cmp.index_of("g1"));
+            cmp.add_revolute_body(static_frame3dp("bob", vec3dp{0.0, -0.6, 0.0, 1.0}),
+                                  bob, piv, ey, 0.0, 1.1, cmp.index_of("g2"));
+            value_t const err =
+                trajectory_error(pl, cmp, pl.index_of("bob"), cmp.index_of("bob"));
+            fmt::println("  planar vs P+P+R: cm trajectory error {:.2e}", err);
+            CHECK(err < 1e-8);
+        }
+
+        // -- helical: one coordinate turns and advances; pitch h means the body climbs
+        //    h * q along the axis -- a screw joint driven at constant rate is a helix
+        {
+            dynamic_system3dp hel;
+            hel.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            hel.add_frame(static_frame3dp("W"));
+            value_t const pitch = 0.05;
+            // the screw axis is the WORLD z axis, given in the nut's own frame: the nut
+            // sits at x = 0.3, so the axis passes through (-0.3, 0, 0) of the nut
+            hel.add_helical_body(static_frame3dp("nut", vec3dp{0.3, 0.0, 0.0, 1.0}), bob,
+                                 vec3dp{-0.3, 0.0, 0.0, 1.0}, ez, pitch, 0.0, 0.0,
+                                 hel.index_of("W"));
+            hel.set_driven_rate(hel.index_of("nut"), 2.0);
+            for (int i = 0; i < 500; ++i)
+                hel.step(1.0e-3); // q = 1.0 rad
+            vec3dp const p =
+                unitize(move3dp(O_3dp, hel.get_pos_trafo(hel.index_of("nut"), 0)));
+            CHECK(p.z == doctest::Approx(pitch * 1.0).epsilon(1e-10)); // advanced h q
+            CHECK(p.x == doctest::Approx(0.3 * std::cos(1.0)).epsilon(1e-10)); // turned q
+            CHECK(p.y == doctest::Approx(0.3 * std::sin(1.0)).epsilon(1e-10));
+            fmt::println("  helical: q = 1 rad -> z = {:.4f} (= pitch), turned by 1 rad",
+                         p.z);
+        }
         fmt::println("");
     }
 

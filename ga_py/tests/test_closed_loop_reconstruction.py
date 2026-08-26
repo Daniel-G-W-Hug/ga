@@ -89,7 +89,7 @@ class ClosedLoopSystem:
         self.joints.append(
             # trailing 0.0s = no spring/damper force elements (stiffness, damping, q_rest)
             pga.joint_state2dp(pga.joint2dp.revolute, _ORIGIN_SCREW, rest, phi0, omega0,
-                               0.0, 0.0, 0.0)
+                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u())
         )
         self.mass.append(mass)
         self.inertia.append(pga.get_plate_inertia(mass, w, h))

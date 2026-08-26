@@ -4803,6 +4803,81 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: free-floating chain conserves momentum and energy (F)")
+    {
+        fmt::println("pga2dp: floating base - a planar space station: momentum + energy");
+
+        // The 2D twin of the decisive Phase F gate: a heavy hub (free root joint)
+        // carrying two two-link arms swinging with opposite rates, no gravity, no
+        // external wrench -- total linear and angular momentum conserved in the world
+        // frame, energy alongside, over a long integration. Same description as in 3D,
+        // only the types differ.
+        auto const hub = make_plate_body(40.0, 1.2, 0.8);
+        auto const link = make_plate_body(3.0, 0.8, 0.08);
+
+        auto build = [&] {
+            dynamic_system2dp sys;
+            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.add_frame(static_frame2dp("W"));
+            sys.add_body(static_frame2dp("hub", vec2dp{0.0, 0.0, 1.0}, 0.0), hub,
+                         kin_state2dp{.vel = vec2dp{0.1, -0.05, 0.0}, .omega = 0.3});
+            sys.add_revolute_body(static_frame2dp("A1", vec2dp{1.0, 0.0, 1.0}, 0.0), link,
+                                  vec2dp{-0.4, 0.0, 1.0}, 0.3, 1.5, sys.index_of("hub"));
+            sys.add_revolute_body(static_frame2dp("A2", vec2dp{0.8, 0.0, 1.0}, 0.0), link,
+                                  vec2dp{-0.4, 0.0, 1.0}, -0.5, -2.0, sys.index_of("A1"));
+            sys.add_revolute_body(static_frame2dp("B1", vec2dp{-1.0, 0.0, 1.0}, 0.0),
+                                  link, vec2dp{0.4, 0.0, 1.0}, -0.2, -1.0,
+                                  sys.index_of("hub"));
+            sys.add_revolute_body(static_frame2dp("B2", vec2dp{-0.8, 0.0, 1.0}, 0.0),
+                                  link, vec2dp{0.4, 0.0, 1.0}, 0.4, 1.2,
+                                  sys.index_of("B1"));
+            return sys;
+        };
+        dynamic_system2dp sys = build();
+        CHECK(sys.dof_coords().size() == 7); // 3 + 4
+
+        auto total_momentum = [&] {
+            bivec2dp P{};
+            for (size_t i = 1; i < sys.size(); ++i)
+                P = P + sys.momentum_world(i);
+            return P;
+        };
+        bivec2dp const P0 = total_momentum();
+        value_t const E0 = sys.total_energy();
+        value_t const P0n = std::sqrt(P0.x * P0.x + P0.y * P0.y + P0.z * P0.z);
+        value_t max_dP = 0.0, max_dE = 0.0;
+        for (int i = 0; i < 3000; ++i) {
+            sys.step(1.0e-3);
+            bivec2dp const d = total_momentum() - P0;
+            max_dP = std::max(max_dP, std::sqrt(d.x * d.x + d.y * d.y + d.z * d.z));
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+        }
+        fmt::println("  |P| = {:.4f}: max |dP|/|P| = {:.2e}, dE/E = {:.2e}", P0n,
+                     max_dP / P0n, max_dE / std::abs(E0));
+        CHECK(max_dP / P0n < 1e-9);
+        CHECK(max_dE / std::abs(E0) < 1e-9);
+        bivec2dp const dh = sys.momentum_world(sys.index_of("hub")) - P0;
+        CHECK(std::sqrt(dh.x * dh.x + dh.y * dh.y) > 1e-3); // the hub reacted
+
+        // Conservation alone does not see the root's pose retraction (in the plane a
+        // pose error leaves momentum and energy intact), so the hub's pose at t = 1 s
+        // must also converge at FOURTH order under dt-halving -- the dexp^-1 terms
+        // in the motor-joint integrator are what make it do so (2nd order without)
+        auto hub_at = [&](value_t dt) {
+            dynamic_system2dp s = build();
+            for (int i = 0; i < int(std::round(1.0 / dt)); ++i)
+                s.step(dt);
+            return unitize(move2dp(O_2dp, s.get_pos_trafo(s.index_of("hub"), 0)));
+        };
+        vec2dp const h1 = hub_at(4.0e-3), h2 = hub_at(2.0e-3), h3 = hub_at(1.0e-3);
+        value_t const e1 = std::abs(h1.x - h2.x) + std::abs(h1.y - h2.y);
+        value_t const e2 = std::abs(h2.x - h3.x) + std::abs(h2.y - h3.y);
+        fmt::println("  hub pose under dt-halving: {:.2e} -> {:.2e}, ratio {:.1f}", e1,
+                     e2, e1 / e2);
+        CHECK(e1 / e2 > 14.0);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

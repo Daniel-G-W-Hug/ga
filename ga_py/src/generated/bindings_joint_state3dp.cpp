@@ -38,12 +38,14 @@ void bind_joint_state3dp(nb::module_& m)
             "__init__",
             [](joint_state3dp* self, joint3dp const& type, bivec3dp const& screw_b,
                mvec3dp_e const& rest, double phi, double omega, double stiffness,
-               double damping, double q_rest) {
+               double damping, double q_rest, std::vector<bivec3dp> const& screws,
+               std::vector<double> const& rate, mvec3dp_e const& M) {
                 new (self) joint_state3dp(type, screw_b, rest, phi, omega, stiffness,
-                                          damping, q_rest);
+                                          damping, q_rest, screws, rate, M);
             },
             nb::arg("type"), nb::arg("screw_b"), nb::arg("rest"), nb::arg("phi"),
-            nb::arg("omega"), nb::arg("stiffness"), nb::arg("damping"), nb::arg("q_rest"))
+            nb::arg("omega"), nb::arg("stiffness"), nb::arg("damping"), nb::arg("q_rest"),
+            nb::arg("screws"), nb::arg("rate"), nb::arg("M"))
         .def_rw("type", &joint_state3dp::type)
         .def_rw("screw_b", &joint_state3dp::screw_b)
         .def_rw("rest", &joint_state3dp::rest)
@@ -52,6 +54,9 @@ void bind_joint_state3dp(nb::module_& m)
         .def_rw("stiffness", &joint_state3dp::stiffness)
         .def_rw("damping", &joint_state3dp::damping)
         .def_rw("q_rest", &joint_state3dp::q_rest)
+        .def_rw("screws", &joint_state3dp::screws)
+        .def_rw("rate", &joint_state3dp::rate)
+        .def_rw("M", &joint_state3dp::M)
         .def("__repr__", [](const joint_state3dp& v) { return fmt::format("{}", v); })
         .def("__str__", [](const joint_state3dp& v) { return fmt::format("{}", v); })
         .def(
@@ -69,6 +74,7 @@ void bind_joint_state3dp(nb::module_& m)
         .def("__eq__", [](const joint_state3dp& a, const joint_state3dp& b) {
             return a.type == b.type && a.screw_b == b.screw_b && a.rest == b.rest &&
                    a.phi == b.phi && a.omega == b.omega && a.stiffness == b.stiffness &&
-                   a.damping == b.damping && a.q_rest == b.q_rest;
+                   a.damping == b.damping && a.q_rest == b.q_rest &&
+                   a.screws == b.screws && a.rate == b.rate && a.M == b.M;
         });
 }

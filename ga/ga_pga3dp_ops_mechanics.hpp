@@ -1105,28 +1105,67 @@ inline body3dp make_point_body3dp(value_t m)
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
-// Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
-// unification of rotation and translation): M(q) = rest (x) rexp(1/2 q * screw).
+// A joint is a SUBSPACE of the bivectors -- its motion subspace S (Featherstone's S, the
+// column of Table 4.1) -- spanned by k body-frame screws; the joint's configuration is a
+// motor built from that subspace. Two families, one integrator:
 //
-//   free      : unconstrained 6-DOF rigid body; state lives in the base layer.
+//   1-dof COORDINATE joints -- a scalar q is the coordinate, and the motor is exact,
+//   M(q) = rest (x) rexp(1/2 q * screw):
 //
-//   revolute  : 1-DOF hinge; screw = a LINE (the rotation axis); q rotates about it.
+//   revolute    : hinge; screw = a LINE (the rotation axis); q rotates about it.
 //
-//   prismatic : 1-DOF slider; screw = an IDEAL line (translation dir); q translates it.
-enum class joint3dp { free, revolute, prismatic };
+//   prismatic   : slider; screw = an IDEAL line (translation direction); q translates.
+//
+//   helical     : screw joint; screw = the axis line PLUS pitch * its direction in the
+//                 translation slots, so one q rotates AND advances (the PGA unification
+//                 of R, P and H: one exponential, three generators).
+//
+//   multi-dof MOTOR joints -- their screw sets are Lie subalgebras but not commutative,
+//   so no global scalar coordinates exist. The configuration IS the relative motor M and
+//   the state k rates on the screws; integration is the retraction of the free-body
+//   integrator, M <- M (x) rexp(1/2 B) with dB/dt = dexp^-1(B) Omega, which stays inside
+//   the subspace exactly because it is a subalgebra:
+//
+//   cylindrical : rotation about and translation along one axis (2; commuting).
+//
+//   spherical   : the three rotations about a pivot point (3; so(3)).
+//
+//   planar      : two translations in a plane and the rotation about its normal (3;
+//                 se(2)).
+//
+//   free        : all six (se(3)) -- the FLOATING BASE, a body coupled to the tree
+//                 through a joint that constrains nothing (Featherstone 9.3). add_body()
+//                 with a mass makes one; a free frame WITHOUT mass (add_frame) is a
+//                 rigid attachment and contributes no coordinates.
+//
+//   A universal joint is not a type: its two axes do not span a subalgebra (the second
+//   turns with the first), so no exponential retraction stays on it. Compose it from two
+//   revolute joints with a massless carrier link between them (make_*_body with m = 0).
+enum class joint3dp {
+    free,
+    revolute,
+    prismatic,
+    helical,
+    cylindrical,
+    spherical,
+    planar
+};
 
-// Per-frame joint state (parallel to the body[] list). Meaningful for 1-DOF joints; the
-// free body ignores it and uses the base relative twist + pose directly.
+// Per-frame joint state (parallel to the body[] list). One source of truth per family:
+// phi / omega for a 1-dof joint (springs, drives and joint_phi read them), the motor M
+// and the rates for a motor joint; apply_joint_state() writes whichever applies into the
+// base pose + relative twist.
 struct joint_state3dp {
     joint3dp type{joint3dp::free};
-    // joint screw generator (a twist3dp = BiVec3dp), in the body frame: a unit
-    // rotation-axis LINE for a revolute hinge, an ideal line (translation generator) for
-    // a prismatic slider. The same field drives both via the same exponential -- see
-    // joint3dp above.
+    // joint screw generator of a 1-dof joint (a twist3dp = BiVec3dp), in the body frame:
+    // a unit rotation-axis LINE for a revolute hinge, an ideal line (translation
+    // generator) for a prismatic slider, a line with pitch for a helical joint. The same
+    // field drives all three via the same exponential -- see joint3dp above.
     twist3dp screw_b{};
     mvec3dp_e rest;     // body->parent motor at q = 0 (the reference pose)
     value_t phi{0.0};   // generalised coordinate q (revolute angle / prismatic distance)
     value_t omega{0.0}; // generalised rate q-dot
+
 
     // Optional linear force elements acting on the generalised coordinate q, folded into
     // the joint-space generalised force tau:
@@ -1140,6 +1179,14 @@ struct joint_state3dp {
     value_t stiffness{0.0}; // generalised spring constant k
     value_t damping{0.0};   // generalised damping constant c
     value_t q_rest{0.0};    // spring rest coordinate q0
+
+    // motor joints (cylindrical, spherical, planar, free): the k body-frame screws
+    // spanning the motion subspace, the k generalised rates on them, and the body->parent
+    // motor M that IS the configuration (the truth; there is no q). Empty for a 1-dof
+    // joint and for a rigid frame.
+    std::vector<twist3dp> screws;
+    std::vector<value_t> rate;
+    mvec3dp_e M;
 };
 
 // A GROUNDED spatial spring + damper: a linear spring/damper connecting a body-fixed
@@ -1268,18 +1315,97 @@ class dynamic_system3dp : public kinematic_system3dp {
     }
 
     // add a free (6-DOF) dynamic rigid body: rest pose + inertial properties + initial
-    // kinematic state (linear & angular velocity).
-    //
-    // A free body is integrated on its own (step_free_body), NOT as part of the
-    // coupled 1-DOF joint chain -- so it must not share a root-to-leaf path with a
-    // revolute or prismatic joint. That configuration is refused (see
-    // reject_mixed_chain); it is not a floating base.
+    // kinematic state (linear & angular velocity). It is a FREE JOINT to its parent -- a
+    // floating base if the parent is the world, a floating body inside an assembly
+    // otherwise -- and takes part in the coupled solve like every other joint, so it may
+    // carry jointed children (a space station, a torso with legs). Its six screws are
+    // the basis bivectors of the body frame, so its rates are the body twist's
+    // components. A body of zero mass is a rigid attachment, not a joint.
     void add_body(static_frame3dp const& f, body3dp const& b,
                   kin_state3dp const& k = kin_state3dp{}, size_t parent_idx = prev_frame)
     {
         add_frame(f, k, parent_idx);
-        body.back() = b;
-        reject_mixed_chain(size() - 1);
+        size_t const idx = size() - 1;
+        body[idx] = b;
+        if (b.mass > 0.0) {
+            joint_state3dp js;
+            js.type = joint3dp::free;
+            js.screws = {twist3dp{1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                         twist3dp{0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+                         twist3dp{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+                         twist3dp{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+                         twist3dp{0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+                         twist3dp{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}};
+            twist3dp const V = relative_twist(idx);
+            js.rate = {V.vx, V.vy, V.vz, V.mx, V.my, V.mz};
+            js.M = rrev(step_pos_trafo(idx));
+            joint[idx] = js;
+        }
+    }
+
+    // add a HELICAL-jointed body: one coordinate q rotates about the body-fixed axis
+    // line through `pivot_b` along `axis_b` AND advances along it by pitch * q. The screw
+    // is the line plus pitch times its direction in the translation slots; the same
+    // exponential as the revolute and prismatic joints.
+    void add_helical_body(static_frame3dp const& f, body3dp const& b,
+                          vec3dp const& pivot_b, vec3dp const& axis_b, value_t pitch,
+                          value_t q0 = 0.0, value_t qdot0 = 0.0,
+                          size_t parent_idx = prev_frame)
+    {
+        add_screw_joint(f, b, joint3dp::helical,
+                        wdg(pivot_b, axis_b) + twist3dp{0.0, 0.0, 0.0, pitch * axis_b.x,
+                                                        pitch * axis_b.y,
+                                                        pitch * axis_b.z},
+                        q0, qdot0, parent_idx);
+    }
+
+    // add a CYLINDRICAL-jointed body: rotation about and translation along the
+    // body-fixed axis line through `pivot_b` along `axis_b` (2 dof, commuting screws).
+    void add_cylindrical_body(static_frame3dp const& f, body3dp const& b,
+                              vec3dp const& pivot_b, vec3dp const& axis_b,
+                              size_t parent_idx = prev_frame)
+    {
+        add_motor_joint(
+            f, b, joint3dp::cylindrical,
+            {wdg(pivot_b, axis_b), twist3dp{0.0, 0.0, 0.0, axis_b.x, axis_b.y, axis_b.z}},
+            parent_idx);
+    }
+
+    // add a SPHERICAL-jointed body (a ball joint): the three rotations about the
+    // body-fixed pivot point `pivot_b` (3 dof, so(3)); the screws are the three lines
+    // through the pivot along the body axes.
+    void add_spherical_body(static_frame3dp const& f, body3dp const& b,
+                            vec3dp const& pivot_b, size_t parent_idx = prev_frame)
+    {
+        add_motor_joint(f, b, joint3dp::spherical,
+                        {wdg(pivot_b, vec3dp{1.0, 0.0, 0.0, 0.0}),
+                         wdg(pivot_b, vec3dp{0.0, 1.0, 0.0, 0.0}),
+                         wdg(pivot_b, vec3dp{0.0, 0.0, 1.0, 0.0})},
+                        parent_idx);
+    }
+
+    // add a PLANAR-jointed body: the two translations in the body-fixed plane through
+    // `pivot_b` with unit normal `normal_b`, and the rotation about that normal line
+    // (3 dof, se(2)). The in-plane directions are any orthonormal pair perpendicular to
+    // the normal; the coordinates are rates on them, so the choice is invisible.
+    void add_planar_body(static_frame3dp const& f, body3dp const& b,
+                         vec3dp const& pivot_b, vec3dp const& normal_b,
+                         size_t parent_idx = prev_frame)
+    {
+        // an orthonormal pair perpendicular to n: cross with the least-aligned axis
+        vec3dp const n = normal_b;
+        vec3dp const a = (std::abs(n.x) < 0.9) ? vec3dp{1.0, 0.0, 0.0, 0.0}
+                                               : vec3dp{0.0, 1.0, 0.0, 0.0};
+        vec3dp t1{n.y * a.z - n.z * a.y, n.z * a.x - n.x * a.z, n.x * a.y - n.y * a.x,
+                  0.0};
+        value_t const l1 = std::sqrt(t1.x * t1.x + t1.y * t1.y + t1.z * t1.z);
+        t1 = vec3dp{t1.x / l1, t1.y / l1, t1.z / l1, 0.0};
+        vec3dp const t2{n.y * t1.z - n.z * t1.y, n.z * t1.x - n.x * t1.z,
+                        n.x * t1.y - n.y * t1.x, 0.0};
+        add_motor_joint(f, b, joint3dp::planar,
+                        {twist3dp{0.0, 0.0, 0.0, t1.x, t1.y, t1.z},
+                         twist3dp{0.0, 0.0, 0.0, t2.x, t2.y, t2.z}, wdg(pivot_b, n)},
+                        parent_idx);
     }
 
     // add a revolute-jointed body: a 1-DOF hinge about the body-fixed axis line through
@@ -1345,18 +1471,65 @@ class dynamic_system3dp : public kinematic_system3dp {
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // joint rate
     joint_state3dp const& joint_props(size_t idx) const { return joint[idx]; }
 
-    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
-    // generalised coords integrated by the forward dynamics. Kinematically driven joints
-    // (in driven_) are excluded: they are prescribed, not solved for.
+    // A generalised coordinate: the joint frame it belongs to and which of that joint's
+    // screws it drives (k = 0 for a 1-dof joint). The coupled solve, the mass matrix, the
+    // Jacobians and the constraint layer all index by these; a 1-dof-only system has one
+    // per joint, in frame order, so nothing about it moves.
+    struct coord {
+        size_t frame;
+        size_t k;
+    };
+
+    // number of generalised coordinates a joint contributes (0: driven, or a rigid
+    // frame)
+    size_t joint_dof(size_t idx) const
+    {
+        if (driven_.count(idx) != 0) return 0;
+        switch (joint[idx].type) {
+            case joint3dp::revolute:
+            case joint3dp::prismatic:
+            case joint3dp::helical:
+                return 1;
+            default:
+                return joint[idx].screws.size(); // motor joints; a rigid frame has none
+        }
+    }
+
+    // The DYNAMIC generalised coordinates, in frame order then screw order -- the
+    // unknowns of the forward dynamics. Kinematically driven joints (in driven_) are
+    // excluded: they are prescribed, not solved for.
+    std::vector<coord> dof_coords() const
+    {
+        std::vector<coord> rc;
+        for (size_t i = 1; i < size(); ++i)
+            for (size_t k = 0, n = joint_dof(i); k < n; ++k)
+                rc.push_back(coord{i, k});
+        return rc;
+    }
+
+    // Frame indices of the dynamic joints (each once, however many coordinates it has)
     std::vector<size_t> dof_joints() const
     {
         std::vector<size_t> rj;
         for (size_t i = 1; i < size(); ++i)
-            if ((joint[i].type == joint3dp::revolute ||
-                 joint[i].type == joint3dp::prismatic) &&
-                driven_.count(i) == 0)
-                rj.push_back(i);
+            if (joint_dof(i) > 0) rj.push_back(i);
         return rj;
+    }
+
+    // motor joints: the k rates on the joint's screws (read / set; the relative twist is
+    // refreshed). A 1-dof joint uses joint_omega / set_joint_rate.
+    std::vector<value_t> const& joint_rates(size_t idx) const { return joint[idx].rate; }
+    void set_joint_rates(size_t idx, std::vector<value_t> const& rates)
+    {
+        joint[idx].rate = rates;
+        apply_joint_state(idx);
+    }
+    // motor joints: the body->parent motor (the configuration); set + refresh the pose
+    mvec3dp_e const& joint_motor(size_t idx) const { return joint[idx].M; }
+    void set_joint_motor(size_t idx, mvec3dp_e const& M)
+    {
+        joint[idx].M = M;
+        apply_joint_state(idx);
     }
 
     // Set a joint's generalised coordinate / rate and refresh the kinematic state (pose
@@ -1422,12 +1595,15 @@ class dynamic_system3dp : public kinematic_system3dp {
     // at the present state (no integration).
     value_t joint_accel(size_t idx)
     {
-        auto const rj = dof_joints();
-        auto const qdd = forward_dynamics(rj);
-        for (size_t k = 0; k < rj.size(); ++k)
-            if (rj[k] == idx) return qdd[k];
+        auto const rc = dof_coords();
+        auto const qdd = forward_dynamics(rc);
+        for (size_t c = 0; c < rc.size(); ++c)
+            if (rc[c].frame == idx && rc[c].k == 0) return qdd[c];
         return 0.0;
     }
+
+    // all generalised accelerations of the dof coordinates (dof_coords() order)
+    std::vector<value_t> joint_accelerations() { return forward_dynamics(dof_coords()); }
 
     // Recompute the joint accelerations from the applied forces (forward dynamics) and
     // write them into the per-frame relative acceleration twists, so accel_twist_world /
@@ -1435,25 +1611,25 @@ class dynamic_system3dp : public kinematic_system3dp {
     // velocity-product bias left after step()).
     void sync_accelerations()
     {
-        auto const rj = dof_joints();
-        auto const qdd = forward_dynamics(rj); // zeroes rel_atwist internally
-        for (size_t k = 0; k < rj.size(); ++k)
-            set_accel_twist(rj[k], qdd[k] * joint[rj[k]].screw_b);
+        auto const rc = dof_coords();
+        auto const qdd = forward_dynamics(rc); // zeroes rel_atwist internally
+        for (size_t c = 0; c < rc.size(); ++c) {
+            twist3dp const a = qdd[c] * screw_of(rc[c]);
+            set_accel_twist(rc[c].frame,
+                            (rc[c].k == 0) ? a : relative_accel_twist(rc[c].frame) + a);
+        }
     }
 
-    // Advance the system by dt. The 1-DOF joints form a COUPLED chain integrated together
-    // in their reduced (joint) coordinates via the joint-space forward dynamics; free
-    // bodies are integrated independently. RK4 throughout.
+    // Advance the system by dt: every dynamic joint -- 1-dof and motor joints, a floating
+    // base included -- is integrated together in the coupled joint-space forward
+    // dynamics. RK4 (or ABM2) throughout.
     void step(value_t dt)
     {
-        auto const rj = dof_joints();
-        if (!rj.empty())
-            coupled_step(rj, dt); // uses time_ for sub-step wrench/drive eval
-        for (size_t i = 1; i < size(); ++i)
-            if (joint[i].type == joint3dp::free && body[i].mass > 0.0)
-                step_free_body(i, dt);
-        time_ += dt;           // advance the clock (coupled_step restores it to t0)
-        apply_driven_joints(); // prescribe the driven joints at t + dt (final state)
+        auto const rc = dof_coords();
+        if (!rc.empty())
+            coupled_step(rc, dt); // uses time_ for sub-step wrench/drive eval
+        time_ += dt;              // advance the clock (coupled_step restores it to t0)
+        apply_driven_joints();    // prescribe the driven joints at t + dt (final state)
     }
 
     // --- energy / momentum diagnostics (inertial / world frame) ----------------------
@@ -1531,13 +1707,13 @@ class dynamic_system3dp : public kinematic_system3dp {
     // for the space form and with the frame's body twist for the body form.
     std::vector<twist3dp> jacobian_columns(size_t f, bool body_form = false)
     {
-        auto const rj = dof_joints();
-        std::vector<twist3dp> J(rj.size());
+        auto const rc = dof_coords();
+        std::vector<twist3dp> J(rc.size());
         mvec3dp_e const Mf_inv = body_form ? rrev(get_pos_trafo(f, 0)) : mvec3dp_e{};
-        for (size_t j = 0; j < rj.size(); ++j) {
-            if (!is_ancestor(rj[j], f)) continue;
-            twist3dp const S = move3dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
-            J[j] = body_form ? move3dp(S, Mf_inv) : S;
+        for (size_t c = 0; c < rc.size(); ++c) {
+            if (!is_ancestor(rc[c].frame, f)) continue;
+            twist3dp const S = world_screw(rc[c]);
+            J[c] = body_form ? move3dp(S, Mf_inv) : S;
         }
         return J;
     }
@@ -1564,14 +1740,20 @@ class dynamic_system3dp : public kinematic_system3dp {
     std::vector<value_t> jacobian(size_t f, std::vector<size_t> const& joints,
                                   bool body_form = false)
     {
-        auto const rj = dof_joints();
+        auto const rc = dof_coords();
         auto const cols = jacobian_columns(f, body_form);
         size_t const k = joints.size();
         std::vector<value_t> J(6 * k, 0.0);
         for (size_t c = 0; c < k; ++c) {
-            auto const it = std::find(rj.begin(), rj.end(), joints[c]);
-            if (it == rj.end()) continue; // not a dof joint: zero column
-            auto const& col = cols[static_cast<size_t>(it - rj.begin())];
+            // the joint's FIRST coordinate (a 1-dof joint has only that one)
+            size_t ci = rc.size();
+            for (size_t i = 0; i < rc.size(); ++i)
+                if (rc[i].frame == joints[c] && rc[i].k == 0) {
+                    ci = i;
+                    break;
+                }
+            if (ci == rc.size()) continue; // not a dof joint: zero column
+            auto const& col = cols[ci];
             J[0 * k + c] = col.vx;
             J[1 * k + c] = col.vy;
             J[2 * k + c] = col.vz;
@@ -1584,25 +1766,23 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     std::vector<value_t> mass_matrix()
     {
+        auto const rc = dof_coords();
+        size_t const n = rc.size();
+        std::vector<twist3dp> S(n); // world coordinate screws (unit rate)
+        for (size_t c = 0; c < n; ++c)
+            S[c] = world_screw(rc[c]);
+        // the inertia-bearing bodies: the dynamic joints' frames (each once)
         auto const rj = dof_joints();
-        size_t const n = rj.size();
-        std::vector<twist3dp> S(n); // world joint screws (unit rate)
-        std::vector<mvec3dp_e> Minv(
-            n); // world -> body i motor (pulls a twist into body i)
-        for (size_t i = 0; i < n; ++i) {
-            auto const M = get_pos_trafo(rj[i], 0); // body i -> world
-            S[i] = move3dp(joint[rj[i]].screw_b, M);
-            Minv[i] = rrev(M);
-        }
         std::vector<value_t> Mmat(n * n, 0.0);
-        for (size_t i = 0; i < n; ++i) {
-            auto const& I = body[rj[i]].I; // inertia map about body i's cm (body frame)
+        for (size_t const fb : rj) {
+            auto const& I = body[fb].I; // inertia map about the body's cm (body frame)
+            mvec3dp_e const Minv = rrev(get_pos_trafo(fb, 0)); // world -> body
             for (size_t j = 0; j < n; ++j) {
-                if (!is_ancestor(rj[j], rj[i])) continue;
-                twist3dp const xj = move3dp(S[j], Minv[i]); // joint-j screw in body i
+                if (!is_ancestor(rc[j].frame, fb)) continue;
+                twist3dp const xj = move3dp(S[j], Minv); // coordinate-j screw in the body
                 for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rj[k], rj[i])) continue;
-                    twist3dp const xk = move3dp(S[k], Minv[i]);
+                    if (!is_ancestor(rc[k].frame, fb)) continue;
+                    twist3dp const xk = move3dp(S[k], Minv);
                     Mmat[j * n + k] += spatial_dot(xj, I(xk));
                 }
             }
@@ -1623,65 +1803,8 @@ class dynamic_system3dp : public kinematic_system3dp {
         return -value_t(rwdg(xi, mom));
     }
 
-    // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
-    // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
-    // accumulated from the current relative pose M0 (so M(t) = M0 (x) rexp(1/2 B)), Omega
-    // the body twist. dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ], and
-    //
-    //     dB/dt = dexp^-1(B) Omega = Omega + 1/2 [B, Omega] + 1/12 [B, [B, Omega]] + ...
-    //
-    // with [.,.] = rcmt: the body twist pulled back through the differential of rexp at
-    // B (Munthe-Kaas). dB/dt = Omega alone holds only where B and Omega commute; using
-    // it anyway degrades RK4 on the pair to SECOND order on the pose and on the
-    // world-frame momentum (measured: error ratio 4.00 per halving of dt; with the
-    // single bracket 8; with both brackets 16). The series is truncated after the double
-    // bracket, which suffices for fourth order because B = O(dt) within a step (B
-    // restarts at 0 every step). For a torque-free body (grav = 0) the Omega equation
-    // reduces to the pure se(3) Euler equation (Poinsot / Dzhanibekov).
-    void step_free_body(size_t idx, value_t dt)
-    {
-        auto const M0 = rrev(step_pos_trafo(idx)); // current body -> parent motor
-        auto const& I = body[idx].I;
-        auto const& I_inv = body[idx].I_inv;
-        value_t const m = body[idx].mass;
-
-        // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
-        auto omega_dot = [&](twist3dp const& B, twist3dp const& Om) -> twist3dp {
-            auto const M = rgpr(M0, rexp(0.5 * B));            // pose at this stage
-            auto const W_w = wdg(move3dp(O_3dp, M), m * grav); // gravity wrench (world)
-            auto const W_b = move3dp(W_w, rrev(M)); // pulled into the body frame
-            return compute_omega_dot(I_inv, W_b, Om, I);
-        };
-
-        // generator rate dB/dt = dexp^-1(B) Omega, truncated after the double bracket
-        auto b_dot = [](twist3dp const& B, twist3dp const& Om) -> twist3dp {
-            twist3dp const c1 = rcmt(B, Om);
-            return Om + 0.5 * c1 + (1.0 / 12.0) * rcmt(B, c1);
-        };
-
-        // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = b_dot,
-        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) rexp(1/2 B)).
-        std::array<twist3dp, 2> u_mem{twist3dp{}, relative_twist(idx)};
-        std::array<twist3dp, 4> uh_mem{};
-        std::array<twist3dp, 2> rhs_mem{};
-        auto u = std::mdspan<twist3dp, std::dextents<size_t, 1>>(u_mem.data(), 2);
-        auto uh = std::mdspan<twist3dp, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2);
-        auto const rhs =
-            std::mdspan<twist3dp const, std::dextents<size_t, 1>>(rhs_mem.data(), 2);
-        for (size_t s = 1; s <= 4; ++s) {
-            rhs_mem[0] = b_dot(u[0], u[1]);     // dB/dt = dexp^-1(B) Omega
-            rhs_mem[1] = omega_dot(u[0], u[1]); // dOmega/dt
-            rk4_step(u, uh, rhs, dt, s);
-        }
-
-        // decode the evolved pose (motor -> pose3dp via the constrained motor log) and
-        // write pose + twist back into the base layers
-        set_pose(idx, pose3dp_from_motor(rgpr(M0, rexp(0.5 * u[0]))));
-        set_twist(idx, u[1]);
-    }
-
-    // shared constructor for the 1-DOF screw joints (revolute / prismatic): the ONLY
-    // difference between them is the screw generator passed in.
+    // shared constructor for the 1-DOF screw joints (revolute / prismatic / helical): the
+    // ONLY difference between them is the screw generator passed in.
     void add_screw_joint(static_frame3dp const& f, body3dp const& b, joint3dp type,
                          twist3dp const& screw_b, value_t q0, value_t qdot0,
                          size_t parent_idx)
@@ -1697,7 +1820,24 @@ class dynamic_system3dp : public kinematic_system3dp {
         js.omega = qdot0;
         joint[idx] = js;
         apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
-        reject_mixed_chain(idx);
+    }
+
+    // shared constructor for the motor joints (cylindrical / spherical / planar): the
+    // subspace is the list of body-frame screws; the configuration starts at the frame's
+    // rest pose with zero rates (set_joint_rates / set_joint_motor to change either).
+    void add_motor_joint(static_frame3dp const& f, body3dp const& b, joint3dp type,
+                         std::vector<twist3dp> screws, size_t parent_idx)
+    {
+        add_frame(f, parent_idx);
+        size_t const idx = size() - 1;
+        body[idx] = b;
+        joint_state3dp js;
+        js.type = type;
+        js.screws = std::move(screws);
+        js.rate.assign(js.screws.size(), 0.0);
+        js.M = rrev(step_pos_trafo(idx)); // body->parent motor at the rest pose
+        joint[idx] = js;
+        apply_joint_state(idx);
     }
 
     // body->parent motor at generalised coordinate q: M(q) = rest (x) rexp(1/2 q *
@@ -1708,14 +1848,24 @@ class dynamic_system3dp : public kinematic_system3dp {
         return rgpr(joint[idx].rest, rexp(0.5 * q * joint[idx].screw_b));
     }
 
-    // Write the joint state (q, q-dot) into the base pose + relative twist, so all
-    // kinematic queries (get_pos_trafo, twist_world, point_velocity, energy) stay valid.
+    // Write the joint state into the base pose + relative twist, so all kinematic
+    // queries (get_pos_trafo, twist_world, point_velocity, energy) stay valid: (q, q-dot)
+    // for a 1-dof joint, (M, rates) for a motor joint; a rigid frame is left alone.
     void apply_joint_state(size_t idx)
     {
-        auto const M = joint_motor(idx, joint[idx].phi); // body->parent motor at q
+        auto const& js = joint[idx];
+        if (!js.screws.empty()) { // motor joint: the motor IS the configuration
+            set_pose(idx, pose3dp_from_motor(js.M));
+            twist3dp V{};
+            for (size_t k = 0; k < js.screws.size(); ++k)
+                V = V + js.rate[k] * js.screws[k];
+            set_twist(idx, V);
+            return;
+        }
+        if (js.type == joint3dp::free) return;   // a rigid frame (no mass): nothing to do
+        auto const M = joint_motor(idx, js.phi); // body->parent motor at q
         set_pose(idx, pose3dp_from_motor(M));
-        set_twist(idx,
-                  joint[idx].omega * joint[idx].screw_b); // rel twist = q-dot * screw
+        set_twist(idx, js.omega * js.screw_b); // rel twist = q-dot * screw
     }
 
     // Re-evaluate every kinematically driven joint at the current clock time_: write its
@@ -1733,48 +1883,182 @@ class dynamic_system3dp : public kinematic_system3dp {
     }
 
 
-    // A FREE body and a 1-DOF joint chain do NOT couple in this tier. Free bodies are
-    // integrated by step_free_body(); the 1-DOF joints are integrated together by
-    // coupled_step(); and neither sees the other's inertia. Putting both on one
-    // root-to-leaf path therefore models something OTHER than what was described, with
-    // no error: the free body's inertia never enters the mass matrix, and it falls as if
-    // unattached while its jointed descendants are carried along kinematically. Measured
-    // on a 100 kg free body carrying one revolute link: the mass matrix is byte-identical
-    // to the same chain with that body absent, and the body's origin follows -1/2 g t^2
-    // exactly.
+    // --- generalised coordinates: the seam every solver walks -------------------------
     //
-    // The correct construction is Featherstone's (Rigid Body Dynamics Algorithms, 9.3): a
-    // floating base IS a 6-DOF joint at the root, after which every fixed-base algorithm
-    // applies unchanged. Until this tier supports that, refuse the configuration rather
-    // than return a wrong answer quietly. Two independent subsystems hanging off the root
-    // are fine -- the check is per PATH, not per system.
-    //
-    // The test is on MASS, not on type alone, and deliberately so: a free frame carrying
-    // no mass is skipped by step_free_body() and is therefore inert, so it may sit on a
-    // jointed path as a pure carrier. That is also what keeps the default root harmless
-    // -- add_frame() leaves joint[0].type == free, and only its zero mass stops it from
-    // matching here.
-    void reject_mixed_chain(size_t idx) const
+    // A coordinate is (frame, k): the k-th screw of that joint. For a 1-dof joint the
+    // screw is screw_b and the rate omega; for a motor joint screws[k] and rate[k]. The
+    // helpers below are the ONLY place the two families are told apart, so the assembly,
+    // the Jacobians and the integrator are written once over coordinates.
+
+    // body-frame screw of a coordinate
+    twist3dp const& screw_of(coord c) const
     {
-        bool has_free = false, has_joint = false;
-        for (size_t n = idx;; n = parent(n)) {
-            if (joint[n].type == joint3dp::free && body[n].mass > value_t(0.0))
-                has_free = true;
-            if (joint[n].type == joint3dp::revolute ||
-                joint[n].type == joint3dp::prismatic)
-                has_joint = true;
-            if (parent(n) == n) break; // reached the root
+        auto const& js = joint[c.frame];
+        return js.screws.empty() ? js.screw_b : js.screws[c.k];
+    }
+    // the same screw in the world (its column of the spatial Jacobian)
+    twist3dp world_screw(coord c)
+    {
+        return move3dp(screw_of(c), get_pos_trafo(c.frame, 0));
+    }
+
+    value_t coord_rate(coord c) const
+    {
+        auto const& js = joint[c.frame];
+        return js.screws.empty() ? js.omega : js.rate[c.k];
+    }
+    // set one coordinate's rate WITHOUT refreshing the kinematic state (callers refresh
+    // the joint once all its coordinates are written)
+    void set_coord_rate(coord c, value_t v)
+    {
+        auto& js = joint[c.frame];
+        if (js.screws.empty()) js.omega = v;
+        else js.rate[c.k] = v;
+    }
+
+    // coordinates of a body-frame twist in a motor joint's screw basis: the least-squares
+    // solve of the 6 x k system S c = B (exact when B lies in the subspace, which every
+    // twist the integrator produces does, the subspace being a subalgebra)
+    std::vector<value_t> coords_in_screws(size_t idx, twist3dp const& B) const
+    {
+        auto const& S = joint[idx].screws;
+        size_t const k = S.size();
+        std::vector<value_t> A(6 * k), b{B.vx, B.vy, B.vz, B.mx, B.my, B.mz};
+        for (size_t j = 0; j < k; ++j) {
+            A[0 * k + j] = S[j].vx;
+            A[1 * k + j] = S[j].vy;
+            A[2 * k + j] = S[j].vz;
+            A[3 * k + j] = S[j].mx;
+            A[4 * k + j] = S[j].my;
+            A[5 * k + j] = S[j].mz;
         }
-        if (has_free && has_joint) {
-            throw std::runtime_error(
-                std::string("dynamic_system3dp: frame '") + frame(idx).get_name() +
-                "' puts a free (unjointed) body carrying mass on the same chain as a "
-                "revolute/prismatic joint. These do not couple in this tier -- the free "
-                "body's inertia would be silently dropped from the mass matrix and it "
-                "would fall as if unattached. Model a moving base either as a driven "
-                "joint (set_driven_rate) or with massless intermediate frames; a genuine "
-                "floating base needs the free joint to take part in the coupled solve, "
-                "which this tier does not yet do.");
+        return hd::ga::minnorm_solve(A, b, k);
+    }
+
+    // The integrator state of the coordinates `rc`: u = [positions..., rates...] with
+    // the positions of a 1-dof joint its q and of a motor joint the coordinates of the
+    // generator B accumulated since the joint's motor M was last committed (they start
+    // at 0 each step: M(t) = M (x) rexp(1/2 B)). read_state fills u from the joints,
+    // write_state writes u back (poses + twists refreshed), state_rates gives du/dt for
+    // given accelerations -- dq/dt = q-dot for a 1-dof joint, dB/dt = dexp^-1(B) Omega
+    // (the free-body integrator's retraction, D0) for a motor joint -- and commit_state
+    // folds the accumulated generator into M so the next step starts from B = 0. A
+    // 1-dof-only system sees exactly the old [phi..., omega...] layout.
+    void read_state(std::vector<coord> const& rc, std::vector<value_t>& u) const
+    {
+        size_t const n = rc.size();
+        u.assign(2 * n, 0.0);
+        for (size_t c = 0; c < n; ++c) {
+            auto const& js = joint[rc[c].frame];
+            u[c] = js.screws.empty() ? js.phi : 0.0;
+            u[n + c] = coord_rate(rc[c]);
+        }
+    }
+
+    void write_state(std::vector<coord> const& rc, std::vector<value_t> const& u)
+    {
+        size_t const n = rc.size();
+        for (size_t c = 0; c < n; ++c) {
+            auto& js = joint[rc[c].frame];
+            if (js.screws.empty()) {
+                js.phi = u[c];
+                js.omega = u[n + c];
+                apply_joint_state(rc[c].frame);
+                continue;
+            }
+            js.rate[rc[c].k] = u[n + c];
+            if (rc[c].k + 1 == js.screws.size()) { // last coordinate of this joint
+                twist3dp B{};
+                for (size_t k = 0; k < js.screws.size(); ++k)
+                    B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
+                set_pose(rc[c].frame, pose3dp_from_motor(rgpr(js.M, rexp(0.5 * B))));
+                twist3dp V{};
+                for (size_t k = 0; k < js.screws.size(); ++k)
+                    V = V + js.rate[k] * js.screws[k];
+                set_twist(rc[c].frame, V);
+            }
+        }
+    }
+
+    void state_rates(std::vector<coord> const& rc, std::vector<value_t> const& u,
+                     std::vector<value_t> const& qdd, std::vector<value_t>& du) const
+    {
+        size_t const n = rc.size();
+        for (size_t c = 0; c < n; ++c) {
+            auto const& js = joint[rc[c].frame];
+            du[n + c] = qdd[c];
+            if (js.screws.empty()) {
+                du[c] = u[n + c];
+                continue;
+            }
+            if (rc[c].k == 0) { // once per motor joint: the dexp^-1 correction
+                size_t const K = js.screws.size();
+                twist3dp B{}, Om{};
+                for (size_t k = 0; k < K; ++k) {
+                    B = B + u[c + k] * js.screws[k];
+                    Om = Om + u[n + c + k] * js.screws[k];
+                }
+                twist3dp const c1 = rcmt(B, Om);
+                twist3dp const Bdot = Om + 0.5 * c1 + (1.0 / 12.0) * rcmt(B, c1);
+                auto const bd = coords_in_screws(rc[c].frame, Bdot);
+                for (size_t k = 0; k < K; ++k)
+                    du[c + k] = bd[k];
+            }
+        }
+    }
+
+    void commit_state(std::vector<coord> const& rc, std::vector<value_t> const& u)
+    {
+        size_t const n = rc.size();
+        for (size_t c = 0; c < n; ++c) {
+            auto& js = joint[rc[c].frame];
+            if (js.screws.empty()) {
+                js.phi = u[c];
+                js.omega = u[n + c];
+                apply_joint_state(rc[c].frame);
+                continue;
+            }
+            js.rate[rc[c].k] = u[n + c];
+            if (rc[c].k + 1 == js.screws.size()) {
+                twist3dp B{};
+                for (size_t k = 0; k < js.screws.size(); ++k)
+                    B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
+                js.M = rgpr(js.M, rexp(0.5 * B)); // re-anchor: B restarts at 0
+                apply_joint_state(rc[c].frame);
+            }
+        }
+    }
+
+    // the coordinates of the given joint frames, in dof_coords() order (a driven or rigid
+    // frame contributes none)
+    std::vector<coord> coords_of(std::vector<size_t> const& frames) const
+    {
+        std::vector<coord> out;
+        for (auto const& c : dof_coords())
+            if (std::find(frames.begin(), frames.end(), c.frame) != frames.end())
+                out.push_back(c);
+        return out;
+    }
+
+    // Move the coordinates `rc` by `delta` (a Newton / projection step): q += delta for a
+    // 1-dof joint, M <- M (x) rexp(1/2 sum delta_k S_k) for a motor joint (the
+    // retraction), poses refreshed.
+    void increment_coords(std::vector<coord> const& rc, std::vector<value_t> const& delta)
+    {
+        for (size_t c = 0; c < rc.size(); ++c) {
+            auto& js = joint[rc[c].frame];
+            if (js.screws.empty()) {
+                js.phi += delta[c];
+                apply_joint_state(rc[c].frame);
+                continue;
+            }
+            if (rc[c].k + 1 == js.screws.size()) {
+                twist3dp B{};
+                for (size_t k = 0; k < js.screws.size(); ++k)
+                    B = B + delta[c - (js.screws.size() - 1) + k] * js.screws[k];
+                js.M = rgpr(js.M, rexp(0.5 * B));
+                apply_joint_state(rc[c].frame);
+            }
         }
     }
 
@@ -1821,19 +2105,19 @@ class dynamic_system3dp : public kinematic_system3dp {
     // layer reaches it through friendship (see the forward declaration above). Returns {
     // Mmat (n*n, row-major), RHS (n) }.
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias(std::vector<size_t> const& rj)
+    assemble_mass_bias(std::vector<coord> const& rc)
     {
-        size_t const n = rj.size();
+        size_t const n = rc.size();
 
         // velocity-product (bias) pass: zero the relative accel twists so the world accel
         // queries return only the q-ddot-independent (Coriolis/gyroscopic) bias part.
-        for (size_t k = 0; k < n; ++k)
-            set_accel_twist(rj[k], twist3dp{});
+        for (size_t c = 0; c < n; ++c)
+            set_accel_twist(rc[c].frame, twist3dp{});
 
-        // World joint screws of the dof coordinates (the n unknowns).
+        // World screws of the dof coordinates (the n unknowns).
         std::vector<twist3dp> S(n);
-        for (size_t j = 0; j < n; ++j)
-            S[j] = move3dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
+        for (size_t c = 0; c < n; ++c)
+            S[c] = world_screw(rc[c]);
 
         // Inertia-bearing bodies of the articulated chain: the dof joints AND the
         // kinematically DRIVEN joints. A driven joint is a MOVING BASE -- its body
@@ -1844,7 +2128,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         // inertia below a dof joint, make the mass matrix singular). Its relative
         // acceleration is zero (constant rate, apply_driven_joints), so the bias is pure
         // velocity-product.
-        std::vector<size_t> bl(rj);
+        std::vector<size_t> bl = dof_joints(); // each dynamic joint's body once
         for (auto const& [idx, d] : driven_)
             bl.push_back(idx);
         size_t const nb = bl.size();
@@ -1869,14 +2153,14 @@ class dynamic_system3dp : public kinematic_system3dp {
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = 0; i < nb; ++i) { // contribution of body i to coordinate j
-                if (!is_ancestor(rj[j], bl[i])) continue;
+                if (!is_ancestor(rc[j].frame, bl[i])) continue;
                 vec3dp const vj = velocity_field(S[j], cm[i]); // cm velocity, unit rate j
                 twist3dp const xj = move3dp(S[j], Minv[i]);    // joint-j screw in body i
                 RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y + vj.z * grav.z) -
                           spatial_dot(xj, Fbias[i]);
                 auto const& I = body[bl[i]].I; // inertia about body i's cm (body frame)
                 for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rj[k], bl[i])) continue;
+                    if (!is_ancestor(rc[k].frame, bl[i])) continue;
                     twist3dp const xk = move3dp(S[k], Minv[i]);
                     Mmat[j * n + k] += spatial_dot(xj, I(xk));
                 }
@@ -1887,7 +2171,8 @@ class dynamic_system3dp : public kinematic_system3dp {
         // diagonal in joint space): tau_j += -k_j (q_j - q0_j) - c_j q-dot_j. Zero unless
         // a spring/damper was attached via set_joint_spring_damper.
         for (size_t j = 0; j < n; ++j) {
-            auto const& js = joint[rj[j]];
+            auto const& js = joint[rc[j].frame];
+            if (!js.screws.empty()) continue; // motor joints carry no coordinate spring
             RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
         }
 
@@ -1900,7 +2185,7 @@ class dynamic_system3dp : public kinematic_system3dp {
             if (!fn) continue;
             bivec3dp const W = fn(time_);
             for (size_t j = 0; j < n; ++j)
-                if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+                if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
         }
 
         // grounded spatial springs/dampers: for each spring on frame fi, the live world
@@ -1919,7 +2204,7 @@ class dynamic_system3dp : public kinematic_system3dp {
                                -sp.k.z * (P.z - sp.p0_world.z) - sp.c * v.z, 0.0};
                 bivec3dp const W = wdg(P, F);
                 for (size_t j = 0; j < n; ++j)
-                    if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+                    if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
             }
         }
 
@@ -1929,7 +2214,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         // Empty in the generic base (extra_wrenches() returns nothing).
         for (auto const& [fi, W] : extra_wrenches()) {
             for (size_t j = 0; j < n; ++j)
-                if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+                if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
         }
         return {std::move(Mmat), std::move(RHS)};
     }
@@ -1938,64 +2223,56 @@ class dynamic_system3dp : public kinematic_system3dp {
     // q-ddot solving  M(q) q-ddot = RHS(q, q-dot). Thin wrapper over assemble_mass_bias()
     // (see there for the assembly and its bias-pass side effect) plus the shared LU
     // solve.
-    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    std::vector<value_t> forward_dynamics(std::vector<coord> const& rc)
     {
-        auto const [Mmat, RHS] = assemble_mass_bias(rj);
+        auto const [Mmat, RHS] = assemble_mass_bias(rc);
         // A dof joint that moves no inertia -- every body it carries is massless, or
         // their mass sits on its axis -- has an identically zero mass-matrix diagonal
         // (the kinetic energy at unit rate), so the open chain is singular. Refuse it
         // with the cause rather than let the LU substitute a tiny pivot and return a
         // finite, meaningless acceleration. Closed loops do not pass through here: their
         // constraint rows may well make such a joint determinate (a massless coupler).
-        size_t const n = rj.size();
+        size_t const n = rc.size();
         for (size_t j = 0; j < n; ++j)
             if (Mmat[j * n + j] == value_t(0.0))
                 throw std::runtime_error(
-                    std::string("dynamic_system3dp: joint '") + frame(rj[j]).get_name() +
+                    std::string("dynamic_system3dp: joint '") +
+                    frame(rc[j].frame).get_name() +
                     "' moves no inertia (every body it carries is massless, or their "
                     "mass sits on its axis), so the mass matrix is singular. Give a link "
                     "below it a mass, or drive the joint (set_driven_rate).");
         return hd::ga::lu_solve(Mmat, RHS, n); // shared LU (detail/ga_solver.hpp)
     }
 
-    // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates
-    // via the shared rk4_step. The state is u = [phi_0..phi_{n-1}, omega_0..omega_{n-1}];
-    // the derivative (dphi, domega) = (omega, q-ddot) is recomputed each sub-step by
-    // writing u into the joint state, refreshing the kinematic poses + twists, and
-    // solving the coupled forward dynamics.
-    void coupled_step(std::vector<size_t> const& rj, value_t dt)
+    // Integrate the coupled coordinates `rc` over dt via the shared rk4_step (or ABM2).
+    // The state is u = [positions..., rates...] (read_state): for a 1-dof joint (q,
+    // q-dot), for a motor joint (the generator coordinates since the last commit, the
+    // rates); the derivative is (q-dot, q-ddot) resp. (dexp^-1(B) Omega, q-ddot)
+    // (state_rates), recomputed each sub-step by writing u into the joints, refreshing
+    // the poses + twists, and solving the coupled forward dynamics. After the step the
+    // motor joints' generators are folded into their motors (commit_state), so a
+    // floating base is integrated exactly as the standalone free-body integrator did --
+    // fourth order on the group -- while sharing the mass matrix with the joints it
+    // carries. (ABM2's derivative history spans the re-anchoring; for motor joints that
+    // costs it its second order only in the dexp^-1 terms, which are O(dt).)
+    void coupled_step(std::vector<coord> const& rc, value_t dt)
     {
-        size_t const n = rj.size();
-        size_t const dim = 2 * n; // state = [phi_0..phi_{n-1}, omega_0..omega_{n-1}]
-        std::vector<value_t> u_mem(dim);
-        for (size_t k = 0; k < n; ++k) {
-            u_mem[k] = joint[rj[k]].phi;
-            u_mem[n + k] = joint[rj[k]].omega;
-        }
-
-        // write u into the joint state (+ refresh the kinematic poses/twists)
-        auto write_u = [&](std::vector<value_t> const& u) {
-            for (size_t k = 0; k < n; ++k) {
-                joint[rj[k]].phi = u[k];
-                joint[rj[k]].omega = u[n + k];
-                apply_joint_state(rj[k]);
-            }
-        };
+        size_t const n = rc.size();
+        size_t const dim = 2 * n; // state = [positions..., rates...]
+        std::vector<value_t> u_mem;
+        read_state(rc, u_mem);
 
         // shared derivative f(t, u) -> du for both integrators: prescribe the moving base
         // and write u into the joints at the (sub-)step time, then solve the coupled
-        // forward dynamics. du = [omega, q-ddot]. Setting time_ here threads the sub-step
-        // time into any time-varying applied wrench / driven joint; coupled_step restores
-        // time_ to t0 on exit, and step() advances it by dt.
+        // forward dynamics. Setting time_ here threads the sub-step time into any
+        // time-varying applied wrench / driven joint; coupled_step restores time_ to t0
+        // on exit, and step() advances it by dt.
         auto f = [&](value_t t, std::vector<value_t> const& u, std::vector<value_t>& du) {
             time_ = t;
             apply_driven_joints();
-            write_u(u);
-            auto const qdd = forward_dynamics(rj);
-            for (size_t k = 0; k < n; ++k) {
-                du[k] = u[n + k];   // dphi/dt = omega
-                du[n + k] = qdd[k]; // domega/dt = q-ddot
-            }
+            write_state(rc, u);
+            auto const qdd = forward_dynamics(rc);
+            state_rates(rc, u, qdd, du);
         };
 
         value_t const t0 = time_;
@@ -2007,9 +2284,8 @@ class dynamic_system3dp : public kinematic_system3dp {
             rk4_integrator(dim).step(f, u_mem, t0, dt); // wraps the canonical rk4_step
         }
 
-        time_ = t0; // restore the clock (step() advances it by dt)
-        write_u(
-            u_mem); // write the integrated state back into the joints + kinematic layers
+        time_ = t0;              // restore the clock (step() advances it by dt)
+        commit_state(rc, u_mem); // integrated state -> joints + kinematic layers
     }
 };
 

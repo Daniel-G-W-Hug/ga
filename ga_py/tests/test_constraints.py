@@ -31,8 +31,12 @@ def test_constraint3dp_enum_members():
 
 
 def test_joint_enum_members():
-    for enum in (pga.joint2dp, pga.joint3dp):
-        assert list(enum.__members__) == ["free", "revolute", "prismatic"]
+    # the 1-dof screw joints plus, in 3D, the motor joints (F): the enum ORDER is part
+    # of the surface (it is the bound value)
+    assert list(pga.joint2dp.__members__) == ["free", "revolute", "prismatic"]
+    assert list(pga.joint3dp.__members__) == [
+        "free", "revolute", "prismatic", "helical", "cylindrical", "spherical", "planar",
+    ]
 
 
 def test_enum_values_distinct_and_equal_to_self():
@@ -166,7 +170,7 @@ def test_joint_state2dp_roundtrips():
     # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
     j = pga.joint_state2dp(
         pga.joint2dp.revolute, pga.vec2dp(0.0, 0.0, 1.0),
-        pga.mvec2dp_u(), 0.5, -1.0, 8.0, 0.3, 0.1,
+        pga.mvec2dp_u(), 0.5, -1.0, 8.0, 0.3, 0.1, [], [], pga.mvec2dp_u(),
     )
     assert j.type == pga.joint2dp.revolute
     assert j.screw_b == pga.vec2dp(0.0, 0.0, 1.0)
@@ -183,7 +187,7 @@ def test_joint_state3dp_roundtrips():
     # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
     j = pga.joint_state3dp(
         pga.joint3dp.prismatic, pga.bivec3dp(0.0, 0.0, 0.0, 1.0, 0.0, 0.0),
-        pga.mvec3dp_e(), 2.0, 3.0, 8.0, 0.3, 0.1,
+        pga.mvec3dp_e(), 2.0, 3.0, 8.0, 0.3, 0.1, [], [], pga.mvec3dp_e(),
     )
     assert j.type == pga.joint3dp.prismatic
     assert j.phi == pytest.approx(2.0)

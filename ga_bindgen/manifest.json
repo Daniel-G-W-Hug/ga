@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-26T20:59:23+00:00",
+  "generated_at": "2026-08-26T21:38:24+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -8202,6 +8202,17 @@
     },
     {
       "namespace": "hd::ga::pga",
+      "name": "coord",
+      "underlying": "dynamic_system2dp::coord",
+      "canonical_underlying": "hd::ga::pga::dynamic_system2dp::coord",
+      "fields": [],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_constraints.hpp",
+      "source_line": 122
+    },
+    {
+      "namespace": "hd::ga::pga",
       "name": "ctype",
       "underlying": "std::common_type_t<T, U>",
       "canonical_underlying": "std::common_type<type-parameter-0-0, type-parameter-0-1>::type",
@@ -8272,12 +8283,24 @@
         {
           "name": "q_rest",
           "type": "value_t"
+        },
+        {
+          "name": "screws",
+          "type": "std::vector<vec2dp>"
+        },
+        {
+          "name": "rate",
+          "type": "std::vector<value_t>"
+        },
+        {
+          "name": "M",
+          "type": "mvec2dp_u"
         }
       ],
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1110
+      "source_line": 1119
     },
     {
       "namespace": "hd::ga::pga",
@@ -8316,12 +8339,24 @@
         {
           "name": "q_rest",
           "type": "value_t"
+        },
+        {
+          "name": "screws",
+          "type": "std::vector<twist3dp>"
+        },
+        {
+          "name": "rate",
+          "type": "std::vector<value_t>"
+        },
+        {
+          "name": "M",
+          "type": "mvec3dp_e"
         }
       ],
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1120
+      "source_line": 1158
     },
     {
       "namespace": "hd::ga::pga",
@@ -8417,7 +8452,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_constraints.hpp",
-      "source_line": 101
+      "source_line": 106
     },
     {
       "namespace": "hd::ga::pga",
@@ -8457,7 +8492,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_constraints.hpp",
-      "source_line": 93
+      "source_line": 97
     },
     {
       "namespace": "hd::ga::pga",
@@ -117443,7 +117478,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_constraints.hpp",
-      "source_line": 84
+      "source_line": 89
     },
     {
       "namespace": "hd::ga::pga",
@@ -117456,7 +117491,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_constraints.hpp",
-      "source_line": 78
+      "source_line": 82
     },
     {
       "namespace": "hd::ga::pga",
@@ -117469,7 +117504,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1106
+      "source_line": 1113
     },
     {
       "namespace": "hd::ga::pga",
@@ -117478,11 +117513,15 @@
       "enumerators": [
         "free",
         "revolute",
-        "prismatic"
+        "prismatic",
+        "helical",
+        "cylindrical",
+        "spherical",
+        "planar"
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1116
+      "source_line": 1144
     }
   ]
 }

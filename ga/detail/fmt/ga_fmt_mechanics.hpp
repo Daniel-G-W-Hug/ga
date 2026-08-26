@@ -347,6 +347,14 @@ inline char const* joint3dp_name(hd::ga::pga::joint3dp t)
             return "revolute";
         case joint3dp::prismatic:
             return "prismatic";
+        case joint3dp::helical:
+            return "helical";
+        case joint3dp::cylindrical:
+            return "cylindrical";
+        case joint3dp::spherical:
+            return "spherical";
+        case joint3dp::planar:
+            return "planar";
     }
     return "?";
 }

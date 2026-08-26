@@ -47,5 +47,9 @@ void register_enums_pga(nb::module_& m)
     nb::enum_<joint3dp>(m, "joint3dp")
         .value("free", joint3dp::free)
         .value("revolute", joint3dp::revolute)
-        .value("prismatic", joint3dp::prismatic);
+        .value("prismatic", joint3dp::prismatic)
+        .value("helical", joint3dp::helical)
+        .value("cylindrical", joint3dp::cylindrical)
+        .value("spherical", joint3dp::spherical)
+        .value("planar", joint3dp::planar);
 }

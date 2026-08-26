@@ -5058,28 +5058,37 @@ void register_physics_pods(sol::state& lua)
         [](kin_state3dp const& k) { return fmt::format("{}", k); });
 
     // joint_state: per-joint configuration + dynamics parameters
+    // (factories rather than sol::constructors: the struct is an aggregate whose
+    // trailing members -- the motor-joint screws, rates and motor -- are defaulted, and
+    // the 8-argument form is a braced aggregate initialisation, which sol's
+    // placement-new cannot express)
     lua.new_usertype<joint_state2dp>(
-        "joint_state2dp",
-        sol::constructors<joint_state2dp(),
-                          joint_state2dp(joint2dp const&, vec2dp const&, mvec2dp_u const&,
-                                         value_t, value_t, value_t, value_t, value_t)>(),
+        "joint_state2dp", sol::call_constructor,
+        sol::factories([]() { return joint_state2dp{}; },
+                       [](joint2dp const& t, vec2dp const& s, mvec2dp_u const& r,
+                          value_t phi, value_t om, value_t k, value_t c, value_t q0) {
+                           return joint_state2dp{t, s, r, phi, om, k, c, q0, {}, {}, {}};
+                       }),
         "type", &joint_state2dp::type, "screw_b", &joint_state2dp::screw_b, "rest",
         &joint_state2dp::rest, "phi", &joint_state2dp::phi, "omega",
         &joint_state2dp::omega, "stiffness", &joint_state2dp::stiffness, "damping",
-        &joint_state2dp::damping, "q_rest", &joint_state2dp::q_rest,
+        &joint_state2dp::damping, "q_rest", &joint_state2dp::q_rest, "screws",
+        &joint_state2dp::screws, "rate", &joint_state2dp::rate, "M", &joint_state2dp::M,
         sol::meta_function::to_string,
         [](joint_state2dp const& j) { return fmt::format("{}", j); });
 
     lua.new_usertype<joint_state3dp>(
-        "joint_state3dp",
-        sol::constructors<joint_state3dp(),
-                          joint_state3dp(joint3dp const&, bivec3dp const&,
-                                         mvec3dp_e const&, value_t, value_t, value_t,
-                                         value_t, value_t)>(),
+        "joint_state3dp", sol::call_constructor,
+        sol::factories([]() { return joint_state3dp{}; },
+                       [](joint3dp const& t, bivec3dp const& s, mvec3dp_e const& r,
+                          value_t phi, value_t om, value_t k, value_t c, value_t q0) {
+                           return joint_state3dp{t, s, r, phi, om, k, c, q0, {}, {}, {}};
+                       }),
         "type", &joint_state3dp::type, "screw_b", &joint_state3dp::screw_b, "rest",
         &joint_state3dp::rest, "phi", &joint_state3dp::phi, "omega",
         &joint_state3dp::omega, "stiffness", &joint_state3dp::stiffness, "damping",
-        &joint_state3dp::damping, "q_rest", &joint_state3dp::q_rest,
+        &joint_state3dp::damping, "q_rest", &joint_state3dp::q_rest, "screws",
+        &joint_state3dp::screws, "rate", &joint_state3dp::rate, "M", &joint_state3dp::M,
         sol::meta_function::to_string,
         [](joint_state3dp const& j) { return fmt::format("{}", j); });
 

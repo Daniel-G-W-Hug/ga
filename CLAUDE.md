@@ -1123,6 +1123,28 @@ the grounded-spring path. A subclass overrides it to inject configuration-depend
 (e.g. a contact/penalty model) without the base knowing anything about them — the generic
 base stays free of any application vocabulary.
 
+**Joint families (2026-08-26): two families, one integrator.** `joint{2,3}dp` splits into
+*coordinate joints* — `revolute`, `prismatic`, `helical` (3D) — carrying a scalar
+`phi`/`omega` with `M(q) = rest ⟇ rexp(½ q S)` (exact), and *motor joints* —
+`cylindrical`, `spherical`, `planar` (3D) and `free` — carrying `screws` (the body-frame
+subspace, a Lie subalgebra), `rate[k]` and the relative motor `M` (the truth for that
+family; `apply_joint_state` reconciles). Motor joints are integrated by the RKMK
+retraction `M ← M ⟇ rexp(½B)`, `Ḃ = Ω + ½[B,Ω] + 1/12[B,[B,Ω]]` (`state_rates` /
+`commit_state`), inside the ONE coupled RK4 over `dof_coords()` (`coord{frame, k}`;
+`dof_joints()` still lists the frames). **`add_body` with mass IS the free joint** (6
+screws in 3D, 3 in 2D) — a floating base in the coupled solve, so a chain hung on it loads
+it; there is no separate free-body integrator any more (the Python mirror `systems.py`
+keeps one, valid for an ISOLATED free body only). A universal joint is two revolutes plus
+a massless carrier — its axes span no subalgebra, so a native type would leave its
+manifold. Gates: momentum + energy of a free-floating chain (2D + 3D), 4th-order
+convergence of the root pose (the planar conservation gate is BLIND to a dropped
+retraction term — pose error leaves planar momentum intact — so the order gate is the one
+that sees it), and motor joints vs. their composed 1-dof twins. That last gate is by
+CONVERGENCE, not tolerance: at equal dt the three-revolute chain's own RK4 truncation error
+is ~1e5× the spherical joint's (3.9e-7 vs 2.4e-12 under dt-halving at dt = 1e-3), so the
+difference is required to fall 16× per halving. Adding a field to `joint_state` widens the
+bound Python/Lua ctors (see the bindgen note).
+
 **`assemble_mass_bias` moving-base invariant (do NOT regress).** The assembler sums each
 body's inertia over **dof joints ∪ kinematically-driven joints**, projecting every
 inertia-bearing body onto its *ancestor* dof joints. A driven joint is a moving base: its
