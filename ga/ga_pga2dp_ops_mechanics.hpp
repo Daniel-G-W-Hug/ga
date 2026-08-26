@@ -32,6 +32,36 @@ namespace hd::ga::pga {
 class closed_loop_system2dp;
 
 ////////////////////////////////////////////////////////////////////////////////
+// Moment of a force line about a point.
+//
+// A force f applied at the point P is the line F = wdg(P, f) (ga_docu, "Modelling
+// force and torque"): its weight carries f, its bulk (the e12 component) the moment
+// about the origin. The moment about an arbitrary point R is
+//
+//     M_F(R) = bulk[(Q - R) ^ f]           Q any point on F      (eq.
+//     action_line_moment_simple)
+//            = bulk(F) - r ^ att(F)        r = the direction O -> R
+//
+// since bulk(F) = q ^ f and the wedge is linear -- so no point on the line has to be
+// found. The result is a FREE bivector (weight zero) whose e12 component (.z) is the
+// scalar torque of F at R, with the physical sign (r x f). The planar incidence R ^ F
+// (eq. action_line_moment_planar) is the same quantity up to the orientation of the
+// pseudoscalar: wdg(R, F) returns -M in this algebra's e321, so use this function when
+// the sign matters. Force lines add, so moment_about(R, sum of force lines)
+// is the resultant torque about R, and a body pivoted at R is in static equilibrium
+// when it vanishes. Same expression as the 3D case.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dp<T> moment_about(Vec2dp<T> const& R, BiVec2dp<T> const& F)
+{
+    Vec2dp<T> const Ru = unitize(R);
+    Vec2dp<T> const r{Ru.x, Ru.y, T(0.0)};
+    return bulk(F) - wdg(r, att(F));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Inertia2dp: Inertia matrix for 2D projective GA (3x3 matrix)
 //
 // Used for rigid body dynamics in PGA2DP. The inertia map I[Omega] maps the

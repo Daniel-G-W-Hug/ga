@@ -486,6 +486,50 @@ TEST_SUITE("PGA3DP: physics tests prep")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: moment_about - torque of a force line about a point")
+    {
+        fmt::println("pga3dp: moment_about - torque of a force line about a point");
+
+        // a force f applied at P is the line F = wdg(P, f); its torque about R is the
+        // documented bulk[(Q - R) ^ f] with Q any point on the line. moment_about uses
+        // bulk(F) - r ^ att(F) instead, which needs no point on the line -- pin the two
+        // against each other, and against the classical r x f.
+        vec3dp const P{1.5, -0.7, 2.2, 1.0};
+        vec3dp const f{0.3, 1.1, -0.4, 0.0};
+        vec3dp const R{-2.0, 0.8, 0.5, 1.0};
+        bivec3dp const F = wdg(P, f);
+
+        bivec3dp const M = moment_about(R, F);
+        bivec3dp const M_doc = bulk(wdg(vec3dp{P.x - R.x, P.y - R.y, P.z - R.z, 0.0}, f));
+        CHECK(is_close(M, M_doc));
+
+        // classical: (P - R) x f, read from the bulk slots (mx, my, mz)
+        vec3dp const d{P.x - R.x, P.y - R.y, P.z - R.z, 0.0};
+        CHECK(M.mx == doctest::Approx(d.y * f.z - d.z * f.y));
+        CHECK(M.my == doctest::Approx(d.z * f.x - d.x * f.z));
+        CHECK(M.mz == doctest::Approx(d.x * f.y - d.y * f.x));
+        // a free bivector: no weight (force) part
+        CHECK(std::abs(M.vx) + std::abs(M.vy) + std::abs(M.vz) < 1e-14);
+
+        // independent of which point on the line built F, and of R's scale
+        bivec3dp const F2 =
+            wdg(vec3dp{P.x + 3.0 * f.x, P.y + 3.0 * f.y, P.z + 3.0 * f.z, 1.0}, f);
+        CHECK(is_close(moment_about(R, F2), M));
+        CHECK(is_close(moment_about(vec3dp{-4.0, 1.6, 1.0, 2.0}, F), M));
+
+        // zero on the line of action itself
+        bivec3dp const M0 = moment_about(
+            vec3dp{P.x + 0.5 * f.x, P.y + 0.5 * f.y, P.z + 0.5 * f.z, 1.0}, F);
+        CHECK(std::abs(M0.mx) + std::abs(M0.my) + std::abs(M0.mz) < 1e-14);
+
+        // force lines add: the torque of a sum is the sum of the torques
+        vec3dp const P2{0.2, 0.4, -1.0, 1.0};
+        vec3dp const f2{-0.9, 0.2, 0.7, 0.0};
+        CHECK(is_close(moment_about(R, F + wdg(P2, f2)),
+                       moment_about(R, F) + moment_about(R, wdg(P2, f2))));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: physics tests prep")
 
 

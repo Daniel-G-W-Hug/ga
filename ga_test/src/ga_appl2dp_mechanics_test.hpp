@@ -462,6 +462,38 @@ TEST_SUITE("PGA2DP: physics tests prep")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: moment_about - torque of a force line about a point")
+    {
+        fmt::println("pga2dp: moment_about - torque of a force line about a point");
+
+        // same expression as in 3D: bulk(F) - r ^ att(F). In the plane the result's e12
+        // component is the scalar torque r x f with the physical sign; the incidence
+        // R ^ F of the point with the force line (the planar form in ga_docu) is the same
+        // quantity with the orientation of this algebra's pseudoscalar e321, i.e. -M.
+        vec2dp const P{1.5, -0.7, 1.0};
+        vec2dp const f{0.3, 1.1, 0.0};
+        vec2dp const R{-2.0, 0.8, 1.0};
+        bivec2dp const F = wdg(P, f);
+
+        bivec2dp const M = moment_about(R, F);
+        CHECK(M.z == doctest::Approx((P.x - R.x) * f.y - (P.y - R.y) * f.x)); // r x f
+        CHECK(M.z == doctest::Approx(-value_t(wdg(R, F))));                   // -(R ^ F)
+        CHECK(std::abs(M.x) + std::abs(M.y) < 1e-14); // free: no force part
+
+        // independent of the point used to build the line, and of R's scale
+        bivec2dp const F2 = wdg(vec2dp{P.x + 3.0 * f.x, P.y + 3.0 * f.y, 1.0}, f);
+        CHECK(moment_about(R, F2).z == doctest::Approx(M.z));
+        CHECK(moment_about(vec2dp{-4.0, 1.6, 2.0}, F).z == doctest::Approx(M.z));
+
+        // zero on the line of action; additive over force lines
+        CHECK(std::abs(moment_about(vec2dp{P.x + 0.5 * f.x, P.y + 0.5 * f.y, 1.0}, F).z) <
+              1e-14);
+        bivec2dp const G = wdg(vec2dp{0.2, 0.4, 1.0}, vec2dp{-0.9, 0.2, 0.0});
+        CHECK(moment_about(R, F + G).z ==
+              doctest::Approx(moment_about(R, F).z + moment_about(R, G).z));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests prep")
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -309,7 +309,7 @@ function; it is the authoritative per-file index. The split:
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize` |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
 | `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr`, EGA/STA only) and **`rexp`/`rlog`/`rsqrt`** (w.r.t. `rgpr`, PGA/CGA — the r-prefix marks the regressive product; the unprefixed names stay reserved there); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA) |
-| `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), and the `extra_wrenches()` subclass hook for application-specific wrenches |
+| `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), **`moment_about(R, F)`** (the torque of a force line about a point, `bulk(F) - r ^ att(F)`, same expression in 2D and 3D), and the `extra_wrenches()` subclass hook for application-specific wrenches |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer |
 | `ga_<alg>_ops_calculus.hpp` (EGA2D/3D, STA4DS) | differential calculus on multivector FIELDS: the vector derivative `nabla` and its graded parts `nabla_dot` (inner, grade-lowering) / `nabla_wdg` (outer, grade-raising), `laplacian`; `d_dt` in EGA, where time is a parameter, and `dalembertian` in STA, where it is a coordinate and the sum runs over the RECIPROCAL basis. PGA/CGA have none |
 
@@ -352,6 +352,21 @@ don't re-derive them.
   instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc.
   use `Vec2d<T> const&` for unmodifiable arguments
 - **CRITICAL**: ALWAYS use "east const" convention (see dedicated section below)
+
+### Prefer the GA formulation when one exists at equal effort
+
+If a quantity has an equivalent GA expression that costs no more to write than the
+coordinate form — a moment about a point as `bulk(F) - r ^ att(F)` (in the plane, up to the pseudoscalar's orientation,
+`R ^ F`), a collinearity test as `wdg(a, wdg(k, h))`, a transport as one motor
+sandwich, a Lie-group integrator's correction as two `rcmt`s — write the GA form, and
+where it helps the reader give the coordinate form in the comment. This is a
+geometric-algebra library; a `2D cross product` helper beside a `wdg` that does the same
+job is the smell. The test for "equivalent": the GA form removes a frame/convention
+bookkeeping step, unifies cases that were separate (2D and 3D by the same expression
+above all), or makes an identity checkable. Where the GA form is dimension-specific
+(`R ^ F` is a moment only in the plane), say so at the definition. Where no GA form
+exists — rank, eigenvalues, time scaling, an LU solve — use the plain one and do not
+disguise it: dressing numerics in bivectors costs clarity and buys nothing.
 
 ### East const convention (MANDATORY)
 

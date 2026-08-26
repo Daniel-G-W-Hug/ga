@@ -33,6 +33,34 @@ namespace hd::ga::pga {
 class closed_loop_system3dp;
 
 ////////////////////////////////////////////////////////////////////////////////
+// Moment of a force line about a point.
+//
+// A force f applied at the point P is the line F = wdg(P, f) (ga_docu, "Modelling
+// force and torque"): its weight carries f, its bulk the moment about the origin. The
+// moment about an arbitrary point R is
+//
+//     M_F(R) = bulk[(Q - R) ^ f]           Q any point on F      (eq.
+//     action_line_moment_simple)
+//            = bulk(F) - r ^ att(F)        r = the direction O -> R
+//
+// since bulk(F) = q ^ f and the wedge is linear -- so no point on the line has to be
+// found. The result is a FREE bivector (weight zero): the torque of F at R. Force lines
+// add, so moment_about(R, sum of force lines) is the resultant torque about R, and a
+// body pivoted at R is in static equilibrium when it vanishes. In the plane the same
+// expression reduces to the pseudoscalar R ^ F carried in the e12 component (eq.
+// action_line_moment_planar); the form here is the one that is dimension-independent.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> moment_about(Vec3dp<T> const& R, BiVec3dp<T> const& F)
+{
+    Vec3dp<T> const Ru = unitize(R);
+    Vec3dp<T> const r{Ru.x, Ru.y, Ru.z, T(0.0)};
+    return bulk(F) - wdg(r, att(F));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Inertia3dp: Inertia matrix for 3D projective GA (6x6 matrix)
 //
 // Used for rigid body dynamics in PGA3DP. The inertia map I[Omega] maps the
