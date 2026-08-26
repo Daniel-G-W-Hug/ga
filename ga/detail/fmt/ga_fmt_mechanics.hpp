@@ -410,8 +410,18 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint2dp> {
     {
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        char const* type_str =
-            (c.type == hd::ga::pga::constraint2dp::coincidence) ? "coincidence" : "?";
+        char const* type_str = "?";
+        switch (c.type) {
+            case hd::ga::pga::constraint2dp::coincidence:
+                type_str = "coincidence";
+                break;
+            case hd::ga::pga::constraint2dp::distance:
+                type_str = "distance";
+                break;
+            case hd::ga::pga::constraint2dp::frame:
+                type_str = "frame";
+                break;
+        }
 
         auto out =
             fmt::format_to(ctx.out(), "loop_constraint2dp(frame_a = {}", c.frame_a);
@@ -420,7 +430,10 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint2dp> {
         out = fmt::format_to(out, ", frame_b = {}", c.frame_b);
         out = fmt::format_to(out, ", anchor_b = ");
         out = fmt::format_to(out, fmt::runtime(child), c.anchor_b);
-        return fmt::format_to(out, ", type = {})", type_str);
+        out = fmt::format_to(out, ", type = {}", type_str);
+        out = fmt::format_to(out, ", length = ");
+        out = fmt::format_to(out, fmt::runtime(child), c.length);
+        return fmt::format_to(out, ", active = {})", c.active);
     }
 };
 
@@ -449,8 +462,18 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint3dp> {
     {
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        char const* type_str =
-            (c.type == hd::ga::pga::constraint3dp::coincidence) ? "coincidence" : "?";
+        char const* type_str = "?";
+        switch (c.type) {
+            case hd::ga::pga::constraint3dp::coincidence:
+                type_str = "coincidence";
+                break;
+            case hd::ga::pga::constraint3dp::distance:
+                type_str = "distance";
+                break;
+            case hd::ga::pga::constraint3dp::frame:
+                type_str = "frame";
+                break;
+        }
 
         auto out =
             fmt::format_to(ctx.out(), "loop_constraint3dp(frame_a = {}", c.frame_a);
@@ -459,7 +482,10 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint3dp> {
         out = fmt::format_to(out, ", frame_b = {}", c.frame_b);
         out = fmt::format_to(out, ", anchor_b = ");
         out = fmt::format_to(out, fmt::runtime(child), c.anchor_b);
-        return fmt::format_to(out, ", type = {})", type_str);
+        out = fmt::format_to(out, ", type = {}", type_str);
+        out = fmt::format_to(out, ", length = ");
+        out = fmt::format_to(out, fmt::runtime(child), c.length);
+        return fmt::format_to(out, ", active = {})", c.active);
     }
 };
 

@@ -5019,9 +5019,13 @@ void register_physics_pods(sol::state& lua)
                                         {"revolute", joint3dp::revolute},
                                         {"prismatic", joint3dp::prismatic}});
     lua.new_enum<constraint2dp>("constraint2dp",
-                                {{"coincidence", constraint2dp::coincidence}});
+                                {{"coincidence", constraint2dp::coincidence},
+                                 {"distance", constraint2dp::distance},
+                                 {"frame", constraint2dp::frame}});
     lua.new_enum<constraint3dp>("constraint3dp",
-                                {{"coincidence", constraint3dp::coincidence}});
+                                {{"coincidence", constraint3dp::coincidence},
+                                 {"distance", constraint3dp::distance},
+                                 {"frame", constraint3dp::frame}});
 
     // pose: rigid placement (origin + orientation)
     lua.new_usertype<pose2dp>(
@@ -5084,10 +5088,13 @@ void register_physics_pods(sol::state& lua)
         "loop_constraint2dp",
         sol::constructors<loop_constraint2dp(),
                           loop_constraint2dp(int, vec2dp const&, int, vec2dp const&,
-                                             constraint2dp const&)>(),
+                                             constraint2dp const&),
+                          loop_constraint2dp(int, vec2dp const&, int, vec2dp const&,
+                                             constraint2dp const&, value_t, bool)>(),
         "frame_a", &loop_constraint2dp::frame_a, "anchor_a",
         &loop_constraint2dp::anchor_a, "frame_b", &loop_constraint2dp::frame_b,
         "anchor_b", &loop_constraint2dp::anchor_b, "type", &loop_constraint2dp::type,
+        "length", &loop_constraint2dp::length, "active", &loop_constraint2dp::active,
         sol::meta_function::to_string,
         [](loop_constraint2dp const& c) { return fmt::format("{}", c); });
 
@@ -5095,10 +5102,13 @@ void register_physics_pods(sol::state& lua)
         "loop_constraint3dp",
         sol::constructors<loop_constraint3dp(),
                           loop_constraint3dp(int, vec3dp const&, int, vec3dp const&,
-                                             constraint3dp const&)>(),
+                                             constraint3dp const&),
+                          loop_constraint3dp(int, vec3dp const&, int, vec3dp const&,
+                                             constraint3dp const&, value_t, bool)>(),
         "frame_a", &loop_constraint3dp::frame_a, "anchor_a",
         &loop_constraint3dp::anchor_a, "frame_b", &loop_constraint3dp::frame_b,
         "anchor_b", &loop_constraint3dp::anchor_b, "type", &loop_constraint3dp::type,
+        "length", &loop_constraint3dp::length, "active", &loop_constraint3dp::active,
         sol::meta_function::to_string,
         [](loop_constraint3dp const& c) { return fmt::format("{}", c); });
 }

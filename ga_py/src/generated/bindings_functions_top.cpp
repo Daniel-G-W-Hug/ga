@@ -34,6 +34,10 @@ void register_functions_top(nb::module_& m)
 {
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
+    m.def("fact", [](int a0) { return fact(a0); });
+    m.def("fd_derivative",
+          [](std::vector<double> const& a0, std::vector<double> const& a1, int a2,
+             fd_kind const& a3, int a4) { return fd_derivative(a0, a1, a2, a3, a4); });
     m.def("gr", [](scalar2d const& a0) { return gr(a0); });
     m.def("gr", [](vec2d const& a0) { return gr(a0); });
     m.def("gr", [](pscalar2d const& a0) { return gr(a0); });
@@ -69,9 +73,12 @@ void register_functions_top(nb::module_& m)
     m.def("linear_step",
           [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
     m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
-                            int a2) { return lstsq_solve(a0, a1, a2); });
+                            int a2, double a3) { return lstsq_solve(a0, a1, a2, a3); });
     m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
                          int a2) { return lu_solve(a0, a1, a2); });
+    m.def("nullspace_project",
+          [](std::vector<double> const& a0, std::vector<double> const& a1, int a2, int a3,
+             double a4) { return nullspace_project(a0, a1, a2, a3, a4); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });
@@ -113,4 +120,8 @@ void register_functions_top(nb::module_& m)
           [](geo_pos_dms const& a0, double a1) { return to_geo_pos(a0, a1); });
     m.def("to_geo_pos",
           [](geo_pos_dms2dp const& a0, double a1) { return to_geo_pos(a0, a1); });
+    m.def("tridiag_solve",
+          [](std::vector<double> const& a0, std::vector<double> const& a1,
+             std::vector<double> const& a2,
+             std::vector<double> const& a3) { return tridiag_solve(a0, a1, a2, a3); });
 }

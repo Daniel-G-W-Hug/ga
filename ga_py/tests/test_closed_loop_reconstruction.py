@@ -205,7 +205,7 @@ class ClosedLoopSystem:
             G = self.constraint_jacobian(dep)
             flat = [G[i][k] for i in range(len(g)) for k in range(len(dep))]
             b = [-x for x in g]
-            delta = ga_py.lstsq_solve(flat, b, len(dep))
+            delta = ga_py.lstsq_solve(flat, b, len(dep), 0.0)
             for k, j in enumerate(dep):
                 self.joints[j].phi += delta[k]
             self._refresh()
@@ -223,7 +223,7 @@ class ClosedLoopSystem:
                 rhs[i] -= Gdrv[i][k] * self.joints[j].omega
         Gdep = self.constraint_jacobian(dep)
         flat = [Gdep[i][k] for i in range(m) for k in range(len(dep))]
-        qdot_dep = ga_py.lstsq_solve(flat, rhs, len(dep))
+        qdot_dep = ga_py.lstsq_solve(flat, rhs, len(dep), 0.0)
         for k, j in enumerate(dep):
             self.joints[j].omega = qdot_dep[k]
         self._refresh()
@@ -238,7 +238,7 @@ class ClosedLoopSystem:
         qd = [self.joints[j].omega for j in rj]
         Gv = [sum(G[i][k] * qd[k] for k in range(n)) for i in range(m)]
         flat = [G[i][k] for i in range(m) for k in range(n)]
-        dqd = ga_py.lstsq_solve(flat, Gv, n)
+        dqd = ga_py.lstsq_solve(flat, Gv, n, 0.0)
         for k, j in enumerate(rj):
             self.joints[j].omega -= dqd[k]
         self._refresh()
@@ -395,7 +395,7 @@ def test_loop_descriptor_round_trips():
     """A smoke check that the bound closure descriptor (loop_constraint2dp /
     constraint2dp) carries the data the reconstruction reads."""
     lc = pga.loop_constraint2dp(1, _pt(3.0, 0.0), 2, _pt(math.sqrt(5.0), 0.0),
-                                pga.constraint2dp.coincidence)
+                                pga.constraint2dp.coincidence, 0.0, True)
     assert lc.frame_a == 1 and lc.frame_b == 2
     assert lc.anchor_a == _pt(3.0, 0.0)
     assert lc.type == pga.constraint2dp.coincidence

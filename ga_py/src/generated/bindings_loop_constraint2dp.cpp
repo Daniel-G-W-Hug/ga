@@ -38,16 +38,20 @@ void bind_loop_constraint2dp(nb::module_& m)
         .def(
             "__init__",
             [](loop_constraint2dp* self, int frame_a, vec2dp const& anchor_a, int frame_b,
-               vec2dp const& anchor_b, constraint2dp const& type) {
-                new (self) loop_constraint2dp(frame_a, anchor_a, frame_b, anchor_b, type);
+               vec2dp const& anchor_b, constraint2dp const& type, double length,
+               bool const& active) {
+                new (self) loop_constraint2dp(frame_a, anchor_a, frame_b, anchor_b, type,
+                                              length, active);
             },
             nb::arg("frame_a"), nb::arg("anchor_a"), nb::arg("frame_b"),
-            nb::arg("anchor_b"), nb::arg("type"))
+            nb::arg("anchor_b"), nb::arg("type"), nb::arg("length"), nb::arg("active"))
         .def_rw("frame_a", &loop_constraint2dp::frame_a)
         .def_rw("anchor_a", &loop_constraint2dp::anchor_a)
         .def_rw("frame_b", &loop_constraint2dp::frame_b)
         .def_rw("anchor_b", &loop_constraint2dp::anchor_b)
         .def_rw("type", &loop_constraint2dp::type)
+        .def_rw("length", &loop_constraint2dp::length)
+        .def_rw("active", &loop_constraint2dp::active)
         .def("__repr__", [](const loop_constraint2dp& v) { return fmt::format("{}", v); })
         .def("__str__", [](const loop_constraint2dp& v) { return fmt::format("{}", v); })
         .def(
@@ -64,6 +68,7 @@ void bind_loop_constraint2dp(nb::module_& m)
             nb::arg("format_spec"))
         .def("__eq__", [](const loop_constraint2dp& a, const loop_constraint2dp& b) {
             return a.frame_a == b.frame_a && a.anchor_a == b.anchor_a &&
-                   a.frame_b == b.frame_b && a.anchor_b == b.anchor_b && a.type == b.type;
+                   a.frame_b == b.frame_b && a.anchor_b == b.anchor_b &&
+                   a.type == b.type && a.length == b.length && a.active == b.active;
         });
 }

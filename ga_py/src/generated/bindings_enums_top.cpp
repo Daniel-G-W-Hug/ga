@@ -32,7 +32,13 @@ using namespace hd::ga::sta;
 
 void register_enums_top(nb::module_& m)
 {
+    nb::enum_<fd_kind>(m, "fd_kind")
+        .value("explicit_fd", fd_kind::explicit_fd)
+        .value("compact_fd", fd_kind::compact_fd);
     nb::enum_<geo_angle>(m, "geo_angle")
         .value("latitude", geo_angle::latitude)
         .value("longitude", geo_angle::longitude);
+    nb::enum_<stencil_lhs>(m, "stencil_lhs")
+        .value("f1", stencil_lhs::f1)
+        .value("f2", stencil_lhs::f2);
 }

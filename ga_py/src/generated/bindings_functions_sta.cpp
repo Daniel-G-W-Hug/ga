@@ -33,6 +33,7 @@ using namespace hd::ga::sta;
 void register_functions_sta(nb::module_& m)
 {
     m.def("angle", [](vec4ds const& a0, vec4ds const& a1) { return angle(a0, a1); });
+    m.def("boost_part", [](bivec4ds const& a0) { return boost_part(a0); });
     m.def("cmt", [](mvec4ds const& a0, mvec4ds const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](pscalar4ds const& a0, pscalar4ds const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](pscalar4ds const& a0, trivec4ds const& a1) { return cmt(a0, a1); });
@@ -76,6 +77,7 @@ void register_functions_sta(nb::module_& m)
     m.def("dot", [](vec4ds const& a0, vec4ds const& a1) { return dot(a0, a1); });
     m.def("dot", [](scalar4ds const& a0, scalar4ds const& a1) { return dot(a0, a1); });
     m.def("exp", [](bivec4ds const& a0) { return exp(a0); });
+    m.def("exp", [](pscalar4ds const& a0) { return exp(a0); });
     m.def("get_boost", [](bivec4ds const& a0, double a1) { return get_boost(a0, a1); });
     m.def("get_rotor", [](bivec4ds const& a0, double a1) { return get_rotor(a0, a1); });
     m.def("gr_inv", [](scalar4ds const& a0) { return gr_inv(a0); });
@@ -112,6 +114,15 @@ void register_functions_sta(nb::module_& m)
     m.def("is_close", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
+    m.def("is_close", [](mvec4ds_u const& a0, mvec4ds_u const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec4ds const& a0, mvec4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](dualnum4ds const& a0, dualnum4ds const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_congruent", [](scalar4ds const& a0, scalar4ds const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
@@ -133,6 +144,7 @@ void register_functions_sta(nb::module_& m)
     m.def("is_same_transform", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
         return is_same_transform(a0, a1, a2);
     });
+    m.def("is_simple", [](bivec4ds const& a0) { return is_simple(a0); });
     m.def("is_spacelike", [](vec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](bivec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](trivec4ds const& a0) { return is_spacelike(a0); });
@@ -214,6 +226,10 @@ void register_functions_sta(nb::module_& m)
     m.def("r_undual", [](mvec4ds const& a0) { return r_undual(a0); });
     m.def("rapidity",
           [](vec4ds const& a0, vec4ds const& a1) { return rapidity(a0, a1); });
+    m.def("reciprocal_frame",
+          [](vec4ds const& a0, vec4ds const& a1, vec4ds const& a2, vec4ds const& a3) {
+              return reciprocal_frame(a0, a1, a2, a3);
+          });
     m.def("reflect_on",
           [](vec4ds const& a0, vec4ds const& a1) { return reflect_on(a0, a1); });
     m.def("reflect_on",
@@ -240,6 +256,7 @@ void register_functions_sta(nb::module_& m)
     m.def("rev", [](mvec4ds_e const& a0) { return rev(a0); });
     m.def("rev", [](mvec4ds_u const& a0) { return rev(a0); });
     m.def("rev", [](mvec4ds const& a0) { return rev(a0); });
+    m.def("rot_part", [](bivec4ds const& a0) { return rot_part(a0); });
     m.def("rrev", [](scalar4ds const& a0) { return rrev(a0); });
     m.def("rrev", [](vec4ds const& a0) { return rrev(a0); });
     m.def("rrev", [](bivec4ds const& a0) { return rrev(a0); });

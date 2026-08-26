@@ -7,17 +7,31 @@ from collections.abc import Sequence
 import enum
 from typing import overload
 
-from . import cga as cga, ega as ega, pga as pga, sta as sta
+from _ga_py import cga as cga, ega as ega, pga as pga, sta as sta
 
+
+class fd_kind(enum.Enum):
+    explicit_fd = 0
+
+    compact_fd = 1
 
 class geo_angle(enum.Enum):
     latitude = 0
 
     longitude = 1
 
+class stencil_lhs(enum.Enum):
+    f1 = 0
+
+    f2 = 1
+
 def Hz2radps(arg: float, /) -> float: ...
 
 def deg2rad(arg: float, /) -> float: ...
+
+def fact(arg: int, /) -> float: ...
+
+def fd_derivative(arg0: Sequence[float], arg1: Sequence[float], arg2: int, arg3: fd_kind, arg4: int, /) -> list[float]: ...
 
 @overload
 def gr(arg: ega.scalar2d, /) -> int: ...
@@ -117,9 +131,11 @@ def gr(arg: cga.pscalar3dc, /) -> int: ...
 
 def linear_step(arg0: float, arg1: float, arg2: float, /) -> float: ...
 
-def lstsq_solve(arg0: Sequence[float], arg1: Sequence[float], arg2: int, /) -> list[float]: ...
+def lstsq_solve(arg0: Sequence[float], arg1: Sequence[float], arg2: int, arg3: float, /) -> list[float]: ...
 
 def lu_solve(arg0: Sequence[float], arg1: Sequence[float], arg2: int, /) -> list[float]: ...
+
+def nullspace_project(arg0: Sequence[float], arg1: Sequence[float], arg2: int, arg3: int, arg4: float, /) -> list[float]: ...
 
 def rad2deg(arg: float, /) -> float: ...
 
@@ -219,6 +235,8 @@ def to_geo_pos(arg0: "hd::ga::geo_pos_dms", arg1: float, /) -> ega.geo_pos: ...
 
 @overload
 def to_geo_pos(arg0: "hd::ga::geo_pos_dms2dp", arg1: float, /) -> pga.geo_pos2dp: ...
+
+def tridiag_solve(arg0: Sequence[float], arg1: Sequence[float], arg2: Sequence[float], arg3: Sequence[float], /) -> list[float]: ...
 
 @overload
 def rk4_step(u: Sequence[ega.vec2d], uh: Sequence[Sequence[ega.vec2d]], rhs: Sequence[ega.vec2d], dt: float, rk_step: int) -> tuple[list[ega.vec2d], list[list[ega.vec2d]]]: ...

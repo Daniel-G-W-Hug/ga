@@ -364,6 +364,9 @@ void register_functions_cga(nb::module_& m)
     m.def("is_close", [](mvec2dc const& a0, mvec2dc const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
+    m.def("is_close", [](dualnum2dc const& a0, dualnum2dc const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_close", [](scalar3dc const& a0, scalar3dc const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
@@ -389,6 +392,9 @@ void register_functions_cga(nb::module_& m)
         return is_close(a0, a1, a2);
     });
     m.def("is_close", [](mvec3dc const& a0, mvec3dc const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](dualnum3dc const& a0, dualnum3dc const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
     m.def("is_congruent", [](scalar2dc const& a0, scalar2dc const& a1, double a2) {

@@ -4194,6 +4194,403 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: closed_loop_system2dp - an inactive constraint is absent (D1)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - inactive constraint == absent");
+
+        // a 3R arm whose hand is pinned to the world; system A carries a SECOND pin at
+        // the elbow that is switched off, system B never had it. Every solve must agree
+        // to the bit -- an inactive constraint contributes nothing -- and switching the
+        // extra pin on must change the answer (so the flag is not a no-op).
+        auto const seg = make_plate_body(1.5, 0.5, 0.05);
+        auto build = [&](bool extra) {
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_revolute_body(static_frame2dp("L1", vec2dp{0.25, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.25, 0.0, 1.0}, 0.30, 0.0, cl.index_of("W"));
+            cl.add_revolute_body(static_frame2dp("L2", vec2dp{0.5, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.25, 0.0, 1.0}, -0.40, 0.0, cl.index_of("L1"));
+            cl.add_revolute_body(static_frame2dp("L3", vec2dp{0.5, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.25, 0.0, 1.0}, 0.50, 0.0, cl.index_of("L2"));
+            size_t const L2 = cl.index_of("L2"), L3 = cl.index_of("L3"),
+                         W = cl.index_of("W");
+            auto unit = [](vec2dp const& p) { return vec2dp{p.x / p.z, p.y / p.z, 1.0}; };
+            vec2dp const hand =
+                unit(move2dp(vec2dp{0.25, 0.0, 1.0}, cl.system().get_pos_trafo(L3, 0)));
+            cl.add_loop_constraint(loop_constraint2dp{L3, vec2dp{0.25, 0.0, 1.0}, W, hand,
+                                                      constraint2dp::coincidence});
+            if (extra) {
+                vec2dp const elbow = unit(
+                    move2dp(vec2dp{0.25, 0.0, 1.0}, cl.system().get_pos_trafo(L2, 0)));
+                size_t const c = cl.add_loop_constraint(loop_constraint2dp{
+                    L2, vec2dp{0.25, 0.0, 1.0}, W, elbow, constraint2dp::coincidence});
+                cl.set_loop_active(c, false);
+            }
+            return cl;
+        };
+
+        auto A = build(true);
+        auto B = build(false);
+        CHECK(A.loop_count() == 2);
+        CHECK(A.active_loop_count() == 1);
+        CHECK(A.constraint_rows() == 2);
+
+        std::vector<value_t> lA, lB;
+        auto const qA = A.joint_accelerations(&lA);
+        auto const qB = B.joint_accelerations(&lB);
+        CHECK(lA.size() == 2);
+        for (size_t k = 0; k < qA.size(); ++k)
+            CHECK(qA[k] == qB[k]); // bit-identical, not approximately
+        for (size_t k = 0; k < lA.size(); ++k)
+            CHECK(lA[k] == lB[k]);
+
+        for (int i = 0; i < 100; ++i) {
+            A.step(2.0e-3);
+            B.step(2.0e-3);
+        }
+        for (size_t j = 1; j < 4; ++j) {
+            CHECK(A.joint_phi(j) == B.joint_phi(j));
+            CHECK(A.joint_rate(j) == B.joint_rate(j));
+        }
+
+        // switch the extra pin on: the elbow is now held too, and the answer changes
+        A.set_loop_active(1, true);
+        CHECK(A.constraint_rows() == 4);
+        A.assemble();
+        std::vector<value_t> lA2;
+        auto const qA2 = A.joint_accelerations(&lA2);
+        CHECK(lA2.size() == 4);
+        bool differs = false;
+        for (size_t k = 0; k < qA2.size(); ++k)
+            differs = differs || (qA2[k] != qA[k]);
+        CHECK(differs);
+
+        // and with EVERY constraint off the closed-loop system is the open chain: its
+        // step must agree with dynamic_system2dp's to integrator round-off
+        auto C = build(false);
+        C.set_loop_active(0, false);
+        CHECK(C.constraint_rows() == 0);
+        dynamic_system2dp open;
+        open.add_frame(static_frame2dp("W"));
+        open.add_revolute_body(static_frame2dp("L1", vec2dp{0.25, 0.0, 1.0}, 0.0), seg,
+                               vec2dp{-0.25, 0.0, 1.0}, 0.30, 0.0, open.index_of("W"));
+        open.add_revolute_body(static_frame2dp("L2", vec2dp{0.5, 0.0, 1.0}, 0.0), seg,
+                               vec2dp{-0.25, 0.0, 1.0}, -0.40, 0.0, open.index_of("L1"));
+        open.add_revolute_body(static_frame2dp("L3", vec2dp{0.5, 0.0, 1.0}, 0.0), seg,
+                               vec2dp{-0.25, 0.0, 1.0}, 0.50, 0.0, open.index_of("L2"));
+        for (int i = 0; i < 100; ++i) {
+            C.step(2.0e-3);
+            open.step(2.0e-3);
+        }
+        for (size_t j = 1; j < 4; ++j)
+            CHECK(C.joint_phi(j) == doctest::Approx(open.joint_phi(j)).epsilon(1e-12));
+
+        fmt::println("  inactive: bit-identical to the system without the pin; all off: "
+                     "the open chain; active: {} rows, answer changes",
+                     A.constraint_rows());
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: closed_loop_system2dp - distance and frame kinds (D1)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - distance (rod) and frame (weld)");
+
+        value_t const g = 9.81;
+        auto const seg = make_plate_body(2.0, 0.6, 0.06); // 0.6 long along x
+        auto unit = [](vec2dp const& p) { return vec2dp{p.x / p.z, p.y / p.z, 1.0}; };
+        auto torque = [](vec2dp const& Q, bivec2dp const& L) {
+            return moment_about(Q, L).z;
+        };
+
+        // -- distance: a hinged bar whose tip is tied by a rod to a fixed point. One dof,
+        //    one row: static. The multiplier is the rod tension, pinned against the GA
+        //    moment balance about the hinge, moment_about(hinge, weight line + rod line)
+        //    = 0, with the KKT layer's sign convention: the constraint force on anchor a
+        //    is -lambda * n, n the unit direction from b to a, so lambda > 0 is tension.
+        {
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_revolute_body(static_frame2dp("bar", vec2dp{0.3, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.3, 0.0, 1.0}, -0.40, 0.0, cl.index_of("W"));
+            size_t const bar = cl.index_of("bar"), W = cl.index_of("W");
+            vec2dp const tip_b{0.3, 0.0, 1.0};
+            vec2dp const tip = unit(move2dp(tip_b, cl.system().get_pos_trafo(bar, 0)));
+            vec2dp const anchor{tip.x + 0.2, tip.y + 0.7, 1.0}; // the rod's other end
+            vec2dp const d{tip.x - anchor.x, tip.y - anchor.y, 0.0};
+            value_t const L = std::sqrt(d.x * d.x + d.y * d.y);
+            cl.add_loop_constraint(
+                loop_constraint2dp{bar, tip_b, W, anchor, constraint2dp::distance, L});
+            CHECK(cl.residual_norm() < 1e-12);
+            CHECK(cl.constraint_rows() == 1);
+
+            std::vector<value_t> lambda;
+            auto const qdd = cl.joint_accelerations(&lambda);
+            CHECK(std::abs(qdd[0]) < 1e-9); // static
+            CHECK(lambda.size() == 1);
+
+            vec2dp const hinge =
+                unit(move2dp(vec2dp{-0.3, 0.0, 1.0}, cl.system().get_pos_trafo(bar, 0)));
+            vec2dp const cm = unit(move2dp(O_2dp, cl.system().get_pos_trafo(bar, 0)));
+            vec2dp const n{d.x / L, d.y / L, 0.0};
+            value_t const Mw = torque(hinge, wdg(cm, vec2dp{0.0, -2.0 * g, 0.0}));
+            value_t const Mr = torque(hinge, wdg(tip, n)); // per unit rod force
+            value_t const lambda_pred = Mw / Mr;           // Mw - lambda * Mr = 0
+            fmt::println("  rod: lambda = {: .5f}  statics = {: .5f}", lambda[0],
+                         lambda_pred);
+            CHECK(lambda[0] == doctest::Approx(lambda_pred).epsilon(1e-9));
+
+            // dynamic: free the bar's hinge by adding a second bar, so the rod-tied
+            // chain has one dof, and check the energy over a swing
+            closed_loop_system2dp dyn;
+            dyn.add_frame(static_frame2dp("W"));
+            dyn.add_revolute_body(static_frame2dp("b1", vec2dp{0.3, 0.0, 1.0}, 0.0), seg,
+                                  vec2dp{-0.3, 0.0, 1.0}, -0.40, 0.0, dyn.index_of("W"));
+            dyn.add_revolute_body(static_frame2dp("b2", vec2dp{0.6, 0.0, 1.0}, 0.0), seg,
+                                  vec2dp{-0.3, 0.0, 1.0}, 0.80, 0.0, dyn.index_of("b1"));
+            size_t const b2 = dyn.index_of("b2");
+            vec2dp const t2 = unit(move2dp(tip_b, dyn.system().get_pos_trafo(b2, 0)));
+            vec2dp const a2{t2.x + 0.5, t2.y + 0.3, 1.0};
+            value_t const L2 = std::hypot(t2.x - a2.x, t2.y - a2.y);
+            dyn.add_loop_constraint(loop_constraint2dp{b2, tip_b, dyn.index_of("W"), a2,
+                                                       constraint2dp::distance, L2});
+            value_t const E0 = dyn.system().total_energy();
+            value_t max_dE = 0.0, max_g = 0.0;
+            for (int i = 0; i < 1500; ++i) {
+                dyn.step(1.0e-3);
+                max_dE = std::max(max_dE, std::abs(dyn.system().total_energy() - E0));
+                max_g = std::max(max_g, dyn.residual_norm());
+            }
+            fmt::println("  rod-tied double bar: dE/E = {:.2e}, max |g| = {:.2e}",
+                         max_dE / std::abs(E0), max_g);
+            CHECK(max_dE / std::abs(E0) < 1e-6);
+            CHECK(max_g < 1e-9);
+        }
+
+        // -- frame: a 3R arm whose hand is WELDED to the world (3 rows, 3 dof: static).
+        //    lambda is minus the wrench the wall exerts on the hand, i.e. the total
+        //    gravity wrench of the arm about the hand: force = sum of the weights,
+        //    moment balance about every joint pivot, in GA (moment_about).
+        {
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            value_t const q0[3] = {0.3, -0.5, 0.7};
+            size_t parent = cl.index_of("W");
+            for (int i = 0; i < 3; ++i) {
+                cl.add_revolute_body(
+                    static_frame2dp("L" + std::to_string(i), vec2dp{0.6, 0.0, 1.0}, 0.0),
+                    seg, vec2dp{-0.3, 0.0, 1.0}, q0[i], 0.0, parent);
+                parent = cl.index_of("L" + std::to_string(i));
+            }
+            size_t const hand_f = parent, W = cl.index_of("W");
+            vec2dp const hand_b{0.3, 0.0, 1.0};
+            vec2dp const hand =
+                unit(move2dp(hand_b, cl.system().get_pos_trafo(hand_f, 0)));
+            // a world-fixed frame at the hand's current pose, to weld against
+            cl.add_frame(static_frame2dp("wall"), W);
+            cl.system().set_pose(
+                cl.index_of("wall"),
+                pose2dp_from_motor(cl.system().get_pos_trafo(hand_f, 0)));
+            cl.add_loop_constraint(loop_constraint2dp{hand_f, hand_b, cl.index_of("wall"),
+                                                      hand_b, constraint2dp::frame});
+            CHECK(cl.residual_norm() < 1e-10);
+            CHECK(cl.constraint_rows() == 3);
+
+            std::vector<value_t> lambda;
+            auto const qdd = cl.joint_accelerations(&lambda);
+            CHECK(lambda.size() == 3);
+            for (auto v : qdd)
+                CHECK(std::abs(v) < 1e-8); // welded: static
+
+            // Passive joints carry no torque, so about EVERY pivot j the moment of the
+            // distal weight lines and of the wall wrench vanishes. The wall acts on the
+            // hand with the force -lambda_F at the hand point and the couple -lambda_M
+            // (the KKT convention: the constraint force is -G^T lambda). This is NOT the
+            // gravity resultant reduced at the hand -- the base pin carries part of the
+            // load, so the weld reaction is fixed by the three joint balances, not by the
+            // force sum (measured: lambda_F = (38.3, -37.2) N against a weight of 58.9
+            // N).
+            fmt::println("  weld: lambda = ({: .4f}, {: .4f} | {: .4f})", lambda[0],
+                         lambda[1], lambda[2]);
+            vec2dp const lam_F{lambda[0], lambda[1], 0.0};
+            for (int j = 0; j < 3; ++j) {
+                auto const Mj =
+                    cl.system().get_pos_trafo(cl.index_of("L" + std::to_string(j)), 0);
+                vec2dp const pivot = unit(move2dp(vec2dp{-0.3, 0.0, 1.0}, Mj));
+                bivec2dp Wg{}; // the weight lines distal of joint j
+                for (int i = j; i < 3; ++i) {
+                    auto const Mi = cl.system().get_pos_trafo(
+                        cl.index_of("L" + std::to_string(i)), 0);
+                    Wg = Wg + wdg(unit(move2dp(O_2dp, Mi)), vec2dp{0.0, -2.0 * g, 0.0});
+                }
+                value_t const r =
+                    torque(pivot, Wg) - torque(pivot, wdg(hand, lam_F)) - lambda[2];
+                fmt::println("    joint {}: moment balance residual = {: .2e}", j, r);
+                CHECK(std::abs(r) < 1e-7);
+            }
+
+            // dynamic: a 4R arm welded at the hand keeps one dof (a four-bar with a
+            // welded coupler); energy conserved and the weld holds
+            closed_loop_system2dp dyn;
+            dyn.add_frame(static_frame2dp("W"));
+            value_t const q1[4] = {0.3, -0.5, 0.7, 0.2};
+            parent = dyn.index_of("W");
+            for (int i = 0; i < 4; ++i) {
+                dyn.add_revolute_body(
+                    static_frame2dp("L" + std::to_string(i), vec2dp{0.6, 0.0, 1.0}, 0.0),
+                    seg, vec2dp{-0.3, 0.0, 1.0}, q1[i], 0.0, parent);
+                parent = dyn.index_of("L" + std::to_string(i));
+            }
+            size_t const h4 = parent;
+            dyn.add_frame(static_frame2dp("wall"), dyn.index_of("W"));
+            dyn.system().set_pose(dyn.index_of("wall"),
+                                  pose2dp_from_motor(dyn.system().get_pos_trafo(h4, 0)));
+            dyn.add_loop_constraint(loop_constraint2dp{h4, hand_b, dyn.index_of("wall"),
+                                                       hand_b, constraint2dp::frame});
+            value_t const E0 = dyn.system().total_energy();
+            value_t max_dE = 0.0, max_g = 0.0;
+            for (int i = 0; i < 1500; ++i) {
+                dyn.step(1.0e-3);
+                max_dE = std::max(max_dE, std::abs(dyn.system().total_energy() - E0));
+                max_g = std::max(max_g, dyn.residual_norm());
+            }
+            fmt::println("  welded 4R: dE/E = {:.2e}, max |g| = {:.2e}",
+                         max_dE / std::abs(E0), max_g);
+            CHECK(max_dE / std::abs(E0) < 1e-6);
+            CHECK(max_g < 1e-9);
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: closed_loop_system2dp - two arms welded hand to hand (D1)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - weld between two MOVING frames");
+
+        // The weld tests above close against a world-fixed frame, which has no joint
+        // ancestors -- the b side of the frame kind's rows never contributes there. Here
+        // both sides move: arm A (2R) and arm B (1R, then 2R) are welded hand to hand.
+        // Exact closure by construction: arm B is built under its own base frame W2,
+        // whose pose is then set to M_handA (x) rrev(M_handB_rel), so B's hand lands on
+        // A's hand in position AND orientation.
+        value_t const g = 9.81;
+        auto const seg = make_plate_body(2.0, 0.6, 0.06);
+        // arm B's links are SHORTER: a 1-link arm B of A's length, welded with A's hand
+        // orientation, would sit exactly on top of A's last link (its base pivot on A's
+        // elbow) -- a degenerate structure with a singular KKT matrix. Measured before
+        // this was understood: lambda ~ 1e16.
+        auto const segB = make_plate_body(1.5, 0.4, 0.06);
+        auto unit = [](vec2dp const& p) { return vec2dp{p.x / p.z, p.y / p.z, 1.0}; };
+        auto torque = [](vec2dp const& Q, bivec2dp const& L) {
+            return moment_about(Q, L).z;
+        };
+        vec2dp const hand_b{0.3, 0.0, 1.0}, piv_b{-0.3, 0.0, 1.0};
+        vec2dp const hand_bB{0.2, 0.0, 1.0}, piv_bB{-0.2, 0.0, 1.0};
+        vec2dp const w{0.0, -2.0 * g, 0.0}, wB{0.0, -1.5 * g, 0.0};
+
+        // build: nA links on arm A from W, nB links on arm B from W2; returns the system
+        // with the weld registered and closed
+        auto build = [&](int nA, std::vector<value_t> const& qA, int nB,
+                         std::vector<value_t> const& qB, std::vector<size_t>& A,
+                         std::vector<size_t>& B) {
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            size_t parent = cl.index_of("W");
+            for (int i = 0; i < nA; ++i) {
+                cl.add_revolute_body(
+                    static_frame2dp("A" + std::to_string(i), vec2dp{0.6, 0.0, 1.0}, 0.0),
+                    seg, piv_b, qA[i], 0.0, parent);
+                parent = cl.index_of("A" + std::to_string(i));
+                A.push_back(parent);
+            }
+            cl.add_frame(static_frame2dp("W2"), cl.index_of("W"));
+            parent = cl.index_of("W2");
+            for (int i = 0; i < nB; ++i) {
+                cl.add_revolute_body(
+                    static_frame2dp("B" + std::to_string(i), vec2dp{0.4, 0.0, 1.0}, 0.0),
+                    segB, piv_bB, qB[i], 0.0, parent);
+                parent = cl.index_of("B" + std::to_string(i));
+                B.push_back(parent);
+            }
+            // place W2 so that B's hand frame coincides with A's hand frame (the two
+            // hand anchors differ in body coordinates but land on the same world point)
+            auto const M_hA = cl.system().get_pos_trafo(A.back(), 0);
+            auto const M_hB = cl.system().get_pos_trafo(B.back(), cl.index_of("W2"));
+            auto const T_ab = rgpr(M_hA, rrev(M_hB)); // B's hand frame onto A's
+            // both anchors are their link's tip, (0.3, 0) on A and (0.2, 0) on B, so with
+            // the frames coincident the tips differ by 0.1 along the shared x: shift W2
+            // by that difference (in world) so the two tips coincide exactly
+            pose2dp p2 = pose2dp_from_motor(T_ab);
+            vec2dp const tipA = unit(move2dp(hand_b, M_hA));
+            vec2dp const tipB = unit(move2dp(hand_bB, rgpr(T_ab, M_hB)));
+            p2.origin =
+                vec2dp{p2.origin.x + tipA.x - tipB.x, p2.origin.y + tipA.y - tipB.y, 1.0};
+            cl.system().set_pose(cl.index_of("W2"), p2);
+            cl.add_loop_constraint(loop_constraint2dp{A.back(), hand_b, B.back(), hand_bB,
+                                                      constraint2dp::frame});
+            return cl;
+        };
+
+        // -- static: 2R + 1R = 3 dof, 3 rows. The interaction wrench is pinned by the
+        //    moment balance about every pivot of BOTH arms: on A's hand the force is
+        //    -lambda_F, the couple -lambda_M; on B's hand +lambda_F, +lambda_M.
+        {
+            std::vector<size_t> A, B;
+            auto cl = build(2, {0.4, -0.7}, 1, {0.9}, A, B);
+            CHECK(cl.residual_norm() < 1e-12);
+            std::vector<value_t> lambda;
+            auto const qdd = cl.joint_accelerations(&lambda);
+            for (auto v : qdd)
+                CHECK(std::abs(v) < 1e-8);
+            vec2dp const hand =
+                unit(move2dp(hand_b, cl.system().get_pos_trafo(A.back(), 0)));
+            vec2dp const lam_F{lambda[0], lambda[1], 0.0};
+            auto balance = [&](std::vector<size_t> const& arm, vec2dp const& piv,
+                               vec2dp const& wt, value_t sgn) {
+                for (size_t j = 0; j < arm.size(); ++j) {
+                    vec2dp const pivot =
+                        unit(move2dp(piv, cl.system().get_pos_trafo(arm[j], 0)));
+                    bivec2dp Wg{};
+                    for (size_t i = j; i < arm.size(); ++i)
+                        Wg = Wg + wdg(unit(move2dp(O_2dp,
+                                                   cl.system().get_pos_trafo(arm[i], 0))),
+                                      wt);
+                    value_t const r = torque(pivot, Wg) +
+                                      sgn * (torque(pivot, wdg(hand, lam_F)) + lambda[2]);
+                    CHECK(std::abs(r) < 1e-7);
+                }
+            };
+            balance(A, piv_b, w, -1.0);
+            balance(B, piv_bB, wB, +1.0);
+            fmt::println("  2R + 1R welded: static, both arms' joint balances hold, "
+                         "lambda = ({: .3f}, {: .3f} | {: .3f})",
+                         lambda[0], lambda[1], lambda[2]);
+        }
+
+        // -- dynamic: 2R + 2R = 4 dof, 3 rows: one dof. Energy conserved and the weld
+        //    holds through a swing (both sides of the rows exercised every sub-step).
+        //    Joint A1 passes through -pi at t ~ 0.65 s: its motor crosses to the far
+        //    sheet of the double cover, and without the sign normalisation in
+        //    relative_rotation the orientation residual reads a full turn there and the
+        //    projection spins joints through 2 pi -- measured as dE/E jumping to 0.17
+        //    and then 0.53. This case is the regression gate for that.
+        {
+            std::vector<size_t> A, B;
+            auto cl = build(2, {0.4, -0.7}, 2, {0.9, 0.5}, A, B);
+            CHECK(cl.residual_norm() < 1e-12);
+            value_t const E0 = cl.system().total_energy();
+            value_t max_dE = 0.0, max_g = 0.0;
+            for (int i = 0; i < 1500; ++i) {
+                cl.step(1.0e-3);
+                max_dE = std::max(max_dE, std::abs(cl.system().total_energy() - E0));
+                max_g = std::max(max_g, cl.residual_norm());
+            }
+            fmt::println("  2R + 2R welded: dE/E = {:.2e}, max |g| = {:.2e}",
+                         max_dE / std::abs(E0), max_g);
+            CHECK(max_dE / std::abs(E0) < 1e-6);
+            CHECK(max_g < 1e-9);
+        }
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

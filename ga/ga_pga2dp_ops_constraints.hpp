@@ -28,6 +28,13 @@
 //     integrating by RK4 with post-step GGL projection (position + velocity) for
 //     energy-clean drift control.
 //
+// A loop closure is a JOINT between two tree frames (Featherstone, Rigid Body Dynamics
+// Algorithms, ch. 8): its kind is the subspace of relative motion it removes, and the
+// rows it contributes to g / G are that constraint-force subspace. The kinds provided
+// here are the planar members of that table (see constraint2dp), and a constraint can be
+// switched off and on at run time (loop_constraint2dp::active) -- a contact that opens
+// and closes -- with the row count m following.
+//
 // The dimension-agnostic numeric kernels (lstsq_solve / kkt_solve, in
 // detail/ga_solver.hpp) are shared verbatim with the 3D layer
 // (ga_pga3dp_ops_constraints.hpp).
@@ -37,7 +44,7 @@
 #include "ga_usr_utilities.hpp"        // hd::ga::rk4_step (shared RK4 integrator)
 #include "ga_value_t.hpp"              // value_t
 
-#include <cmath>     // std::abs
+#include <cmath>     // std::abs, std::sqrt
 #include <cstddef>   // size_t
 #include <mdspan>    // RK4 state views (step)
 #include <stdexcept> // std::runtime_error
@@ -47,26 +54,58 @@
 
 namespace hd::ga::pga {
 
-// Loop-closure constraint kinds. Currently point coincidence only (a planar pin / a
-// spatial spherical-joint attachment); point-on-line, distance / rigid-link length and
-// parallel/perpendicular are natural extensions (all expressible as vanishing
-// wdg/rwdg/dot expressions).
-enum class constraint2dp { coincidence };
+// Loop-closure constraint kinds -- each a subspace of relative motion removed between
+// the two anchors, i.e. the rows of g and G it contributes (Featherstone's constraint-
+// force subspace T of the loop joint):
+//
+//   coincidence : the two anchor POINTS coincide (2 rows) -- a planar pin joint. Rotation
+//                 about the pin stays free.
+//
+//   distance    : the two anchors keep the DISTANCE `length` (1 row) -- a rigid rod /
+//                 a Stewart-Gough leg of fixed length; the multiplier is the rod force.
+//
+//   frame       : a WELD -- the two bodies are rigidly attached to each other (3 rows).
+//                 Position: anchor_a and anchor_b coincide in the world, as for
+//                 coincidence. Orientation: frame_a and frame_b have the same world
+//                 heading (the anchors only locate the attachment point; they do not
+//                 rotate the frames, so a weld between frames built with different
+//                 headings must be closed by assemble() or built to match). Every
+//                 relative dof of the loop is removed -- the zero-dof loop joint: a tool
+//                 fixed in a hand, a foot standing flat, a rigid coupler.
+//
+// Multiplier convention (joint_accelerations): the KKT system is M q-ddot + G^T lambda
+// = tau, so the constraint force on the system is -G^T lambda. Per kind, on anchor a:
+// coincidence -- the force -lambda (x, y); distance -- the force -lambda n along the rod
+// axis n from anchor b to anchor a, so lambda > 0 is TENSION; frame -- the force
+// -lambda_F at the anchor and the couple -lambda_M. Anchor b receives the opposite.
+//
+// Point-on-line and parallel/perpendicular are natural further members (vanishing
+// wdg/rwdg/dot expressions), added when a mechanism needs them.
+enum class constraint2dp { coincidence, distance, frame };
 
 // Loop-closure constraint descriptor: anchor point anchor_a (given in frame_a's
 // coordinates) must satisfy `type` against anchor point anchor_b (in frame_b's
 // coordinates). For coincidence the two anchors must coincide in world coordinates -- the
 // loop-closure condition for a four-bar pin or a Stewart-Gough leg pinned to the
-// platform.
+// platform; for distance they keep `length` apart; for frame the two frames coincide at
+// the anchors.
+//
+// `active` switches the constraint on and off at run time (contact state: a foot that
+// lifts, a hand that lets go). An inactive constraint contributes no rows -- the system
+// behaves exactly as if it had not been added -- while keeping its index, so a repeating
+// gait can toggle the same constraints without renumbering.
 //
 // A pure-data aggregate (all public fields) with an fmt formatter, so it is also exposed
-// in the Python wrapper (ga_py).
+// in the Python wrapper (ga_py). Adding a field here widens the bound constructor
+// (CLAUDE.md, "Adding a FIELD to an already-bound pure-data struct").
 struct loop_constraint2dp {
     size_t frame_a;  // tree frame holding anchor a
     vec2dp anchor_a; // anchor point in frame_a coordinates (unitized, z = 1)
     size_t frame_b;  // tree frame holding anchor b
     vec2dp anchor_b; // anchor point in frame_b coordinates (unitized, z = 1)
     constraint2dp type{constraint2dp::coincidence};
+    value_t length{0.0}; // the rod length (distance kind only)
+    bool active{true};   // contributes rows to g / G when true
 };
 
 
@@ -121,8 +160,20 @@ class closed_loop_system2dp {
     // --- close loops
     // --------------------------------------------------------------------
 
-    // register a loop-closure constraint between two existing tree frames
-    void add_loop_constraint(loop_constraint2dp const& c) { loops_.push_back(c); }
+    // register a loop-closure constraint between two existing tree frames; returns its
+    // index (stable for the life of the system, also while inactive)
+    size_t add_loop_constraint(loop_constraint2dp const& c)
+    {
+        loops_.push_back(c);
+        return loops_.size() - 1;
+    }
+
+    // switch constraint c on / off (contact state). Off: it contributes no rows and the
+    // system behaves as if it were absent; on: it takes part again. The multipliers
+    // returned by joint_accelerations() are those of the ACTIVE constraints, in index
+    // order, each contributing rows_of(loop(c)) entries.
+    void set_loop_active(size_t c, bool on) { loops_.at(c).active = on; }
+    bool loop_active(size_t c) const { return loops_.at(c).active; }
 
     // drive a joint to a generalised coordinate q (set q, refresh the kinematic state).
     // For the driver / independent joints of a closed loop -- the dependent ones are
@@ -149,8 +200,38 @@ class closed_loop_system2dp {
         return tree_.joint_omega(joint_frame);
     }
 
-    size_t loop_count() const { return loops_.size(); }
-    loop_constraint2dp const& loop(size_t c) const { return loops_[c]; }
+    size_t loop_count() const { return loops_.size(); } // registered, active or not
+    size_t active_loop_count() const
+    {
+        size_t n = 0;
+        for (auto const& lc : loops_)
+            if (lc.active) ++n;
+        return n;
+    }
+    loop_constraint2dp const& loop(size_t c) const { return loops_.at(c); }
+
+    // rows a constraint of this kind contributes to g / G (its constraint subspace)
+    static size_t rows_of(loop_constraint2dp const& lc)
+    {
+        switch (lc.type) {
+            case constraint2dp::coincidence:
+                return 2;
+            case constraint2dp::distance:
+                return 1;
+            case constraint2dp::frame:
+                return 3;
+        }
+        return 0;
+    }
+
+    // m: the total number of active constraint rows (the size of g and of lambda)
+    size_t constraint_rows() const
+    {
+        size_t m = 0;
+        for (auto const& lc : loops_)
+            if (lc.active) m += rows_of(lc);
+        return m;
+    }
 
     // access the underlying spanning tree for diagnostics shared with the open-loop tier
     // (get_pos_trafo, total_energy, joint_phi, ...) and for further configuration
@@ -160,18 +241,33 @@ class closed_loop_system2dp {
     // --- constraint evaluation (position level)
     // -----------------------------------------
 
-    // Residual g(q): for each coincidence constraint, the unitized world-coordinate
-    // difference P_a - P_b (2 scalar equations per constraint in 2D). g == 0 <=> every
-    // loop is closed. Length 2 * loop_count().
+    // Residual g(q), one block per ACTIVE constraint in index order: coincidence -- the
+    // unitized world-coordinate difference P_a - P_b (2 rows); distance -- |P_a - P_b| -
+    // length (1 row); frame -- P_a - P_b (2 rows) and the relative rotation angle of the
+    // two frames, theta_a - theta_b (1 row). g == 0 <=> every active loop is closed.
+    // Length constraint_rows().
     std::vector<value_t> residual()
     {
-        std::vector<value_t> g(2 * loops_.size());
-        for (size_t c = 0; c < loops_.size(); ++c) {
-            auto const& lc = loops_[c];
+        std::vector<value_t> g(constraint_rows());
+        size_t r = 0;
+        for (auto const& lc : loops_) {
+            if (!lc.active) continue;
             vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
             vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
-            g[2 * c + 0] = Pa.x - Pb.x;
-            g[2 * c + 1] = Pa.y - Pb.y;
+            switch (lc.type) {
+                case constraint2dp::coincidence:
+                    g[r++] = Pa.x - Pb.x;
+                    g[r++] = Pa.y - Pb.y;
+                    break;
+                case constraint2dp::distance:
+                    g[r++] = separation(Pa, Pb) - lc.length;
+                    break;
+                case constraint2dp::frame:
+                    g[r++] = Pa.x - Pb.x;
+                    g[r++] = Pa.y - Pb.y;
+                    g[r++] = relative_rotation(lc.frame_a, lc.frame_b);
+                    break;
+            }
         }
         return g;
     }
@@ -241,7 +337,7 @@ class closed_loop_system2dp {
     std::vector<value_t> solve_velocities(std::vector<size_t> const& driven = {})
     {
         std::vector<size_t> const dep = dependent_joints(driven);
-        size_t const m = 2 * loops_.size();
+        size_t const m = constraint_rows();
 
         // rhs = -G_drv q-dot_drv  (driver columns times the prescribed driver rates)
         std::vector<value_t> const Gdrv = constraint_jacobian(driven);
@@ -265,22 +361,21 @@ class closed_loop_system2dp {
     //
     //     G_dep q-ddot_dep = -G_drv q-ddot_drv - G-dot q-dot.
     //
-    // The velocity-product term G-dot q-dot is NOT formed explicitly: it is the relative
-    // acceleration of the two anchor points evaluated with all DEPENDENT q-ddot = 0 and
-    // the DRIVEN q-ddot prescribed -- i.e. the point-acceleration field already provided
-    // by the kinematic layer (the same bias-pass trick assemble_mass_bias uses). So the
-    // rhs is just -(a(P_a) - a(P_b)) read off with that accel-twist configuration.
-    // `driven_accels` are the prescribed q-ddot of the `driven` joints (parallel; missing
-    // entries default to 0, the constant-rate driver case). The solved dependent
-    // accelerations are written into the relative accel twists (so point_acceleration is
-    // consistent) and returned. Pre: solve_velocities() has run (the bias term needs the
-    // velocities).
+    // The velocity-product term G-dot q-dot is NOT formed explicitly: it is the second
+    // derivative of the residual evaluated with all DEPENDENT q-ddot = 0 and the DRIVEN
+    // q-ddot prescribed -- i.e. the point-acceleration field already provided by the
+    // kinematic layer (the same bias-pass trick assemble_mass_bias uses). So the rhs is
+    // just -(the relative anchor accelerations, per kind) read off with that accel-twist
+    // configuration. `driven_accels` are the prescribed q-ddot of the `driven` joints
+    // (parallel; missing entries default to 0, the constant-rate driver case). The solved
+    // dependent accelerations are written into the relative accel twists (so
+    // point_acceleration is consistent) and returned. Pre: solve_velocities() has run
+    // (the bias term needs the velocities).
     std::vector<value_t>
     solve_accelerations(std::vector<size_t> const& driven = {},
                         std::vector<value_t> const& driven_accels = {})
     {
         std::vector<size_t> const dep = dependent_joints(driven);
-        size_t const m = 2 * loops_.size();
 
         // accel-twist configuration for the bias read-off: dependent q-ddot = 0; driven
         // q-ddot prescribed (so G_drv q-ddot_drv folds into the point-acceleration
@@ -292,17 +387,10 @@ class closed_loop_system2dp {
             tree_.set_accel_twist(driven[k], qdd * tree_.joint[driven[k]].screw_b);
         }
 
-        // rhs = -(a(P_a) - a(P_b)) per constraint, with the above accel-twist config
-        std::vector<value_t> rhs(m, 0.0);
-        for (size_t c = 0; c < loops_.size(); ++c) {
-            auto const& lc = loops_[c];
-            vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
-            vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
-            vec2dp const aa = tree_.point_acceleration(Pa, lc.frame_a);
-            vec2dp const ab = tree_.point_acceleration(Pb, lc.frame_b);
-            rhs[2 * c + 0] = -(aa.x - ab.x);
-            rhs[2 * c + 1] = -(aa.y - ab.y);
-        }
+        // rhs = -(second derivative of g at that accel-twist configuration)
+        std::vector<value_t> rhs = relative_accelerations();
+        for (value_t& v : rhs)
+            v = -v;
 
         std::vector<value_t> const Gdep = constraint_jacobian(dep);
         std::vector<value_t> const qddot_dep = hd::ga::lstsq_solve(Gdep, rhs, dep.size());
@@ -326,7 +414,9 @@ class closed_loop_system2dp {
     // loop assembly (dynamic_system2dp::assemble_mass_bias), G is the constraint
     // Jacobian, and -G-dot q-dot is the velocity-product term (constraint_bias). Returns
     // q-ddot for all dof joints (in dof_joints() order); writes lambda into `lambda_out`
-    // if non-null. The bordered system is solved by the shared LU.
+    // if non-null -- one block per ACTIVE constraint, rows_of() entries each, with the
+    // sign convention stated at constraint2dp (the force on anchor a is -lambda). The
+    // bordered system is solved by the shared LU.
     std::vector<value_t> joint_accelerations(std::vector<value_t>* lambda_out = nullptr)
     {
         return kkt_dynamics(tree_.dof_joints(), lambda_out);
@@ -375,8 +465,10 @@ class closed_loop_system2dp {
         apply_u();
 
         // stabilisation: project (q, q-dot) back onto the constraint manifold
-        assemble(/*driven*/ {}); // position: min-norm Newton -> g ~ 0
-        project_velocities(rj);  // velocity:  q-dot <- q-dot - G⁺(G q-dot)
+        if (constraint_rows() > 0) {
+            assemble(/*driven*/ {}); // position: min-norm Newton -> g ~ 0
+            project_velocities(rj);  // velocity:  q-dot <- q-dot - G⁺(G q-dot)
+        }
     }
 
   private:
@@ -386,6 +478,42 @@ class closed_loop_system2dp {
     {
         vec2dp const P = move2dp(anchor, tree_.get_pos_trafo(frame, 0));
         return vec2dp{P.x / P.z, P.y / P.z, 1.0};
+    }
+
+    // Euclidean separation of two unitized points: the bulk norm of their difference (a
+    // direction, z = 0)
+    static value_t separation(vec2dp const& Pa, vec2dp const& Pb)
+    {
+        return value_t(bulk_nrm(vec2dp{Pa.x - Pb.x, Pa.y - Pb.y, 0.0}));
+    }
+
+    // unit direction from P_b to P_a (the rod axis of a distance constraint)
+    static vec2dp rod_axis(vec2dp const& Pa, vec2dp const& Pb)
+    {
+        value_t const L = separation(Pa, Pb);
+        return vec2dp{(Pa.x - Pb.x) / L, (Pa.y - Pb.y) / L, 0.0};
+    }
+
+    // Relative rotation angle of frame fa against frame fb, theta_a - theta_b, from the
+    // world motor that carries frame b's orientation to frame a's, M_a (x) rrev(M_b).
+    // The motor is rexp(1/2 B), so the angle is twice the log's rotational component;
+    // in the plane that is the twist's z slot. Its time derivative is the difference of
+    // the world angular velocities, which is what the frame kind's angular row of G
+    // carries.
+    //
+    // Motors double-cover the motions: M and -M move everything identically, and a joint
+    // passing through +-pi puts its motor on the far sheet, so the relative motor of two
+    // frames with EQUAL orientation can arrive as -I. Its log would then report a full
+    // turn (2 pi) as the residual, and the position projection would "close" it by
+    // turning joints through whole revolutions -- measured as a sudden energy jump when a
+    // welded arm swung through -pi. Normalising the sign so the identity-like component
+    // (the pseudoscalar, the rgpr identity in the plane) is positive picks the near
+    // sheet, and the angle comes out principal.
+    value_t relative_rotation(size_t fa, size_t fb)
+    {
+        auto M = rgpr(tree_.get_pos_trafo(fa, 0), rrev(tree_.get_pos_trafo(fb, 0)));
+        if (value_t(gr3(M)) < 0.0) M = -M;
+        return 2.0 * rlog(M).z;
     }
 
     // Solve the bordered acceleration-level KKT system for q-ddot (and lambda) at the
@@ -398,7 +526,7 @@ class closed_loop_system2dp {
                                       std::vector<value_t>* lambda_out)
     {
         size_t const n = rj.size();
-        size_t const m = 2 * loops_.size();
+        size_t const m = constraint_rows();
 
         // M (n*n) and tau (n) from the open-loop assembly; this also runs the bias pass
         // (zeroes the chain's relative accel twists), which is exactly the q-ddot = 0
@@ -420,26 +548,64 @@ class closed_loop_system2dp {
         return hd::ga::kkt_solve(M, G, tau, gbias, n, m, lambda_out);
     }
 
-    // Velocity-product term G-dot q-dot (length m): the relative acceleration of the two
-    // anchor points evaluated at q-ddot = 0. With every dof joint's relative accel twist
-    // zeroed, point_acceleration returns exactly the Coriolis/centripetal part, so
-    // a(P_a) - a(P_b) = (G-dot q-dot)_c. Pre: the velocities (relative velocity twists)
-    // are current. (Idempotent with the bias pass assemble_mass_bias just ran.)
-    std::vector<value_t> constraint_bias()
+    // Second time derivative of the residual at the CURRENT accel-twist configuration,
+    // one block per active constraint (length m): for coincidence and the point rows of
+    // frame the relative anchor acceleration a(P_a) - a(P_b); for distance the second
+    // derivative of |d| - length,
+    //
+    //     n . (a_a - a_b) + (|v_rel|^2 - (n . v_rel)^2) / |d|      n = d / |d|
+    //
+    // (the transverse relative velocity's centripetal term); for the angular row of
+    // frame the relative world angular acceleration. With every dof joint's relative
+    // accel twist zeroed this is the velocity-product term G-dot q-dot (constraint_bias);
+    // with the driven accelerations prescribed it is what solve_accelerations needs.
+    std::vector<value_t> relative_accelerations()
     {
-        for (size_t const j : tree_.dof_joints())
-            tree_.set_accel_twist(j, twist2dp{0.0, 0.0, 0.0});
-        std::vector<value_t> gd(2 * loops_.size(), 0.0);
-        for (size_t c = 0; c < loops_.size(); ++c) {
-            auto const& lc = loops_[c];
+        std::vector<value_t> gd(constraint_rows(), 0.0);
+        size_t r = 0;
+        for (auto const& lc : loops_) {
+            if (!lc.active) continue;
             vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
             vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
             vec2dp const aa = tree_.point_acceleration(Pa, lc.frame_a);
             vec2dp const ab = tree_.point_acceleration(Pb, lc.frame_b);
-            gd[2 * c + 0] = aa.x - ab.x;
-            gd[2 * c + 1] = aa.y - ab.y;
+            switch (lc.type) {
+                case constraint2dp::coincidence:
+                    gd[r++] = aa.x - ab.x;
+                    gd[r++] = aa.y - ab.y;
+                    break;
+                case constraint2dp::distance: {
+                    vec2dp const n = rod_axis(Pa, Pb);
+                    value_t const L = separation(Pa, Pb);
+                    vec2dp const va = tree_.point_velocity(Pa, lc.frame_a);
+                    vec2dp const vb = tree_.point_velocity(Pb, lc.frame_b);
+                    value_t const vx = va.x - vb.x, vy = va.y - vb.y;
+                    value_t const vn = n.x * vx + n.y * vy;
+                    gd[r++] = n.x * (aa.x - ab.x) + n.y * (aa.y - ab.y) +
+                              (vx * vx + vy * vy - vn * vn) / L;
+                    break;
+                }
+                case constraint2dp::frame:
+                    gd[r++] = aa.x - ab.x;
+                    gd[r++] = aa.y - ab.y;
+                    gd[r++] = tree_.accel_twist_world(lc.frame_a).z -
+                              tree_.accel_twist_world(lc.frame_b).z;
+                    break;
+            }
         }
         return gd;
+    }
+
+    // Velocity-product term G-dot q-dot (length m): relative_accelerations() at
+    // q-ddot = 0. With every dof joint's relative accel twist zeroed, point_acceleration
+    // returns exactly the Coriolis/centripetal part. Pre: the velocities (relative
+    // velocity twists) are current. (Idempotent with the bias pass assemble_mass_bias
+    // just ran.)
+    std::vector<value_t> constraint_bias()
+    {
+        for (size_t const j : tree_.dof_joints())
+            tree_.set_accel_twist(j, twist2dp{0.0, 0.0, 0.0});
+        return relative_accelerations();
     }
 
     // Project the joint rates onto the constraint tangent space (enforce G q-dot = 0)
@@ -449,7 +615,7 @@ class closed_loop_system2dp {
     void project_velocities(std::vector<size_t> const& rj)
     {
         size_t const n = rj.size();
-        size_t const m = 2 * loops_.size();
+        size_t const m = constraint_rows();
         std::vector<value_t> const G = constraint_jacobian(rj);
 
         std::vector<value_t> qd(n), Gv(m, 0.0);
@@ -482,18 +648,22 @@ class closed_loop_system2dp {
         return dep;
     }
 
-    // Constraint Jacobian G (m x ndep, row-major), m = 2 * loop_count(), columns indexed
-    // by the dependent joints `dep`. Column k for constraint c is the relative partial
-    // velocity of the two anchors w.r.t. joint dep[k]:
+    // Constraint Jacobian G (m x ndep, row-major), m = constraint_rows(), columns
+    // indexed by the dependent joints `dep`, one row block per active constraint. The
+    // point rows of column k are the relative partial velocity of the two anchors w.r.t.
+    // joint dep[k]:
     //
     //     dP_a/dq_j - dP_b/dq_j = velocity_field(S_j, P_a) - velocity_field(S_j, P_b)
     //
     // (each term present only when joint j is an ancestor of the anchor's frame), where
     // S_j = move2dp(screw_b, M_{j->world}) is the world joint screw -- the SAME column
-    // that builds the open-loop mass matrix and bias forces (assemble_mass_bias).
+    // that builds the open-loop mass matrix and bias forces (assemble_mass_bias). The
+    // distance row is that relative velocity projected on the rod axis n; the angular
+    // row of frame is the relative angular rate, the z slot of the world screw with the
+    // same ancestor test.
     std::vector<value_t> constraint_jacobian(std::vector<size_t> const& dep)
     {
-        size_t const m = 2 * loops_.size();
+        size_t const m = constraint_rows();
         size_t const ndep = dep.size();
         std::vector<value_t> G(m * ndep, 0.0);
 
@@ -502,21 +672,39 @@ class closed_loop_system2dp {
         for (size_t k = 0; k < ndep; ++k)
             S[k] = move2dp(tree_.joint[dep[k]].screw_b, tree_.get_pos_trafo(dep[k], 0));
 
-        for (size_t c = 0; c < loops_.size(); ++c) {
-            auto const& lc = loops_[c];
+        size_t r = 0;
+        for (auto const& lc : loops_) {
+            if (!lc.active) continue;
             vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
             vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
+            vec2dp const n =
+                (lc.type == constraint2dp::distance) ? rod_axis(Pa, Pb) : vec2dp{};
             for (size_t k = 0; k < ndep; ++k) {
                 size_t const j = dep[k];
+                bool const on_a = tree_.is_ancestor(j, lc.frame_a);
+                bool const on_b = tree_.is_ancestor(j, lc.frame_b);
                 vec2dp dPa{0.0, 0.0, 0.0};
                 vec2dp dPb{0.0, 0.0, 0.0};
-                if (tree_.is_ancestor(j, lc.frame_a))
-                    dPa = dynamic_system2dp::velocity_field(S[k], Pa);
-                if (tree_.is_ancestor(j, lc.frame_b))
-                    dPb = dynamic_system2dp::velocity_field(S[k], Pb);
-                G[(2 * c + 0) * ndep + k] = dPa.x - dPb.x;
-                G[(2 * c + 1) * ndep + k] = dPa.y - dPb.y;
+                if (on_a) dPa = dynamic_system2dp::velocity_field(S[k], Pa);
+                if (on_b) dPb = dynamic_system2dp::velocity_field(S[k], Pb);
+                value_t const dx = dPa.x - dPb.x, dy = dPa.y - dPb.y;
+                switch (lc.type) {
+                    case constraint2dp::coincidence:
+                        G[(r + 0) * ndep + k] = dx;
+                        G[(r + 1) * ndep + k] = dy;
+                        break;
+                    case constraint2dp::distance:
+                        G[r * ndep + k] = n.x * dx + n.y * dy;
+                        break;
+                    case constraint2dp::frame:
+                        G[(r + 0) * ndep + k] = dx;
+                        G[(r + 1) * ndep + k] = dy;
+                        G[(r + 2) * ndep + k] =
+                            (on_a ? S[k].z : 0.0) - (on_b ? S[k].z : 0.0);
+                        break;
+                }
             }
+            r += rows_of(lc);
         }
         return G;
     }

@@ -22,11 +22,12 @@ from ga_py import pga
 # --- scoped enums --------------------------------------------------------
 
 def test_constraint2dp_enum_members():
-    assert list(pga.constraint2dp.__members__) == ["coincidence"]
+    # the loop-joint kinds: pin, rod, weld (D1)
+    assert list(pga.constraint2dp.__members__) == ["coincidence", "distance", "frame"]
 
 
 def test_constraint3dp_enum_members():
-    assert list(pga.constraint3dp.__members__) == ["coincidence"]
+    assert list(pga.constraint3dp.__members__) == ["coincidence", "distance", "frame"]
 
 
 def test_joint_enum_members():
@@ -42,11 +43,26 @@ def test_enum_values_distinct_and_equal_to_self():
 # --- loop_constraint2dp (the closed-loop descriptor) ---------------------
 
 def _make_coincidence(fa=0, fb=1):
+    # the bound ctor is all-fields positional: (..., type, length, active)
     return pga.loop_constraint2dp(
         fa, pga.vec2dp(1.0, 0.0, 1.0),
         fb, pga.vec2dp(2.0, 0.0, 1.0),
-        pga.constraint2dp.coincidence,
+        pga.constraint2dp.coincidence, 0.0, True,
     )
+
+
+def test_loop_constraint2dp_kinds_and_state_round_trip():
+    # the three constraint kinds, the rod length and the active flag (D1)
+    rod = pga.loop_constraint2dp(0, pga.vec2dp(1.0, 0.0, 1.0),
+                                 1, pga.vec2dp(2.0, 0.0, 1.0),
+                                 pga.constraint2dp.distance, 0.75, False)
+    assert rod.type == pga.constraint2dp.distance
+    assert rod.length == 0.75
+    assert rod.active is False
+    rod.active = True
+    rod.type = pga.constraint2dp.frame
+    assert rod.active is True and rod.type == pga.constraint2dp.frame
+    assert "frame" in str(rod) and "active" in str(rod)
 
 
 def test_loop_constraint2dp_field_access():
@@ -109,8 +125,18 @@ def _make_coincidence3d(fa=0, fb=1):
     return pga.loop_constraint3dp(
         fa, pga.vec3dp(1.0, 0.0, 0.0, 1.0),
         fb, pga.vec3dp(2.0, 0.0, 0.0, 1.0),
-        pga.constraint3dp.coincidence,
+        pga.constraint3dp.coincidence, 0.0, True,
     )
+
+
+def test_loop_constraint3dp_kinds_and_state_round_trip():
+    rod = pga.loop_constraint3dp(0, pga.vec3dp(1.0, 0.0, 0.0, 1.0),
+                                 1, pga.vec3dp(2.0, 0.0, 0.0, 1.0),
+                                 pga.constraint3dp.distance, 0.75, False)
+    assert rod.type == pga.constraint3dp.distance
+    assert rod.length == 0.75
+    assert rod.active is False
+    assert "distance" in str(rod)
 
 
 def test_loop_constraint3dp_field_access():

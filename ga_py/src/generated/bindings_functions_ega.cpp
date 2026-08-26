@@ -84,6 +84,8 @@ void register_functions_ega(nb::module_& m)
     m.def("conj", [](mvec3d_e const& a0) { return conj(a0); });
     m.def("conj", [](mvec3d_u const& a0) { return conj(a0); });
     m.def("conj", [](mvec3d const& a0) { return conj(a0); });
+    m.def("cos", [](mvec2d const& a0) { return cos(a0); });
+    m.def("cos", [](mvec3d const& a0) { return cos(a0); });
     m.def("cross", [](vec3d const& a0, vec3d const& a1) { return cross(a0, a1); });
     m.def("dot", [](mvec2d const& a0, mvec2d const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2d_e const& a0, mvec2d_e const& a1) { return dot(a0, a1); });
@@ -105,8 +107,11 @@ void register_functions_ega(nb::module_& m)
     m.def("dual", [](mvec3d_u const& a0) { return dual(a0); });
     m.def("dual", [](mvec3d const& a0) { return dual(a0); });
     m.def("exp", [](pscalar2d const& a0) { return exp(a0); });
+    m.def("exp", [](mvec2d const& a0) { return exp(a0); });
     m.def("exp", [](pscalar2d const& a0, double a1) { return exp(a0, a1); });
     m.def("exp", [](bivec3d const& a0) { return exp(a0); });
+    m.def("exp", [](pscalar3d const& a0) { return exp(a0); });
+    m.def("exp", [](mvec3d const& a0) { return exp(a0); });
     m.def("exp", [](bivec3d const& a0, double a1) { return exp(a0, a1); });
     m.def("get_rotor", [](pscalar2d const& a0, double a1) { return get_rotor(a0, a1); });
     m.def("get_rotor", [](bivec3d const& a0, double a1) { return get_rotor(a0, a1); });
@@ -160,6 +165,9 @@ void register_functions_ega(nb::module_& m)
     m.def("is_close", [](mvec2d_e const& a0, mvec2d_e const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
+    m.def("is_close", [](mvec2d const& a0, mvec2d const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
     m.def("is_close", [](scalar3d const& a0, scalar3d const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
@@ -173,6 +181,12 @@ void register_functions_ega(nb::module_& m)
         return is_close(a0, a1, a2);
     });
     m.def("is_close", [](mvec3d_e const& a0, mvec3d_e const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec3d_u const& a0, mvec3d_u const& a1, double a2) {
+        return is_close(a0, a1, a2);
+    });
+    m.def("is_close", [](mvec3d const& a0, mvec3d const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
     m.def("is_congruent", [](scalar2d const& a0, scalar2d const& a1, double a2) {
@@ -270,6 +284,11 @@ void register_functions_ega(nb::module_& m)
     m.def("r_dual", [](mvec2d const& a0) { return r_dual(a0); });
     m.def("r_expand",
           [](vec3d const& a0, bivec3d const& a1) { return r_expand(a0, a1); });
+    m.def("reciprocal_frame",
+          [](vec2d const& a0, vec2d const& a1) { return reciprocal_frame(a0, a1); });
+    m.def("reciprocal_frame", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) {
+        return reciprocal_frame(a0, a1, a2);
+    });
     m.def("reflect_on",
           [](vec2d const& a0, vec2d const& a1) { return reflect_on(a0, a1); });
     m.def("reflect_on",
@@ -403,6 +422,8 @@ void register_functions_ega(nb::module_& m)
     m.def("rwdg", [](vec3d const& a0, scalar3d const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar3d const& a0, vec3d const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar3d const& a0, scalar3d const& a1) { return rwdg(a0, a1); });
+    m.def("sin", [](mvec2d const& a0) { return sin(a0); });
+    m.def("sin", [](mvec3d const& a0) { return sin(a0); });
     m.def("sqrt", [](mvec2d_e const& a0) { return sqrt(a0); });
     m.def("sqrt", [](mvec3d_e const& a0) { return sqrt(a0); });
     m.def("twdg1", [](pscalar2d const& a0, vec2d const& a1) { return twdg1(a0, a1); });
