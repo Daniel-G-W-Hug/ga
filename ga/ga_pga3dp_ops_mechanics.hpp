@@ -461,6 +461,55 @@ struct pose3dp {
     vec3dp rot{0.0, 0.0, 0.0, 0.0};    // orientation vs. parent: axis * angle (w = 0)
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// The screw axis of a motion (Chasles): every rigid displacement is a rotation by
+// `angle` about a line `axis` combined with a translation `dist` along it (Lynch & Park
+// ch. 3, ScrewToAxis / AxisAng; Lengyel, PGA Illuminated 3.93). The generator of a motor
+// is that screw scaled by its parameters,
+//
+//     B = angle * l + dist * att(l)         M = rexp(1/2 B)
+//
+// with l the unit axis line (weight = direction, bulk = moment), and rexp/rlog work on
+// the HALF generator (the sandwich is quadratic in M). screw_axis() undoes both: from a
+// motor it returns the full angle and distance -- what get_motor(l, angle, dist) takes,
+// so the two round-trip; from a twist (a generator, e.g. a joint screw or a velocity)
+// it returns the axis, the angular rate as `angle` and the linear rate along the axis
+// as `dist`. pitch() = dist / angle is the screw pitch (a pure rotation has 0, a pure
+// translation has no finite pitch: angle == 0, axis = the direction at infinity).
+////////////////////////////////////////////////////////////////////////////////
+
+struct screw_axis3dp {
+    bivec3dp axis;      // unit line (weight normalised); for a translation the ideal
+                        // line carrying the direction (weight zero)
+    value_t angle{0.0}; // rotation angle (motor) or angular rate (twist), rad
+    value_t dist{0.0};  // translation along the axis (motor) or linear rate (twist)
+
+    value_t pitch() const { return dist / angle; } // inf / nan for a pure translation
+};
+
+// screw axis of a generator B (a twist): B = angle * l + dist * att(l)
+inline screw_axis3dp screw_axis(bivec3dp const& B)
+{
+    value_t const w = std::sqrt(B.vx * B.vx + B.vy * B.vy + B.vz * B.vz);
+    if (w < eps) {
+        // pure translation: no finite axis; carry the direction (bulk) as an ideal line
+        value_t const d = std::sqrt(B.mx * B.mx + B.my * B.my + B.mz * B.mz);
+        if (d < eps) return screw_axis3dp{bivec3dp{}, 0.0, 0.0};
+        return screw_axis3dp{bivec3dp{0.0, 0.0, 0.0, B.mx / d, B.my / d, B.mz / d}, 0.0,
+                             d};
+    }
+    // unit direction l = weight / w; dist is the bulk's component along l; the axis
+    // moment is the remaining bulk, per unit angle
+    value_t const lx = B.vx / w, ly = B.vy / w, lz = B.vz / w;
+    value_t const dist = B.mx * lx + B.my * ly + B.mz * lz;
+    return screw_axis3dp{bivec3dp{lx, ly, lz, (B.mx - dist * lx) / w,
+                                  (B.my - dist * ly) / w, (B.mz - dist * lz) / w},
+                         w, dist};
+}
+
+// screw axis of a motor: the full angle and distance, 2 * rlog(M)
+inline screw_axis3dp screw_axis(mvec3dp_e const& M) { return screw_axis(2.0 * rlog(M)); }
+
 
 // Build the body->parent motor M = translate(origin) (x) rotate(rot) from a pose. The
 // rotation about the parent origin is rexp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight
@@ -1242,6 +1291,35 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // joint coordinate
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // joint rate
+    joint_state3dp const& joint_props(size_t idx) const { return joint[idx]; }
+
+    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
+    // generalised coords integrated by the forward dynamics. Kinematically driven joints
+    // (in driven_) are excluded: they are prescribed, not solved for.
+    std::vector<size_t> dof_joints() const
+    {
+        std::vector<size_t> rj;
+        for (size_t i = 1; i < size(); ++i)
+            if ((joint[i].type == joint3dp::revolute ||
+                 joint[i].type == joint3dp::prismatic) &&
+                driven_.count(i) == 0)
+                rj.push_back(i);
+        return rj;
+    }
+
+    // Set a joint's generalised coordinate / rate and refresh the kinematic state (pose
+    // + relative twist), so every query downstream is consistent. The way to pose a
+    // mechanism from outside the integrator -- an IK step, a finite-difference probe.
+    void set_joint(size_t idx, value_t q)
+    {
+        joint[idx].phi = q;
+        apply_joint_state(idx);
+    }
+    void set_joint_rate(size_t idx, value_t qdot)
+    {
+        joint[idx].omega = qdot;
+        apply_joint_state(idx);
+    }
 
     // Attach a linear spring + damper to a 1-DOF joint's generalised coordinate q:
     // tau += -k*(q - q0) - c*q-dot. Additive to the gravity/bias generalised forces; the
@@ -1383,6 +1461,75 @@ class dynamic_system3dp : public kinematic_system3dp {
     // Joint-space mass matrix M(q) (n*n row-major, n = number of 1-DOF joints) at the
     // current configuration. A diagnostic / showcase quantity: the reduced inertia of the
     // articulated system, with the identity  1/2 * qdot^T M(q) qdot == kinetic_energy().
+    // --- the Jacobian ---------------------------------------------------------------
+    //
+    // The columns of the (space) Jacobian of a frame f are the world joint screws of its
+    // ancestor dof joints, S_j = move3dp(screw_b, M_j) -- the twist the frame acquires
+    // per unit rate of joint j (Lynch & Park def. 5.1: J_s(theta)_i = Ad(...)(S_i)). They
+    // are the same columns assemble_mass_bias() and mass_matrix() build. The BODY
+    // Jacobian pulls every column into frame f, J_b = Ad(rrev(M_f)) J_s (def. 5.4).
+    // Columns of joints that are not ancestors of f are zero; the order is dof_joints()
+    // order.
+    //
+    // jacobian_columns() returns the columns as twists (the GA-native reading);
+    // jacobian() the flat 6 x n row-major matrix (rows = the six bivector components in
+    // declaration order vx,vy,vz,mx,my,mz, i.e. angular then linear) that lu_solve /
+    // lstsq_solve / nullspace_project consume, and jacobian(f, cols) the column subset a
+    // task-space solve slices out. The relation V = J q-dot holds with twist_world(f)
+    // for the space form and with the frame's body twist for the body form.
+    std::vector<twist3dp> jacobian_columns(size_t f, bool body_form = false)
+    {
+        auto const rj = dof_joints();
+        std::vector<twist3dp> J(rj.size());
+        mvec3dp_e const Mf_inv = body_form ? rrev(get_pos_trafo(f, 0)) : mvec3dp_e{};
+        for (size_t j = 0; j < rj.size(); ++j) {
+            if (!is_ancestor(rj[j], f)) continue;
+            twist3dp const S = move3dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
+            J[j] = body_form ? move3dp(S, Mf_inv) : S;
+        }
+        return J;
+    }
+
+    // flat 6 x n row-major Jacobian of frame f (see jacobian_columns)
+    std::vector<value_t> jacobian(size_t f, bool body_form = false)
+    {
+        auto const cols = jacobian_columns(f, body_form);
+        size_t const n = cols.size();
+        std::vector<value_t> J(6 * n, 0.0);
+        for (size_t j = 0; j < n; ++j) {
+            J[0 * n + j] = cols[j].vx;
+            J[1 * n + j] = cols[j].vy;
+            J[2 * n + j] = cols[j].vz;
+            J[3 * n + j] = cols[j].mx;
+            J[4 * n + j] = cols[j].my;
+            J[5 * n + j] = cols[j].mz;
+        }
+        return J;
+    }
+
+    // flat 6 x k row-major Jacobian restricted to the joints `joints` (frame indices, in
+    // the given order) -- the column subset a redundant task-space solve slices out
+    std::vector<value_t> jacobian(size_t f, std::vector<size_t> const& joints,
+                                  bool body_form = false)
+    {
+        auto const rj = dof_joints();
+        auto const cols = jacobian_columns(f, body_form);
+        size_t const k = joints.size();
+        std::vector<value_t> J(6 * k, 0.0);
+        for (size_t c = 0; c < k; ++c) {
+            auto const it = std::find(rj.begin(), rj.end(), joints[c]);
+            if (it == rj.end()) continue; // not a dof joint: zero column
+            auto const& col = cols[static_cast<size_t>(it - rj.begin())];
+            J[0 * k + c] = col.vx;
+            J[1 * k + c] = col.vy;
+            J[2 * k + c] = col.vz;
+            J[3 * k + c] = col.mx;
+            J[4 * k + c] = col.my;
+            J[5 * k + c] = col.mz;
+        }
+        return J;
+    }
+
     std::vector<value_t> mass_matrix()
     {
         auto const rj = dof_joints();
@@ -1533,19 +1680,6 @@ class dynamic_system3dp : public kinematic_system3dp {
         }
     }
 
-    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
-    // generalised coords integrated by the forward dynamics. Kinematically driven joints
-    // (in driven_) are excluded: they are prescribed, not solved for.
-    std::vector<size_t> dof_joints() const
-    {
-        std::vector<size_t> rj;
-        for (size_t i = 1; i < size(); ++i)
-            if ((joint[i].type == joint3dp::revolute ||
-                 joint[i].type == joint3dp::prismatic) &&
-                driven_.count(i) == 0)
-                rj.push_back(i);
-        return rj;
-    }
 
     // A FREE body and a 1-DOF joint chain do NOT couple in this tier. Free bodies are
     // integrated by step_free_body(); the 1-DOF joints are integrated together by

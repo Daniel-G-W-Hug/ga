@@ -4691,6 +4691,91 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: screw_axis and jacobian (D3)")
+    {
+        fmt::println("pga2dp: screw_axis (centre, angle) and the Jacobian vs finite "
+                     "differences");
+
+        // a rotation about a point: the generator IS the centre scaled by the angle, so
+        // screw_axis recovers the centre by unitizing and the full angle from 2 rlog
+        vec2dp const C{0.7, -0.4, 1.0};
+        value_t const theta = 0.9;
+        auto const M = get_motor(C, theta);
+        auto const s = screw_axis(M);
+        CHECK(s.angle == doctest::Approx(theta).epsilon(1e-12));
+        CHECK(s.centre.x == doctest::Approx(C.x).epsilon(1e-12));
+        CHECK(s.centre.y == doctest::Approx(C.y).epsilon(1e-12));
+        CHECK(is_same_motion(get_motor(s.centre, s.angle), M));
+        // a translation: angle 0 and the displacement vector
+        auto const T = get_motor(vec2dp{0.3, -0.4, 0.0});
+        auto const st = screw_axis(T);
+        CHECK(st.angle == 0.0);
+        CHECK(st.translation.x == doctest::Approx(0.3).epsilon(1e-12));
+        CHECK(st.translation.y == doctest::Approx(-0.4).epsilon(1e-12));
+
+        // the Jacobian of a 3R arm's hand: body columns vs central finite differences
+        // of the hand motor's log, and the space form as the body form transported
+        auto const seg = make_plate_body(2.0, 0.6, 0.06);
+        value_t const q0[3] = {0.3, -0.5, 0.7};
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W"));
+        size_t parent = sys.index_of("W");
+        for (int i = 0; i < 3; ++i) {
+            sys.add_revolute_body(
+                static_frame2dp("L" + std::to_string(i), vec2dp{0.6, 0.0, 1.0}, 0.0), seg,
+                vec2dp{-0.3, 0.0, 1.0}, q0[i], 0.0, parent);
+            parent = sys.index_of("L" + std::to_string(i));
+        }
+        size_t const hand = parent;
+        auto const rj = sys.dof_joints();
+        auto const Jb = sys.jacobian_columns(hand, true);
+        auto const Js = sys.jacobian_columns(hand, false);
+        mvec2dp_u const Mf = sys.get_pos_trafo(hand, 0);
+        value_t const h = 1.0e-5;
+        value_t max_err = 0.0;
+        for (size_t j = 0; j < 3; ++j) {
+            value_t const q = sys.joint_phi(rj[j]);
+            sys.set_joint(rj[j], q + h);
+            mvec2dp_u const Mp = sys.get_pos_trafo(hand, 0);
+            sys.set_joint(rj[j], q - h);
+            mvec2dp_u const Mm = sys.get_pos_trafo(hand, 0);
+            sys.set_joint(rj[j], q);
+            twist2dp const fd = (1.0 / h) * rlog(rgpr(rrev(Mm), Mp));
+            twist2dp const d = fd - Jb[j];
+            max_err = std::max(max_err, std::sqrt(d.x * d.x + d.y * d.y + d.z * d.z));
+            CHECK(is_close(move2dp(Jb[j], Mf), Js[j]));
+        }
+        fmt::println("  max |J_b column - FD of rlog| = {:.2e}", max_err);
+        CHECK(max_err < 1e-8);
+
+        // V = J q-dot reproduces twist_world; flat layout and subset
+        value_t const qd[3] = {0.5, -0.3, 0.8};
+        for (size_t j = 0; j < 3; ++j) {
+            sys.set_joint_rate(rj[j], qd[j]);
+        }
+        twist2dp V{};
+        for (size_t j = 0; j < 3; ++j)
+            V = V + qd[j] * Js[j];
+        CHECK(is_close(V, sys.twist_world(hand)));
+        auto const J = sys.jacobian(hand);
+        CHECK(J.size() == 9);
+        CHECK(J[2 * 3 + 1] == Js[1].z);
+        auto const Jsub = sys.jacobian(hand, std::vector<size_t>{rj[2]});
+        CHECK(Jsub.size() == 3);
+        CHECK(Jsub[1] == Js[2].y);
+        // every revolute column is a unit-rate rotation about its world pivot: its screw
+        // axis is that pivot with angle 1
+        for (size_t j = 0; j < 3; ++j) {
+            auto const sj = screw_axis(Js[j]);
+            vec2dp const piv =
+                unitize(move2dp(vec2dp{-0.3, 0.0, 1.0}, sys.get_pos_trafo(rj[j], 0)));
+            CHECK(sj.angle == doctest::Approx(1.0));
+            CHECK(sj.centre.x == doctest::Approx(piv.x).epsilon(1e-12));
+            CHECK(sj.centre.y == doctest::Approx(piv.y).epsilon(1e-12));
+        }
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -349,6 +349,42 @@ struct pose2dp {
     value_t phi;   // orientation of frame vs. parent coordinates, [phi]: rad
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// The screw axis of a planar motion: every rigid displacement of the plane is a rotation
+// by `angle` about a CENTRE point, or a pure translation (a rotation about a point at
+// infinity). In 2D PGA the generator of a motor is that centre scaled by the angle,
+//
+//     B = angle * C          M = rexp(1/2 B)        C the unitized centre (z = 1)
+//
+// so the twist's z slot is the angle (rate) and its x, y slots are the centre's
+// coordinates times it: the centre is the generator unitized. rexp/rlog work on the
+// HALF generator; screw_axis() returns the full angle from a motor -- what
+// get_motor(C, angle) takes, so the two round-trip -- and the rate from a twist. For a
+// translation (angle == 0) the generator is an ideal point and `translation` carries
+// the displacement vector (a direction, z = 0): twist2dp is (-v.y, v.x, omega), so the
+// displacement is (B.y, -B.x).
+////////////////////////////////////////////////////////////////////////////////
+
+struct screw_axis2dp {
+    vec2dp centre;      // unitized centre of rotation (z = 1); the ideal point (z = 0)
+                        // for a translation
+    value_t angle{0.0}; // rotation angle (motor) or angular rate (twist), rad
+    vec2dp translation; // for a translation: the displacement (motor) / velocity
+                        // (twist) vector, z = 0; zero for a rotation
+};
+
+// screw axis of a generator B (a twist)
+inline screw_axis2dp screw_axis(vec2dp const& B)
+{
+    if (std::abs(B.z) < eps) {
+        return screw_axis2dp{vec2dp{B.x, B.y, 0.0}, 0.0, vec2dp{B.y, -B.x, 0.0}};
+    }
+    return screw_axis2dp{vec2dp{B.x / B.z, B.y / B.z, 1.0}, B.z, vec2dp{0.0, 0.0, 0.0}};
+}
+
+// screw axis of a motor: the full angle, 2 * rlog(M)
+inline screw_axis2dp screw_axis(mvec2dp_u const& M) { return screw_axis(2.0 * rlog(M)); }
+
 
 // Build the body->parent motor M = translate(origin) (x) rotate(phi) from a pose. The
 // rotation about the parent origin is rexp(0.5 * vec2dp(0,0,phi)); the translation by
@@ -1208,6 +1244,35 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // revolute angle
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // revolute rate
+    joint_state2dp const& joint_props(size_t idx) const { return joint[idx]; }
+
+    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
+    // generalised coords integrated by the forward dynamics. Kinematically driven joints
+    // (in driven_) are excluded: they are prescribed, not solved for.
+    std::vector<size_t> dof_joints() const
+    {
+        std::vector<size_t> rj;
+        for (size_t i = 1; i < size(); ++i)
+            if ((joint[i].type == joint2dp::revolute ||
+                 joint[i].type == joint2dp::prismatic) &&
+                driven_.count(i) == 0)
+                rj.push_back(i);
+        return rj;
+    }
+
+    // Set a joint's generalised coordinate / rate and refresh the kinematic state (pose
+    // + relative twist), so every query downstream is consistent. The way to pose a
+    // mechanism from outside the integrator -- an IK step, a finite-difference probe.
+    void set_joint(size_t idx, value_t q)
+    {
+        joint[idx].phi = q;
+        apply_joint_state(idx);
+    }
+    void set_joint_rate(size_t idx, value_t qdot)
+    {
+        joint[idx].omega = qdot;
+        apply_joint_state(idx);
+    }
 
     // Attach a linear spring + damper to a 1-DOF joint's generalised coordinate q:
     // tau += -k*(q - q0) - c*q-dot. Additive to the gravity/bias generalised forces; the
@@ -1324,6 +1389,64 @@ class dynamic_system2dp : public kinematic_system2dp {
     // Joint-space mass matrix M(q) (n*n row-major, n = number of revolute joints) at the
     // current configuration. A diagnostic / showcase quantity: the reduced inertia of the
     // articulated system, with the identity  1/2 * qdot^T M(q) qdot == kinetic_energy().
+    // --- the Jacobian ---------------------------------------------------------------
+    //
+    // The columns of the (space) Jacobian of a frame f are the world joint screws of its
+    // ancestor dof joints, S_j = move2dp(screw_b, M_j) -- the twist the frame acquires
+    // per unit rate of joint j; the same columns assemble_mass_bias() and mass_matrix()
+    // build. The BODY Jacobian pulls every column into frame f, J_b = Ad(rrev(M_f)) J_s.
+    // Columns of joints that are not ancestors of f are zero; the order is dof_joints()
+    // order. jacobian_columns() returns the columns as twists, jacobian() the flat 3 x n
+    // row-major matrix (rows = the twist components x, y, z = the angular rate in the z
+    // slot) the shared solvers consume, and jacobian(f, cols) the column subset. Same
+    // construction as the 3D case.
+    std::vector<twist2dp> jacobian_columns(size_t f, bool body_form = false)
+    {
+        auto const rj = dof_joints();
+        std::vector<twist2dp> J(rj.size());
+        mvec2dp_u const Mf_inv = body_form ? rrev(get_pos_trafo(f, 0)) : mvec2dp_u{};
+        for (size_t j = 0; j < rj.size(); ++j) {
+            if (!is_ancestor(rj[j], f)) continue;
+            twist2dp const S = move2dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
+            J[j] = body_form ? move2dp(S, Mf_inv) : S;
+        }
+        return J;
+    }
+
+    // flat 3 x n row-major Jacobian of frame f (see jacobian_columns)
+    std::vector<value_t> jacobian(size_t f, bool body_form = false)
+    {
+        auto const cols = jacobian_columns(f, body_form);
+        size_t const n = cols.size();
+        std::vector<value_t> J(3 * n, 0.0);
+        for (size_t j = 0; j < n; ++j) {
+            J[0 * n + j] = cols[j].x;
+            J[1 * n + j] = cols[j].y;
+            J[2 * n + j] = cols[j].z;
+        }
+        return J;
+    }
+
+    // flat 3 x k row-major Jacobian restricted to the joints `joints` (frame indices, in
+    // the given order)
+    std::vector<value_t> jacobian(size_t f, std::vector<size_t> const& joints,
+                                  bool body_form = false)
+    {
+        auto const rj = dof_joints();
+        auto const cols = jacobian_columns(f, body_form);
+        size_t const k = joints.size();
+        std::vector<value_t> J(3 * k, 0.0);
+        for (size_t c = 0; c < k; ++c) {
+            auto const it = std::find(rj.begin(), rj.end(), joints[c]);
+            if (it == rj.end()) continue; // not a dof joint: zero column
+            auto const& col = cols[static_cast<size_t>(it - rj.begin())];
+            J[0 * k + c] = col.x;
+            J[1 * k + c] = col.y;
+            J[2 * k + c] = col.z;
+        }
+        return J;
+    }
+
     std::vector<value_t> mass_matrix()
     {
         auto const rj = dof_joints();
@@ -1478,19 +1601,6 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
     }
 
-    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
-    // generalised coords integrated by the forward dynamics. Kinematically driven joints
-    // (in driven_) are excluded: they are prescribed, not solved for.
-    std::vector<size_t> dof_joints() const
-    {
-        std::vector<size_t> rj;
-        for (size_t i = 1; i < size(); ++i)
-            if ((joint[i].type == joint2dp::revolute ||
-                 joint[i].type == joint2dp::prismatic) &&
-                driven_.count(i) == 0)
-                rj.push_back(i);
-        return rj;
-    }
 
     // A FREE body and a 1-DOF joint chain do NOT couple in this tier. Free bodies are
     // integrated by step_free_body(); the 1-DOF joints are integrated together by

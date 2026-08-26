@@ -387,6 +387,70 @@ template <> struct fmt::formatter<hd::ga::pga::joint_state3dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// screw_axis2dp - the screw axis of a planar motion (centre, angle, translation)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::screw_axis2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::screw_axis2dp const& s, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "screw_axis2dp(centre = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.centre);
+        out = fmt::format_to(out, ", angle = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.angle);
+        out = fmt::format_to(out, ", translation = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.translation);
+        return fmt::format_to(out, ")");
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// screw_axis3dp - the screw axis of a spatial motion (unit line, angle, distance)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::screw_axis3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::screw_axis3dp const& s, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "screw_axis3dp(axis = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.axis);
+        out = fmt::format_to(out, ", angle = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.angle);
+        out = fmt::format_to(out, ", dist = ");
+        out = fmt::format_to(out, fmt::runtime(child), s.dist);
+        return fmt::format_to(out, ")");
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // loop_constraint2dp - a closed-loop point-coincidence constraint between two
 // tree frames (anchor_a in frame_a must coincide with anchor_b in frame_b)
 ////////////////////////////////////////////////////////////////////////////////

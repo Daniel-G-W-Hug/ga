@@ -1748,6 +1748,121 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: screw_axis - the screw of a motor and of a twist (D3)")
+    {
+        fmt::println("pga3dp: screw_axis - Chasles' axis, angle and distance");
+
+        // round trip through the builder: get_motor(l, theta, dist) -> screw_axis gives
+        // (l, theta, dist) back -- the FULL angle and distance (rlog carries the halves)
+        bivec3dp const l =
+            unitize(wdg(vec3dp{0.3, -0.2, 0.5, 1.0}, vec3dp{0.6, 0.8, 0.0, 0.0}));
+        value_t const theta = 0.9, dist = 0.35;
+        auto const M = get_motor(l, theta, dist);
+        auto const s = screw_axis(M);
+        CHECK(s.angle == doctest::Approx(theta).epsilon(1e-12));
+        CHECK(s.dist == doctest::Approx(dist).epsilon(1e-12));
+        CHECK(is_close(s.axis, l));
+        CHECK(s.pitch() == doctest::Approx(dist / theta).epsilon(1e-12));
+        // and forward again
+        CHECK(is_same_motion(get_motor(s.axis, s.angle, s.dist), M));
+
+        // a joint screw is a twist: a revolute's is its pivot line at unit rate, pitch 0
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        vec3dp const piv{-0.3, 0.1, 0.0, 1.0}, ax{0.0, 0.6, 0.8, 0.0};
+        sys.add_revolute_body(static_frame3dp("L", vec3dp{0.5, 0.2, -0.1, 1.0}),
+                              make_cuboid_body(1.0, 0.6, 0.1, 0.1), piv, ax, 0.7, 0.0,
+                              sys.index_of("W"));
+        auto const js = screw_axis(sys.joint_props(1).screw_b);
+        CHECK(js.angle == doctest::Approx(1.0));
+        CHECK(std::abs(js.dist) < 1e-14);
+        CHECK(is_close(js.axis, unitize(wdg(piv, ax))));
+
+        // a pure translation has no finite axis: angle 0, dist = the length, axis = the
+        // direction at infinity
+        auto const T = get_motor(vec3dp{0.3, -0.4, 1.2, 0.0});
+        auto const st = screw_axis(T);
+        CHECK(st.angle == 0.0);
+        CHECK(st.dist == doctest::Approx(std::sqrt(0.09 + 0.16 + 1.44)).epsilon(1e-12));
+        fmt::println("  motor round trip exact; revolute screw = pivot line, pitch 0; "
+                     "translation: angle 0, dist = |delta|");
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: jacobian - analytic columns vs finite differences of rlog (D3)")
+    {
+        fmt::println("pga3dp: jacobian - analytic vs finite differences, body and space");
+
+        // the 6R arm of the weld test; the hand's body Jacobian column j must equal the
+        // finite difference of the hand motor's log w.r.t. q_j:
+        //
+        //     J_b[:, j] = d/dq_j [ 2 rlog( rrev(M_f(q)) (x) M_f(q + h e_j) ) ]      (h ->
+        //     0)
+        //
+        // central differences, so the truncation error is O(h^2); and the space form is
+        // the body form transported by the hand motor, J_s = Ad(M_f) J_b.
+        auto const seg = make_cuboid_body(2.0, 0.6, 0.06, 0.06);
+        vec3dp const ez{0.0, 0.0, 1.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0};
+        value_t const q0[6] = {0.3, -0.5, 0.7, 0.4, -0.6, 0.2};
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        size_t parent = sys.index_of("W");
+        for (int i = 0; i < 6; ++i) {
+            sys.add_revolute_body(
+                static_frame3dp("L" + std::to_string(i), vec3dp{0.6, 0.0, 0.0, 1.0}), seg,
+                vec3dp{-0.3, 0.0, 0.0, 1.0}, (i % 2 == 0) ? ez : ey, q0[i], 0.0, parent);
+            parent = sys.index_of("L" + std::to_string(i));
+        }
+        size_t const hand = parent;
+        auto const rj = sys.dof_joints();
+        CHECK(rj.size() == 6);
+
+        auto const Jb = sys.jacobian_columns(hand, true);
+        auto const Js = sys.jacobian_columns(hand, false);
+        mvec3dp_e const Mf = sys.get_pos_trafo(hand, 0);
+        value_t const h = 1.0e-5;
+        value_t max_err = 0.0;
+        for (size_t j = 0; j < 6; ++j) {
+            value_t const q = sys.joint_phi(rj[j]);
+            sys.set_joint(rj[j], q + h);
+            mvec3dp_e const Mp = sys.get_pos_trafo(hand, 0);
+            sys.set_joint(rj[j], q - h);
+            mvec3dp_e const Mm = sys.get_pos_trafo(hand, 0);
+            sys.set_joint(rj[j], q);
+            // body twist over the step: the log of the relative motor, central
+            twist3dp const fd = (1.0 / h) * rlog(rgpr(rrev(Mm), Mp)); // 2 rlog / (2 h)
+            twist3dp const d = fd - Jb[j];
+            max_err =
+                std::max(max_err, std::sqrt(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz +
+                                            d.mx * d.mx + d.my * d.my + d.mz * d.mz));
+            // space column = body column transported by the hand motor
+            CHECK(is_close(move3dp(Jb[j], Mf), Js[j]));
+        }
+        fmt::println("  max |J_b column - FD of rlog| = {:.2e} (h = {:.0e})", max_err, h);
+        CHECK(max_err < 1e-8);
+
+        // V = J q-dot: with rates set, the space Jacobian reproduces twist_world
+        value_t const qd[6] = {0.5, -0.3, 0.8, 0.1, -0.7, 0.4};
+        for (size_t j = 0; j < 6; ++j) {
+            sys.set_joint_rate(rj[j], qd[j]);
+        }
+        auto const J = sys.jacobian(hand);
+        twist3dp V{};
+        for (size_t j = 0; j < 6; ++j)
+            V = V + qd[j] * Js[j];
+        CHECK(is_close(V, sys.twist_world(hand)));
+        CHECK(J.size() == 36);
+        CHECK(J[0 * 6 + 2] == Js[2].vx); // row-major: row = component, column = joint
+        // a column subset: joints 1 and 4 only, 6 x 2
+        auto const Jsub = sys.jacobian(hand, std::vector<size_t>{rj[1], rj[4]});
+        CHECK(Jsub.size() == 12);
+        CHECK(Jsub[3 * 2 + 1] == Js[4].mx);
+        // a joint that is no ancestor of the queried frame has a zero column
+        auto const J2 = sys.jacobian_columns(rj[2]);
+        CHECK(std::abs(J2[5].vx) + std::abs(J2[5].mx) == 0.0);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 
 
