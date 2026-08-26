@@ -1339,9 +1339,18 @@ class dynamic_system3dp : public kinematic_system3dp {
     // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
     // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
     // accumulated from the current relative pose M0 (so M(t) = M0 (x) rexp(1/2 B)), Omega
-    // the body twist. dB/dt = Omega; dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ].
-    // For a torque-free body (grav = 0) this reduces to the pure se(3) Euler equation
-    // (Poinsot / Dzhanibekov).
+    // the body twist. dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ], and
+    //
+    //     dB/dt = dexp^-1(B) Omega = Omega + 1/2 [B, Omega] + 1/12 [B, [B, Omega]] + ...
+    //
+    // with [.,.] = rcmt: the body twist pulled back through the differential of rexp at
+    // B (Munthe-Kaas). dB/dt = Omega alone holds only where B and Omega commute; using
+    // it anyway degrades RK4 on the pair to SECOND order on the pose and on the
+    // world-frame momentum (measured: error ratio 4.00 per halving of dt; with the
+    // single bracket 8; with both brackets 16). The series is truncated after the double
+    // bracket, which suffices for fourth order because B = O(dt) within a step (B
+    // restarts at 0 every step). For a torque-free body (grav = 0) the Omega equation
+    // reduces to the pure se(3) Euler equation (Poinsot / Dzhanibekov).
     void step_free_body(size_t idx, value_t dt)
     {
         auto const M0 = rrev(step_pos_trafo(idx)); // current body -> parent motor
@@ -1357,7 +1366,13 @@ class dynamic_system3dp : public kinematic_system3dp {
             return compute_omega_dot(I_inv, W_b, Om, I);
         };
 
-        // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = Omega,
+        // generator rate dB/dt = dexp^-1(B) Omega, truncated after the double bracket
+        auto b_dot = [](twist3dp const& B, twist3dp const& Om) -> twist3dp {
+            twist3dp const c1 = rcmt(B, Om);
+            return Om + 0.5 * c1 + (1.0 / 12.0) * rcmt(B, c1);
+        };
+
+        // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = b_dot,
         // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) rexp(1/2 B)).
         std::array<twist3dp, 2> u_mem{twist3dp{}, relative_twist(idx)};
         std::array<twist3dp, 4> uh_mem{};
@@ -1367,7 +1382,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         auto const rhs =
             std::mdspan<twist3dp const, std::dextents<size_t, 1>>(rhs_mem.data(), 2);
         for (size_t s = 1; s <= 4; ++s) {
-            rhs_mem[0] = u[1];                  // dB/dt = Omega
+            rhs_mem[0] = b_dot(u[0], u[1]);     // dB/dt = dexp^-1(B) Omega
             rhs_mem[1] = omega_dot(u[0], u[1]); // dOmega/dt
             rk4_step(u, uh, rhs, dt, s);
         }

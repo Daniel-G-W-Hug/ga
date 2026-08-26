@@ -773,8 +773,12 @@ class DynamicSystem3dp(KinematicSystem3dp):
 
     def _step_free_body(self, idx: int, dt: float) -> None:
         """RK4-integrate one free rigid body over dt on the Lie-algebra pair (B, Omega):
-        dB/dt = Omega, dOmega/dt = I⁻¹[W_body - rcmt(Omega, I(Omega))] (compute_omega_dot).
-        Pose evolves on the motor manifold M(t) = M0 ⟇ rexp(½ B).
+        dB/dt = dexp⁻¹(B) Omega = Omega + ½[B, Omega] + 1/12 [B, [B, Omega]] (the bracket
+        is rcmt; the series is truncated after the double bracket, enough for fourth
+        order since B = O(dt) restarts at 0 each step), dOmega/dt = I⁻¹[W_body -
+        rcmt(Omega, I(Omega))] (compute_omega_dot). Pose evolves on the motor manifold
+        M(t) = M0 ⟇ rexp(½ B). Mirrors the C++ step_free_body, bracket terms included --
+        without them the scheme is only second order on the pose.
         """
         m0 = pga.rrev(self.step_pos_trafo(idx))  # current body -> parent motor
         bd = self._body[idx]
@@ -789,7 +793,9 @@ class DynamicSystem3dp(KinematicSystem3dp):
             return pga.compute_omega_dot(I_inv, w_b, Om, I)
 
         def deriv(B, Om):
-            return Om, omega_dot(B, Om)  # (dB/dt, dOmega/dt)
+            c1 = pga.rcmt(B, Om)
+            b_dot = Om + 0.5 * c1 + (1.0 / 12.0) * pga.rcmt(B, c1)  # dexp⁻¹(B) Omega
+            return b_dot, omega_dot(B, Om)  # (dB/dt, dOmega/dt)
 
         B0 = self._zero_twist()
         Om0 = self.relative_twist(idx)

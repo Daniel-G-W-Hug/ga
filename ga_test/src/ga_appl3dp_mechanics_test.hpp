@@ -815,9 +815,10 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
             // energy conservation (RK4 drift)
             max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
 
-            // cm follows the exact parabola  cm(t) = v0*t + 1/2 g t^2 (absolute error:
-            // the body-frame twist representation couples the spin into the RK4
-            // truncation)
+            // cm follows the exact parabola  cm(t) = v0*t + 1/2 g t^2. The body-frame
+            // twist couples the spin into the generator rate; with the dexp^-1 brackets
+            // in step_free_body that coupling is integrated at fourth order (the
+            // tolerances below were 1e-4 / 1e-3 while the scheme was second order)
             vec3dp const cm = move3dp(O_3dp, sys.get_pos_trafo("B", "W"));
             max_cm_err =
                 std::max({max_cm_err, std::abs(cm.x - 1.0 * t),
@@ -832,9 +833,9 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
         fmt::println("  E0 = {:.6f}, dE/E = {:.2e}, max cm err = {:.2e}, max omega err = "
                      "{:.2e}",
                      E0, max_dE / std::abs(E0), max_cm_err, max_w_err);
-        CHECK(max_dE / std::abs(E0) < 1e-4); // RK4 drift (spin-coupled)
-        CHECK(max_cm_err < 1e-3);
-        CHECK(max_w_err < 1e-12); // exact: omega_dot == 0 for this case
+        CHECK(max_dE / std::abs(E0) < 1e-9); // RK4 drift (measured 8.6e-12)
+        CHECK(max_cm_err < 1e-8);            // measured 2.9e-11
+        CHECK(max_w_err < 1e-12);            // exact: omega_dot == 0 for this case
         fmt::println("");
     }
 
@@ -893,13 +894,68 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
             min_wy, w0.y, max_abs_wx, max_cm);
 
         // conservation: energy and the world angular-momentum vector
-        CHECK(max_dE / std::abs(E0) < 1e-6);
-        CHECK(max_dL / L0n < 1e-5);
+        CHECK(max_dE / std::abs(E0) < 1e-9); // measured 1.9e-13
+        CHECK(max_dL / L0n < 1e-9);          // measured 8.8e-12 (was 1e-5 at 2nd order)
         CHECK(max_cm < 1e-8); // cm fixed (pure rotation, no linear momentum)
         // the flip: w_y reverses sign (drops from +5 to clearly negative), and the
         // perturbation about e1 grows large during the flip
         CHECK(min_wy < -3.0);
         CHECK(max_abs_wx > 2.0);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: free body integration converges at FOURTH order on the group")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - free body convergence order (dexp^-1)");
+
+        // The order gate that the conservation tolerances above cannot provide: a
+        // tolerance passes a second-order scheme at a small enough dt, a convergence
+        // ratio does not. The tumbling body has B and Omega non-commuting throughout, so
+        // the dexp^-1 bracket terms in step_free_body are exercised. Reference: the
+        // same scheme at 32x the finest resolution, so its own error is ~1e-6 of the
+        // coarsest cell's. Falsified: dropping the 1/12 double bracket makes the ratio
+        // 8, dropping both brackets makes it 4 (measured).
+        auto const body = make_cuboid_body(2.0, 0.1, 0.3, 0.6); // three distinct moments
+        auto make = [&] {
+            dynamic_system3dp sys;
+            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.add_frame(static_frame3dp("W"));
+            sys.add_body(static_frame3dp("B"), body,
+                         kin_state3dp{.omega = vec3dp{0.05, 3.0, 0.02, 0.0}});
+            return sys;
+        };
+        value_t const T = 3.0;
+        auto const nrm6 = [](bivec3dp const& D) {
+            return std::sqrt(D.vx * D.vx + D.vy * D.vy + D.vz * D.vz + D.mx * D.mx +
+                             D.my * D.my + D.mz * D.mz);
+        };
+
+        auto ref = make();
+        for (size_t i = 0; i < 19200; ++i)
+            ref.step(T / 19200.0);
+        auto const Mref = ref.get_pos_trafo(1, 0);
+
+        value_t err_prev = 0.0, drift_prev = 0.0;
+        for (size_t N : {150, 300, 600}) {
+            auto sys = make();
+            bivec3dp const L0 = sys.momentum_world(1);
+            value_t drift = 0.0;
+            for (size_t i = 0; i < N; ++i) {
+                sys.step(T / value_t(N));
+                drift = std::max(drift, nrm6(sys.momentum_world(1) - L0));
+            }
+            // pose error as the generator between the two motors
+            value_t const err = nrm6(rlog(rgpr(rrev(Mref), sys.get_pos_trafo(1, 0))));
+            fmt::println("  N = {:4}: pose err = {:.3e} (ratio {:5.2f}), max |dL| = "
+                         "{:.3e} (ratio {:5.2f})",
+                         N, err, err_prev / err, drift, drift_prev / drift);
+            if (err_prev > 0.0) {
+                CHECK(err_prev / err > 14.0);     // fourth order: 16 per halving
+                CHECK(drift_prev / drift > 14.0); // the momentum drift shrinks alike
+            }
+            err_prev = err;
+            drift_prev = drift;
+        }
         fmt::println("");
     }
 

@@ -3334,6 +3334,47 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: free body integration converges at FOURTH order on the group")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - free body convergence order (dexp^-1)");
+
+        // Same gate as the 3D case: the generator B and the body twist Omega do not
+        // commute for a spinning body whose body-frame velocity rotates, so without the
+        // dexp^-1 brackets in step_free_body the scheme is second order on the pose
+        // (measured ratio 4 per halving of dt; with both brackets 16). Gravity on, so the
+        // body-frame velocity changes as well. Reference at 32x the finest resolution.
+        auto make = [] {
+            dynamic_system2dp sys;
+            sys.add_frame(static_frame2dp("W"));
+            sys.add_body(static_frame2dp("B", vec2dp{0.0, 5.0, 1.0}, 0.0),
+                         make_plate_body(2.0, 1.0, 0.3),
+                         kin_state2dp{.vel = vec2dp{3.0, 1.0, 0.0}, .omega = 4.0});
+            return sys;
+        };
+        value_t const T = 1.0;
+        auto const nrm3 = [](vec2dp const& D) {
+            return std::sqrt(D.x * D.x + D.y * D.y + D.z * D.z);
+        };
+
+        auto ref = make();
+        for (size_t i = 0; i < 19200; ++i)
+            ref.step(T / 19200.0);
+        auto const Mref = ref.get_pos_trafo(1, 0);
+
+        value_t err_prev = 0.0;
+        for (size_t N : {150, 300, 600}) {
+            auto sys = make();
+            for (size_t i = 0; i < N; ++i)
+                sys.step(T / value_t(N));
+            value_t const err = nrm3(rlog(rgpr(rrev(Mref), sys.get_pos_trafo(1, 0))));
+            fmt::println("  N = {:4}: pose err = {:.3e} (ratio {:5.2f})", N, err,
+                         err_prev / err);
+            if (err_prev > 0.0) CHECK(err_prev / err > 14.0); // fourth order: 16
+            err_prev = err;
+        }
+        fmt::println("");
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     // dynamic_system2dp -- Phase B, Milestone 2: single pivoted plate (revolute joint).
     // The plate hangs from a body-fixed hinge Q_b and swings under gravity (a compound
