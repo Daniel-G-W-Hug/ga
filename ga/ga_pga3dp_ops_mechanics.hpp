@@ -1642,6 +1642,42 @@ class dynamic_system3dp : public kinematic_system3dp {
     // world twist pulled into the body frame where the inertia map lives.
     // Dimension-agnostic form
     // -- LITERALLY the 2D code with the BiVec3dp rwdg overload.
+    // --- mass distribution ------------------------------------------------------------
+    //
+    // The total mass, the centre of mass, and gravity as ONE wrench -- the sum of the
+    // force lines wdg(C_i, m_i g) -- so a moment about any point is one moment_about():
+    // about the centre of mass it vanishes, which is the test. The centre of mass is
+    // the projective point sum: with every body origin (its centre of mass) unitized,
+    // sum m_i C_i has the WEIGHT sum m_i, so unitizing the sum IS the mass-weighted
+    // mean -- no division, the weight carries the mass.
+    value_t total_mass() const
+    {
+        value_t m = 0.0;
+        for (size_t i = 0; i < size(); ++i)
+            m += body[i].mass;
+        return m;
+    }
+
+    vec3dp centre_of_mass()
+    {
+        vec3dp acc{}; // sum of m_i C_i: a point of weight sum m_i
+        for (size_t i = 0; i < size(); ++i)
+            if (body[i].mass > 0.0)
+                acc = acc + body[i].mass * unitize(move3dp(O_3dp, get_pos_trafo(i, 0)));
+        return (total_mass() > 0.0) ? unitize(acc) : O_3dp;
+    }
+
+    bivec3dp gravity_wrench()
+    {
+        bivec3dp W{};
+        for (size_t i = 0; i < size(); ++i) {
+            if (body[i].mass <= 0.0) continue;
+            vec3dp const c = unitize(move3dp(O_3dp, get_pos_trafo(i, 0)));
+            W = W + wdg(c, body[i].mass * grav);
+        }
+        return W;
+    }
+
     value_t kinetic_energy()
     {
         value_t ke = 0.0;

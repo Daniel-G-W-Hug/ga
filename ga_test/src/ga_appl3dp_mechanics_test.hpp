@@ -1910,6 +1910,39 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: dynamic_system3dp - total mass, centre of mass, gravity wrench")
+    {
+        fmt::println("pga3dp: mass distribution -- total_mass / centre_of_mass / "
+                     "gravity_wrench");
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_body(static_frame3dp("hub", vec3dp{1.0, 2.0, 3.0, 1.0}),
+                     make_cuboid_body(4.0, 0.2, 0.2, 0.2));
+        sys.add_revolute_body(static_frame3dp("link", vec3dp{0.5, 0.0, 0.0, 1.0}),
+                              make_cuboid_body(2.0, 0.5, 0.05, 0.05),
+                              vec3dp{-0.25, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
+                              0.0, 0.0, sys.index_of("hub"));
+        CHECK(sys.total_mass() == doctest::Approx(6.0).epsilon(1e-12));
+        vec3dp const c = sys.centre_of_mass();
+        CHECK(c.x == doctest::Approx((4.0 * 1.0 + 2.0 * 1.5) / 6.0).epsilon(1e-12));
+        CHECK(c.y == doctest::Approx(2.0).epsilon(1e-12));
+        CHECK(c.z == doctest::Approx(3.0).epsilon(1e-12));
+        bivec3dp const W = sys.gravity_wrench();
+        bivec3dp const Mc = moment_about(c, W);
+        CHECK(std::abs(Mc.mx) + std::abs(Mc.my) + std::abs(Mc.mz) < 1e-12);
+        // the identity behind the centre of mass: the summed force lines have the same
+        // moment about ANY point as ONE force line of the total weight through the CoM
+        bivec3dp const W1 = wdg(c, 6.0 * sys.gravity());
+        for (vec3dp const& R : {O_3dp, vec3dp{-2.0, 0.5, 4.0, 1.0}}) {
+            bivec3dp const Mo = moment_about(R, W), M1 = moment_about(R, W1);
+            CHECK(Mo.mx == doctest::Approx(M1.mx).epsilon(1e-12));
+            CHECK(Mo.my == doctest::Approx(M1.my).epsilon(1e-12));
+            CHECK(Mo.mz == doctest::Approx(M1.mz).epsilon(1e-12));
+        }
+        fmt::println("  m = 6 kg, CoM = ({:.4f}, {:.4f}, {:.4f})", c.x, c.y, c.z);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: closed_loop_system3dp - the impact map (W2)")
     {
         fmt::println("pga3dp: closed_loop_system3dp - the impact map (W2)");

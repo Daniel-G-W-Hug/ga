@@ -4803,6 +4803,40 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: dynamic_system2dp - total mass, centre of mass, gravity wrench")
+    {
+        fmt::println("pga2dp: mass distribution -- total_mass / centre_of_mass / "
+                     "gravity_wrench");
+        // a hub (free body, 4 kg at (1, 2)) carrying a revolute link (2 kg, its origin
+        // 0.5 further along x at q = 0): the centre of mass by hand, gravity as one
+        // wrench whose moment about the centre of mass vanishes and whose moment about
+        // the origin is the classic r x f
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W"));
+        sys.add_body(static_frame2dp("hub", vec2dp{1.0, 2.0, 1.0}, 0.0),
+                     make_plate_body(4.0, 0.2, 0.2));
+        sys.add_revolute_body(static_frame2dp("link", vec2dp{0.5, 0.0, 1.0}, 0.0),
+                              make_plate_body(2.0, 0.5, 0.05), vec2dp{-0.25, 0.0, 1.0},
+                              0.0, 0.0, sys.index_of("hub"));
+        CHECK(sys.total_mass() == doctest::Approx(6.0).epsilon(1e-12));
+        vec2dp const c = sys.centre_of_mass();
+        CHECK(c.x == doctest::Approx((4.0 * 1.0 + 2.0 * 1.5) / 6.0).epsilon(1e-12));
+        CHECK(c.y == doctest::Approx(2.0).epsilon(1e-12));
+        bivec2dp const W = sys.gravity_wrench();
+        CHECK(std::abs(moment_about(c, W).z) < 1e-12); // no moment about the CoM
+        value_t const g = -sys.gravity().y;
+        CHECK(moment_about(O_2dp, W).z == doctest::Approx(-c.x * 6.0 * g).epsilon(1e-12));
+        // the identity behind it: the summed force lines have the same moment about ANY
+        // point as ONE force line of the total weight through the centre of mass
+        bivec2dp const W1 = wdg(c, 6.0 * sys.gravity());
+        vec2dp const R{-2.0, 0.5, 1.0};
+        CHECK(moment_about(R, W).z ==
+              doctest::Approx(moment_about(R, W1).z).epsilon(1e-12));
+        fmt::println("  m = {:.1f} kg, CoM = ({:.4f}, {:.4f}), M_O = {:.3f} N m", 6.0,
+                     c.x, c.y, moment_about(O_2dp, W).z);
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: closed_loop_system2dp - the impact map (W2)")
     {
         fmt::println("pga2dp: closed_loop_system2dp - the impact map (W2)");
