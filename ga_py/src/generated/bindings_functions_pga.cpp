@@ -167,6 +167,12 @@ void register_functions_pga(nb::module_& m)
     m.def("cmt", [](vec3dp const& a0, scalar3dp const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](scalar3dp const& a0, vec3dp const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](scalar3dp const& a0, scalar3dp const& a1) { return cmt(a0, a1); });
+    m.def("compute_omega_dot",
+          [](inertia2dp const& a0, bivec2dp const& a1, vec2dp const& a2,
+             inertia2dp const& a3) { return compute_omega_dot(a0, a1, a2, a3); });
+    m.def("compute_omega_dot",
+          [](inertia3dp const& a0, bivec3dp const& a1, bivec3dp const& a2,
+             inertia3dp const& a3) { return compute_omega_dot(a0, a1, a2, a3); });
     m.def("conj", [](scalar2dp const& a0) { return conj(a0); });
     m.def("conj", [](vec2dp const& a0) { return conj(a0); });
     m.def("conj", [](bivec2dp const& a0) { return conj(a0); });
@@ -231,6 +237,20 @@ void register_functions_pga(nb::module_& m)
     m.def("geom_nrm_sq", [](mvec3dp_e const& a0) { return geom_nrm_sq(a0); });
     m.def("geom_nrm_sq", [](mvec3dp_u const& a0) { return geom_nrm_sq(a0); });
     m.def("geom_nrm_sq", [](mvec3dp const& a0) { return geom_nrm_sq(a0); });
+    m.def("get_cuboid_inertia",
+          [](double a0, double a1, double a2, double a3, bivec3dp const& a4) {
+              return get_cuboid_inertia(a0, a1, a2, a3, a4);
+          });
+    m.def("get_disc_inertia", [](double a0, double a1, vec2dp const& a2) {
+        return get_disc_inertia(a0, a1, a2);
+    });
+    m.def("get_disc_inertia", [](double a0, double a1, double a2, bivec3dp const& a3) {
+        return get_disc_inertia(a0, a1, a2, a3);
+    });
+    m.def("get_inertia_inverse",
+          [](inertia2dp const& a0) { return get_inertia_inverse(a0); });
+    m.def("get_inertia_inverse",
+          [](inertia3dp const& a0) { return get_inertia_inverse(a0); });
     m.def("get_motor", [](vec2dp const& a0, double a1) { return get_motor(a0, a1); });
     m.def("get_motor", [](vec2dp const& a0) { return get_motor(a0); });
     m.def("get_motor", [](vector2d const& a0) { return get_motor(a0); });
@@ -246,6 +266,13 @@ void register_functions_pga(nb::module_& m)
     m.def("get_motor_from_planes", [](trivec3dp const& a0, trivec3dp const& a1) {
         return get_motor_from_planes(a0, a1);
     });
+    m.def("get_plate_inertia", [](double a0, double a1, double a2, vec2dp const& a3) {
+        return get_plate_inertia(a0, a1, a2, a3);
+    });
+    m.def("get_point_inertia",
+          [](double a0, vec2dp const& a1) { return get_point_inertia(a0, a1); });
+    m.def("get_point_inertia",
+          [](double a0, vec3dp const& a1) { return get_point_inertia(a0, a1); });
     m.def("gr_inv", [](scalar2dp const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](vec2dp const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](bivec2dp const& a0) { return gr_inv(a0); });

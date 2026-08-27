@@ -11,6 +11,8 @@ void bind_bivec3d(nb::module_& m);
 void bind_bivec3dc(nb::module_& m);
 void bind_bivec3dp(nb::module_& m);
 void bind_bivec4ds(nb::module_& m);
+void bind_body2dp(nb::module_& m);
+void bind_body3dp(nb::module_& m);
 void bind_dualnum2dc(nb::module_& m);
 void bind_dualnum2dp(nb::module_& m);
 void bind_dualnum3dc(nb::module_& m);
@@ -117,6 +119,8 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_bivec3dc(cga);
     bind_bivec3dp(pga);
     bind_bivec4ds(sta);
+    bind_body2dp(pga);
+    bind_body3dp(pga);
     bind_dualnum2dc(cga);
     bind_dualnum2dp(pga);
     bind_dualnum3dc(cga);

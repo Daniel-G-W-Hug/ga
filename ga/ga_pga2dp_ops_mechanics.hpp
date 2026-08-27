@@ -83,6 +83,9 @@ struct Inertia2dp {
     // Default constructor (zero matrix)
     constexpr Inertia2dp() = default;
 
+    // element-wise equality (lets a record holding an inertia map default its own)
+    constexpr bool operator==(Inertia2dp const&) const = default;
+
     // Accumulate inertia from another point mass
     constexpr Inertia2dp& operator+=(Inertia2dp const& other)
     {

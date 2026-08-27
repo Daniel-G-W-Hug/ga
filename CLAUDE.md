@@ -950,6 +950,16 @@ cover a new struct with a dedicated test instead. Give the C++ type an fmt forma
 `ga/detail/fmt/`) so the generated `__str__`/`__format__` (which call `fmt::format("{}",
 v)`) work.
 
+**A pure-data struct whose field type is HAND-bound is skipped silently (2026-08-27).**
+`emit_data_struct_binding` resolves every field through the type map built from the
+scan's eligible types; a hand-bound type (`inertia{2,3}dp` in
+`ga_py/src/bindings_mechanics.cpp`) is not among them, so `body{2,3}dp` was dropped with
+no message — while the `make_*_body` builders returning it WERE bound, and failed only at
+call time ("Unable to convert function return value"). The hand-bound names are injected
+into the map next to the `twist` aliases in `emit_nanobind.py`; add any future hand-bound
+type there too, and give the struct an fmt formatter (`__repr__`) and its field types an
+`operator==` (the generated `__eq__` compares fields).
+
 **Adding a FIELD to an already-bound pure-data struct** (e.g. new `joint_state{2,3}dp`
 members) is a hand-sync trap even though it needs no manifest/scope edits: the generated
 binding emits a single *all-fields, positional, no-defaults* constructor, so the arity grows

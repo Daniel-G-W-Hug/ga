@@ -639,6 +639,66 @@ struct fmt::formatter<hd::ga::pga::Inertia3dp<T>> : fmt::nested_formatter<T> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// body2dp - a body's inertial record (inertia map, its cached inverse, total mass)
+template <> struct fmt::formatter<hd::ga::pga::body2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::body2dp const& b, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "body2dp(mass = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.mass);
+        out = fmt::format_to(out, ", I = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.I);
+        out = fmt::format_to(out, ", I_inv = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.I_inv);
+        return fmt::format_to(out, ")");
+    }
+};
+
+// body3dp - a body's inertial record (inertia map, its cached inverse, total mass)
+template <> struct fmt::formatter<hd::ga::pga::body3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::body3dp const& b, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "body3dp(mass = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.mass);
+        out = fmt::format_to(out, ", I = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.I);
+        out = fmt::format_to(out, ", I_inv = ");
+        out = fmt::format_to(out, fmt::runtime(child), b.I_inv);
+        return fmt::format_to(out, ")");
+    }
+};
+
 // pose3dp - a frame's pose vs. its parent (origin point + axis*angle rotation)
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -1109,7 +1109,8 @@ def emit_data_struct_binding(t: TypeAlias, type_map: dict[str, str]) -> str | No
 
     Returns None when any field type does not resolve to a bound user type or a
     primitive — the struct then references something not (yet) bound and is
-    silently skipped (e.g. body2dp -> Inertia2dp, joint_state2dp -> joint2dp).
+    silently skipped (as body2dp -> Inertia2dp and joint_state2dp -> joint2dp
+    once were, before their field types were injected into the map).
 
     The struct is a C++ aggregate with no declared constructor, so two are
     synthesised via placement-new brace-init: a default ctor that value-
@@ -1545,6 +1546,14 @@ def main() -> int:
         for alias, target in (("twist2dp", "vec2dp"), ("twist3dp", "bivec3dp")):
             if target in type_map.values() or target in type_map:
                 type_map.setdefault(alias, target)
+        # The inertia maps are HAND-bound (ga_py/src/bindings_mechanics.cpp: their
+        # std::array storage fits no generated shape), so the scan never lists them
+        # as eligible and a pure-data struct with an Inertia field (body2dp /
+        # body3dp) used to be skipped -- leaving every make_*_body builder bound but
+        # uncallable ("Unable to convert function return value"). Register the
+        # hand-bound names so those structs resolve.
+        for tmpl, user in (("Inertia2dp", "inertia2dp"), ("Inertia3dp", "inertia3dp")):
+            type_map.setdefault(tmpl, user)
         grade_methods_per_type = collect_grade_extractors(manifest, type_map)
         binary_ops_per_type = collect_binary_operators(manifest, type_map)
         types_by_name: dict[str, TypeAlias] = {t.name: t for t in eligible}
@@ -1555,7 +1564,7 @@ def main() -> int:
             if is_data_struct(t):
                 body = emit_data_struct_binding(t, type_map)
                 if body is None:
-                    # Field type not bindable (e.g. body2dp -> Inertia2dp).
+                    # Field type not bindable (a field of an unbound type).
                     continue
             elif is_scalar_shape(t):
                 body = emit_scalar_binding(t, ops)

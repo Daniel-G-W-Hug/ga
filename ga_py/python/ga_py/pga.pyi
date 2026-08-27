@@ -400,6 +400,72 @@ class bivec3dp:
     @overload
     def __xor__(self, arg: scalar3dp, /) -> bivec3dp: ...
 
+class body2dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, I: inertia2dp, I_inv: inertia2dp, mass: float) -> None: ...
+
+    @property
+    def I(self) -> inertia2dp: ...
+
+    @I.setter
+    def I(self, arg: inertia2dp, /) -> None: ...
+
+    @property
+    def I_inv(self) -> inertia2dp: ...
+
+    @I_inv.setter
+    def I_inv(self, arg: inertia2dp, /) -> None: ...
+
+    @property
+    def mass(self) -> float: ...
+
+    @mass.setter
+    def mass(self, arg: float, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: body2dp, /) -> bool: ...
+
+class body3dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, I: inertia3dp, I_inv: inertia3dp, mass: float) -> None: ...
+
+    @property
+    def I(self) -> inertia3dp: ...
+
+    @I.setter
+    def I(self, arg: inertia3dp, /) -> None: ...
+
+    @property
+    def I_inv(self) -> inertia3dp: ...
+
+    @I_inv.setter
+    def I_inv(self, arg: inertia3dp, /) -> None: ...
+
+    @property
+    def mass(self) -> float: ...
+
+    @mass.setter
+    def mass(self, arg: float, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: body3dp, /) -> bool: ...
+
 class dualnum2dp:
     @overload
     def __init__(self) -> None: ...
@@ -4167,6 +4233,26 @@ def cmt(arg0: scalar3dp, arg1: vec3dp, /) -> scalar3dp: ...
 def cmt(arg0: scalar3dp, arg1: scalar3dp, /) -> scalar3dp: ...
 
 @overload
+def compute_omega_dot(arg0: inertia2dp, arg1: bivec2dp, arg2: vec2dp, arg3: inertia2dp, /) -> vec2dp: ...
+
+@overload
+def compute_omega_dot(arg0: inertia3dp, arg1: bivec3dp, arg2: bivec3dp, arg3: inertia3dp, /) -> bivec3dp: ...
+
+@overload
+def compute_omega_dot(I_inv: inertia2dp, F: bivec2dp, Omega: vec2dp, I: inertia2dp) -> vec2dp:
+    """
+    Right-hand side of the body-frame Euler ODE in 2dp:
+      Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
+    """
+
+@overload
+def compute_omega_dot(I_inv: inertia3dp, F: bivec3dp, Omega: bivec3dp, I: inertia3dp) -> bivec3dp:
+    """
+    Right-hand side of the body-frame Euler ODE in 3dp:
+      Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
+    """
+
+@overload
 def conj(arg: scalar2dp, /) -> scalar2dp: ...
 
 @overload
@@ -4359,6 +4445,39 @@ def geom_nrm_sq(arg: mvec3dp_u, /) -> float: ...
 def geom_nrm_sq(arg: mvec3dp, /) -> float: ...
 
 @overload
+def get_cuboid_inertia(arg0: float, arg1: float, arg2: float, arg3: float, arg4: bivec3dp, /) -> inertia3dp: ...
+
+@overload
+def get_cuboid_inertia(m: float, w: float, h: float, d: float, L_pivot: bivec3dp = ...) -> inertia3dp:
+    """
+    Inertia of a uniform rectangular cuboid (mass m, extents w x h x d) centered at the body origin, with parallel-axis (Steiner) correction about an optional pivot line L_pivot (default = body origin / no shift).
+    """
+
+@overload
+def get_disc_inertia(arg0: float, arg1: float, arg2: vec2dp, /) -> inertia2dp: ...
+
+@overload
+def get_disc_inertia(arg0: float, arg1: float, arg2: float, arg3: bivec3dp, /) -> inertia3dp: ...
+
+@overload
+def get_inertia_inverse(arg: inertia2dp, /) -> inertia2dp: ...
+
+@overload
+def get_inertia_inverse(arg: inertia3dp, /) -> inertia3dp: ...
+
+@overload
+def get_inertia_inverse(I: inertia2dp) -> inertia2dp:
+    """
+    Inverse of a 2dp inertia matrix via LU decomposition. Raises ValueError if the matrix is singular.
+    """
+
+@overload
+def get_inertia_inverse(I: inertia3dp) -> inertia3dp:
+    """
+    Inverse of a 3dp inertia matrix via LU decomposition. Raises ValueError if the matrix is singular.
+    """
+
+@overload
 def get_motor(arg0: vec2dp, arg1: float, /) -> mvec2dp_u: ...
 
 @overload
@@ -4383,6 +4502,29 @@ def get_motor_from_lines(arg0: bivec2dp, arg1: bivec2dp, /) -> mvec2dp_u: ...
 def get_motor_from_lines(arg0: bivec3dp, arg1: bivec3dp, /) -> mvec3dp_e: ...
 
 def get_motor_from_planes(arg0: trivec3dp, arg1: trivec3dp, /) -> mvec3dp_e: ...
+
+@overload
+def get_plate_inertia(arg0: float, arg1: float, arg2: float, arg3: vec2dp, /) -> inertia2dp: ...
+
+@overload
+def get_plate_inertia(m: float, w: float, h: float, P_pivot: vec2dp = ...) -> inertia2dp:
+    """
+    Inertia of a uniform rectangular plate (mass m, width w, height h) centered at the body origin, with parallel-axis (Steiner) correction about an optional pivot P_pivot (default = body origin).
+    """
+
+@overload
+def get_point_inertia(arg0: float, arg1: vec2dp, /) -> inertia2dp: ...
+
+@overload
+def get_point_inertia(arg0: float, arg1: vec3dp, /) -> inertia3dp: ...
+
+@overload
+def get_point_inertia(m: float, X: vec2dp) -> inertia2dp:
+    """Inertia of a point mass m at position X (2dp)."""
+
+@overload
+def get_point_inertia(m: float, X: vec3dp) -> inertia3dp:
+    """Inertia of a point mass m at position X (3dp)."""
 
 @overload
 def gr_inv(arg: scalar2dp, /) -> scalar2dp: ...
@@ -4676,24 +4818,24 @@ def l_weight_dual(arg: mvec3dp_u, /) -> mvec3dp_u: ...
 def l_weight_dual(arg: mvec3dp, /) -> mvec3dp: ...
 
 @overload
-def make_body_from_inertia(arg0: float, arg1: float, /) -> "hd::ga::pga::body2dp": ...
+def make_body_from_inertia(arg0: float, arg1: float, /) -> body2dp: ...
 
 @overload
-def make_body_from_inertia(arg0: float, arg1: float, arg2: float, arg3: float, arg4: float, arg5: float, arg6: float, /) -> "hd::ga::pga::body3dp": ...
+def make_body_from_inertia(arg0: float, arg1: float, arg2: float, arg3: float, arg4: float, arg5: float, arg6: float, /) -> body3dp: ...
 
-def make_cuboid_body(arg0: float, arg1: float, arg2: float, arg3: float, /) -> "hd::ga::pga::body3dp": ...
-
-@overload
-def make_disc_body(arg0: float, arg1: float, /) -> "hd::ga::pga::body2dp": ...
+def make_cuboid_body(arg0: float, arg1: float, arg2: float, arg3: float, /) -> body3dp: ...
 
 @overload
-def make_disc_body(arg0: float, arg1: float, arg2: float, /) -> "hd::ga::pga::body3dp": ...
+def make_disc_body(arg0: float, arg1: float, /) -> body2dp: ...
 
-def make_plate_body(arg0: float, arg1: float, arg2: float, /) -> "hd::ga::pga::body2dp": ...
+@overload
+def make_disc_body(arg0: float, arg1: float, arg2: float, /) -> body3dp: ...
 
-def make_point_body2dp(arg: float, /) -> "hd::ga::pga::body2dp": ...
+def make_plate_body(arg0: float, arg1: float, arg2: float, /) -> body2dp: ...
 
-def make_point_body3dp(arg: float, /) -> "hd::ga::pga::body3dp": ...
+def make_point_body2dp(arg: float, /) -> body2dp: ...
+
+def make_point_body3dp(arg: float, /) -> body3dp: ...
 
 @overload
 def meet(arg0: bivec2dp, arg1: bivec2dp, /) -> vec2dp: ...
@@ -6785,45 +6927,6 @@ class inertia2dp:
 
     def __format__(self, format_spec: str = "") -> str: ...
 
-@overload
-def get_point_inertia(m: float, X: vec2dp) -> inertia2dp:
-    """Inertia of a point mass m at position X (2dp)."""
-
-@overload
-def get_point_inertia(m: float, X: vec3dp) -> inertia3dp:
-    """Inertia of a point mass m at position X (3dp)."""
-
-def get_plate_inertia(m: float, w: float, h: float, P_pivot: vec2dp = ...) -> inertia2dp:
-    """
-    Inertia of a uniform rectangular plate (mass m, width w, height h) centered at the body origin, with parallel-axis (Steiner) correction about an optional pivot P_pivot (default = body origin).
-    """
-
-@overload
-def get_inertia_inverse(I: inertia2dp) -> inertia2dp:
-    """
-    Inverse of a 2dp inertia matrix via LU decomposition. Raises ValueError if the matrix is singular.
-    """
-
-@overload
-def get_inertia_inverse(I: inertia3dp) -> inertia3dp:
-    """
-    Inverse of a 3dp inertia matrix via LU decomposition. Raises ValueError if the matrix is singular.
-    """
-
-@overload
-def compute_omega_dot(I_inv: inertia2dp, F: bivec2dp, Omega: vec2dp, I: inertia2dp) -> vec2dp:
-    """
-    Right-hand side of the body-frame Euler ODE in 2dp:
-      Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-    """
-
-@overload
-def compute_omega_dot(I_inv: inertia3dp, F: bivec3dp, Omega: bivec3dp, I: inertia3dp) -> bivec3dp:
-    """
-    Right-hand side of the body-frame Euler ODE in 3dp:
-      Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-    """
-
 class inertia3dp:
     def __init__(self) -> None:
         """Default-construct a 6x6 zero inertia matrix."""
@@ -6848,11 +6951,6 @@ class inertia3dp:
     def __str__(self) -> str: ...
 
     def __format__(self, format_spec: str = "") -> str: ...
-
-def get_cuboid_inertia(m: float, w: float, h: float, d: float, L_pivot: bivec3dp = ...) -> inertia3dp:
-    """
-    Inertia of a uniform rectangular cuboid (mass m, extents w x h x d) centered at the body origin, with parallel-axis (Steiner) correction about an optional pivot line L_pivot (default = body origin / no shift).
-    """
 
 
 # Pure-Python forwarders injected at import time from ga_py/__init__.py
