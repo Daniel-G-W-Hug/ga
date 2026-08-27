@@ -1317,6 +1317,9 @@ class dynamic_system2dp : public kinematic_system2dp {
     value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // revolute angle
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // revolute rate
     joint_state2dp const& joint_props(size_t idx) const { return joint[idx]; }
+    // a frame's inertial record (inertia map, its inverse, the mass; mass 0 for a
+    // massless frame) -- for diagnostics such as a centre of mass or a weight sum
+    body2dp const& body_props(size_t idx) const { return body[idx]; }
 
     // A generalised coordinate: the joint frame it belongs to and which of that joint's
     // screws it drives (k = 0 for a 1-dof joint). The coupled solve, the mass matrix, the

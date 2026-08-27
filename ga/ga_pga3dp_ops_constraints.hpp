@@ -441,12 +441,18 @@ class closed_loop_system3dp {
 
         std::vector<value_t> u;
         tree_.read_state(rc, u);
-        auto f = [&](value_t, std::vector<value_t> const& uu, std::vector<value_t>& du) {
+        // the stage time goes into the tree's clock so a time-varying applied wrench is
+        // sampled at the stage time (as dynamic_system's step does); advanced by dt after
+        value_t const t0 = tree_.time();
+        auto f = [&](value_t t, std::vector<value_t> const& uu,
+                     std::vector<value_t>& du) {
+            tree_.set_time(t);
             tree_.write_state(rc, uu);
             auto const qdd = kkt_dynamics(rc, nullptr);
             tree_.state_rates(rc, uu, qdd, du);
         };
-        rk4_integrator(2 * n).step(f, u, tree_.time(), dt);
+        rk4_integrator(2 * n).step(f, u, t0, dt);
+        tree_.set_time(t0 + dt);
         tree_.commit_state(rc, u);
 
         if (constraint_rows() > 0) {

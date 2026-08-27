@@ -479,12 +479,18 @@ class closed_loop_system2dp {
         auto const rhs =
             std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_mem.data(), 2 * n);
 
+        // thread the RK4 stage time into the tree's clock so a time-varying applied
+        // wrench is sampled at the stage time (as dynamic_system's step does), and
+        // advance it by dt at the end
+        value_t const t0 = tree_.time();
         for (size_t s = 1; s <= 4; ++s) {
+            tree_.set_time(rk4_get_time(t0, dt, s - 1));
             tree_.write_state(rc, u_mem);
             auto const qdd = kkt_dynamics(rc, nullptr);
             tree_.state_rates(rc, u_mem, qdd, rhs_mem);
             rk4_step(u, uh, rhs, dt, s);
         }
+        tree_.set_time(t0 + dt);
         tree_.commit_state(rc, u_mem);
 
         // stabilisation: project (q, q-dot) back onto the constraint manifold
