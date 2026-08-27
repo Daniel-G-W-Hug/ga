@@ -186,6 +186,15 @@ class closed_loop_system3dp {
     void set_loop_active(size_t c, bool on) { loops_.at(c).active = on; }
     bool loop_active(size_t c) const { return loops_.at(c).active; }
 
+    // move a constraint's anchors (a contact that closes at a NEW point each time -- a
+    // foot touching down further along the ground). The kind and the frames stay; the
+    // typical sequence is set_loop_anchors, then activate_loop_with_impact.
+    void set_loop_anchors(size_t c, vec3dp const& anchor_a, vec3dp const& anchor_b)
+    {
+        loops_.at(c).anchor_a = anchor_a;
+        loops_.at(c).anchor_b = anchor_b;
+    }
+
     // drive a 1-dof joint to a generalised coordinate q (set q, refresh the kinematic
     // state); a motor joint is posed through system().set_joint_motor()
     void set_joint(size_t joint_frame, value_t q) { tree_.set_joint(joint_frame, q); }
