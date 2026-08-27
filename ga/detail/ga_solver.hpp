@@ -871,13 +871,66 @@ std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
     for (size_t c = 0; c < m; ++c)
         rhs[n + c] = g[c];
 
-    // full row rank: the bordered matrix is regular, the shared LU is exact and cheap;
-    // otherwise the minimum-norm least-squares solve of the singular bordered system
-    std::vector<T> sol;
-    if (r == m) sol = lu_solve(K, rhs, N);
-    else sol = minnorm_solve(K, rhs, N);
-    if (lambda_out) lambda_out->assign(sol.begin() + n, sol.end());
-    return std::vector<T>(sol.begin(), sol.begin() + n);
+    // full row rank: the bordered matrix is regular, the shared LU is exact and cheap
+    if (r == m) {
+        std::vector<T> const sol = lu_solve(K, rhs, N);
+        if (lambda_out) lambda_out->assign(sol.begin() + n, sol.end());
+        return std::vector<T>(sol.begin(), sol.begin() + n);
+    }
+
+    // A rank drop: some rows of G are dependent (a knee lock, a body resting on two
+    // pins, an over-constrained loop). q-ddot is still unique when the independent
+    // rows constrain the coordinates consistently, so solve the REDUCED bordered
+    // system built from a maximal independent subset of the rows (greedy: a row is
+    // kept when it raises the rank) by LU; then recover the multipliers of ALL rows
+    // as the minimum-norm solution of Gᵀ λ = f - M q-ddot -- the constraint force is
+    // determined, its split over dependent rows is not, and the least-norm split is
+    // the convention. (A minimum-norm solve of the whole singular bordered matrix,
+    // the earlier route, is WRONG here: it minimises the joint norm of (q-ddot,
+    // lambda) and returns accelerations for a system that cannot move.)
+    std::vector<size_t> keep;
+    std::vector<T> Gk; // the kept rows, r x n
+    for (size_t c = 0; c < m && keep.size() < r; ++c) {
+        std::vector<T> trial = Gk;
+        trial.insert(trial.end(), G.begin() + c * n, G.begin() + (c + 1) * n);
+        if (matrix_rank(trial, keep.size() + 1, n) > keep.size()) {
+            keep.push_back(c);
+            Gk = std::move(trial);
+        }
+    }
+    size_t const rk = keep.size();
+    size_t const Nk = n + rk;
+    std::vector<T> Kk(Nk * Nk, T(0)), rk_rhs(Nk, T(0));
+    for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j)
+            Kk[i * Nk + j] = M[i * n + j];
+    for (size_t c = 0; c < rk; ++c)
+        for (size_t j = 0; j < n; ++j) {
+            Kk[j * Nk + (n + c)] = Gk[c * n + j];
+            Kk[(n + c) * Nk + j] = Gk[c * n + j];
+        }
+    for (size_t i = 0; i < n; ++i)
+        rk_rhs[i] = f[i];
+    for (size_t c = 0; c < rk; ++c)
+        rk_rhs[n + c] = g[keep[c]];
+    std::vector<T> const solk =
+        (rk + n > 0) ? lu_solve(Kk, rk_rhs, Nk) : std::vector<T>{};
+    std::vector<T> qdd(solk.begin(), solk.begin() + n);
+    if (lambda_out) {
+        // Gᵀ (n x m) λ = f - M q-ddot, minimum-norm λ over all m rows
+        std::vector<T> GT(n * m), rhs_l(n);
+        for (size_t c = 0; c < m; ++c)
+            for (size_t j = 0; j < n; ++j)
+                GT[j * m + c] = G[c * n + j];
+        for (size_t i = 0; i < n; ++i) {
+            T acc = f[i];
+            for (size_t j = 0; j < n; ++j)
+                acc -= M[i * n + j] * qdd[j];
+            rhs_l[i] = acc;
+        }
+        *lambda_out = minnorm_solve(GT, rhs_l, m);
+    }
+    return qdd;
 }
 
 
