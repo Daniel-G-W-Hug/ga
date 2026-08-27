@@ -4803,6 +4803,128 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: closed_loop_system2dp - the impact map (W2)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - the impact map (W2)");
+
+        // A rod (free body, cm at the origin, length 1) falls at v = 1 with no rotation
+        // and no gravity; its left end reaches a fixed pin. The plastic impact pins the
+        // end: angular momentum about the pin is conserved through the impact, so
+        //
+        //     m v L/2 = (I_cm + m L^2/4) w   ->   w = 3 v / (2 L) for a thin rod,
+        //
+        // T+ / T- = 3/4, and the impulse on the rod is its momentum change m (w L/2 - v)
+        // = -m v/4. The plate has a thickness t, so I_cm = m (L^2 + t^2) / 12 is used
+        // as it is (w = 1.49985, not 1.5 -- the gate is at 1e-12, not at "thin").
+        value_t const m = 2.0, L = 1.0, t = 0.02, v = 1.0;
+        auto const rod = make_plate_body(m, L, t);
+        value_t const I_pin = m * (L * L + t * t) / 12.0 + m * L * L / 4.0;
+        value_t const w_ref = -m * v * (L / 2.0) / I_pin; // clockwise: the pin is at -x
+        auto build = [&](value_t vy) {
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, 0.0, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_body(static_frame2dp("rod", vec2dp{0.0, 0.0, 1.0}, 0.0), rod,
+                        kin_state2dp{.vel = vec2dp{0.0, vy, 0.0}, .omega = 0.0});
+            size_t const c = cl.add_loop_constraint(loop_constraint2dp{
+                cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}, cl.index_of("W"),
+                vec2dp{-0.5, 0.0, 1.0}, constraint2dp::coincidence});
+            cl.set_loop_active(c, false); // in flight: no rows
+            return std::pair{std::move(cl), c};
+        };
+        auto momentum = [](closed_loop_system2dp& cl) {
+            bivec2dp P{};
+            for (size_t i = 1; i < cl.system().size(); ++i)
+                P = P + cl.system().momentum_world(i);
+            return P;
+        };
+        auto end_velocity = [](closed_loop_system2dp& cl) {
+            size_t const r = cl.index_of("rod");
+            vec2dp const P =
+                move2dp(vec2dp{-0.5, 0.0, 1.0}, cl.system().get_pos_trafo(r, 0));
+            return cl.system().point_velocity(vec2dp{P.x / P.z, P.y / P.z, 1.0}, r);
+        };
+
+        { // plastic touchdown: the analytic post-impact state
+            auto [cl, c] = build(-v);
+            value_t const T0 = cl.system().total_energy();
+            bivec2dp const P0 = momentum(cl);
+            std::vector<value_t> const Lam = cl.activate_loop_with_impact(c, 0.0);
+            REQUIRE(Lam.size() == 2);
+            vec2dp const ve = end_velocity(cl);
+            CHECK(std::abs(ve.x) < 1e-12); // G q-dot+ = 0: the end is at rest
+            CHECK(std::abs(ve.y) < 1e-12);
+            // the cm now moves as a point of the rod rotating about the pin: v_cm = w L/2
+            vec2dp const vc =
+                cl.system().point_velocity(vec2dp{0.0, 0.0, 1.0}, cl.index_of("rod"));
+            value_t const w = vc.y / (L / 2.0);
+            CHECK(w == doctest::Approx(w_ref).epsilon(1e-12));
+            value_t const T1 = cl.system().total_energy();
+            CHECK(T1 == doctest::Approx(0.5 * I_pin * w * w).epsilon(1e-12));
+            CHECK(T1 / T0 == doctest::Approx(0.75).epsilon(1e-3)); // thin-rod value
+            bivec2dp const dP = momentum(cl) - P0; // impulse = momentum change = -Λ
+            CHECK(-Lam[0] == doctest::Approx(dP.x).epsilon(1e-12));
+            CHECK(-Lam[1] == doctest::Approx(dP.y).epsilon(1e-12));
+            // Λ_y < 0 for a foot pressed on the ground, like its λ_y (the impulse on
+            // the rod is upward, -Λ): -m (w L/2 + v) with v downward
+            CHECK(Lam[1] == doctest::Approx(-m * (w * L / 2.0 + v)).epsilon(1e-12));
+            // afterwards: a pinned rod, energy conserved between impacts
+            for (int i = 0; i < 500; ++i)
+                cl.step(1.0e-3);
+            CHECK(std::abs(cl.system().total_energy() - T1) / T1 < 1e-9);
+            fmt::println("  plastic: w = {:.4f} (3v/2L), T+/T- = {:.4f}, Λ_y = {:.4f}", w,
+                         T1 / T0, Lam[1]);
+        }
+        { // restitution e = 1/2: the end rebounds at half its closing speed
+            auto [cl, c] = build(-v);
+            cl.activate_loop_with_impact(c, 0.5);
+            vec2dp const ve = end_velocity(cl);
+            CHECK(ve.y == doctest::Approx(0.5 * v).epsilon(1e-12));
+            CHECK(std::abs(ve.x) < 1e-12);
+            CHECK(cl.system().total_energy() < 0.5 * m * v * v); // still dissipative
+        }
+        { // zero closing velocity: no impulse, the state untouched to the bit
+            auto [cl, c] = build(0.0);
+            auto const before = cl.system().joint_rates(cl.index_of("rod"));
+            std::vector<value_t> const Lam = cl.activate_loop_with_impact(c, 0.0);
+            for (value_t const l : Lam)
+                CHECK(l == 0.0);
+            auto const after = cl.system().joint_rates(cl.index_of("rod"));
+            for (size_t k = 0; k < before.size(); ++k)
+                CHECK(after[k] == before[k]);
+        }
+        { // mass weighting: a heavy hub carrying a light link whose tip hits a pin. The
+          // link swings, the hub barely notices -- the Euclidean projection of the drift
+          // stabiliser would have corrected the hub's coordinates as much as the link's
+            auto const hub = make_plate_body(40.0, 0.4, 0.4);
+            auto const link = make_plate_body(0.1, 0.5, 0.02);
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, 0.0, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_body(static_frame2dp("hub", vec2dp{0.0, 0.0, 1.0}, 0.0), hub,
+                        kin_state2dp{.vel = vec2dp{0.0, -v, 0.0}, .omega = 0.0});
+            cl.add_revolute_body(static_frame2dp("link", vec2dp{0.45, 0.0, 1.0}, 0.0),
+                                 link, vec2dp{-0.25, 0.0, 1.0}, 0.0, 0.0,
+                                 cl.index_of("hub"));
+            size_t const c = cl.add_loop_constraint(loop_constraint2dp{
+                cl.index_of("link"), vec2dp{0.25, 0.0, 1.0}, cl.index_of("W"),
+                vec2dp{0.7, 0.0, 1.0}, constraint2dp::coincidence});
+            cl.set_loop_active(c, false);
+            value_t const T0 = cl.system().total_energy();
+            cl.activate_loop_with_impact(c, 0.0);
+            vec2dp const vh =
+                cl.system().point_velocity(vec2dp{0.0, 0.0, 1.0}, cl.index_of("hub"));
+            value_t const dv_hub = std::sqrt(vh.x * vh.x + (vh.y + v) * (vh.y + v));
+            CHECK(dv_hub < 0.02 * v);
+            CHECK(std::abs(cl.joint_rate(cl.index_of("link"))) > 1.0); // the link swings
+            CHECK(cl.system().total_energy() < T0);
+            fmt::println(
+                "  mass weighting: hub |dv| = {:.2e} (v = 1), link rate = {:.3f}", dv_hub,
+                cl.joint_rate(cl.index_of("link")));
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga2dp: floating base - a planar space station: momentum + energy");

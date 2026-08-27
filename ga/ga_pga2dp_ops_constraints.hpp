@@ -28,6 +28,10 @@
 //     integrating by RK4 with post-step GGL projection (position + velocity) for
 //     energy-clean drift control.
 //
+//   - impacts. impact() applies the impulsive velocity jump a newly active (or violated)
+//     constraint demands -- the same bordered system at velocity level, mass-weighted,
+//     with a coefficient of restitution -- and reports the impulses.
+//
 // A loop closure is a JOINT between two tree frames (Featherstone, Rigid Body Dynamics
 // Algorithms, ch. 8): its kind is the subspace of relative motion it removes, and the
 // rows it contributes to g / G are that constraint-force subspace. The kinds provided
@@ -450,7 +454,9 @@ class closed_loop_system2dp {
     // Newton step (assemble), velocity by the projection q-dot <- q-dot - G⁺(G q-dot) --
     // which removes numerical drift WITHOUT injecting energy (GGL-style stabilisation),
     // preserving the energy-conservation property the reduced-coordinate design is tuned
-    // for.
+    // for. That projection is for ROUND-OFF only: a constraint switched on while the
+    // velocities disagree with it is an impact, and impact() (the mass-weighted jump)
+    // must be applied before the next step -- see activate_loop_with_impact().
     void step(value_t dt)
     {
         auto const rc = tree_.dof_coords();
@@ -477,6 +483,68 @@ class closed_loop_system2dp {
             assemble(/*driven*/ {}); // position: min-norm Newton -> g ~ 0
             project_velocities(rc);  // velocity:  q-dot <- q-dot - G⁺(G q-dot)
         }
+    }
+
+
+    // The IMPACT MAP: the impulsive velocity jump the active constraints demand when the
+    // current rates violate G q-dot = 0 (a constraint that just appeared -- a foot
+    // touching down -- or velocities set by hand). Featherstone sec. 11.7: over the
+    // instant the configuration is frozen and momentum balance reads
+    //
+    //     M (q-dot+ - q-dot-) = -Gᵀ Λ,        G q-dot+ = -e G q-dot-
+    //
+    // with the impulse Λ per constraint row and the coefficient of restitution e (0:
+    // plastic, the default -- the rows then stick; 1: elastic). Written for the jump
+    // dq = q-dot+ - q-dot- this is the bordered system of joint_accelerations with a
+    // zero top rhs and -(1 + e) G q-dot- below, so the shared rank-aware kkt_solve
+    // does it (min-norm at a dependent row set); a consistent state gives dq = 0
+    // EXACTLY, so touching down at zero closing velocity leaves the state untouched.
+    // Λ follows the multiplier convention of joint_accelerations: the impulse on the
+    // system is -Gᵀ Λ (a loaded foot has Λ_y < 0 like its λ_y). The kinetic energy
+    // change is -1/2 dqᵀ M dq <= 0. The rates are written back; the position is
+    // unchanged (an impact is instantaneous). Returns Λ, one block per active row set.
+    //
+    // This is distinct from the drift stabilisation of step(): that projection is the
+    // Euclidean min-norm correction in coordinate space and is right for round-off, not
+    // for physics -- a light foot and a heavy torso would be corrected alike.
+    std::vector<value_t> impact(value_t e = 0.0)
+    {
+        auto const rc = tree_.dof_coords();
+        size_t const n = rc.size();
+        size_t const m = constraint_rows();
+        if (n == 0 || m == 0) return {};
+
+        auto const mb = tree_.assemble_mass_bias(rc); // M (n*n); the bias is unused
+        std::vector<value_t> const& M = mb.first;
+        std::vector<value_t> const G = constraint_jacobian(rc);
+
+        std::vector<value_t> qd(n), Gv(m, 0.0);
+        for (size_t k = 0; k < n; ++k)
+            qd[k] = tree_.coord_rate(rc[k]);
+        for (size_t i = 0; i < m; ++i)
+            for (size_t k = 0; k < n; ++k)
+                Gv[i] += G[i * n + k] * qd[k];
+
+        std::vector<value_t> const zero(n, 0.0);
+        std::vector<value_t> gb(m);
+        for (size_t i = 0; i < m; ++i)
+            gb[i] = -(1.0 + e) * Gv[i];
+
+        std::vector<value_t> Lambda;
+        std::vector<value_t> const dq = hd::ga::kkt_solve(M, G, zero, gb, n, m, &Lambda);
+        for (size_t k = 0; k < n; ++k)
+            qd[k] += dq[k];
+        write_rates(rc, qd);
+        return Lambda;
+    }
+
+    // touchdown in one call: switch constraint c on and resolve the velocities it now
+    // demands (impact with restitution e). The anchors must already coincide (g ~ 0 for
+    // that constraint) -- an impact fixes velocities, not positions.
+    std::vector<value_t> activate_loop_with_impact(size_t c, value_t e = 0.0)
+    {
+        set_loop_active(c, true);
+        return impact(e);
     }
 
   private:

@@ -1910,6 +1910,90 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: closed_loop_system3dp - the impact map (W2)")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp - the impact map (W2)");
+
+        // The 2D rod-onto-pin impact in space: a slender cuboid (free body, cm at the
+        // origin, length L along x) falls along -y with no rotation and no gravity; its
+        // -x end reaches a fixed ball joint (a coincidence constraint: three rows). The
+        // plastic impact pins the end and the rod rotates about z through the pin --
+        // angular momentum about the pin is conserved through the impact:
+        //
+        //     m v L/2 = (I_zz + m L^2/4) w,     v_cm+ = w L/2,     T+ = 1/2 I_pin w^2,
+        //
+        // the impulse is the momentum change m (v_cm+ - v_cm-) = -Λ, and the other two
+        // rotations stay zero (no angular momentum about x or y to conserve).
+        value_t const m = 2.0, L = 1.0, h = 0.02, v = 1.0;
+        auto const rod = make_cuboid_body(m, L, h, h);
+        value_t const I_pin = m * (L * L + h * h) / 12.0 + m * L * L / 4.0;
+        value_t const w_ref = -m * v * (L / 2.0) / I_pin;
+        vec3dp const end_b{-0.5, 0.0, 0.0, 1.0};
+        auto build = [&](value_t vy) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, 0.0, 1.0}), rod,
+                        kin_state3dp{.vel = vec3dp{0.0, vy, 0.0, 0.0}});
+            size_t const c = cl.add_loop_constraint(
+                loop_constraint3dp{cl.index_of("rod"), end_b, cl.index_of("W"), end_b,
+                                   constraint3dp::coincidence});
+            cl.set_loop_active(c, false);
+            return std::pair{std::move(cl), c};
+        };
+        auto vel_at = [](closed_loop_system3dp& cl, vec3dp const& Pb) {
+            size_t const r = cl.index_of("rod");
+            vec3dp const P = unitize(move3dp(Pb, cl.system().get_pos_trafo(r, 0)));
+            return cl.system().point_velocity(P, r);
+        };
+
+        { // plastic touchdown: the analytic post-impact state
+            auto [cl, c] = build(-v);
+            value_t const T0 = cl.system().total_energy();
+            std::vector<value_t> const Lam = cl.activate_loop_with_impact(c, 0.0);
+            REQUIRE(Lam.size() == 3);
+            vec3dp const ve = vel_at(cl, end_b);
+            CHECK(std::abs(ve.x) + std::abs(ve.y) + std::abs(ve.z) < 1e-12); // pinned
+            vec3dp const vc = vel_at(cl, O_3dp);
+            value_t const w = vc.y / (L / 2.0);
+            CHECK(w == doctest::Approx(w_ref).epsilon(1e-12));
+            CHECK(std::abs(vc.x) + std::abs(vc.z) < 1e-12);
+            value_t const T1 = cl.system().total_energy();
+            CHECK(T1 == doctest::Approx(0.5 * I_pin * w * w).epsilon(1e-12));
+            CHECK(T1 / T0 == doctest::Approx(0.75).epsilon(1e-3));
+            // impulse = momentum change = -Λ, componentwise (v_cm- = (0, -v, 0))
+            CHECK(-Lam[0] == doctest::Approx(m * vc.x).epsilon(1e-12));
+            CHECK(-Lam[1] == doctest::Approx(m * (vc.y + v)).epsilon(1e-12));
+            CHECK(-Lam[2] == doctest::Approx(m * vc.z).epsilon(1e-12));
+            CHECK(Lam[1] < 0.0); // pressed on the pin, like a loaded foot's λ_y
+            for (int i = 0; i < 500; ++i)
+                cl.step(1.0e-3);
+            CHECK(std::abs(cl.system().total_energy() - T1) / T1 < 1e-9);
+            fmt::println("  plastic: w = {:.4f}, T+/T- = {:.4f}, Λ = ({:.3f}, {:.3f}, "
+                         "{:.3f})",
+                         w, T1 / T0, Lam[0], Lam[1], Lam[2]);
+        }
+        { // restitution e = 1/2: the end rebounds at half its closing speed
+            auto [cl, c] = build(-v);
+            cl.activate_loop_with_impact(c, 0.5);
+            vec3dp const ve = vel_at(cl, end_b);
+            CHECK(ve.y == doctest::Approx(0.5 * v).epsilon(1e-12));
+            CHECK(std::abs(ve.x) + std::abs(ve.z) < 1e-12);
+            CHECK(cl.system().total_energy() < 0.5 * m * v * v);
+        }
+        { // zero closing velocity: no impulse, the state untouched to the bit
+            auto [cl, c] = build(0.0);
+            auto const before = cl.system().joint_rates(cl.index_of("rod"));
+            std::vector<value_t> const Lam = cl.activate_loop_with_impact(c, 0.0);
+            for (value_t const l : Lam)
+                CHECK(l == 0.0);
+            auto const after = cl.system().joint_rates(cl.index_of("rod"));
+            for (size_t k = 0; k < before.size(); ++k)
+                CHECK(after[k] == before[k]);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga3dp: floating base - a space station: momentum and energy");
