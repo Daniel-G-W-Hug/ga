@@ -24,6 +24,16 @@ class constraint3dp(enum.Enum):
 
     frame = 2
 
+class contact_kind2dp(enum.Enum):
+    point = 0
+
+    flat = 1
+
+class contact_kind3dp(enum.Enum):
+    point = 0
+
+    flat = 1
+
 class joint2dp(enum.Enum):
     free = 0
 

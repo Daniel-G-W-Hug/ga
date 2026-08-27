@@ -4925,6 +4925,173 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: ground_contact2dp - touchdown, lift-off, slope, flat foot, guard")
+    {
+        fmt::println("pga2dp: ground_contact2dp - unilateral contact by events");
+
+        // A rod (free body, cm at height h, tilted by th0 so its left end is the lower
+        // one, at rest) falls onto the floor y = 0 with both ends as contact points.
+        // The left end's touchdown must be located at its free-fall time
+        // t* = sqrt(2 h_end / g) to the bisection tolerance, then the plastic impact of
+        // W2 pins the end: w = m v (L/2 cos th0) / I_pin with v = g t*; the rod swings
+        // down and the far end lands too -- the rod lies on the ground.
+        value_t const m = 2.0, L = 1.0, t = 0.02, g = 9.81, h = 0.5;
+        auto const rod = make_plate_body(m, L, t);
+        value_t const I_pin = m * (L * L + t * t) / 12.0 + m * L * L / 4.0;
+        auto const floor =
+            ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0}, vec2dp{1.0, 0.0, 1.0});
+        value_t const th0 = 0.1; // ccw: the left end is lower by 0.5 sin(th0)
+        auto build = [&](value_t y0, value_t th = 0.0) {
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, -g, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_body(static_frame2dp("rod", vec2dp{0.0, y0, 1.0}, th), rod);
+            return cl;
+        };
+        {
+            closed_loop_system2dp cl = build(h, th0);
+            ground_contact2dp gc(cl, floor);
+            CHECK(gc.height(vec2dp{3.0, 0.7, 1.0}) ==
+                  doctest::Approx(0.7).epsilon(1e-12));
+            CHECK(gc.normal().y == doctest::Approx(1.0).epsilon(1e-12));
+            size_t const c = gc.add({cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}});
+            size_t const c2 = gc.add({cl.index_of("rod"), vec2dp{0.5, 0.0, 1.0}});
+            CHECK(gc.count() == 2);
+            CHECK(!gc.active(c));
+            value_t const h_end = gc.contact_height(c);
+            CHECK(h_end == doctest::Approx(h - 0.5 * std::sin(th0)).epsilon(1e-12));
+            value_t const dt = 1.0e-3;
+            for (int i = 0; i < 400 && gc.events().empty(); ++i)
+                gc.step(dt);
+            REQUIRE(gc.events().size() == 1);
+            auto const& ev = gc.events()[0];
+            value_t const t_star = std::sqrt(2.0 * h_end / g);
+            CHECK(ev.touchdown);
+            CHECK(ev.t == doctest::Approx(t_star).epsilon(1e-9)); // exact in time
+            CHECK(std::abs(ev.point.y) < 1e-12);
+            CHECK(ev.point.x == doctest::Approx(-0.5 * std::cos(th0)).epsilon(1e-9));
+            CHECK(gc.active(c));
+            CHECK(std::abs(gc.contact_height(c)) < 1e-9);
+            // the impact of W2 at the event: the impulse -Lambda is the rod's momentum
+            // change, m (v+ - v-) with v- = -g t*, so the post-impact cm velocity and
+            // hence the rotation rate about the pinned end follow from the recorded
+            // impulse alone (the state has moved on by the rest of the step since)
+            value_t const v = g * t_star;
+            value_t const arm = 0.5 * L * std::cos(th0); // the cm's lever about the pin
+            value_t const w_ref = -m * v * arm / I_pin;
+            REQUIRE(ev.impulse.size() == 2);
+            value_t const v_plus = -v - ev.impulse[1] / m; // -Lambda_y / m
+            value_t const w_ev = v_plus / arm;
+            CHECK(w_ev == doctest::Approx(w_ref).epsilon(1e-9));
+            value_t const w = cl.system().joint_rates(cl.index_of("rod"))[2];
+            CHECK(w == doctest::Approx(w_ref).epsilon(5e-3)); // + < 1 ms of swing
+            fmt::println("  touchdown at t = {:.9f} (free fall {:.9f}), w from the "
+                         "impulse = {:.6f} (rod-onto-pin {:.6f})",
+                         ev.t, t_star, w_ev, w_ref);
+            // the pinned rod swings down: its far end (the higher one) reaches the
+            // floor and LANDS too -- the rod then lies on the ground on both ends, at
+            // rest, each end carrying half the weight
+            for (int i = 0; i < 900; ++i)
+                gc.step(dt);
+            CHECK(gc.active(c));
+            CHECK(gc.active(c2));
+            CHECK(std::abs(gc.contact_height(c2)) < 1e-9);
+            CHECK(gc.normal_force(c) == doctest::Approx(0.5 * m * g).epsilon(1e-6));
+            CHECK(gc.normal_force(c2) == doctest::Approx(0.5 * m * g).epsilon(1e-6));
+            fmt::println("  the far end landed too: the rod lies flat, {:.3f} + {:.3f} N",
+                         gc.normal_force(c), gc.normal_force(c2));
+        }
+
+        // lift-off: the pinned rod is lifted by an upward force larger than its weight
+        // -- the reaction turns to a pull and the contact is released; without the
+        // force it comes down again and lands (a second touchdown)
+        {
+            closed_loop_system2dp cl = build(0.0);
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add({cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}});
+            gc.step(1.0e-3);     // the rod placed ON the floor starts to fall: that IS a
+            CHECK(gc.active(c)); // touchdown (height 0, moving down), at t ~ 0
+            // drop it from 1 mm so it lands
+            closed_loop_system2dp cl2 = build(1.0e-3);
+            ground_contact2dp gc2(cl2, floor);
+            size_t const c2 = gc2.add({cl2.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}});
+            for (int i = 0; i < 50; ++i)
+                gc2.step(1.0e-3);
+            REQUIRE(gc2.active(c2));
+            value_t const t_up = cl2.system().time();
+            cl2.system().set_applied_wrench(cl2.index_of("rod"), [&](value_t tt) {
+                bool const on = tt >= t_up && tt < t_up + 0.25;
+                vec2dp const P = unitize(
+                    move2dp(vec2dp{-0.5, 0.0, 1.0}, cl2.system().get_pos_trafo(1, 0)));
+                return on ? wdg(P, vec2dp{0.0, 3.0 * m * g, 0.0}) : bivec2dp{};
+            });
+            size_t n_before = gc2.events().size();
+            for (int i = 0; i < 1500; ++i)
+                gc2.step(1.0e-3);
+            auto const& evs = gc2.events();
+            REQUIRE(evs.size() >= n_before + 2);
+            CHECK(!evs[n_before].touchdown);      // released ...
+            CHECK(evs[n_before].t < t_up + 0.01); // ... as soon as the pull appears
+            CHECK(evs[n_before + 1].touchdown);   // ... and landed again
+            CHECK(gc2.active(c2));
+            CHECK(gc2.normal_force(c2) > 0.0);
+            fmt::println("  lifted: released at t = {:.4f}, landed again at t = {:.4f}",
+                         evs[n_before].t - t_up, evs[n_before + 1].t - t_up);
+        }
+
+        // a slope: the ground line through (0, 0) and (1, -0.2); the rod lands ON the
+        // line (height 0 to round-off) and the reaction is along the slope's normal
+        {
+            closed_loop_system2dp cl = build(h);
+            auto const slope = ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0},
+                                                              vec2dp{1.0, -0.2, 1.0});
+            ground_contact2dp gc(cl, slope);
+            CHECK(gc.normal().x == doctest::Approx(0.2 / std::sqrt(1.04)).epsilon(1e-12));
+            size_t const c = gc.add({cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}});
+            for (int i = 0; i < 500 && gc.events().empty(); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(std::abs(gc.contact_height(c)) < 1e-9);
+            vec2dp const P = gc.contact_point(c);
+            CHECK(P.y == doctest::Approx(-0.2 * P.x).epsilon(1e-9)); // on the line
+            fmt::println("  slope: landed at ({:.4f}, {:.4f}), height {:.1e}", P.x, P.y,
+                         gc.contact_height(c));
+        }
+
+        // a flat foot: the rod's end welded to the floor on landing (the impact absorbs
+        // the rotation too) -- a horizontal cantilever whose ankle moment is m g L/2,
+        // so the centre of pressure sits at L/2 = 0.5 > half_length: tipping
+        {
+            closed_loop_system2dp cl = build(h, th0);
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(
+                {cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}, contact_kind2dp::flat, 0.1});
+            for (int i = 0; i < 500 && gc.events().empty(); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(cl.constraint_rows() == 3);
+            auto const rates = cl.system().joint_rates(cl.index_of("rod"));
+            for (auto r : rates)
+                CHECK(std::abs(r) < 1e-9); // welded: at rest entirely
+            CHECK(gc.normal_force(c) == doctest::Approx(m * g).epsilon(1e-9));
+            CHECK(std::abs(gc.moment(c)) ==
+                  doctest::Approx(m * g * 0.5 * std::cos(th0)).epsilon(1e-9));
+            CHECK(std::abs(gc.cop(c)) ==
+                  doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
+            CHECK(gc.tipping(c));
+            fmt::println("  flat foot: N = {:.3f} N, M = {:.3f} N m, cop = {:.3f} -> "
+                         "tipping; as a pin it swings",
+                         gc.normal_force(c), gc.moment(c), gc.cop(c));
+            // back to a point contact: the angular row goes, the rod swings
+            gc.set_kind(c, contact_kind2dp::point);
+            CHECK(cl.constraint_rows() == 2);
+            for (int i = 0; i < 100; ++i)
+                gc.step(1.0e-3);
+            CHECK(std::abs(cl.system().joint_rates(cl.index_of("rod"))[2]) > 0.1);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga2dp: floating base - a planar space station: momentum + energy");

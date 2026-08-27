@@ -1994,6 +1994,130 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: ground_contact3dp - touchdown, slope plane, flat foot, guard")
+    {
+        fmt::println("pga3dp: ground_contact3dp - unilateral contact by events (3D)");
+
+        // The 2D chapter's rod in space: a slender cuboid (free body, cm at height h
+        // above the floor z = 0, along x, at rest) falls with its -x end as the contact
+        // point. Touchdown at the free-fall time to the bisection tolerance, the impact
+        // of W2 pins the end (a ball joint, 3 rows) and the rod rotates about y.
+        value_t const m = 2.0, L = 1.0, h_ = 0.02, g = 9.81, h = 0.5;
+        auto const rod = make_cuboid_body(m, L, h_, h_);
+        value_t const I_pin = m * (L * L + h_ * h_) / 12.0 + m * L * L / 4.0;
+        vec3dp const end_b{-0.5, 0.0, 0.0, 1.0};
+        auto const floor = ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{0.0, 1.0, 0.0, 1.0});
+        // tilted about y by th0 < 0 so the -x end is the lower one (a rotation about +y
+        // by th maps (x, 0, 0) to (x cos th, 0, -x sin th))
+        value_t const th0 = -0.1;
+        auto build = [&](value_t z0, value_t th = 0.0) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, -g, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, z0, 1.0},
+                                        vec3dp{0.0, th, 0.0, 0.0}),
+                        rod);
+            return cl;
+        };
+        {
+            closed_loop_system3dp cl = build(h, th0);
+            ground_contact3dp gc(cl, floor);
+            CHECK(gc.height(vec3dp{3.0, -1.0, 0.7, 1.0}) ==
+                  doctest::Approx(0.7).epsilon(1e-12));
+            CHECK(gc.normal().z == doctest::Approx(1.0).epsilon(1e-12));
+            size_t const c = gc.add({cl.index_of("rod"), end_b});
+            size_t const c2 = gc.add({cl.index_of("rod"), vec3dp{0.5, 0.0, 0.0, 1.0}});
+            value_t const h_end = gc.contact_height(c);
+            CHECK(h_end == doctest::Approx(h - 0.5 * std::sin(-th0)).epsilon(1e-12));
+            for (int i = 0; i < 400 && gc.events().empty(); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.events().size() == 1);
+            auto const& ev = gc.events()[0];
+            value_t const t_star = std::sqrt(2.0 * h_end / g);
+            CHECK(ev.touchdown);
+            CHECK(ev.t == doctest::Approx(t_star).epsilon(1e-9));
+            CHECK(std::abs(ev.point.z) < 1e-12);
+            CHECK(gc.active(c));
+            CHECK(cl.constraint_rows() == 3);
+            CHECK(std::abs(gc.contact_height(c)) < 1e-9);
+            // the impact: -Lambda is the momentum change, v- = -g t* along z
+            REQUIRE(ev.impulse.size() == 3);
+            value_t const v = g * t_star;
+            value_t const arm = 0.5 * L * std::cos(th0); // the cm's lever about the pin
+            value_t const w_ref = -m * v * arm / I_pin;  // about y, sign by r x v
+            value_t const v_plus = -v - ev.impulse[2] / m;
+            value_t const w_ev = v_plus / arm;
+            CHECK(std::abs(w_ev) == doctest::Approx(std::abs(w_ref)).epsilon(1e-9));
+            fmt::println("  touchdown at t = {:.9f} (free fall {:.9f}), |w| from the "
+                         "impulse = {:.6f} ({:.6f})",
+                         ev.t, t_star, std::abs(w_ev), std::abs(w_ref));
+            for (int i = 0; i < 900; ++i)
+                gc.step(1.0e-3);
+            CHECK(gc.active(c)); // the far end landed too: the rod lies on the floor
+            CHECK(gc.active(c2));
+            CHECK(std::abs(gc.contact_height(c2)) < 1e-9);
+            CHECK(gc.normal_force(c) + gc.normal_force(c2) ==
+                  doctest::Approx(m * g).epsilon(1e-6));
+        }
+        // a slope plane z = -0.2 x (normal up): the rod lands ON it
+        {
+            closed_loop_system3dp cl = build(h);
+            auto const slope = ground_contact3dp::ground_plane(
+                vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, -0.2, 1.0},
+                vec3dp{0.0, 1.0, 0.0, 1.0});
+            ground_contact3dp gc(cl, slope);
+            CHECK(gc.normal().z > 0.0);
+            size_t const c = gc.add({cl.index_of("rod"), end_b});
+            for (int i = 0; i < 500 && gc.events().empty(); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(std::abs(gc.contact_height(c)) < 1e-9);
+            vec3dp const P = gc.contact_point(c);
+            CHECK(P.z == doctest::Approx(-0.2 * P.x).epsilon(1e-9));
+            fmt::println("  slope: landed at ({:.4f}, {:.4f}, {:.4f}), height {:.1e}",
+                         P.x, P.y, P.z, gc.contact_height(c));
+        }
+        // a flat foot: welded on landing (6 rows), a cantilever along x -- the moment
+        // has magnitude m g L/2 about y, the centre of pressure sits at x = L/2 in the
+        // foot's axes: outside a 0.1 x 0.1 foot, tipping; as a ball joint it swings
+        {
+            closed_loop_system3dp cl = build(h, th0);
+            ground_contact3dp gc(cl, floor);
+            size_t const c =
+                gc.add({cl.index_of("rod"), end_b, contact_kind3dp::flat, 0.1, 0.1});
+            for (int i = 0; i < 500 && gc.events().empty(); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(cl.constraint_rows() == 6);
+            for (auto r : cl.system().joint_rates(cl.index_of("rod")))
+                CHECK(std::abs(r) < 1e-9);
+            CHECK(gc.normal_force(c) == doctest::Approx(m * g).epsilon(1e-9));
+            vec3dp const M = gc.moment(c);
+            CHECK(std::sqrt(M.x * M.x + M.y * M.y + M.z * M.z) ==
+                  doctest::Approx(m * g * 0.5 * std::cos(th0)).epsilon(1e-9));
+            CHECK(std::abs(gc.cop(c).x) ==
+                  doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
+            CHECK(std::abs(gc.cop(c).y) < 1e-9);
+            CHECK(gc.tipping(c));
+            fmt::println("  flat foot: N = {:.3f} N, |M| = {:.3f} N m, cop = ({:.3f}, "
+                         "{:.3f}) -> tipping",
+                         gc.normal_force(c), std::sqrt(M.x * M.x + M.y * M.y + M.z * M.z),
+                         gc.cop(c).x, gc.cop(c).y);
+            gc.set_kind(c, contact_kind3dp::point);
+            CHECK(cl.constraint_rows() == 3);
+            for (int i = 0; i < 100; ++i)
+                gc.step(1.0e-3);
+            auto const rates = cl.system().joint_rates(cl.index_of("rod"));
+            value_t rot = 0.0;
+            for (auto r : rates)
+                rot = std::max(rot, std::abs(r));
+            CHECK(rot > 0.1);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga3dp: floating base - a space station: momentum and energy");
@@ -2430,7 +2554,11 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
             CHECK(A.joint_rate(j) == B.joint_rate(j));
         }
 
-        // switch the extra pin on: the elbow is now held too, and the answer changes
+        // switch the extra pin on: the elbow is now held too. In space the 3R arm with
+        // its hand pinned is already immobile (3 rows on 3 joints), so q-ddot stays
+        // zero -- what changes is the LOAD PATH: the elbow pin now carries part of it,
+        // and the hand's multipliers change (the multipliers of a redundant closure
+        // are the minimum-norm split)
         A.set_loop_active(1, true);
         CHECK(A.active_loop_count() == 2);
         CHECK(A.constraint_rows() == 6);
@@ -2438,9 +2566,11 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
         std::vector<value_t> lA2;
         auto const qA2 = A.joint_accelerations(&lA2);
         CHECK(lA2.size() == 6);
-        bool differs = false;
         for (size_t k = 0; k < qA2.size(); ++k)
-            differs = differs || (qA2[k] != qA[k]);
+            CHECK(std::abs(qA2[k]) < 1e-9); // still immobile
+        bool differs = false;
+        for (size_t k = 0; k < 3; ++k)
+            differs = differs || (std::abs(lA2[k] - lA[k]) > 1e-9);
         CHECK(differs);
 
         fmt::println("  inactive: q-ddot / lambda / 100 steps bit-identical to the "

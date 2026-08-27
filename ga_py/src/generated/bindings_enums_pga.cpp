@@ -40,6 +40,12 @@ void register_enums_pga(nb::module_& m)
         .value("coincidence", constraint3dp::coincidence)
         .value("distance", constraint3dp::distance)
         .value("frame", constraint3dp::frame);
+    nb::enum_<contact_kind2dp>(m, "contact_kind2dp")
+        .value("point", contact_kind2dp::point)
+        .value("flat", contact_kind2dp::flat);
+    nb::enum_<contact_kind3dp>(m, "contact_kind3dp")
+        .value("point", contact_kind3dp::point)
+        .value("flat", contact_kind3dp::flat);
     nb::enum_<joint2dp>(m, "joint2dp")
         .value("free", joint2dp::free)
         .value("revolute", joint2dp::revolute)

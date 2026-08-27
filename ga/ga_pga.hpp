@@ -45,6 +45,9 @@
 #include "ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
 #include "ga_pga3dp_ops_constraints.hpp" // closed-loop operations for 3dp
 
+#include "ga_pga2dp_ops_contact.hpp" // unilateral ground contact for 2dp (events on the loop layer)
+#include "ga_pga3dp_ops_contact.hpp" // unilateral ground contact for 3dp
+
 // mechanics convenience aliases (after the mechanics ops headers they depend on)
 #include "ga_usr_types_mechanics.hpp" // inertia2dp / inertia3dp (value_t-based)
 
