@@ -803,6 +803,46 @@ TEST_SUITE("CGA 2dc Tests")
 
         CHECK_FALSE(intersect(c_r2, line_through(0.0, 3.0, 1.0, 0.0), p1, p2));
         CHECK(radius_sq(rwdg(c_r2, line_through(0.0, 3.0, 1.0, 0.0))) == -5.0);
+
+        // the same chain as the library's dipole_points(), which returns NULL points
+        // (round_point2dc(x, y, 0), not the weight-only vectors above): the secant
+        // pair, the tangent pair coinciding, the imaginary meet throwing
+        {
+            auto const [q1, q2] =
+                dipole_points(rwdg(circle2dc(1.0, 0.0, 2.0), circle2dc(3.0, 0.0, 2.0)));
+            bool const oa = is_close(q1, round_point2dc(2.0, s3, 0.0)) &&
+                            is_close(q2, round_point2dc(2.0, -s3, 0.0));
+            bool const ob = is_close(q1, round_point2dc(2.0, -s3, 0.0)) &&
+                            is_close(q2, round_point2dc(2.0, s3, 0.0));
+            CHECK((oa || ob));
+            auto const [t1, t2] =
+                dipole_points(rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(3.0, 0.0, 2.0)));
+            CHECK(is_close(t1, round_point2dc(1.0, 0.0, 0.0)));
+            CHECK(is_close(t2, round_point2dc(1.0, 0.0, 0.0)));
+            CHECK_THROWS(
+                dipole_points(rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(5.0, 0.0, 1.0))));
+        }
+
+        // two-link inverse kinematics as that meet: base (0, 0), tip (2, 0), links
+        // of length 2 -> the joint at (1, +/- sqrt 3), each solution at L1 from the
+        // base and L2 from the tip; a tip beyond L1 + L2 is out of reach (throws),
+        // and so is one closer than |L1 - L2|
+        {
+            auto const [j1, j2] = two_link_ik2dc(0.0, 0.0, 2.0, 0.0, 2.0, 2.0);
+            bool const ka = is_close(j1, round_point2dc(1.0, s3, 0.0)) &&
+                            is_close(j2, round_point2dc(1.0, -s3, 0.0));
+            bool const kb = is_close(j1, round_point2dc(1.0, -s3, 0.0)) &&
+                            is_close(j2, round_point2dc(1.0, s3, 0.0));
+            CHECK((ka || kb));
+            // an unequal pair, checked by the link lengths alone
+            auto const [k1, k2] = two_link_ik2dc(0.3, -0.2, 1.1, 0.9, 0.8, 0.7);
+            for (auto const& k : {k1, k2}) {
+                CHECK(std::hypot(k.x - 0.3, k.y + 0.2) == doctest::Approx(0.8));
+                CHECK(std::hypot(k.x - 1.1, k.y - 0.9) == doctest::Approx(0.7));
+            }
+            CHECK_THROWS(two_link_ik2dc(0.0, 0.0, 5.0, 0.0, 2.0, 2.0));
+            CHECK_THROWS(two_link_ik2dc(0.0, 0.0, 0.5, 0.0, 2.0, 1.0));
+        }
     }
 
     TEST_CASE("cga2dc: conformal conjugate and containment")

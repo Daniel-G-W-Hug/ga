@@ -483,6 +483,56 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(radius_sq(cut(3.0)) == -5.0); // plane misses the sphere
     }
 
+    TEST_CASE("cga3dc: dipole points and two-link inverse kinematics")
+    {
+        fmt::println("cga3dc: dipole points and two-link inverse kinematics");
+
+        // the two points of a dipole built directly: center (1,2,3), r = 2, axis x
+        {
+            auto const [p1, p2] =
+                dipole_points(dipole3dc(1.0, 2.0, 3.0, 2.0, 1.0, 0.0, 0.0));
+            bool const oa = is_close(p1, round_point3dc(3.0, 2.0, 3.0, 0.0)) &&
+                            is_close(p2, round_point3dc(-1.0, 2.0, 3.0, 0.0));
+            bool const ob = is_close(p1, round_point3dc(-1.0, 2.0, 3.0, 0.0)) &&
+                            is_close(p2, round_point3dc(3.0, 2.0, 3.0, 0.0));
+            CHECK((oa || ob));
+        }
+
+        // two-link IK as sphere v sphere v plane: base at the origin, tip (2,0,0),
+        // links of length 2; in the plane z = 0 the joint is (1, +/- sqrt 3, 0), in
+        // the plane y = 0 it is (1, 0, +/- sqrt 3) -- the sphere meet is the whole
+        // circle of joint positions, the plane picks two of them
+        value_t const s3 = std::sqrt(3.0);
+        {
+            auto const [j1, j2] = two_link_ik3dc(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0,
+                                                 plane3dc(0.0, 0.0, 1.0, 0.0));
+            bool const ka = is_close(j1, round_point3dc(1.0, s3, 0.0, 0.0)) &&
+                            is_close(j2, round_point3dc(1.0, -s3, 0.0, 0.0));
+            bool const kb = is_close(j1, round_point3dc(1.0, -s3, 0.0, 0.0)) &&
+                            is_close(j2, round_point3dc(1.0, s3, 0.0, 0.0));
+            CHECK((ka || kb));
+            auto const [m1, m2] = two_link_ik3dc(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0,
+                                                 plane3dc(0.0, 1.0, 0.0, 0.0));
+            for (auto const& m : {m1, m2}) {
+                CHECK(m.x / m.w == doctest::Approx(1.0));
+                CHECK(m.y / m.w == doctest::Approx(0.0));
+                CHECK(std::abs(m.z / m.w) == doctest::Approx(s3));
+            }
+            // a general case checked by the link lengths and the plane alone
+            auto const [k1, k2] = two_link_ik3dc(0.2, -0.1, 0.3, 0.9, 0.7, 0.8, 0.8, 0.6,
+                                                 plane3dc(0.0, 0.0, 1.0, 0.5));
+            for (auto const& k : {k1, k2}) {
+                value_t const x = k.x / k.w, y = k.y / k.w, z = k.z / k.w;
+                CHECK(std::hypot(x - 0.2, y + 0.1, z - 0.3) == doctest::Approx(0.8));
+                CHECK(std::hypot(x - 0.9, y - 0.7, z - 0.8) == doctest::Approx(0.6));
+                CHECK(z == doctest::Approx(0.5));
+            }
+            // out of reach: the dipole is imaginary
+            CHECK_THROWS(two_link_ik3dc(0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 2.0, 2.0,
+                                        plane3dc(0.0, 0.0, 1.0, 0.0)));
+        }
+    }
+
     TEST_CASE("cga3dc: object properties (car/ccr/cen/con/par/att)")
     {
         fmt::println("cga3dc: object properties (car/ccr/cen/con/par/att)");

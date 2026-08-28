@@ -4277,6 +4277,19 @@ void register_functions(sol::state& lua)
                                    sol::resolve<value_t(bivec3dc const&)>(radius_sq),
                                    sol::resolve<value_t(trivec3dc const&)>(radius_sq),
                                    sol::resolve<value_t(quadvec3dc const&)>(radius_sq)));
+    // worked constructions: a dipole's two points and the two-link inverse kinematics
+    // as a circle / sphere meet (std::pair -> two Lua return values)
+    cga.set_function("dipole_points",
+                     sol::overload([](bivec2dc const& d) { return dipole_points(d); },
+                                   [](bivec3dc const& d) { return dipole_points(d); }));
+    cga.set_function("two_link_ik2dc",
+                     [](value_t bx, value_t by, value_t tx, value_t ty, value_t L1,
+                        value_t L2) { return two_link_ik2dc(bx, by, tx, ty, L1, L2); });
+    cga.set_function("two_link_ik3dc",
+                     [](value_t bx, value_t by, value_t bz, value_t tx, value_t ty,
+                        value_t tz, value_t L1, value_t L2, quadvec3dc const& plane) {
+                         return two_link_ik3dc(bx, by, bz, tx, ty, tz, L1, L2, plane);
+                     });
 
     cga.set_function(
         "round_bulk",

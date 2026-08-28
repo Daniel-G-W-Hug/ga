@@ -197,6 +197,8 @@ void register_functions_cga(nb::module_& m)
     m.def("dipole3dc",
           [](double a0, double a1, double a2, double a3, double a4, double a5,
              double a6) { return dipole3dc(a0, a1, a2, a3, a4, a5, a6); });
+    m.def("dipole_points", [](bivec2dc const& a0) { return dipole_points(a0); });
+    m.def("dipole_points", [](bivec3dc const& a0) { return dipole_points(a0); });
     m.def("dot", [](mvec2dc const& a0, mvec2dc const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dc_e const& a0, mvec2dc_e const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dc_u const& a0, mvec2dc_u const& a1) { return dot(a0, a1); });
@@ -1027,6 +1029,14 @@ void register_functions_cga(nb::module_& m)
           [](trivec3dc const& a0, mvec3dc_u const& a1) { return transform(a0, a1); });
     m.def("transform",
           [](quadvec3dc const& a0, mvec3dc_u const& a1) { return transform(a0, a1); });
+    m.def("two_link_ik2dc",
+          [](double a0, double a1, double a2, double a3, double a4, double a5) {
+              return two_link_ik2dc(a0, a1, a2, a3, a4, a5);
+          });
+    m.def("two_link_ik3dc", [](double a0, double a1, double a2, double a3, double a4,
+                               double a5, double a6, double a7, quadvec3dc const& a8) {
+        return two_link_ik3dc(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+    });
     m.def("unitize", [](vec2dc const& a0) { return unitize(a0); });
     m.def("unitize", [](bivec2dc const& a0) { return unitize(a0); });
     m.def("unitize", [](trivec2dc const& a0) { return unitize(a0); });

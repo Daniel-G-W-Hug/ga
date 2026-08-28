@@ -6,7 +6,10 @@
 #include "ga_cga2dc_ops_basics.hpp"
 #include "ga_cga2dc_ops_products.hpp"
 
-#include <complex> // exp/log/sqrt of regressive versors (central subalgebra = C)
+#include <cmath>     // dipole_points
+#include <complex>   // exp/log/sqrt of regressive versors (central subalgebra = C)
+#include <stdexcept> // dipole_points: the imaginary dipole
+#include <utility>   // std::pair
 
 
 namespace hd::ga::cga {
@@ -50,6 +53,11 @@ namespace hd::ga::cga {
 // - con()                   -> container: the smallest circle containing u
 // - par()                   -> partner: same center/carrier, r^2 negated
 // - att()                   -> attitude (direction content; removes the origin)
+//
+// Worked constructions:
+//
+// - dipole_points()         -> the two points of a dipole (the end of a meet chain)
+// - two_link_ik2dc()        -> planar two-link inverse kinematics as a circle meet
 //
 // - is_congruent()          -> same subspace up to a non-zero scalar factor
 // - is_close()              -> same value within a RELATIVE tolerance
@@ -547,6 +555,54 @@ template <typename T>
 constexpr BiVec2dc<T> att(TriVec2dc<T> const& t)
 {
     return rwdg(t, r_cmpl(Vec2dc<T>(T(0.0), T(0.0), T(1.0), T(0.0))));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// worked constructions: the points of a dipole, two-link inverse kinematics
+////////////////////////////////////////////////////////////////////////////////
+
+// the two points of a dipole d, with d unitized:
+//
+//     p_pm = cen(d) +/- sqrt(radius_sq(d)) * att(d)
+//
+// returned as null points of unit weight (round_point2dc(x, y, 0)). This is the end
+// of the meet chain (circle v circle, circle v line): the sign of radius_sq(d)
+// decides beforehand whether real points exist, so an imaginary dipole (radius_sq
+// < 0) throws -- test the sign first where the meet may miss. A flat object has no
+// round weight and throws in radius_sq.
+template <typename T>
+    requires(numeric_type<T>)
+inline std::pair<Vec2dc<T>, Vec2dc<T>> dipole_points(BiVec2dc<T> const& d)
+{
+    T const r_sq = radius_sq(d);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("dipole_points: imaginary dipole, no real points");
+    auto const du = unitize(d);
+    auto const c = cen(du);
+    auto const a = att(du);
+    T const r = std::sqrt(r_sq);
+    T const cx = c.x / c.z, cy = c.y / c.z; // center at weight one
+    return {round_point2dc(cx + r * a.x, cy + r * a.y, T(0.0)),
+            round_point2dc(cx - r * a.x, cy - r * a.y, T(0.0))};
+}
+
+// planar two-link inverse kinematics as a circle meet (the 2R arm, Lynch & Park
+// 6.1; a leg from hip to ankle): the joint between a link of length L1 from the
+// base point b and a link of length L2 to the tip point t lies on both circles, so
+//
+//     j_pm = dipole_points( circle2dc(b, L1) v circle2dc(t, L2) )
+//
+// are the two configurations (elbow up / elbow down, knee forward / back). No
+// discriminant is formed and no branch is taken: the meet is one product, and the
+// tip is out of reach (|t - b| > L1 + L2 or < |L1 - L2|) when that dipole is
+// imaginary, which throws; test radius_sq of the meet first where reach is in
+// question. Coincident base and tip (concentric circles) throw as a flat meet.
+template <typename T>
+    requires(numeric_type<T>)
+inline std::pair<Vec2dc<T>, Vec2dc<T>> two_link_ik2dc(T bx, T by, T tx, T ty, T L1, T L2)
+{
+    return dipole_points(rwdg(circle2dc(bx, by, L1), circle2dc(tx, ty, L2)));
 }
 
 
