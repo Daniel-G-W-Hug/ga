@@ -1127,6 +1127,14 @@ with none attached the gravity/bias path is byte-unchanged):
   axial `±l` give the emergent tilt stiffness). Contributes its potential to
   `potential_energy()`.
 
+- `set_joint_torque(idx, fn)` — an *actuator*: `tau_j += fn(t)` directly on a coordinate
+  joint (a motor at a joint acts equally and oppositely on parent and child, so in joint
+  space it IS the generalised force — no projection); the overload taking a
+  `std::vector<value_t>(t)` gives one value per screw of a motor joint. A driven joint
+  ignores it. Not conservative: `∫ τ q̇ dt` is what `total_energy()` changes by (gated
+  by convergence order). For a feedback law, capture the system by reference — inside
+  a step, `fn` sees the RK4 stage state.
+
 **Application-specific force elements via subclassing.** `dynamic_system{2,3}dp` exposes a
 `protected virtual extra_wrenches()` (returns `{}` in the base); `assemble_mass_bias` folds
 each returned `(frame, world-wrench)` pair onto the frame's supporting joints exactly like

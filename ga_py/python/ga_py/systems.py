@@ -407,6 +407,7 @@ class DynamicSystem3dp(KinematicSystem3dp):
         self._joint: list[JointState3dp] = []
         self._grav = pga.vec3dp(0.0, -9.81, 0.0, 0.0)  # world direction (w = 0)
         self._wrench: dict[int, "callable"] = {}       # frame -> fn(t) -> bivec3dp
+        self._torque: dict[int, "callable"] = {}       # frame -> fn(t) -> float (1-dof)
         self._driven: dict[int, tuple[float, float]] = {}  # frame -> (rate, q0)
         self._springs: dict[int, list[GroundedSpring3dp]] = {}
         self._time = 0.0
@@ -485,6 +486,17 @@ class DynamicSystem3dp(KinematicSystem3dp):
             self._wrench.pop(idx, None)
         else:
             self._wrench[idx] = fn
+
+    def set_joint_torque(self, ref, fn) -> None:
+        """Actuator torque on a 1-dof joint: tau += fn(t), the generalised force on that
+        coordinate (a motor at a joint acts equally and oppositely on parent and child,
+        so no projection). Mirror of `dynamic_system3dp::set_joint_torque` (the scalar
+        form; the per-screw form for motor joints is not mirrored). None clears."""
+        idx = self._resolve(ref)
+        if fn is None:
+            self._torque.pop(idx, None)
+        else:
+            self._torque[idx] = fn
 
     def set_driven_rate(self, ref, rate: float, q0: float = 0.0) -> None:
         """Prescribe a 1-DOF joint at constant rate q(t) = q0 + rate·t (a moving base)."""
@@ -707,6 +719,12 @@ class DynamicSystem3dp(KinematicSystem3dp):
         for j in range(n):
             js = self._joint[rj[j]]
             rhs[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega
+
+        # actuator torques (generalised forces at the joints, at the current clock)
+        for j in range(n):
+            fn = self._torque.get(rj[j])
+            if fn is not None:
+                rhs[j] += fn(self._time)
 
         # applied wrenches (world, at the current clock)
         for fi, fn in self._wrench.items():

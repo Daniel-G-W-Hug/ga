@@ -4803,6 +4803,107 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: joint torque - an actuator as a generalised force")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - joint torque (actuator)");
+
+        // a gravity pendulum: a plate of mass m whose centre hangs l below the pivot
+        value_t const m = 2.0, l = 0.5, g = 9.81, w = 0.05;
+        value_t const I_piv = m * (w * w + 4.0 * l * l) / 12.0 + m * l * l;
+        auto make = [&](value_t gg) {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -gg, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("P", vec2dp{0.0, -l, 1.0}, 0.0),
+                                make_plate_body(m, w, 2.0 * l), vec2dp{0.0, l, 1.0});
+            return s;
+        };
+
+        // a torque of zero changes nothing, bit for bit
+        {
+            auto a = make(g), b = make(g);
+            b.set_joint_torque(1, [](value_t) { return 0.0; });
+            a.set_joint(1, 0.3);
+            b.set_joint(1, 0.3);
+            for (int i = 0; i < 200; ++i) {
+                a.step(1e-3);
+                b.step(1e-3);
+            }
+            CHECK(a.joint_phi(1) == b.joint_phi(1));
+            CHECK(a.joint_omega(1) == b.joint_omega(1));
+        }
+        // sign and magnitude: at rest a torque tau gives q-ddot = tau / I_pivot
+        {
+            auto s = make(0.0);
+            s.set_joint_torque(1, [](value_t) { return 0.7; });
+            CHECK(s.joint_accel(1) == doctest::Approx(0.7 / I_piv).epsilon(1e-12));
+        }
+        // a constant torque against gravity settles (damped) at m g l sin(q) = tau
+        {
+            auto s = make(g);
+            value_t const tau = 0.3 * m * g * l;
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            s.set_joint_spring_damper(1, 0.0, 2.0);
+            for (int i = 0; i < 20000; ++i)
+                s.step(1e-3);
+            CHECK(s.joint_phi(1) == doctest::Approx(std::asin(0.3)).epsilon(1e-7));
+        }
+        // an actuator is not conservative: the change of total energy is its work,
+        // integral(tau q-dot dt). The trapezoid work integral is second order, so the
+        // mismatch must fall 4x per halving of dt (a gate by convergence order)
+        {
+            auto work_err = [&](value_t dt) {
+                auto s = make(g);
+                s.set_joint_torque(1, [](value_t t) { return 1.5 * std::sin(3.0 * t); });
+                value_t const E0 = s.total_energy();
+                value_t W = 0.0, p_prev = 0.0;
+                for (int i = 0; i * dt < 2.0; ++i) {
+                    value_t const p = 1.5 * std::sin(3.0 * s.time()) * s.joint_omega(1);
+                    s.step(dt);
+                    value_t const p_new =
+                        1.5 * std::sin(3.0 * s.time()) * s.joint_omega(1);
+                    W += 0.5 * (p + p_new) * dt;
+                    p_prev = p_new;
+                }
+                (void)p_prev;
+                return std::abs(s.total_energy() - E0 - W);
+            };
+            value_t const e1 = work_err(2e-3), e2 = work_err(1e-3);
+            CHECK(e1 > 1e-9); // the mismatch is a real discretisation error ...
+            CHECK(e1 / e2 == doctest::Approx(4.0).epsilon(0.1)); // ... of second order
+        }
+        // a driven joint ignores a torque: its coordinate is prescribed
+        {
+            auto s = make(g);
+            s.set_driven_rate(1, 0.5);
+            s.set_joint_torque(1, [](value_t) { return 100.0; });
+            for (int i = 0; i < 1000; ++i)
+                s.step(1e-3);
+            CHECK(s.joint_phi(1) == doctest::Approx(0.5).epsilon(1e-12));
+        }
+        // the motor-joint form: a free body (3 screws) with one generalised force per
+        // screw; the solve returns M q-ddot = tau (the fold lands on the right index)
+        {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_body(static_frame2dp("B", vec2dp{0.3, 0.2, 1.0}, 0.4),
+                       make_plate_body(3.0, 0.2, 0.5));
+            std::vector<value_t> const tau{0.0, 2.0, -0.5};
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            auto const M = s.mass_matrix();
+            auto const qdd = s.joint_accelerations();
+            REQUIRE(qdd.size() == 3);
+            for (size_t r = 0; r < 3; ++r) {
+                value_t acc = 0.0;
+                for (size_t c = 0; c < 3; ++c)
+                    acc += M[3 * r + c] * qdd[c];
+                CHECK(acc == doctest::Approx(tau[r]).epsilon(1e-9).scale(1.0));
+            }
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: dynamic_system2dp - total mass, centre of mass, gravity wrench")
     {
         fmt::println("pga2dp: mass distribution -- total_mass / centre_of_mass / "

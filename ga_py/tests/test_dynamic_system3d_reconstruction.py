@@ -142,3 +142,36 @@ if __name__ == "__main__":
             print(f"  [FAIL] {name}: {e}")
     print(f"\n{'ALL CHECKS PASSED' if ok else 'SOME CHECKS FAILED'}\n")
     raise SystemExit(0 if ok else 1)
+
+
+# --- an actuator torque at a joint ----------------------------------------------------
+
+def test_joint_torque_pendulum_equilibrium():
+    """set_joint_torque mirror: a constant torque against gravity on a damped pendulum
+    settles at m g l sin(q) = tau; at rest the angular acceleration is tau / I_pivot."""
+    m, l, g, w = 2.0, 0.5, 9.81, 0.05
+    body = make_cuboid_body(m, w, 2.0 * l, w)
+    zero_rot = pga.vec3dp(0.0, 0.0, 0.0, 0.0)
+    z = pga.vec3dp(0.0, 0.0, 1.0, 0.0)
+
+    def make(gg):
+        s = DynamicSystem3dp()
+        s.set_gravity(pga.vec3dp(0.0, -gg, 0.0, 0.0))
+        s.add_frame("W")
+        s.add_revolute_body("P", body, pga.vec3dp(0.0, l, 0.0, 1.0), z,
+                            pose=pga.pose3dp(pga.vec3dp(0.0, -l, 0.0, 1.0), zero_rot),
+                            parent_idx=0)
+        return s
+
+    i_piv = m * (w * w + 4.0 * l * l) / 12.0 + m * l * l
+    s = make(0.0)
+    s.set_joint_torque("P", lambda t: 0.7)
+    assert abs(s.joint_accel("P") - 0.7 / i_piv) < 1e-12
+
+    s = make(g)
+    tau = 0.3 * m * g * l
+    s.set_joint_torque("P", lambda t: tau)
+    s.set_joint_spring_damper("P", 0.0, 2.0)
+    for _ in range(8000):
+        s.step(2.5e-3)
+    assert abs(s.joint_phi("P") - math.asin(0.3)) < 1e-6

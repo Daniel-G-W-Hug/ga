@@ -1910,6 +1910,108 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: joint torque - an actuator as a generalised force")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - joint torque (actuator)");
+
+        // a gravity pendulum about the z axis: a bar of mass m, centre l below the pivot
+        value_t const m = 2.0, l = 0.5, g = 9.81, w = 0.05;
+        value_t const I_piv = m * (w * w + 4.0 * l * l) / 12.0 + m * l * l;
+        auto make = [&](value_t gg) {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, -gg, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
+                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                make_cuboid_body(m, w, 2.0 * l, w),
+                                vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0});
+            return s;
+        };
+
+        // a torque of zero changes nothing, bit for bit
+        {
+            auto a = make(g), b = make(g);
+            b.set_joint_torque(1, [](value_t) { return 0.0; });
+            a.set_joint(1, 0.3);
+            b.set_joint(1, 0.3);
+            for (int i = 0; i < 200; ++i) {
+                a.step(1e-3);
+                b.step(1e-3);
+            }
+            CHECK(a.joint_phi(1) == b.joint_phi(1));
+            CHECK(a.joint_omega(1) == b.joint_omega(1));
+        }
+        // sign and magnitude: at rest a torque tau gives q-ddot = tau / I_pivot
+        {
+            auto s = make(0.0);
+            s.set_joint_torque(1, [](value_t) { return 0.7; });
+            CHECK(s.joint_accel(1) == doctest::Approx(0.7 / I_piv).epsilon(1e-12));
+        }
+        // a constant torque against gravity settles (damped) at m g l sin(q) = tau
+        {
+            auto s = make(g);
+            value_t const tau = 0.3 * m * g * l;
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            s.set_joint_spring_damper(1, 0.0, 2.0);
+            for (int i = 0; i < 20000; ++i)
+                s.step(1e-3);
+            CHECK(s.joint_phi(1) == doctest::Approx(std::asin(0.3)).epsilon(1e-7));
+        }
+        // the change of total energy is the actuator's work integral(tau q-dot dt); the
+        // trapezoid integral is second order: the mismatch falls 4x per halving of dt
+        {
+            auto work_err = [&](value_t dt) {
+                auto s = make(g);
+                s.set_joint_torque(1, [](value_t t) { return 1.5 * std::sin(3.0 * t); });
+                value_t const E0 = s.total_energy();
+                value_t W = 0.0;
+                for (int i = 0; i * dt < 2.0; ++i) {
+                    value_t const p = 1.5 * std::sin(3.0 * s.time()) * s.joint_omega(1);
+                    s.step(dt);
+                    value_t const p_new =
+                        1.5 * std::sin(3.0 * s.time()) * s.joint_omega(1);
+                    W += 0.5 * (p + p_new) * dt;
+                }
+                return std::abs(s.total_energy() - E0 - W);
+            };
+            value_t const e1 = work_err(2e-3), e2 = work_err(1e-3);
+            CHECK(e1 > 1e-9);
+            CHECK(e1 / e2 == doctest::Approx(4.0).epsilon(0.1));
+        }
+        // a driven joint ignores a torque: its coordinate is prescribed
+        {
+            auto s = make(g);
+            s.set_driven_rate(1, 0.5);
+            s.set_joint_torque(1, [](value_t) { return 100.0; });
+            for (int i = 0; i < 1000; ++i)
+                s.step(1e-3);
+            CHECK(s.joint_phi(1) == doctest::Approx(0.5).epsilon(1e-12));
+        }
+        // the motor-joint form: a spherical joint (3 screws) with one generalised force
+        // per screw; the solve returns M q-ddot = tau (the fold lands on the right index)
+        {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_spherical_body(static_frame3dp("B", vec3dp{0.0, -0.4, 0.0, 1.0},
+                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                 make_cuboid_body(3.0, 0.2, 0.8, 0.1),
+                                 vec3dp{0.0, 0.4, 0.0, 1.0});
+            std::vector<value_t> const tau{0.3, -2.0, 0.5};
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            auto const M = s.mass_matrix();
+            auto const qdd = s.joint_accelerations();
+            REQUIRE(qdd.size() == 3);
+            for (size_t r = 0; r < 3; ++r) {
+                value_t acc = 0.0;
+                for (size_t c = 0; c < 3; ++c)
+                    acc += M[3 * r + c] * qdd[c];
+                CHECK(acc == doctest::Approx(tau[r]).epsilon(1e-9).scale(1.0));
+            }
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: dynamic_system3dp - total mass, centre of mass, gravity wrench")
     {
         fmt::println("pga3dp: mass distribution -- total_mass / centre_of_mass / "

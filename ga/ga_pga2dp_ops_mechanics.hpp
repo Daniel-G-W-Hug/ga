@@ -1191,6 +1191,18 @@ class dynamic_system2dp : public kinematic_system2dp {
     // jointed (assemble_mass_bias) path consumes it; free bodies see gravity only.
     using wrench_fn = std::function<bivec2dp(value_t)>;
     std::unordered_map<size_t, wrench_fn> wrench_;
+
+    // Optional ACTUATOR torque per joint, folded into tau directly: a motor at a joint
+    // acts equally and oppositely on parent and child, so in joint space it IS the
+    // generalised force on that coordinate (no projection). Two forms: a scalar
+    // function of time for a coordinate joint (revolute / prismatic), a vector
+    // of one value per screw for a motor joint. Evaluated at each RK4 sub-step time;
+    // a driven joint ignores it (its coordinate is prescribed). An actuator is not
+    // conservative: its work integral(tau q-dot dt) is what total_energy() changes by.
+    using torque_fn = std::function<value_t(value_t)>;
+    using torque_vec_fn = std::function<std::vector<value_t>(value_t)>;
+    std::unordered_map<size_t, torque_fn> torque_;
+    std::unordered_map<size_t, torque_vec_fn> torque_v_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
 
     // Optional KINEMATICALLY DRIVEN joints: a 1-DOF joint whose coordinate is PRESCRIBED
@@ -1296,6 +1308,23 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         if (fn) wrench_[idx] = std::move(fn);
         else wrench_.erase(idx);
+    }
+
+    // Attach an actuator torque (generalised force) to joint `idx` as a function of
+    // time: tau_j += fn(t) on a coordinate joint. Pass an empty function to clear. For
+    // a controller, capture the system by reference and read its live state in fn --
+    // inside a step that is the RK4 stage state.
+    void set_joint_torque(size_t idx, torque_fn fn)
+    {
+        if (fn) torque_[idx] = std::move(fn);
+        else torque_.erase(idx);
+    }
+    // the motor-joint form: one generalised force per screw of joint `idx` (the
+    // joint's `screws` order), tau_{idx,k} += fn(t)[k]
+    void set_joint_torque(size_t idx, torque_vec_fn fn)
+    {
+        if (fn) torque_v_[idx] = std::move(fn);
+        else torque_v_.erase(idx);
     }
 
     value_t time() const { return time_; }  // simulation clock [s]
@@ -1992,6 +2021,22 @@ class dynamic_system2dp : public kinematic_system2dp {
             if (!js.screws.empty()) continue; // motor joints carry no coordinate spring
             RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
         }
+
+        // actuator torques (generalised forces at the joints, evaluated at the current
+        // clock time_): a coordinate joint's scalar, a motor joint's per-screw vector.
+        // Zero unless a torque was attached via set_joint_torque.
+        if (!torque_.empty() || !torque_v_.empty())
+            for (size_t j = 0; j < n; ++j) {
+                if (auto const it = torque_.find(rc[j].frame);
+                    it != torque_.end() && it->second &&
+                    joint[rc[j].frame].screws.empty())
+                    RHS[j] += it->second(time_);
+                if (auto const it = torque_v_.find(rc[j].frame);
+                    it != torque_v_.end() && it->second) {
+                    auto const tv = it->second(time_);
+                    if (rc[j].k < tv.size()) RHS[j] += tv[rc[j].k];
+                }
+            }
 
         // applied external wrenches (world frame, evaluated at the current clock time_):
         // an applied wrench W on frame fi contributes the generalised force
