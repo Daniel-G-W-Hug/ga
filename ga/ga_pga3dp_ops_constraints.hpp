@@ -349,7 +349,7 @@ class closed_loop_system3dp {
     // the retraction M <- M (x) rexp(1/2 delta . S) for a motor joint. Returns the
     // achieved residual norm ‖g‖. Throws if Newton does not converge within max_iter.
     value_t assemble(std::vector<size_t> const& driven = {}, value_t tol = value_t(1e-12),
-                     size_t max_iter = 50)
+                     size_t max_iter = 50, value_t stall_tol = value_t(1e-3))
     {
         std::vector<coord> const dep = dependent_coords(driven);
 
@@ -368,6 +368,20 @@ class closed_loop_system3dp {
                 b[i] = -g[i];
             std::vector<value_t> const delta = hd::ga::lstsq_solve(G, b, dep.size());
             tree_.increment_coords(dep, delta);
+        }
+        // A rank-deficient closure (a straightened knee, an over-constrained loop)
+        // leaves a component of g outside the constraint Jacobian's row space, and
+        // the min-norm Newton STALLS at that least-squares floor rather than
+        // converging. A sub-millimetre floor is the singular configuration's
+        // answer, not a failure (measured: a walking biped drifting near knee lock
+        // stalled at 3e-4 and the throw took the whole app down) -- return the
+        // achieved residual. A large floor still throws.
+        {
+            std::vector<value_t> const g = residual();
+            value_t gnorm = 0.0;
+            for (value_t const gi : g)
+                gnorm = std::max(gnorm, std::abs(gi));
+            if (gnorm < stall_tol) return gnorm;
         }
         throw std::runtime_error(
             std::string(

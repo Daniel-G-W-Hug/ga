@@ -4904,6 +4904,42 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: assemble at a least-squares floor - stall vs failure")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp::assemble - the stall tolerance");
+
+        // A rank-deficient or slightly inconsistent closure leaves a component of g
+        // outside the constraint Jacobian's row space: the min-norm Newton STALLS
+        // at that least-squares floor instead of converging. A sub-millimetre floor
+        // is the singular configuration's answer, not a failure (measured: a
+        // walking biped drifting near knee lock stalled at 3e-4, and the old
+        // unconditional throw took the caller down); a large floor still throws.
+        // Fixture: one bar hinged at the origin, its tip pinned to an anchor at a
+        // distance the bar cannot span -- the floor IS the length mismatch.
+        auto make = [](value_t mismatch) {
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_revolute_body(static_frame2dp("bar", vec2dp{0.3, 0.0, 1.0}, 0.0),
+                                 make_plate_body(2.0, 0.6, 0.06), vec2dp{-0.3, 0.0, 1.0},
+                                 0.0, 0.0, 0);
+            cl.add_loop_constraint(loop_constraint2dp{1, vec2dp{0.3, 0.0, 1.0}, 0,
+                                                      vec2dp{0.6 + mismatch, 0.0, 1.0},
+                                                      constraint2dp::coincidence});
+            return cl;
+        };
+        {
+            auto cl = make(3.0e-4); // the biped's measured floor
+            value_t g = -1.0;
+            CHECK_NOTHROW(g = cl.assemble());
+            CHECK(g == doctest::Approx(3.0e-4).epsilon(0.05)); // the floor reported
+        }
+        {
+            auto cl = make(1.0e-2); // a real failure to close
+            CHECK_THROWS(cl.assemble());
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: mass_bias / constraint_jacobian - the EoM read off (L4)")
     {
         fmt::println("pga2dp: mass_bias() and constraint_jacobian() accessors");

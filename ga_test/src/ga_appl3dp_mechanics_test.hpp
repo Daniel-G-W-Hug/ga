@@ -2012,6 +2012,38 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: assemble at a least-squares floor - stall vs failure")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp::assemble - the stall tolerance");
+
+        // the 3D mirror of the 2D stall-tolerance gate (see there): a closure whose
+        // residual floor is the length mismatch returns it; a large mismatch throws
+        auto make = [](value_t mismatch) {
+            closed_loop_system3dp cl;
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_revolute_body(static_frame3dp("bar", vec3dp{0.3, 0.0, 0.0, 1.0},
+                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                 make_cuboid_body(2.0, 0.6, 0.06, 0.06),
+                                 vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
+                                 0.0, 0.0, 0);
+            cl.add_loop_constraint(loop_constraint3dp{
+                1, vec3dp{0.3, 0.0, 0.0, 1.0}, 0, vec3dp{0.6 + mismatch, 0.0, 0.0, 1.0},
+                constraint3dp::coincidence});
+            return cl;
+        };
+        {
+            auto cl = make(3.0e-4);
+            value_t g = -1.0;
+            CHECK_NOTHROW(g = cl.assemble());
+            CHECK(g == doctest::Approx(3.0e-4).epsilon(0.05));
+        }
+        {
+            auto cl = make(1.0e-2);
+            CHECK_THROWS(cl.assemble());
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: mass_bias / constraint_jacobian - the EoM read off (L4)")
     {
         fmt::println("pga3dp: mass_bias() and constraint_jacobian() accessors");
