@@ -21,6 +21,7 @@
 
 #include "detail/type_t/ga_mvec2dc.hpp" // MVec2dc<T> and subtypes
 #include "detail/type_t/ga_mvec3dc.hpp" // MVec3dc<T> and subtypes
+
 #include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
