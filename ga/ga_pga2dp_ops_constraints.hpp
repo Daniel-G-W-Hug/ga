@@ -497,6 +497,27 @@ class closed_loop_system2dp {
         return kkt_dynamics(tree_.dof_coords(), lambda_out);
     }
 
+    // The CONSTRAINED analogue of dynamic_system2dp::sync_accelerations(): solve the
+    // KKT accelerations and write them into the per-frame relative acceleration
+    // twists, so point_acceleration / centre_of_mass_acceleration then report the
+    // actual constrained dynamics rather than the velocity-product bias left after
+    // step(). The base class's version cannot serve here: it runs the FREE forward
+    // dynamics, which for a mechanism standing on two closed contacts is a different
+    // problem with a different answer. Call it before reading any acceleration field
+    // -- for visualisation, and for a controller that measures a task's response
+    // rather than differentiating a Jacobian for it.
+    std::vector<value_t> sync_accelerations()
+    {
+        auto const rc = tree_.dof_coords();
+        auto const qdd = joint_accelerations();
+        for (auto const& c : rc)
+            tree_.set_accel_twist(c.frame, twist2dp{});
+        for (size_t c = 0; c < rc.size(); ++c)
+            tree_.set_accel_twist(rc[c].frame, tree_.relative_accel_twist(rc[c].frame) +
+                                                   qdd[c] * tree_.screw_of(rc[c]));
+        return qdd;
+    }
+
     // Advance the closed-loop system by dt. The coupled coordinate state (read_state /
     // write_state / state_rates / commit_state of the tree -- 1-dof joints and floating
     // bodies alike) is integrated by RK4 (shared rk4_step), with the constrained KKT

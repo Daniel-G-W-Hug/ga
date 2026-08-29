@@ -1696,6 +1696,41 @@ class dynamic_system3dp : public kinematic_system3dp {
         return (total_mass() > 0.0) ? unitize(acc) : O_3dp;
     }
 
+    // Its velocity and acceleration: the same mass weighting applied to the bodies'
+    // own, v_C = sum m_i v(C_i) / sum m_i and likewise for a_C -- so the three agree
+    // by construction. Both are DIRECTIONS (weight zero), not points. The
+    // acceleration is the dynamic one: it reflects the current gravity, force
+    // elements, constraint reactions and registered joint torques, so with the
+    // actuators off it is what the mechanism does by itself. Newton's law for the
+    // whole mechanism reads total_mass() * a_C = the net external force, which is
+    // the resultant of gravity_wrench() and the reactions -- the centroidal statement
+    // a walking controller commands.
+    vec3dp centre_of_mass_velocity()
+    {
+        vec3dp v{};
+        value_t const M = total_mass();
+        if (M <= 0.0) return v;
+        for (size_t i = 0; i < size(); ++i) {
+            if (body[i].mass <= 0.0) continue;
+            vec3dp const C = unitize(move3dp(O_3dp, get_pos_trafo(i, 0)));
+            v = v + body[i].mass * point_velocity(C, i);
+        }
+        return v / M;
+    }
+
+    vec3dp centre_of_mass_acceleration()
+    {
+        vec3dp a{};
+        value_t const M = total_mass();
+        if (M <= 0.0) return a;
+        for (size_t i = 0; i < size(); ++i) {
+            if (body[i].mass <= 0.0) continue;
+            vec3dp const C = unitize(move3dp(O_3dp, get_pos_trafo(i, 0)));
+            a = a + body[i].mass * point_acceleration(C, i);
+        }
+        return a / M;
+    }
+
     bivec3dp gravity_wrench()
     {
         bivec3dp W{};
