@@ -286,6 +286,51 @@ class ground_contact2dp {
                std::abs(cop(idx)) > c.spec.half_length;
     }
 
+    // The net wrench the ground exerts, summed over the ACTIVE contacts: each
+    // contact's force line wdg(P_i, f_i), plus -- for a flat foot -- its ankle
+    // couple. A couple is the weight-zero bivector m*e12: its moment is m about
+    // EVERY point, which is what makes it addable to a force line without a
+    // reference point. The sum is ONE bivector carrying both resultants, the force
+    // as its weight (att) and the moment as its bulk, so a caller needs no separate
+    // force and torque accumulator. A null bivector while nothing touches.
+    bivec2dp reaction_wrench() const
+    {
+        bivec2dp W{0.0, 0.0, 0.0};
+        for (size_t i = 0; i < contacts_.size(); ++i) {
+            if (!contacts_[i].active) continue;
+            W += wdg(contact_point(i), contacts_[i].force) +
+                 bivec2dp{0.0, 0.0, contacts_[i].moment};
+        }
+        return W;
+    }
+
+    // The zero-moment point: the point of the ground about which the net ground
+    // reaction exerts no moment. IN THE PLANE a wrench simply IS its line of action
+    // -- the moment about a point has the single component e12, so killing it is the
+    // entire condition -- and the ZMP is therefore the MEET of that line with the
+    // ground:
+    //
+    //     ZMP = rwdg(reaction_wrench(), ground())
+    //
+    // No moment balance is solved and no coordinate frame is chosen; it is exact for
+    // an arbitrarily slanted resultant and on a SLOPE, since ground() is whatever
+    // line was built. Tedrake's centre-of-pressure formula sum(p_i N_i)/sum(N_i) is
+    // the flat-ground, vertical-force special case of this meet.
+    //
+    // The 3D header carries the SAME expression, though it earns it differently:
+    // there the definition weakens to "no TANGENTIAL moment", and the meet tracks
+    // that by annihilating the couple along the ground normal -- see its zmp().
+    //
+    // Returned unitized (w == 1) whenever the ground carries load. With no net
+    // normal load the reaction line is parallel to the ground and the honest answer
+    // is the point at infinity where they meet, so the raw meet is returned with
+    // w == 0 -- test .z before using .x/.y.
+    vec2dp zmp() const
+    {
+        vec2dp const X = rwdg(reaction_wrench(), L_);
+        return (std::abs(X.z) > eps) ? unitize(X) : X;
+    }
+
     // switch a contact between unilateral (lets go when it pulls) and bilateral (a pin
     // that may pull: released by hand only) at run time -- a foot about to be lifted
     // by its muscles is made unilateral so the lift-off rule lets it go

@@ -298,6 +298,57 @@ class ground_contact3dp {
         return std::abs(p.x) > c.spec.half_length || std::abs(p.y) > c.spec.half_width;
     }
 
+    // The net wrench the ground exerts, summed over the ACTIVE contacts: each
+    // contact's force line wdg(P_i, f_i), plus -- for a flat foot -- its ankle
+    // couple. A couple is a weight-zero bivector (its moment is the same about EVERY
+    // point), which is what makes it addable to a force line without a reference
+    // point. The sum is ONE bivector carrying both resultants, the force as its
+    // weight (att) and the moment as its bulk. Same expression as the 2D case.
+    bivec3dp reaction_wrench() const
+    {
+        bivec3dp W{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        for (size_t i = 0; i < contacts_.size(); ++i) {
+            if (!contacts_[i].active) continue;
+            auto const& m = contacts_[i].moment;
+            W += wdg(contact_point(i), contacts_[i].force) +
+                 bivec3dp{0.0, 0.0, 0.0, m.x, m.y, m.z};
+        }
+        return W;
+    }
+
+    // The zero-moment point: the point of the ground where the net ground reaction
+    // exerts no moment TANGENTIAL to it -- the MEET of the reaction wrench with the
+    // ground, exactly as in 2D and by the same one-line expression:
+    //
+    //     ZMP = rwdg(reaction_wrench(), ground())
+    //
+    // The 3D definition is weaker than the 2D one and the meet tracks the difference
+    // by itself. Two feet pushing and rubbing sum to a SCREW, not to a force line:
+    // its moment cannot be made to vanish at any point, so there is no line of action
+    // to intersect, and the classical definition accordingly asks only that the two
+    // GROUND-TANGENTIAL components vanish -- the ground carries a torque about its
+    // own normal through friction. The meet delivers precisely that, because
+    //
+    //     rwdg(couple along n, ground()) == 0        (a TANGENTIAL couple does not)
+    //
+    // so the regressive product annihilates exactly the one moment component the
+    // definition permits to survive and no other. Measured on a frictional
+    // two-contact stance: the full moment at the returned point is purely normal
+    // (0, 0, -0.189 N m), its tangential part 1e-16, and 5 cm away 16.5 N m.
+    // Nothing is projected out by hand and the same code stands in both dimensions;
+    // in 2D there is no normal component to discard in the first place. Exact on a
+    // SLOPE, since ground() is whatever plane was built. Tedrake's centre-of-pressure
+    // formula sum(p_i N_i)/sum(N_i) is the flat-ground, frictionless special case.
+    //
+    // Returned unitized (w == 1) whenever the ground carries load. With the
+    // resultant parallel to the ground there is no such point and the raw meet is
+    // returned at infinity (w == 0) -- test .w before using .x/.y/.z.
+    vec3dp zmp() const
+    {
+        vec3dp const X = rwdg(reaction_wrench(), Pi_);
+        return (std::abs(X.w) > eps) ? unitize(X) : X;
+    }
+
     // switch a contact between unilateral (lets go when it pulls) and bilateral (a pin
     // that may pull: released by hand only) at run time -- a foot about to be lifted
     // by its muscles is made unilateral so the lift-off rule lets it go
