@@ -217,6 +217,19 @@ class closed_loop_system2dp {
     }
 
     size_t loop_count() const { return loops_.size(); } // registered, active or not
+
+    // First row index of constraint c in g / G / lambda (active constraints in
+    // registration order, rows_of() each) -- the row mapping a caller needs to
+    // address one constraint's block, e.g. a commanded reaction lambda_d. For an
+    // inactive constraint (no rows) it returns constraint_rows().
+    size_t constraint_row_offset(size_t c) const
+    {
+        if (!loops_.at(c).active) return constraint_rows();
+        size_t r = 0;
+        for (size_t k = 0; k < c; ++k)
+            if (loops_[k].active) r += rows_of(loops_[k]);
+        return r;
+    }
     size_t active_loop_count() const
     {
         size_t n = 0;

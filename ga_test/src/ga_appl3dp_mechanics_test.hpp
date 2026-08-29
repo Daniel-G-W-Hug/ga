@@ -2363,6 +2363,19 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             CHECK(std::abs(gc.contact_height(c)) < 1e-9);
             vec3dp const P = gc.contact_point(c);
             CHECK(P.z == doctest::Approx(-0.2 * P.x).epsilon(1e-9));
+            // the accessors behind an external law: pin_loop names the ball-joint
+            // loop this contact engaged, constraint_row_offset its lambda block
+            {
+                size_t const pl = gc.pin_loop(c);
+                CHECK(cl.loop(pl).type == constraint3dp::coincidence);
+                CHECK(cl.loop(pl).frame_a == cl.index_of("rod"));
+                CHECK(cl.loop_active(pl));
+                size_t const off = cl.constraint_row_offset(pl);
+                std::vector<value_t> lam;
+                cl.joint_accelerations(&lam);
+                REQUIRE(off + 2 < lam.size());
+                CHECK(gc.force(c).z == doctest::Approx(-lam[off + 2]).epsilon(1e-12));
+            }
             fmt::println("  slope: landed at ({:.4f}, {:.4f}, {:.4f}), height {:.1e}",
                          P.x, P.y, P.z, gc.contact_height(c));
         }
@@ -2388,6 +2401,16 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
                   doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
             CHECK(std::abs(gc.cop(c).y) < 1e-9);
             CHECK(gc.tipping(c));
+            // the weld accessor: the flat contact's frame loop and its lambda block
+            {
+                size_t const wl = gc.weld_loop(c);
+                CHECK(cl.loop(wl).type == constraint3dp::frame);
+                size_t const off = cl.constraint_row_offset(wl);
+                std::vector<value_t> lam;
+                cl.joint_accelerations(&lam);
+                REQUIRE(off + 5 < lam.size());
+                CHECK(gc.moment(c).y == doctest::Approx(-lam[off + 4]).epsilon(1e-12));
+            }
             fmt::println("  flat foot: N = {:.3f} N, |M| = {:.3f} N m, cop = ({:.3f}, "
                          "{:.3f}) -> tipping",
                          gc.normal_force(c), std::sqrt(M.x * M.x + M.y * M.y + M.z * M.z),

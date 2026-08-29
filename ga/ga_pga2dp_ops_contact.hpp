@@ -295,6 +295,13 @@ class ground_contact2dp {
     // contact is released; 0 releases at the first tensile round-off
     void set_release_threshold(value_t f) { release_threshold_ = f; }
     value_t release_threshold() const { return release_threshold_; }
+
+    // the loop-constraint indices behind a contact: the coincidence pin, and (flat)
+    // the frame weld -- size_t(-1) while none has been created. A caller building
+    // per-row quantities on the closed-loop layer (a commanded reaction lambda_d)
+    // finds the contact's lambda block at constraint_row_offset(pin_loop(idx)).
+    size_t pin_loop(size_t idx) const { return contacts_[idx].pin; }
+    size_t weld_loop(size_t idx) const { return contacts_[idx].weld; }
     std::vector<event> const& events() const { return events_; }
 
     // refresh the reactions from the system's current state (step() does it)

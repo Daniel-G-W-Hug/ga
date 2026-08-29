@@ -5279,6 +5279,20 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             size_t const c = gc.add({cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0}});
             gc.step(1.0e-3);     // the rod placed ON the floor starts to fall: that IS a
             CHECK(gc.active(c)); // touchdown (height 0, moving down), at t ~ 0
+            // the accessors behind an external law: pin_loop names the coincidence
+            // loop this contact engaged, constraint_row_offset its lambda block --
+            // reading lambda there reproduces the layer's reaction
+            {
+                size_t const pl = gc.pin_loop(c);
+                CHECK(cl.loop(pl).type == constraint2dp::coincidence);
+                CHECK(cl.loop(pl).frame_a == cl.index_of("rod"));
+                CHECK(cl.loop_active(pl));
+                size_t const off = cl.constraint_row_offset(pl);
+                std::vector<value_t> lam;
+                cl.joint_accelerations(&lam);
+                REQUIRE(off + 1 < lam.size());
+                CHECK(gc.force(c).y == doctest::Approx(-lam[off + 1]).epsilon(1e-12));
+            }
             // drop it from 1 mm so it lands
             closed_loop_system2dp cl2 = build(1.0e-3);
             ground_contact2dp gc2(cl2, floor);
@@ -5347,6 +5361,16 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             CHECK(std::abs(gc.cop(c)) ==
                   doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
             CHECK(gc.tipping(c));
+            // the weld accessor: the flat contact's frame loop and its lambda block
+            {
+                size_t const wl = gc.weld_loop(c);
+                CHECK(cl.loop(wl).type == constraint2dp::frame);
+                size_t const off = cl.constraint_row_offset(wl);
+                std::vector<value_t> lam;
+                cl.joint_accelerations(&lam);
+                REQUIRE(off + 2 < lam.size());
+                CHECK(gc.moment(c) == doctest::Approx(-lam[off + 2]).epsilon(1e-12));
+            }
             fmt::println("  flat foot: N = {:.3f} N, M = {:.3f} N m, cop = {:.3f} -> "
                          "tipping; as a pin it swings",
                          gc.normal_force(c), gc.moment(c), gc.cop(c));
