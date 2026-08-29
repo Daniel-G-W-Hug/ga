@@ -263,6 +263,21 @@ class closed_loop_system2dp {
         return hd::ga::matrix_rank(constraint_jacobian(rc), m, rc.size());
     }
 
+    // The active constraint Jacobian G (m x n, row-major; m = constraint_rows(),
+    // columns over dof_coords() in their order) -- the G of
+    //
+    //     M(q) q-ddot = RHS(q, q-dot) + tau - G^T lambda,        G q-ddot = bias
+    //
+    // (the lambda convention of joint_accelerations(): a loaded foot has lambda_y < 0).
+    // Together with the tree's mass_bias() this is the whole constrained equation of
+    // motion read off for an external law (computed torque commanding a desired
+    // reaction G^T lambda_d). The row blocks follow the active constraints in
+    // registration order, rows_of() each.
+    std::vector<value_t> constraint_jacobian()
+    {
+        return constraint_jacobian(tree_.dof_coords());
+    }
+
     // access the underlying spanning tree for diagnostics shared with the open-loop tier
     // (get_pos_trafo, total_energy, joint_phi, ...) and for further configuration
     dynamic_system2dp& system() { return tree_; }

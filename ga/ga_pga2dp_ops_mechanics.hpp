@@ -1679,6 +1679,27 @@ class dynamic_system2dp : public kinematic_system2dp {
         return Mmat;
     }
 
+    // The joint-space equation of motion, read off in one assembly pass: returns
+    // { M (n*n, row-major), RHS (n) } over dof_coords(), the quantities of
+    //
+    //     M(q) q-ddot = RHS(q, q-dot) + tau        (open chain; a closed loop
+    //                                               subtracts G^T lambda)
+    //
+    // RHS carries gravity, the velocity-product (Coriolis/centripetal) bias, the
+    // joint springs/dampers, the applied wrenches and the grounded springs -- i.e.
+    // the whole passive right-hand side; classical robotics' bias h(q, q-dot) is
+    // -RHS plus the actuator-independent forces, sign per the equation above. The
+    // actuator torques registered via set_joint_torque are EXCLUDED by design: a
+    // feedback law that computes tau from this accessor (computed torque,
+    // gravity compensation) must not see its own output in the bias. Unlike
+    // mass_matrix(), M here includes the inertia of kinematically DRIVEN joints
+    // (the moving-base contribution) -- it is exactly the matrix forward dynamics
+    // solves. Same bias-pass side effect as the assembly (rel_atwist zeroed).
+    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias()
+    {
+        return assemble_mass_bias(dof_coords(), /*with_joint_torques=*/false);
+    }
+
   private:
 
     // Spatial (reciprocal / Klein) pairing of a velocity twist with a momentum or
@@ -1954,11 +1975,13 @@ class dynamic_system2dp : public kinematic_system2dp {
     // (ga_pga2dp_ops_constraints.hpp): the same spatial-Jacobian columns (velocity_field)
     // that build M and RHS also build the loop-closure constraint Jacobian, so the
     // constrained KKT solver assembles on top of this without duplicating the inertia-map
-    // assembly. Private (the open-loop public surface is unchanged); the closed-loop
+    // assembly. Private (the public read-only view is mass_bias()); the closed-loop
     // layer reaches it through friendship (see the forward declaration above). Returns {
-    // Mmat (n*n, row-major), RHS (n) }.
+    // Mmat (n*n, row-major), RHS (n) }. with_joint_torques = false skips the
+    // set_joint_torque fold (the mass_bias() accessor: a feedback law reading the
+    // assembly must not see its own torque).
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias(std::vector<coord> const& rc)
+    assemble_mass_bias(std::vector<coord> const& rc, bool with_joint_torques = true)
     {
         size_t const n = rc.size();
 
@@ -2024,8 +2047,9 @@ class dynamic_system2dp : public kinematic_system2dp {
 
         // actuator torques (generalised forces at the joints, evaluated at the current
         // clock time_): a coordinate joint's scalar, a motor joint's per-screw vector.
-        // Zero unless a torque was attached via set_joint_torque.
-        if (!torque_.empty() || !torque_v_.empty())
+        // Zero unless a torque was attached via set_joint_torque. Skipped for the
+        // mass_bias() accessor (with_joint_torques = false).
+        if (with_joint_torques && (!torque_.empty() || !torque_v_.empty()))
             for (size_t j = 0; j < n; ++j) {
                 if (auto const it = torque_.find(rc[j].frame);
                     it != torque_.end() && it->second &&

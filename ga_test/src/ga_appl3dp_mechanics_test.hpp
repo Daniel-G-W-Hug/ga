@@ -2012,6 +2012,158 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: mass_bias / constraint_jacobian - the EoM read off (L4)")
+    {
+        fmt::println("pga3dp: mass_bias() and constraint_jacobian() accessors");
+
+        // the public read-off of  M(q) q-ddot = RHS + tau - G^T lambda  for an external
+        // control law (computed torque) -- the 3D mirror of the 2D case. Falsified the
+        // same way (forcing with_joint_torques = true; flipping an FD column sign).
+
+        value_t const m = 2.0, l = 0.5, g = 9.81, w = 0.05;
+
+        // -- open chain: a pendulum carrying every PASSIVE force element
+        {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, -g, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
+                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                make_cuboid_body(m, w, 2.0 * l, w),
+                                vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 0.4,
+                                0.7);
+            s.set_joint_spring_damper(1, 3.0, 0.2, 0.1);
+            s.set_applied_wrench(
+                1, [](value_t) { return bivec3dp{0.4, 0.0, -0.6, 0.1, 0.2, 0.0}; });
+
+            auto const [M, RHS] = s.mass_bias();
+            REQUIRE(M.size() == 1);
+            REQUIRE(RHS.size() == 1);
+
+            auto const Mm = s.mass_matrix();
+            CHECK(M[0] == doctest::Approx(Mm[0]).epsilon(1e-13));
+
+            auto const qdd = lu_solve(M, RHS, 1);
+            auto const qdd_sys = s.joint_accelerations();
+            CHECK(qdd[0] == doctest::Approx(qdd_sys[0]).epsilon(1e-12));
+
+            // the EXCLUSION: an actuator torque leaves RHS bit-identical, the
+            // accelerations shift by exactly M^-1 tau
+            value_t const tau = 0.8;
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            auto const [M2, RHS2] = s.mass_bias();
+            CHECK(M2[0] == M[0]);
+            CHECK(RHS2[0] == RHS[0]); // bit-identical: tau is NOT in the bias
+            std::vector<value_t> rhs_tau{RHS2[0] + tau};
+            auto const qdd_tau = lu_solve(M2, rhs_tau, 1);
+            CHECK(qdd_tau[0] ==
+                  doctest::Approx(s.joint_accelerations()[0]).epsilon(1e-12));
+            fmt::println("  pendulum: qdd = {:.6f}, with tau = {:.6f}", qdd_sys[0],
+                         qdd_tau[0]);
+        }
+
+        // -- a kinematically DRIVEN child carrying inertia: mass_bias()'s M retains the
+        //    moving-base inertia, which mass_matrix() does not include
+        {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, -g, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
+                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                make_cuboid_body(m, w, 2.0 * l, w),
+                                vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 0.3,
+                                0.0);
+            s.add_revolute_body(static_frame3dp("D", vec3dp{0.0, -l, 0.0, 1.0},
+                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                make_cuboid_body(1.5, 0.3, 0.3, 0.05),
+                                vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                                0.0, 0.0, 1);
+            s.set_driven_rate(2, 5.0);
+            auto const [M, RHS] = s.mass_bias();
+            REQUIRE(M.size() == 1);
+            CHECK(M[0] > s.mass_matrix()[0]);
+            auto const qdd = lu_solve(M, RHS, 1);
+            CHECK(qdd[0] == doctest::Approx(s.joint_accelerations()[0]).epsilon(1e-12));
+        }
+
+        // -- closed loop: constraint_jacobian() against central finite differences of
+        //    the residual, coordinate by coordinate, with all three constraint kinds
+        //    active at once (coincidence 3 rows, distance 1, frame 6) on a spatial
+        //    3R chain whose axes do not align
+        {
+            auto const seg = make_cuboid_body(2.0, 0.6, 0.06, 0.06);
+            auto unit = [](vec3dp const& p) {
+                return vec3dp{p.x / p.w, p.y / p.w, p.z / p.w, 1.0};
+            };
+            closed_loop_system3dp cl;
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_revolute_body(static_frame3dp("b1", vec3dp{0.3, 0.0, 0.0, 1.0},
+                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
+                                 vec3dp{0.0, 0.0, 1.0, 0.0}, 0.35, 0.0, cl.index_of("W"));
+            cl.add_revolute_body(static_frame3dp("b2", vec3dp{0.6, 0.0, 0.0, 1.0},
+                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
+                                 vec3dp{0.0, 1.0, 0.0, 0.0}, -0.55, 0.0,
+                                 cl.index_of("b1"));
+            cl.add_revolute_body(static_frame3dp("b3", vec3dp{0.6, 0.0, 0.0, 1.0},
+                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
+                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
+                                 vec3dp{1.0, 0.0, 0.0, 0.0}, 0.25, 0.0,
+                                 cl.index_of("b2"));
+            size_t const W = cl.index_of("W");
+            size_t const b2 = cl.index_of("b2"), b3 = cl.index_of("b3");
+            vec3dp const tip_b{0.3, 0.0, 0.0, 1.0};
+            vec3dp const t3 = unit(move3dp(tip_b, cl.system().get_pos_trafo(b3, 0)));
+            vec3dp const t2 = unit(move3dp(tip_b, cl.system().get_pos_trafo(b2, 0)));
+            vec3dp const a2{t2.x + 0.4, t2.y + 0.5, t2.z - 0.3, 1.0};
+            value_t const L2 =
+                std::sqrt((t2.x - a2.x) * (t2.x - a2.x) + (t2.y - a2.y) * (t2.y - a2.y) +
+                          (t2.z - a2.z) * (t2.z - a2.z));
+            cl.add_loop_constraint(
+                loop_constraint3dp{b3, tip_b, W, t3, constraint3dp::coincidence});
+            cl.add_loop_constraint(
+                loop_constraint3dp{b2, tip_b, W, a2, constraint3dp::distance, L2});
+            // the weld's ground side is a static frame AT b3's current pose, so the
+            // orientation residual (a rotation VECTOR, the log) is zero at the test
+            // configuration -- G is the velocity-level Jacobian, and d(log)/dq equals
+            // the relative angular rate exactly at closure (dexp^-1(0) = id); away from
+            // closure the two differ by the dexp factor, which is G's operating
+            // condition (GGL keeps g ~ 0), not a defect
+            auto const pw = pose3dp_from_motor(cl.system().get_pos_trafo(b3, 0));
+            cl.add_frame(static_frame3dp("Wg", pw.origin, pw.rot), W);
+            cl.add_loop_constraint(loop_constraint3dp{b3, tip_b, cl.index_of("Wg"), tip_b,
+                                                      constraint3dp::frame});
+
+            size_t const mrows = cl.constraint_rows();
+            auto const rj = cl.system().dof_joints();
+            size_t const n = rj.size();
+            REQUIRE(mrows == 10); // 3 + 1 + 6
+            REQUIRE(n == 3);
+            auto const G = cl.constraint_jacobian();
+            REQUIRE(G.size() == mrows * n);
+
+            value_t const h = 1e-6;
+            value_t max_err = 0.0;
+            for (size_t c = 0; c < n; ++c) {
+                value_t const q0 = cl.system().joint_phi(rj[c]);
+                cl.system().set_joint(rj[c], q0 + h);
+                auto const gp = cl.residual();
+                cl.system().set_joint(rj[c], q0 - h);
+                auto const gm = cl.residual();
+                cl.system().set_joint(rj[c], q0); // restore
+                for (size_t r = 0; r < mrows; ++r) {
+                    value_t const fd = (gp[r] - gm[r]) / (2.0 * h);
+                    max_err = std::max(max_err, std::abs(G[r * n + c] - fd));
+                }
+            }
+            fmt::println("  constraint_jacobian vs FD of the residual: max err = {:.2e}",
+                         max_err);
+            CHECK(max_err < 1e-8);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: dynamic_system3dp - total mass, centre of mass, gravity wrench")
     {
         fmt::println("pga3dp: mass distribution -- total_mass / centre_of_mass / "

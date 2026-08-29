@@ -4904,6 +4904,139 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: mass_bias / constraint_jacobian - the EoM read off (L4)")
+    {
+        fmt::println("pga2dp: mass_bias() and constraint_jacobian() accessors");
+
+        // the public read-off of  M(q) q-ddot = RHS + tau - G^T lambda  for an external
+        // control law (computed torque). Falsified during development by forcing
+        // with_joint_torques = true in mass_bias() (the exclusion gate below fails) and
+        // by flipping the sign of one FD column (the Jacobian gate fails).
+
+        value_t const m = 2.0, l = 0.5, g = 9.81, w = 0.05;
+
+        // -- open chain: a pendulum carrying every PASSIVE force element (gravity,
+        //    joint spring/damper, applied wrench). mass_bias() must close the equation
+        //    of motion: lu_solve(M, RHS) = joint_accelerations().
+        {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -g, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("P", vec2dp{0.0, -l, 1.0}, 0.0),
+                                make_plate_body(m, w, 2.0 * l), vec2dp{0.0, l, 1.0}, 0.4,
+                                0.7);
+            s.set_joint_spring_damper(1, 3.0, 0.2, 0.1);
+            s.set_applied_wrench(1, [](value_t) { return bivec2dp{0.4, 0.0, -0.6}; });
+
+            auto const [M, RHS] = s.mass_bias();
+            REQUIRE(M.size() == 1);
+            REQUIRE(RHS.size() == 1);
+
+            // M is the mass matrix (no driven joints here: the two paths agree)
+            auto const Mm = s.mass_matrix();
+            CHECK(M[0] == doctest::Approx(Mm[0]).epsilon(1e-13));
+
+            // the equation of motion closes on the public surface
+            auto const qdd = lu_solve(M, RHS, 1);
+            auto const qdd_sys = s.joint_accelerations();
+            CHECK(qdd[0] == doctest::Approx(qdd_sys[0]).epsilon(1e-12));
+
+            // the EXCLUSION: registering an actuator torque leaves RHS bit-identical
+            // (a feedback law reading the accessor must not see its own output), while
+            // the system's accelerations shift by exactly M^-1 tau
+            value_t const tau = 0.8;
+            s.set_joint_torque(1, [tau](value_t) { return tau; });
+            auto const [M2, RHS2] = s.mass_bias();
+            CHECK(M2[0] == M[0]);
+            CHECK(RHS2[0] == RHS[0]); // bit-identical: tau is NOT in the bias
+            std::vector<value_t> rhs_tau{RHS2[0] + tau};
+            auto const qdd_tau = lu_solve(M2, rhs_tau, 1);
+            CHECK(qdd_tau[0] ==
+                  doctest::Approx(s.joint_accelerations()[0]).epsilon(1e-12));
+            fmt::println("  pendulum: qdd = {:.6f}, with tau = {:.6f}", qdd_sys[0],
+                         qdd_tau[0]);
+        }
+
+        // -- a kinematically DRIVEN child carrying inertia: mass_bias()'s M is the
+        //    matrix forward dynamics solves (moving-base inertia retained), which
+        //    mass_matrix() does not include -- the documented difference
+        {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -g, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("P", vec2dp{0.0, -l, 1.0}, 0.0),
+                                make_plate_body(m, w, 2.0 * l), vec2dp{0.0, l, 1.0}, 0.3,
+                                0.0);
+            s.add_revolute_body(static_frame2dp("D", vec2dp{0.0, -l, 1.0}, 0.0),
+                                make_plate_body(1.5, 0.3, 0.3), vec2dp{0.0, 0.0, 1.0},
+                                0.0, 0.0, 1);
+            s.set_driven_rate(2, 5.0);
+            auto const [M, RHS] = s.mass_bias();
+            REQUIRE(M.size() == 1); // one dof: the driven joint is not a coordinate
+            CHECK(M[0] > s.mass_matrix()[0]); // the driven body's inertia is in M
+            auto const qdd = lu_solve(M, RHS, 1);
+            CHECK(qdd[0] == doctest::Approx(s.joint_accelerations()[0]).epsilon(1e-12));
+        }
+
+        // -- closed loop: constraint_jacobian() against central finite differences of
+        //    the residual, coordinate by coordinate, with all three constraint kinds
+        //    active at once (coincidence 2 rows, distance 1, frame 3)
+        {
+            auto const seg = make_plate_body(2.0, 0.6, 0.06);
+            auto unit = [](vec2dp const& p) { return vec2dp{p.x / p.z, p.y / p.z, 1.0}; };
+            closed_loop_system2dp cl;
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_revolute_body(static_frame2dp("b1", vec2dp{0.3, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.3, 0.0, 1.0}, 0.35, 0.0, cl.index_of("W"));
+            cl.add_revolute_body(static_frame2dp("b2", vec2dp{0.6, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.3, 0.0, 1.0}, -0.55, 0.0, cl.index_of("b1"));
+            cl.add_revolute_body(static_frame2dp("b3", vec2dp{0.6, 0.0, 1.0}, 0.0), seg,
+                                 vec2dp{-0.3, 0.0, 1.0}, 0.25, 0.0, cl.index_of("b2"));
+            size_t const W = cl.index_of("W");
+            size_t const b2 = cl.index_of("b2"), b3 = cl.index_of("b3");
+            vec2dp const tip_b{0.3, 0.0, 1.0};
+            // anchors at the CURRENT geometry so the residual starts near zero (not
+            // required for the derivative test, but keeps the rod axis well-defined)
+            vec2dp const t3 = unit(move2dp(tip_b, cl.system().get_pos_trafo(b3, 0)));
+            vec2dp const t2 = unit(move2dp(tip_b, cl.system().get_pos_trafo(b2, 0)));
+            vec2dp const a2{t2.x + 0.4, t2.y + 0.5, 1.0};
+            value_t const L2 = std::hypot(t2.x - a2.x, t2.y - a2.y);
+            cl.add_loop_constraint(
+                loop_constraint2dp{b3, tip_b, W, t3, constraint2dp::coincidence});
+            cl.add_loop_constraint(
+                loop_constraint2dp{b2, tip_b, W, a2, constraint2dp::distance, L2});
+            cl.add_loop_constraint(
+                loop_constraint2dp{b3, tip_b, W, t3, constraint2dp::frame});
+
+            size_t const mrows = cl.constraint_rows();
+            auto const rj = cl.system().dof_joints();
+            size_t const n = rj.size();
+            REQUIRE(mrows == 6); // 2 + 1 + 3
+            REQUIRE(n == 3);
+            auto const G = cl.constraint_jacobian();
+            REQUIRE(G.size() == mrows * n);
+
+            value_t const h = 1e-6;
+            value_t max_err = 0.0;
+            for (size_t c = 0; c < n; ++c) {
+                value_t const q0 = cl.system().joint_phi(rj[c]);
+                cl.system().set_joint(rj[c], q0 + h);
+                auto const gp = cl.residual();
+                cl.system().set_joint(rj[c], q0 - h);
+                auto const gm = cl.residual();
+                cl.system().set_joint(rj[c], q0); // restore
+                for (size_t r = 0; r < mrows; ++r) {
+                    value_t const fd = (gp[r] - gm[r]) / (2.0 * h);
+                    max_err = std::max(max_err, std::abs(G[r * n + c] - fd));
+                }
+            }
+            fmt::println("  constraint_jacobian vs FD of the residual: max err = {:.2e}",
+                         max_err);
+            CHECK(max_err < 1e-8);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: dynamic_system2dp - total mass, centre of mass, gravity wrench")
     {
         fmt::println("pga2dp: mass distribution -- total_mass / centre_of_mass / "
