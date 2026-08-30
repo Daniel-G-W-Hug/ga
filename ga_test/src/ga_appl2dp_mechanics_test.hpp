@@ -865,8 +865,12 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             inertia2dp I;
             inertia2dp I_inv;
 
-            value_t m_tot; // total mass (needed for force calculation, e.g. gravity)
-            vec2dp cg;     // center of gravity (in body frame == O_b)
+            // m_tot MUST be zero-initialised: the ctor ACCUMULATES into it
+            // (m_tot += m[n]) and value_t has no default initialiser, so without
+            // {} the gravity force below is built from an indeterminate value.
+            // cg is already safe -- vec2dp initialises its members, a scalar does not.
+            value_t m_tot{}; // total mass (for the gravity force)
+            vec2dp cg;       // center of gravity (in body frame == O_b)
         };
 
         auto constexpr num_points = 2;
