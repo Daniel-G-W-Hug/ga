@@ -106,6 +106,18 @@ void bind_mvec3dp_e(nb::module_& m)
             "__add__", [](mvec3dp_e const& a, pscalar3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](mvec3dp_e const& a, mvec3dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dp_e const& a, mvec3dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dp_e const& a, vec3dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dp_e const& a, trivec3dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](mvec3dp_e const& a, dualnum3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -116,6 +128,18 @@ void bind_mvec3dp_e(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](mvec3dp_e const& a, pscalar3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dp_e const& a, mvec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dp_e const& a, mvec3dp_u const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dp_e const& a, vec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dp_e const& a, trivec3dp const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](mvec3dp_e const& a, dualnum3dp const& b) { return a - b; },

@@ -95,6 +95,12 @@ void bind_bivec2dp(nb::module_& m)
             "__add__", [](bivec2dp const& a, pscalar2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](bivec2dp const& a, mvec2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec2dp const& a, mvec2dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](bivec2dp const& a, dualnum2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -108,6 +114,12 @@ void bind_bivec2dp(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](bivec2dp const& a, pscalar2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec2dp const& a, mvec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec2dp const& a, mvec2dp_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](bivec2dp const& a, dualnum2dp const& b) { return a - b; },

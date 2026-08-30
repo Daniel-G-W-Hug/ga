@@ -5715,6 +5715,249 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(!is_close(D, G));
     }
 
+    TEST_CASE("MVec3DP: +/- closure over every type pair")
+    {
+        fmt::println("MVec3DP: +/- closure over every type pair");
+
+        // Every pair of pga3dp types must add and subtract, and the result must
+        // equal the same sum carried out in the full multivector. The operators
+        // keep the NARROWEST type that holds the grade union (scalar + bivector
+        // stays even, scalar + pseudoscalar stays a dual number); widening here
+        // is only so one reference expression can check them all.
+
+        auto const scalar3dp_ = scalar3dp(2.0);
+        auto const vec3dp_ = vec3dp(3.0, -4.0, 5.0, -6.0);
+        auto const bivec3dp_ = bivec3dp(1.0, -2.0, 3.0, -4.0, 5.0, -6.0);
+        auto const trivec3dp_ = trivec3dp(-7.0, 8.0, -9.0, 10.0);
+        auto const pscalar3dp_ = pscalar3dp(-11.0);
+        auto const mvec3dp_e_ = mvec3dp_e(
+            scalar3dp(1.5), bivec3dp(2.0, -3.0, 4.0, -5.0, 6.0, -7.0), pscalar3dp(8.5));
+        auto const mvec3dp_u_ =
+            mvec3dp_u(vec3dp(-1.0, 2.0, -3.0, 4.0), trivec3dp(5.0, -6.0, 7.0, -8.0));
+        auto const mvec3dp_ =
+            mvec3dp(scalar3dp(0.5), vec3dp(1.0, 2.0, 3.0, 4.0),
+                    bivec3dp(5.0, 6.0, 7.0, 8.0, 9.0, 10.0),
+                    trivec3dp(11.0, 12.0, 13.0, 14.0), pscalar3dp(15.0));
+
+        CHECK(mvec3dp(scalar3dp_ + scalar3dp_) ==
+              mvec3dp(scalar3dp_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(scalar3dp_ - scalar3dp_) ==
+              mvec3dp(scalar3dp_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(scalar3dp_ + vec3dp_) == mvec3dp(scalar3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(scalar3dp_ - vec3dp_) == mvec3dp(scalar3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(scalar3dp_ + bivec3dp_) ==
+              mvec3dp(scalar3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(scalar3dp_ - bivec3dp_) ==
+              mvec3dp(scalar3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(scalar3dp_ + trivec3dp_) ==
+              mvec3dp(scalar3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(scalar3dp_ - trivec3dp_) ==
+              mvec3dp(scalar3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(scalar3dp_ + mvec3dp_e_) ==
+              mvec3dp(scalar3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(scalar3dp_ - mvec3dp_e_) ==
+              mvec3dp(scalar3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(scalar3dp_ + mvec3dp_u_) ==
+              mvec3dp(scalar3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(scalar3dp_ - mvec3dp_u_) ==
+              mvec3dp(scalar3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(scalar3dp_ + mvec3dp_) == mvec3dp(scalar3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(scalar3dp_ - mvec3dp_) == mvec3dp(scalar3dp_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(vec3dp_ + scalar3dp_) == mvec3dp(vec3dp_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(vec3dp_ - scalar3dp_) == mvec3dp(vec3dp_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(vec3dp_ + vec3dp_) == mvec3dp(vec3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(vec3dp_ - vec3dp_) == mvec3dp(vec3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(vec3dp_ + bivec3dp_) == mvec3dp(vec3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(vec3dp_ - bivec3dp_) == mvec3dp(vec3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(vec3dp_ + trivec3dp_) == mvec3dp(vec3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(vec3dp_ - trivec3dp_) == mvec3dp(vec3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(vec3dp_ + pscalar3dp_) == mvec3dp(vec3dp_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(vec3dp_ - pscalar3dp_) == mvec3dp(vec3dp_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(vec3dp_ + mvec3dp_e_) == mvec3dp(vec3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(vec3dp_ - mvec3dp_e_) == mvec3dp(vec3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(vec3dp_ + mvec3dp_u_) == mvec3dp(vec3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(vec3dp_ - mvec3dp_u_) == mvec3dp(vec3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(vec3dp_ + mvec3dp_) == mvec3dp(vec3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(vec3dp_ - mvec3dp_) == mvec3dp(vec3dp_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(bivec3dp_ + scalar3dp_) ==
+              mvec3dp(bivec3dp_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(bivec3dp_ - scalar3dp_) ==
+              mvec3dp(bivec3dp_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(bivec3dp_ + vec3dp_) == mvec3dp(bivec3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(bivec3dp_ - vec3dp_) == mvec3dp(bivec3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(bivec3dp_ + bivec3dp_) == mvec3dp(bivec3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(bivec3dp_ - bivec3dp_) == mvec3dp(bivec3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(bivec3dp_ + trivec3dp_) ==
+              mvec3dp(bivec3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(bivec3dp_ - trivec3dp_) ==
+              mvec3dp(bivec3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(bivec3dp_ + pscalar3dp_) ==
+              mvec3dp(bivec3dp_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(bivec3dp_ - pscalar3dp_) ==
+              mvec3dp(bivec3dp_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(bivec3dp_ + mvec3dp_e_) ==
+              mvec3dp(bivec3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(bivec3dp_ - mvec3dp_e_) ==
+              mvec3dp(bivec3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(bivec3dp_ + mvec3dp_u_) ==
+              mvec3dp(bivec3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(bivec3dp_ - mvec3dp_u_) ==
+              mvec3dp(bivec3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(bivec3dp_ + mvec3dp_) == mvec3dp(bivec3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(bivec3dp_ - mvec3dp_) == mvec3dp(bivec3dp_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(trivec3dp_ + scalar3dp_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(trivec3dp_ - scalar3dp_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(trivec3dp_ + vec3dp_) == mvec3dp(trivec3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(trivec3dp_ - vec3dp_) == mvec3dp(trivec3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(trivec3dp_ + bivec3dp_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(trivec3dp_ - bivec3dp_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(trivec3dp_ + trivec3dp_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(trivec3dp_ - trivec3dp_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(trivec3dp_ + pscalar3dp_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(trivec3dp_ - pscalar3dp_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(trivec3dp_ + mvec3dp_e_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(trivec3dp_ - mvec3dp_e_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(trivec3dp_ + mvec3dp_u_) ==
+              mvec3dp(trivec3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(trivec3dp_ - mvec3dp_u_) ==
+              mvec3dp(trivec3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(trivec3dp_ + mvec3dp_) == mvec3dp(trivec3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(trivec3dp_ - mvec3dp_) == mvec3dp(trivec3dp_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ + vec3dp_) == mvec3dp(pscalar3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ - vec3dp_) == mvec3dp(pscalar3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ + bivec3dp_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ - bivec3dp_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ + trivec3dp_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ - trivec3dp_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ + pscalar3dp_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(pscalar3dp_ - pscalar3dp_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(pscalar3dp_ + mvec3dp_e_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(pscalar3dp_ - mvec3dp_e_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(pscalar3dp_ + mvec3dp_u_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(pscalar3dp_ - mvec3dp_u_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(pscalar3dp_ + mvec3dp_) ==
+              mvec3dp(pscalar3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(pscalar3dp_ - mvec3dp_) ==
+              mvec3dp(pscalar3dp_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + scalar3dp_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - scalar3dp_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + vec3dp_) == mvec3dp(mvec3dp_e_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - vec3dp_) == mvec3dp(mvec3dp_e_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + bivec3dp_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - bivec3dp_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + trivec3dp_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - trivec3dp_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + pscalar3dp_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - pscalar3dp_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ + mvec3dp_e_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_e_ - mvec3dp_e_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_e_ + mvec3dp_u_) ==
+              mvec3dp(mvec3dp_e_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_e_ - mvec3dp_u_) ==
+              mvec3dp(mvec3dp_e_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_e_ + mvec3dp_) == mvec3dp(mvec3dp_e_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_e_ - mvec3dp_) == mvec3dp(mvec3dp_e_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + scalar3dp_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - scalar3dp_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + vec3dp_) == mvec3dp(mvec3dp_u_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - vec3dp_) == mvec3dp(mvec3dp_u_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + bivec3dp_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - bivec3dp_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + trivec3dp_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - trivec3dp_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + pscalar3dp_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - pscalar3dp_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ + mvec3dp_e_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_u_ - mvec3dp_e_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_u_ + mvec3dp_u_) ==
+              mvec3dp(mvec3dp_u_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_u_ - mvec3dp_u_) ==
+              mvec3dp(mvec3dp_u_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_u_ + mvec3dp_) == mvec3dp(mvec3dp_u_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_u_ - mvec3dp_) == mvec3dp(mvec3dp_u_) - mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_ + scalar3dp_) == mvec3dp(mvec3dp_) + mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_ - scalar3dp_) == mvec3dp(mvec3dp_) - mvec3dp(scalar3dp_));
+        CHECK(mvec3dp(mvec3dp_ + vec3dp_) == mvec3dp(mvec3dp_) + mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_ - vec3dp_) == mvec3dp(mvec3dp_) - mvec3dp(vec3dp_));
+        CHECK(mvec3dp(mvec3dp_ + bivec3dp_) == mvec3dp(mvec3dp_) + mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_ - bivec3dp_) == mvec3dp(mvec3dp_) - mvec3dp(bivec3dp_));
+        CHECK(mvec3dp(mvec3dp_ + trivec3dp_) == mvec3dp(mvec3dp_) + mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_ - trivec3dp_) == mvec3dp(mvec3dp_) - mvec3dp(trivec3dp_));
+        CHECK(mvec3dp(mvec3dp_ + pscalar3dp_) ==
+              mvec3dp(mvec3dp_) + mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_ - pscalar3dp_) ==
+              mvec3dp(mvec3dp_) - mvec3dp(pscalar3dp_));
+        CHECK(mvec3dp(mvec3dp_ + mvec3dp_e_) == mvec3dp(mvec3dp_) + mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_ - mvec3dp_e_) == mvec3dp(mvec3dp_) - mvec3dp(mvec3dp_e_));
+        CHECK(mvec3dp(mvec3dp_ + mvec3dp_u_) == mvec3dp(mvec3dp_) + mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_ - mvec3dp_u_) == mvec3dp(mvec3dp_) - mvec3dp(mvec3dp_u_));
+        CHECK(mvec3dp(mvec3dp_ + mvec3dp_) == mvec3dp(mvec3dp_) + mvec3dp(mvec3dp_));
+        CHECK(mvec3dp(mvec3dp_ - mvec3dp_) == mvec3dp(mvec3dp_) - mvec3dp(mvec3dp_));
+
+        // scalar +/- pseudoscalar is the one pair with a narrower home still:
+        // it stays a dual number, which has no full-multivector ctor
+        {
+            auto const D = scalar3dp_ + pscalar3dp_;
+            CHECK(mvec3dp(gr0(D), vec3dp{}, bivec3dp{}, trivec3dp{}, gr4(D)) ==
+                  mvec3dp(scalar3dp_) + mvec3dp(pscalar3dp_));
+        }
+        {
+            auto const D = scalar3dp_ - pscalar3dp_;
+            CHECK(mvec3dp(gr0(D), vec3dp{}, bivec3dp{}, trivec3dp{}, gr4(D)) ==
+                  mvec3dp(scalar3dp_) - mvec3dp(pscalar3dp_));
+        }
+        {
+            auto const D = pscalar3dp_ + scalar3dp_;
+            CHECK(mvec3dp(gr0(D), vec3dp{}, bivec3dp{}, trivec3dp{}, gr4(D)) ==
+                  mvec3dp(pscalar3dp_) + mvec3dp(scalar3dp_));
+        }
+        {
+            auto const D = pscalar3dp_ - scalar3dp_;
+            CHECK(mvec3dp(gr0(D), vec3dp{}, bivec3dp{}, trivec3dp{}, gr4(D)) ==
+                  mvec3dp(pscalar3dp_) - mvec3dp(scalar3dp_));
+        }
+    }
+
 } // PGA 3DP Tests
 
 // | ⟑ | U+27D1 | (direct Unicode) | Geometric product |

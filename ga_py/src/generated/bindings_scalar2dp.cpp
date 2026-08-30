@@ -124,6 +124,12 @@ void bind_scalar2dp(nb::module_& m)
             "__add__", [](scalar2dp const& a, vec2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](scalar2dp const& a, mvec2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](scalar2dp const& a, mvec2dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](scalar2dp const& a, pscalar2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -137,6 +143,12 @@ void bind_scalar2dp(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](scalar2dp const& a, vec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar2dp const& a, mvec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar2dp const& a, mvec2dp_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](scalar2dp const& a, pscalar2dp const& b) { return a - b; },

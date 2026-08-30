@@ -124,6 +124,12 @@ void bind_pscalar2dp(nb::module_& m)
             "__add__", [](pscalar2dp const& a, bivec2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](pscalar2dp const& a, mvec2dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar2dp const& a, mvec2dp_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](pscalar2dp const& a, scalar2dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -137,6 +143,12 @@ void bind_pscalar2dp(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](pscalar2dp const& a, bivec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, mvec2dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar2dp const& a, mvec2dp_e const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](pscalar2dp const& a, scalar2dp const& b) { return a - b; },

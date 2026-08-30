@@ -102,6 +102,12 @@ void bind_bivec3dp(nb::module_& m)
             "__add__", [](bivec3dp const& a, trivec3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](bivec3dp const& a, mvec3dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec3dp const& a, mvec3dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](bivec3dp const& a, dualnum3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -118,6 +124,12 @@ void bind_bivec3dp(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](bivec3dp const& a, trivec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec3dp const& a, mvec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec3dp const& a, mvec3dp_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](bivec3dp const& a, dualnum3dp const& b) { return a - b; },

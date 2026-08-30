@@ -127,6 +127,12 @@ void bind_pscalar3dp(nb::module_& m)
             "__add__", [](pscalar3dp const& a, trivec3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](pscalar3dp const& a, mvec3dp const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](pscalar3dp const& a, mvec3dp_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__add__", [](pscalar3dp const& a, scalar3dp const& b) { return a + b; },
             nb::is_operator())
         .def(
@@ -143,6 +149,12 @@ void bind_pscalar3dp(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](pscalar3dp const& a, trivec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar3dp const& a, mvec3dp const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](pscalar3dp const& a, mvec3dp_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](pscalar3dp const& a, scalar3dp const& b) { return a - b; },
