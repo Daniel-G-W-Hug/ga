@@ -120,9 +120,6 @@ void register_functions_sta(nb::module_& m)
     m.def("is_close", [](mvec4ds const& a0, mvec4ds const& a1, double a2) {
         return is_close(a0, a1, a2);
     });
-    m.def("is_close", [](dualnum4ds const& a0, dualnum4ds const& a1, double a2) {
-        return is_close(a0, a1, a2);
-    });
     m.def("is_congruent", [](scalar4ds const& a0, scalar4ds const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });

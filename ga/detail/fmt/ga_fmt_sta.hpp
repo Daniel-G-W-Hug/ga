@@ -164,42 +164,6 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2_t<T, Tag> includes DualNumber4ds<T> (STA types only)
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename Tag>
-    requires(std::is_same_v<Tag, hd::ga::dual_number4ds_tag>)
-struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
-    {
-        return fmt::nested_formatter<T>::parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
-    {
-        using hd::ga::detail::suppress_negative_zero;
-        if constexpr (std::is_same_v<hd::ga::MVec2_t<T, Tag>,
-                                     hd::ga::MVec2_t<T, hd::ga::dual_number4ds_tag>>) {
-            auto out = fmt::format_to(ctx.out(), "DualNum4ds(");
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ",");
-            ctx.advance_to(out);
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            return fmt::format_to(out, ")");
-        }
-        else {
-            auto out = fmt::format_to(ctx.out(), "(");
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ",");
-            ctx.advance_to(out);
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            return fmt::format_to(out, ")");
-        }
-    }
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
 // MVec8_t<T, Tag> includes MVec4ds_E<T> and MVec4ds_U<T> (STA types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>

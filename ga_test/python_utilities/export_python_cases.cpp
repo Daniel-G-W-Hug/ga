@@ -274,10 +274,6 @@ std::string emit_value(JsonValue const& v)
 {
     return {"dualnum3dp", {d.c0, d.c1}};
 }
-[[maybe_unused]] JsonValue to_json(DualNum4ds<value_t> const& d)
-{
-    return {"dualnum4ds", {d.c0, d.c1}};
-}
 
 // --------------------------------------------------------------------------- //
 // Case collection

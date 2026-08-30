@@ -47,7 +47,6 @@ STA_TYPES = [
     ("bivec4ds", 6),
     ("trivec4ds", 4),
     ("mvec4ds", 16), ("mvec4ds_e", 8), ("mvec4ds_u", 8),
-    ("dualnum4ds", 2),
 ]
 
 

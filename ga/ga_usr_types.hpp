@@ -118,9 +118,6 @@ using mvec4ds_e = MVec4ds_E<value_t>; // multivector 4ds of even subalgebra
 using mvec4ds_u = MVec4ds_U<value_t>; // multivector 4ds of uneven (odd) subalgebra
 using mvec4ds = MVec4ds<value_t>;     // fully populated 4ds multivector
 
-// dual number with s 1 + ps I_4ds (I_4ds = g0123, where g0123^2 = 0)
-using dualnum4ds = DualNum4ds<value_t>;
-
 // vector and multivector types cga2dc (2dc = conformal algebra of 2d space)
 
 using scalar2dc = Scalar2dc<value_t>;

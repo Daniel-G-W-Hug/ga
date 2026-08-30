@@ -1163,15 +1163,6 @@ bool is_close(MVec4ds<T> const& a, MVec4ds<U> const& b, value_t rel_tol = eps_co
         rel_tol);
 }
 
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-bool is_close(DualNum4ds<T> const& a, DualNum4ds<U> const& b,
-              value_t rel_tol = eps_congruent)
-{
-    return detail::coeffs_close<2>({value_t(a.c0), value_t(a.c1)},
-                                   {value_t(b.c0), value_t(b.c1)}, rel_tol);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // is_same_transform(): do two rotors describe the same Lorentz transformation?

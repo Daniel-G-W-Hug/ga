@@ -25,7 +25,6 @@
 // - Scalar4ds<T>, Vec4ds<T>, BiVec4ds<T>, TriVec4ds<T>, PScalar4ds<T>
 // - MVec4ds_E<T> (even subalgebra), MVec4ds_U<T> (uneven (or odd) subalgebra)
 // - MVec4ds<T> (full multivector)
-// - DualNum4ds<T> (dual numbers for 4ds space)
 //
 // Usage: Include this header when you need complete STA functionality.
 // For operations files: #include "detail/ga_pga_types.hpp"

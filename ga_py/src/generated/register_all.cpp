@@ -17,7 +17,6 @@ void bind_dualnum2dc(nb::module_& m);
 void bind_dualnum2dp(nb::module_& m);
 void bind_dualnum3dc(nb::module_& m);
 void bind_dualnum3dp(nb::module_& m);
-void bind_dualnum4ds(nb::module_& m);
 void bind_enu_frame(nb::module_& m);
 void bind_geo_pos(nb::module_& m);
 void bind_geo_pos2dp(nb::module_& m);
@@ -125,7 +124,6 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_dualnum2dp(pga);
     bind_dualnum3dc(cga);
     bind_dualnum3dp(pga);
-    bind_dualnum4ds(sta);
     bind_enu_frame(pga);
     bind_geo_pos(ega);
     bind_geo_pos2dp(pga);

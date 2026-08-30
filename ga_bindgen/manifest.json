@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-28T18:02:23+00:00",
+  "generated_at": "2026-08-30T15:18:23+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -367,7 +367,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 25
+      "source_line": 23
     },
     {
       "namespace": "hd::ga",
@@ -560,46 +560,6 @@
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dp.hpp",
       "source_line": 41
-    },
-    {
-      "namespace": "hd::ga",
-      "name": "DualNum4ds",
-      "underlying": "MVec2_t<T, dual_number4ds_tag>",
-      "canonical_underlying": "MVec2_t<type-parameter-0-0, hd::ga::dual_number4ds_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 34
     },
     {
       "namespace": "hd::ga",
@@ -2695,7 +2655,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 30
+      "source_line": 28
     },
     {
       "namespace": "hd::ga",
@@ -2805,7 +2765,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 28
+      "source_line": 26
     },
     {
       "namespace": "hd::ga",
@@ -2891,7 +2851,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 29
+      "source_line": 27
     },
     {
       "namespace": "hd::ga",
@@ -3066,7 +3026,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 27
+      "source_line": 25
     },
     {
       "namespace": "hd::ga",
@@ -3296,7 +3256,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 23
+      "source_line": 21
     },
     {
       "namespace": "hd::ga",
@@ -3526,7 +3486,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 26
+      "source_line": 24
     },
     {
       "namespace": "hd::ga",
@@ -3861,7 +3821,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-      "source_line": 24
+      "source_line": 22
     },
     {
       "namespace": "hd::ga",
@@ -3872,7 +3832,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type_tags.hpp",
-      "source_line": 154
+      "source_line": 153
     },
     {
       "namespace": "hd::ga",
@@ -3932,7 +3892,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 128
+      "source_line": 125
     },
     {
       "namespace": "hd::ga",
@@ -4102,7 +4062,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 142
+      "source_line": 139
     },
     {
       "namespace": "hd::ga",
@@ -4273,7 +4233,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 136
+      "source_line": 133
     },
     {
       "namespace": "hd::ga",
@@ -4369,7 +4329,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 151
+      "source_line": 148
     },
     {
       "namespace": "hd::ga",
@@ -4426,46 +4386,6 @@
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
       "source_line": 98
-    },
-    {
-      "namespace": "hd::ga",
-      "name": "dualnum4ds",
-      "underlying": "DualNum4ds<value_t>",
-      "canonical_underlying": "MVec2_t<double, hd::ga::dual_number4ds_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 122
     },
     {
       "namespace": "hd::ga",
@@ -4974,7 +4894,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 133
+      "source_line": 130
     },
     {
       "namespace": "hd::ga",
@@ -5084,7 +5004,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 131
+      "source_line": 128
     },
     {
       "namespace": "hd::ga",
@@ -5170,7 +5090,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 132
+      "source_line": 129
     },
     {
       "namespace": "hd::ga",
@@ -5934,7 +5854,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 148
+      "source_line": 145
     },
     {
       "namespace": "hd::ga",
@@ -6084,7 +6004,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 146
+      "source_line": 143
     },
     {
       "namespace": "hd::ga",
@@ -6234,7 +6154,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 147
+      "source_line": 144
     },
     {
       "namespace": "hd::ga",
@@ -7141,7 +7061,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 130
+      "source_line": 127
     },
     {
       "namespace": "hd::ga",
@@ -7216,7 +7136,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 145
+      "source_line": 142
     },
     {
       "namespace": "hd::ga",
@@ -7321,7 +7241,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 144
+      "source_line": 141
     },
     {
       "namespace": "hd::ga",
@@ -7371,7 +7291,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 126
+      "source_line": 123
     },
     {
       "namespace": "hd::ga",
@@ -7446,7 +7366,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 140
+      "source_line": 137
     },
     {
       "namespace": "hd::ga",
@@ -7546,7 +7466,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 129
+      "source_line": 126
     },
     {
       "namespace": "hd::ga",
@@ -7626,7 +7546,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 143
+      "source_line": 140
     },
     {
       "namespace": "hd::ga",
@@ -7737,7 +7657,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type_tags.hpp",
-      "source_line": 112
+      "source_line": 111
     },
     {
       "namespace": "hd::ga",
@@ -7838,7 +7758,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 127
+      "source_line": 124
     },
     {
       "namespace": "hd::ga",
@@ -7983,7 +7903,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 141
+      "source_line": 138
     },
     {
       "namespace": "hd::ga",
@@ -8597,6 +8517,28 @@
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_mechanics.hpp",
       "source_line": 529
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "torque_fn",
+      "underlying": "std::function<value_t (value_t)>",
+      "canonical_underlying": "std::function<double (double)>",
+      "fields": [],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+      "source_line": 1202
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "torque_vec_fn",
+      "underlying": "std::function<std::vector<value_t> (value_t)>",
+      "canonical_underlying": "std::function<std::vector<double> (double)>",
+      "fields": [],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_mechanics.hpp",
+      "source_line": 1203
     },
     {
       "namespace": "hd::ga::pga",
@@ -9885,7 +9827,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 40
+          "source_line": 34
         },
         {
           "return_type": "size_t",
@@ -9893,7 +9835,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 47
+          "source_line": 41
         },
         {
           "return_type": "size_t",
@@ -9901,7 +9843,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 54
+          "source_line": 48
         },
         {
           "return_type": "size_t",
@@ -9909,7 +9851,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 61
+          "source_line": 55
         },
         {
           "return_type": "size_t",
@@ -9917,7 +9859,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 68
+          "source_line": 62
         },
         {
           "return_type": "size_t",
@@ -10141,7 +10083,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 40
+          "source_line": 34
         },
         {
           "return_type": "size_t",
@@ -10149,7 +10091,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 47
+          "source_line": 41
         },
         {
           "return_type": "size_t",
@@ -10157,7 +10099,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 54
+          "source_line": 48
         },
         {
           "return_type": "size_t",
@@ -10165,7 +10107,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 61
+          "source_line": 55
         },
         {
           "return_type": "size_t",
@@ -10173,7 +10115,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 68
+          "source_line": 62
         },
         {
           "return_type": "size_t",
@@ -10397,7 +10339,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 40
+          "source_line": 34
         },
         {
           "return_type": "size_t",
@@ -10405,7 +10347,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 47
+          "source_line": 41
         },
         {
           "return_type": "size_t",
@@ -10413,7 +10355,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 54
+          "source_line": 48
         },
         {
           "return_type": "size_t",
@@ -10421,7 +10363,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 61
+          "source_line": 55
         },
         {
           "return_type": "size_t",
@@ -10429,7 +10371,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 68
+          "source_line": 62
         },
         {
           "return_type": "size_t",
@@ -10653,7 +10595,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 40
+          "source_line": 34
         },
         {
           "return_type": "size_t",
@@ -10661,7 +10603,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 47
+          "source_line": 41
         },
         {
           "return_type": "size_t",
@@ -10669,7 +10611,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 54
+          "source_line": 48
         },
         {
           "return_type": "size_t",
@@ -10677,7 +10619,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 61
+          "source_line": 55
         },
         {
           "return_type": "size_t",
@@ -10685,7 +10627,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 68
+          "source_line": 62
         },
         {
           "return_type": "size_t",
@@ -11276,14 +11218,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 212
-        },
-        {
-          "return_type": "Scalar4ds<T>",
-          "param_types": [
-            "const DualNum4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 88
         },
         {
           "return_type": "Scalar2dp<T>",
@@ -12886,14 +12820,6 @@
           "source_line": 240
         },
         {
-          "return_type": "PScalar4ds<T>",
-          "param_types": [
-            "const DualNum4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 95
-        },
-        {
           "return_type": "PScalar3dp<T>",
           "param_types": [
             "const DualNum3dp<T> &"
@@ -13915,7 +13841,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 82
+          "source_line": 76
         },
         {
           "return_type": "size_t",
@@ -13923,7 +13849,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 89
+          "source_line": 83
         },
         {
           "return_type": "size_t",
@@ -13931,7 +13857,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 96
+          "source_line": 90
         },
         {
           "return_type": "size_t",
@@ -13939,7 +13865,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 103
+          "source_line": 97
         },
         {
           "return_type": "size_t",
@@ -13947,7 +13873,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 110
+          "source_line": 104
         },
         {
           "return_type": "size_t",
@@ -14115,7 +14041,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 82
+          "source_line": 76
         },
         {
           "return_type": "size_t",
@@ -14123,7 +14049,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 89
+          "source_line": 83
         },
         {
           "return_type": "size_t",
@@ -14131,7 +14057,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 96
+          "source_line": 90
         },
         {
           "return_type": "size_t",
@@ -14139,7 +14065,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 103
+          "source_line": 97
         },
         {
           "return_type": "size_t",
@@ -14147,7 +14073,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 110
+          "source_line": 104
         },
         {
           "return_type": "size_t",
@@ -14315,7 +14241,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 82
+          "source_line": 76
         },
         {
           "return_type": "size_t",
@@ -14323,7 +14249,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 89
+          "source_line": 83
         },
         {
           "return_type": "size_t",
@@ -14331,7 +14257,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 96
+          "source_line": 90
         },
         {
           "return_type": "size_t",
@@ -14339,7 +14265,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 103
+          "source_line": 97
         },
         {
           "return_type": "size_t",
@@ -14347,7 +14273,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 110
+          "source_line": 104
         },
         {
           "return_type": "size_t",
@@ -14515,7 +14441,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 82
+          "source_line": 76
         },
         {
           "return_type": "size_t",
@@ -14523,7 +14449,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 89
+          "source_line": 83
         },
         {
           "return_type": "size_t",
@@ -14531,7 +14457,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 96
+          "source_line": 90
         },
         {
           "return_type": "size_t",
@@ -14539,7 +14465,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 103
+          "source_line": 97
         },
         {
           "return_type": "size_t",
@@ -14547,7 +14473,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 110
+          "source_line": 104
         },
         {
           "return_type": "size_t",
@@ -16405,25 +16331,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 540
+          "source_line": 541
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 540
+          "source_line": 541
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 540
+          "source_line": 541
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 540
+          "source_line": 541
         }
       ]
     },
@@ -16435,25 +16361,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 567
+          "source_line": 568
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 567
+          "source_line": 568
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 567
+          "source_line": 568
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 567
+          "source_line": 568
         }
       ]
     },
@@ -16465,25 +16391,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 772
+          "source_line": 773
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 772
+          "source_line": 773
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 772
+          "source_line": 773
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 772
+          "source_line": 773
         }
       ]
     },
@@ -16495,25 +16421,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 849
+          "source_line": 850
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 849
+          "source_line": 850
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 849
+          "source_line": 850
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 32, 32>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 849
+          "source_line": 850
         }
       ]
     },
@@ -26803,25 +26729,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 64
+          "source_line": 65
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 64
+          "source_line": 65
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 64
+          "source_line": 65
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 64
+          "source_line": 65
         }
       ]
     },
@@ -26833,25 +26759,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 122
+          "source_line": 123
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 122
+          "source_line": 123
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 122
+          "source_line": 123
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 122
+          "source_line": 123
         }
       ]
     },
@@ -46210,25 +46136,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 195
+          "source_line": 196
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 195
+          "source_line": 196
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 195
+          "source_line": 196
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 195
+          "source_line": 196
         }
       ]
     },
@@ -46240,25 +46166,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 214
+          "source_line": 215
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 214
+          "source_line": 215
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 214
+          "source_line": 215
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 214
+          "source_line": 215
         }
       ]
     },
@@ -46270,25 +46196,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 319
+          "source_line": 320
         }
       ]
     },
@@ -46300,25 +46226,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 346
+          "source_line": 347
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 346
+          "source_line": 347
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 346
+          "source_line": 347
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 346
+          "source_line": 347
         }
       ]
     },
@@ -68344,7 +68270,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 330
+          "source_line": 329
         },
         {
           "return_type": "Vec4ds<T>",
@@ -68352,7 +68278,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 338
+          "source_line": 337
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -68360,7 +68286,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 346
+          "source_line": 345
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -68368,7 +68294,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 354
+          "source_line": 353
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -68376,7 +68302,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 362
+          "source_line": 361
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -68384,7 +68310,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 370
+          "source_line": 369
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -68392,7 +68318,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 379
+          "source_line": 378
         },
         {
           "return_type": "MVec4ds<T>",
@@ -68400,7 +68326,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 388
+          "source_line": 387
         }
       ]
     },
@@ -68571,7 +68497,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 102
+          "source_line": 101
         },
         {
           "return_type": "Vec4ds<T>",
@@ -68579,7 +68505,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 110
+          "source_line": 109
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -68587,7 +68513,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 118
+          "source_line": 117
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -68595,7 +68521,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 126
+          "source_line": 125
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -68603,7 +68529,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 134
+          "source_line": 133
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -68611,7 +68537,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 142
+          "source_line": 141
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -68619,7 +68545,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 150
+          "source_line": 149
         },
         {
           "return_type": "MVec4ds<T>",
@@ -68627,7 +68553,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 158
+          "source_line": 157
         }
       ]
     },
@@ -68784,16 +68710,6 @@
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
           "source_line": 1152
-        },
-        {
-          "return_type": "bool",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const DualNum4ds<U> &",
-            "value_t"
-          ],
-          "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 1168
         }
       ]
     },
@@ -68863,7 +68779,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 745
+          "source_line": 744
         },
         {
           "return_type": "bool",
@@ -68871,7 +68787,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 752
+          "source_line": 751
         },
         {
           "return_type": "bool",
@@ -68879,7 +68795,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 759
+          "source_line": 758
         }
       ]
     },
@@ -68895,7 +68811,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 1201
+          "source_line": 1192
         }
       ]
     },
@@ -68923,7 +68839,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 723
+          "source_line": 722
         },
         {
           "return_type": "bool",
@@ -68931,7 +68847,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 730
+          "source_line": 729
         },
         {
           "return_type": "bool",
@@ -68939,7 +68855,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 737
+          "source_line": 736
         }
       ]
     },
@@ -68953,7 +68869,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 701
+          "source_line": 700
         },
         {
           "return_type": "bool",
@@ -68961,7 +68877,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 708
+          "source_line": 707
         },
         {
           "return_type": "bool",
@@ -68969,7 +68885,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 715
+          "source_line": 714
         }
       ]
     },
@@ -68983,7 +68899,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 516
+          "source_line": 515
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -68991,7 +68907,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 526
+          "source_line": 525
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -68999,7 +68915,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 540
+          "source_line": 539
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69007,7 +68923,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 556
+          "source_line": 555
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69015,7 +68931,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 570
+          "source_line": 569
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69023,7 +68939,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 580
+          "source_line": 579
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69031,7 +68947,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 588
+          "source_line": 587
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69039,7 +68955,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 596
+          "source_line": 595
         }
       ]
     },
@@ -69053,7 +68969,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 989
+          "source_line": 988
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69061,7 +68977,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 996
+          "source_line": 995
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69069,7 +68985,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1003
+          "source_line": 1002
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69077,7 +68993,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1010
+          "source_line": 1009
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69085,7 +69001,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1017
+          "source_line": 1016
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69093,7 +69009,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1024
+          "source_line": 1023
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69101,7 +69017,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1031
+          "source_line": 1030
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69109,7 +69025,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1038
+          "source_line": 1037
         }
       ]
     },
@@ -69138,7 +69054,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1124
+          "source_line": 1123
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69146,7 +69062,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1131
+          "source_line": 1130
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69154,7 +69070,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1138
+          "source_line": 1137
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69162,7 +69078,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1145
+          "source_line": 1144
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69170,7 +69086,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1152
+          "source_line": 1151
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69178,7 +69094,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1159
+          "source_line": 1158
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69186,7 +69102,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1166
+          "source_line": 1165
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69194,7 +69110,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1173
+          "source_line": 1172
         }
       ]
     },
@@ -69281,7 +69197,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 843
+          "source_line": 842
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69289,7 +69205,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 853
+          "source_line": 852
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69297,7 +69213,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 867
+          "source_line": 866
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69305,7 +69221,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 881
+          "source_line": 880
         }
       ]
     },
@@ -69319,7 +69235,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 780
+          "source_line": 779
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69327,7 +69243,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 787
+          "source_line": 786
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69335,7 +69251,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 794
+          "source_line": 793
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69343,7 +69259,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 801
+          "source_line": 800
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69351,7 +69267,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 808
+          "source_line": 807
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69359,7 +69275,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 815
+          "source_line": 814
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69367,7 +69283,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 822
+          "source_line": 821
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69375,7 +69291,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 829
+          "source_line": 828
         }
       ]
     },
@@ -69389,7 +69305,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 611
+          "source_line": 610
         },
         {
           "return_type": "T",
@@ -69397,7 +69313,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 618
+          "source_line": 617
         },
         {
           "return_type": "T",
@@ -69405,7 +69321,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 625
+          "source_line": 624
         },
         {
           "return_type": "T",
@@ -69413,7 +69329,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 633
+          "source_line": 632
         },
         {
           "return_type": "T",
@@ -69421,7 +69337,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 641
+          "source_line": 640
         },
         {
           "return_type": "T",
@@ -69429,7 +69345,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 648
+          "source_line": 647
         },
         {
           "return_type": "T",
@@ -69437,7 +69353,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 655
+          "source_line": 654
         },
         {
           "return_type": "T",
@@ -69445,7 +69361,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 662
+          "source_line": 661
         }
       ]
     },
@@ -69483,7 +69399,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 423
+          "source_line": 422
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69491,7 +69407,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 433
+          "source_line": 432
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69499,7 +69415,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 447
+          "source_line": 446
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69507,7 +69423,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 463
+          "source_line": 462
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69515,7 +69431,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 477
+          "source_line": 476
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69523,7 +69439,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 487
+          "source_line": 486
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69531,7 +69447,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 495
+          "source_line": 494
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69539,7 +69455,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 503
+          "source_line": 502
         }
       ]
     },
@@ -69553,7 +69469,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 916
+          "source_line": 915
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69561,7 +69477,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 923
+          "source_line": 922
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69569,7 +69485,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 930
+          "source_line": 929
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69577,7 +69493,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 937
+          "source_line": 936
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69585,7 +69501,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 944
+          "source_line": 943
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69593,7 +69509,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 951
+          "source_line": 950
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69601,7 +69517,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 958
+          "source_line": 957
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69609,7 +69525,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 965
+          "source_line": 964
         }
       ]
     },
@@ -69638,7 +69554,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1067
+          "source_line": 1066
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69646,7 +69562,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1074
+          "source_line": 1073
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69654,7 +69570,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1081
+          "source_line": 1080
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69662,7 +69578,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1088
+          "source_line": 1087
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -69670,7 +69586,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1095
+          "source_line": 1094
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69678,7 +69594,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1102
+          "source_line": 1101
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69686,7 +69602,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1109
+          "source_line": 1108
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69694,7 +69610,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 1116
+          "source_line": 1115
         }
       ]
     },
@@ -69726,7 +69642,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 1249
+          "source_line": 1240
         }
       ]
     },
@@ -69851,7 +69767,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 175
+          "source_line": 174
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69859,7 +69775,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 183
+          "source_line": 182
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69867,7 +69783,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 191
+          "source_line": 190
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69875,7 +69791,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 199
+          "source_line": 198
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -69883,7 +69799,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 207
+          "source_line": 206
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69891,7 +69807,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 215
+          "source_line": 214
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69899,7 +69815,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 224
+          "source_line": 223
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69907,7 +69823,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 233
+          "source_line": 232
         }
       ]
     },
@@ -69935,7 +69851,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 252
+          "source_line": 251
         },
         {
           "return_type": "Vec4ds<T>",
@@ -69943,7 +69859,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 260
+          "source_line": 259
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -69951,7 +69867,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 268
+          "source_line": 267
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -69959,7 +69875,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 276
+          "source_line": 275
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -69967,7 +69883,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 284
+          "source_line": 283
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -69975,7 +69891,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 292
+          "source_line": 291
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -69983,7 +69899,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 301
+          "source_line": 300
         },
         {
           "return_type": "MVec4ds<T>",
@@ -69991,7 +69907,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 310
+          "source_line": 309
         }
       ]
     },
@@ -70614,25 +70530,25 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 439
+          "source_line": 440
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 439
+          "source_line": 440
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 439
+          "source_line": 440
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 439
+          "source_line": 440
         }
       ]
     },
@@ -73790,14 +73706,6 @@
           "source_line": 152
         },
         {
-          "return_type": "MVec2_t<T, dual_number4ds_tag> &",
-          "param_types": [
-            "U"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 58
-        },
-        {
           "return_type": "MVec2_t<T, dual_number2dp_tag> &",
           "param_types": [
             "U"
@@ -75595,10 +75503,28 @@
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -75607,7 +75533,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -75616,7 +75542,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -75625,7 +75551,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -75634,7 +75560,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -75643,7 +75569,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -77934,10 +77860,28 @@
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -77946,7 +77890,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -77955,7 +77899,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -77964,7 +77908,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -77973,7 +77917,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -77982,7 +77926,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -80273,10 +80217,28 @@
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -80285,7 +80247,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -80294,7 +80256,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -80303,7 +80265,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -80312,7 +80274,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -80321,7 +80283,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -82612,10 +82574,28 @@
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -82624,7 +82604,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -82633,7 +82613,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -82642,7 +82622,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -82651,7 +82631,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -82660,7 +82640,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -82868,168 +82848,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 420
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "Scalar4ds<T>",
-            "PScalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 107
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "PScalar4ds<T>",
-            "Scalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 116
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "Scalar4ds<T>",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 125
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "Scalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 135
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "PScalar4ds<T>",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 145
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "PScalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 155
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const BiVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 243
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const BiVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 253
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds_E<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 263
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds_E<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 273
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const Vec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 283
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const Vec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 294
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const TriVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 305
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const TriVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 316
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds_U<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 327
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds_U<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 339
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 351
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 362
         },
         {
           "return_type": "DualNum2dp<std::common_type_t<T, U>>",
@@ -84414,14 +84232,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 106
-        },
-        {
-          "return_type": "MVec2_t<T, dual_number4ds_tag> &",
-          "param_types": [
-            "const MVec2_t<U, dual_number4ds_tag> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 40
         },
         {
           "return_type": "MVec2_t<T, dual_number2dp_tag> &",
@@ -86284,7 +86094,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86293,7 +86103,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86302,7 +86112,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86311,7 +86121,25 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86320,7 +86148,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86329,7 +86157,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86338,7 +86166,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86347,7 +86175,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86356,7 +86184,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -86365,7 +86193,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -88719,7 +88547,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88728,7 +88556,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88737,7 +88565,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88746,7 +88574,25 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88755,7 +88601,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88764,7 +88610,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88773,7 +88619,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88782,7 +88628,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88791,7 +88637,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -88800,7 +88646,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -91154,7 +91000,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91163,7 +91009,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91172,7 +91018,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91181,7 +91027,25 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91190,7 +91054,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91199,7 +91063,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91208,7 +91072,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91217,7 +91081,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91226,7 +91090,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -91235,7 +91099,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -93589,7 +93453,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93598,7 +93462,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93607,7 +93471,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93616,7 +93480,25 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar4ds<T>",
+            "PScalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar4ds<T>",
+            "Scalar4ds<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93625,7 +93507,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93634,7 +93516,7 @@
             "Scalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93643,7 +93525,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93652,7 +93534,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93661,7 +93543,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
@@ -93670,7 +93552,7 @@
             "PScalar4ds<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec4ds_U<std::common_type_t<T, U>>",
@@ -93878,168 +93760,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 603
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "Scalar4ds<T>",
-            "PScalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 169
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "PScalar4ds<T>",
-            "Scalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 178
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "Scalar4ds<T>",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 187
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "Scalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 197
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "PScalar4ds<T>",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 207
-        },
-        {
-          "return_type": "DualNum4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "PScalar4ds<U>"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 217
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const BiVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 376
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const BiVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 386
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds_E<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 396
-        },
-        {
-          "return_type": "MVec4ds_E<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds_E<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 407
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const Vec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 417
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const Vec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 428
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const TriVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 439
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const TriVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 450
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds_U<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 461
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds_U<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 474
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const DualNum4ds<T> &",
-            "const MVec4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 486
-        },
-        {
-          "return_type": "MVec4ds<std::common_type_t<T, U>>",
-          "param_types": [
-            "const MVec4ds<T> &",
-            "const DualNum4ds<U> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 498
         },
         {
           "return_type": "DualNum2dp<std::common_type_t<T, U>>",
@@ -95424,14 +95144,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 129
-        },
-        {
-          "return_type": "MVec2_t<T, dual_number4ds_tag> &",
-          "param_types": [
-            "const MVec2_t<U, dual_number4ds_tag> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 49
         },
         {
           "return_type": "MVec2_t<T, dual_number2dp_tag> &",
@@ -96964,14 +96676,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_mvec4ds.hpp",
           "source_line": 175
-        },
-        {
-          "return_type": "MVec2_t<T, dual_number4ds_tag> &",
-          "param_types": [
-            "U"
-          ],
-          "source_file": "ga/detail/type_t/ga_dualnum4ds.hpp",
-          "source_line": 67
         },
         {
           "return_type": "MVec2_t<T, dual_number2dp_tag> &",
@@ -115285,2212 +114989,2212 @@
       "name": "I_2dc",
       "type": "const PScalar2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 514
+      "source_line": 515
     },
     {
       "namespace": "hd::ga::cga",
       "name": "I_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 515
+      "source_line": 516
     },
     {
       "namespace": "hd::ga::cga",
       "name": "I_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 516
+      "source_line": 517
     },
     {
       "namespace": "hd::ga::cga",
       "name": "I_3dc",
       "type": "const PScalar3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 696
+      "source_line": 697
     },
     {
       "namespace": "hd::ga::cga",
       "name": "I_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 697
+      "source_line": 698
     },
     {
       "namespace": "hd::ga::cga",
       "name": "I_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 698
+      "source_line": 699
     },
     {
       "namespace": "hd::ga::cga",
       "name": "cga2dc_metric",
       "type": "const std::array<int, 256>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 520
+      "source_line": 521
     },
     {
       "namespace": "hd::ga::cga",
       "name": "cga2dc_rmetric",
       "type": "const std::array<int, 256>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 547
+      "source_line": 548
     },
     {
       "namespace": "hd::ga::cga",
       "name": "cga3dc_metric",
       "type": "const std::array<int, 1024>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 704
+      "source_line": 705
     },
     {
       "namespace": "hd::ga::cga",
       "name": "cga3dc_rmetric",
       "type": "const std::array<int, 1024>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 781
+      "source_line": 782
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12345_3dc",
       "type": "const PScalar3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 695
+      "source_line": 696
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1234_2dc",
       "type": "const PScalar2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 513
+      "source_line": 514
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1234_3dc",
       "type": "const QuadVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 672
+      "source_line": 673
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1234_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 678
+      "source_line": 679
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1234_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 688
+      "source_line": 689
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e124_2dc",
       "type": "const TriVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 496
+      "source_line": 497
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e124_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 501
+      "source_line": 502
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e124_2dc_mv_u",
       "type": "const MVec2dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 506
+      "source_line": 507
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e125_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 635
+      "source_line": 636
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e125_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 651
+      "source_line": 652
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e125_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 662
+      "source_line": 663
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 474
+      "source_line": 475
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 481
+      "source_line": 482
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 488
+      "source_line": 489
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 597
+      "source_line": 598
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 608
+      "source_line": 609
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e12_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 619
+      "source_line": 620
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e14_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 475
+      "source_line": 476
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e14_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 482
+      "source_line": 483
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e14_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 489
+      "source_line": 490
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e15_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 598
+      "source_line": 599
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e15_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 609
+      "source_line": 610
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e15_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 620
+      "source_line": 621
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1_2dc",
       "type": "const Vec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 461
+      "source_line": 462
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 466
+      "source_line": 467
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1_3dc",
       "type": "const Vec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 579
+      "source_line": 580
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e1_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 586
+      "source_line": 587
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e235_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 631
+      "source_line": 632
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e235_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 649
+      "source_line": 650
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e235_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 660
+      "source_line": 661
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e23_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 595
+      "source_line": 596
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e23_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 606
+      "source_line": 607
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e23_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 617
+      "source_line": 618
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e24_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 476
+      "source_line": 477
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e24_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 483
+      "source_line": 484
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e24_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 490
+      "source_line": 491
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e25_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 599
+      "source_line": 600
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e25_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 610
+      "source_line": 611
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e25_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 621
+      "source_line": 622
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e2_2dc",
       "type": "const Vec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 462
+      "source_line": 463
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e2_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 467
+      "source_line": 468
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e2_3dc",
       "type": "const Vec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 580
+      "source_line": 581
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e2_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 587
+      "source_line": 588
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e314_2dc",
       "type": "const TriVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 494
+      "source_line": 495
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e314_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 499
+      "source_line": 500
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e314_2dc_mv_u",
       "type": "const MVec2dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 504
+      "source_line": 505
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e315_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 633
+      "source_line": 634
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e315_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 650
+      "source_line": 651
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e315_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 661
+      "source_line": 662
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 472
+      "source_line": 473
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 479
+      "source_line": 480
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 486
+      "source_line": 487
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 596
+      "source_line": 597
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 607
+      "source_line": 608
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e31_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 618
+      "source_line": 619
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3215_3dc",
       "type": "const QuadVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 671
+      "source_line": 672
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3215_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 677
+      "source_line": 678
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3215_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 686
+      "source_line": 687
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_2dc",
       "type": "const TriVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 497
+      "source_line": 498
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 502
+      "source_line": 503
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_2dc_mv_u",
       "type": "const MVec2dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 507
+      "source_line": 508
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 643
+      "source_line": 644
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 655
+      "source_line": 656
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e321_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 666
+      "source_line": 667
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e324_2dc",
       "type": "const TriVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 495
+      "source_line": 496
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e324_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 500
+      "source_line": 501
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e324_2dc_mv_u",
       "type": "const MVec2dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 505
+      "source_line": 506
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e32_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 473
+      "source_line": 474
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e32_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 480
+      "source_line": 481
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e32_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 487
+      "source_line": 488
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e34_2dc",
       "type": "const BiVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 477
+      "source_line": 478
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e34_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 484
+      "source_line": 485
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e34_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 491
+      "source_line": 492
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e35_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 600
+      "source_line": 601
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e35_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 611
+      "source_line": 612
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e35_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 622
+      "source_line": 623
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3_2dc",
       "type": "const Vec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 463
+      "source_line": 464
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 468
+      "source_line": 469
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3_3dc",
       "type": "const Vec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 581
+      "source_line": 582
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e3_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 588
+      "source_line": 589
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4125_3dc",
       "type": "const QuadVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 670
+      "source_line": 671
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4125_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 676
+      "source_line": 677
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4125_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 684
+      "source_line": 685
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e412_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 641
+      "source_line": 642
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e412_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 654
+      "source_line": 655
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e412_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 665
+      "source_line": 666
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e415_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 625
+      "source_line": 626
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e415_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 646
+      "source_line": 647
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e415_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 657
+      "source_line": 658
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e41_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 592
+      "source_line": 593
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e41_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 603
+      "source_line": 604
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e41_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 614
+      "source_line": 615
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4235_3dc",
       "type": "const QuadVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 668
+      "source_line": 669
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4235_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 674
+      "source_line": 675
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4235_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 680
+      "source_line": 681
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e423_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 637
+      "source_line": 638
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e423_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 652
+      "source_line": 653
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e423_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 663
+      "source_line": 664
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e425_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 627
+      "source_line": 628
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e425_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 647
+      "source_line": 648
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e425_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 658
+      "source_line": 659
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e42_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 593
+      "source_line": 594
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e42_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 604
+      "source_line": 605
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e42_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 615
+      "source_line": 616
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4315_3dc",
       "type": "const QuadVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 669
+      "source_line": 670
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4315_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 675
+      "source_line": 676
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4315_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 682
+      "source_line": 683
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e431_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 639
+      "source_line": 640
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e431_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 653
+      "source_line": 654
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e431_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 664
+      "source_line": 665
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e435_3dc",
       "type": "const TriVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 629
+      "source_line": 630
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e435_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 648
+      "source_line": 649
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e435_3dc_mv_u",
       "type": "const MVec3dc_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 659
+      "source_line": 660
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e43_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 594
+      "source_line": 595
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e43_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 605
+      "source_line": 606
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e43_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 616
+      "source_line": 617
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e45_3dc",
       "type": "const BiVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 601
+      "source_line": 602
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e45_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 612
+      "source_line": 613
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e45_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 623
+      "source_line": 624
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4_2dc",
       "type": "const Vec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 464
+      "source_line": 465
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 469
+      "source_line": 470
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4_3dc",
       "type": "const Vec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 582
+      "source_line": 583
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e4_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 589
+      "source_line": 590
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e5_3dc",
       "type": "const Vec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 584
+      "source_line": 585
     },
     {
       "namespace": "hd::ga::cga",
       "name": "e5_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 590
+      "source_line": 591
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_2dc",
       "type": "const Scalar2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 509
+      "source_line": 510
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_2dc_mv",
       "type": "const MVec2dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 510
+      "source_line": 511
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_2dc_mv_e",
       "type": "const MVec2dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 511
+      "source_line": 512
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_3dc",
       "type": "const Scalar3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 691
+      "source_line": 692
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_3dc_mv",
       "type": "const MVec3dc<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 692
+      "source_line": 693
     },
     {
       "namespace": "hd::ga::cga",
       "name": "one_3dc_mv_e",
       "type": "const MVec3dc_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 693
+      "source_line": 694
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_2d",
       "type": "const PScalar2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 49
+      "source_line": 50
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_2d_mv",
       "type": "const MVec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 51
+      "source_line": 52
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_2d_mv_e",
       "type": "const MVec2d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 52
+      "source_line": 53
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d",
       "type": "const PScalar3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 103
+      "source_line": 104
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 105
+      "source_line": 106
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d_mv_u",
       "type": "const MVec3d_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 106
+      "source_line": 107
     },
     {
       "namespace": "hd::ga::ega",
       "name": "O_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 40
+      "source_line": 41
     },
     {
       "namespace": "hd::ga::ega",
       "name": "O_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 79
+      "source_line": 80
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e123_3d",
       "type": "const PScalar3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 104
+      "source_line": 105
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_2d",
       "type": "const PScalar2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 50
+      "source_line": 51
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 87
+      "source_line": 88
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 94
+      "source_line": 95
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 97
+      "source_line": 98
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e1_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 36
+      "source_line": 37
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e1_2d_mv",
       "type": "const MVec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 42
+      "source_line": 43
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e1_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 73
+      "source_line": 74
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e1_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 81
+      "source_line": 82
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 85
+      "source_line": 86
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 92
+      "source_line": 93
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 95
+      "source_line": 96
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e2_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 37
+      "source_line": 38
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e2_2d_mv",
       "type": "const MVec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 43
+      "source_line": 44
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e2_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 74
+      "source_line": 75
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e2_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 82
+      "source_line": 83
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 86
+      "source_line": 87
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 93
+      "source_line": 94
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 96
+      "source_line": 97
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e3_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 75
+      "source_line": 76
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e3_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 83
+      "source_line": 84
     },
     {
       "namespace": "hd::ga::ega",
       "name": "ega2d_metric",
       "type": "const std::array<int, 16>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 56
+      "source_line": 57
     },
     {
       "namespace": "hd::ga::ega",
       "name": "ega3d_metric",
       "type": "const std::array<int, 64>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 110
+      "source_line": 111
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_2d",
       "type": "const Scalar2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 45
+      "source_line": 46
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_2d_mv",
       "type": "const MVec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 46
+      "source_line": 47
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_2d_mv_e",
       "type": "const MVec2d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 47
+      "source_line": 48
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_3d",
       "type": "const Scalar3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 99
+      "source_line": 100
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 100
+      "source_line": 101
     },
     {
       "namespace": "hd::ga::ega",
       "name": "one_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 101
+      "source_line": 102
     },
     {
       "namespace": "hd::ga::ega",
       "name": "x_dir_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 38
+      "source_line": 39
     },
     {
       "namespace": "hd::ga::ega",
       "name": "x_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 76
+      "source_line": 77
     },
     {
       "namespace": "hd::ga::ega",
       "name": "xy_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 90
+      "source_line": 91
     },
     {
       "namespace": "hd::ga::ega",
       "name": "y_dir_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 39
+      "source_line": 40
     },
     {
       "namespace": "hd::ga::ega",
       "name": "y_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 77
+      "source_line": 78
     },
     {
       "namespace": "hd::ga::ega",
       "name": "yz_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 88
+      "source_line": 89
     },
     {
       "namespace": "hd::ga::ega",
       "name": "z_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 78
+      "source_line": 79
     },
     {
       "namespace": "hd::ga::ega",
       "name": "zx_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 89
+      "source_line": 90
     },
     {
       "namespace": "hd::ga::pga",
       "name": "H_2dp",
       "type": "const Vec3_t<double, hd::ga::bivec2dp_tag>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 162
+      "source_line": 163
     },
     {
       "namespace": "hd::ga::pga",
       "name": "H_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 281
+      "source_line": 282
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp",
       "type": "const PScalar2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 176
+      "source_line": 177
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 178
+      "source_line": 179
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp_mv_u",
       "type": "const MVec2dp_U<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 179
+      "source_line": 180
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp",
       "type": "const PScalar3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 292
+      "source_line": 293
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 294
+      "source_line": 295
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 295
+      "source_line": 296
     },
     {
       "namespace": "hd::ga::pga",
       "name": "O_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 139
+      "source_line": 140
     },
     {
       "namespace": "hd::ga::pga",
       "name": "O_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 227
+      "source_line": 228
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1234_3dp",
       "type": "const PScalar3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 293
+      "source_line": 294
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 150
+      "source_line": 151
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 166
+      "source_line": 167
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 170
+      "source_line": 171
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 243
+      "source_line": 244
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 265
+      "source_line": 266
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 272
+      "source_line": 273
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 136
+      "source_line": 137
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 144
+      "source_line": 145
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 223
+      "source_line": 224
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 233
+      "source_line": 234
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 241
+      "source_line": 242
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 263
+      "source_line": 264
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 270
+      "source_line": 271
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 137
+      "source_line": 138
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 145
+      "source_line": 146
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 224
+      "source_line": 225
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 234
+      "source_line": 235
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 148
+      "source_line": 149
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 164
+      "source_line": 165
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 168
+      "source_line": 169
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 242
+      "source_line": 243
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 264
+      "source_line": 265
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 271
+      "source_line": 272
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_2dp",
       "type": "const PScalar2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 177
+      "source_line": 178
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 277
+      "source_line": 278
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 286
+      "source_line": 287
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 149
+      "source_line": 150
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 165
+      "source_line": 166
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 169
+      "source_line": 170
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 138
+      "source_line": 139
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 146
+      "source_line": 147
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 225
+      "source_line": 226
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 235
+      "source_line": 236
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e412_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 276
+      "source_line": 277
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e412_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 285
+      "source_line": 286
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e41_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 238
+      "source_line": 239
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e41_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 260
+      "source_line": 261
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e41_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 267
+      "source_line": 268
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e423_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 274
+      "source_line": 275
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e423_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 283
+      "source_line": 284
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e42_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 239
+      "source_line": 240
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e42_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 261
+      "source_line": 262
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e42_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 268
+      "source_line": 269
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e431_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 275
+      "source_line": 276
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e431_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 284
+      "source_line": 285
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e43_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 240
+      "source_line": 241
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e43_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 262
+      "source_line": 263
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e43_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 269
+      "source_line": 270
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e4_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 226
+      "source_line": 227
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e4_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 236
+      "source_line": 237
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_2dp",
       "type": "const Scalar2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 172
+      "source_line": 173
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 173
+      "source_line": 174
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 174
+      "source_line": 175
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_3dp",
       "type": "const Scalar3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 288
+      "source_line": 289
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 289
+      "source_line": 290
     },
     {
       "namespace": "hd::ga::pga",
       "name": "one_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 290
+      "source_line": 291
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga2dp_metric",
       "type": "const std::array<int, 64>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 183
+      "source_line": 184
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga2dp_rmetric",
       "type": "const std::array<int, 64>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 202
+      "source_line": 203
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga3dp_metric",
       "type": "const std::array<int, 256>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 299
+      "source_line": 300
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga3dp_rmetric",
       "type": "const std::array<int, 256>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 326
+      "source_line": 327
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_axis_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 155
+      "source_line": 156
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 248
+      "source_line": 249
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_dir_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 141
+      "source_line": 142
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 229
+      "source_line": 230
     },
     {
       "namespace": "hd::ga::pga",
       "name": "xy_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 280
+      "source_line": 281
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_axis_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 160
+      "source_line": 161
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 253
+      "source_line": 254
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_dir_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 142
+      "source_line": 143
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 230
+      "source_line": 231
     },
     {
       "namespace": "hd::ga::pga",
       "name": "yz_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 278
+      "source_line": 279
     },
     {
       "namespace": "hd::ga::pga",
       "name": "z_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 258
+      "source_line": 259
     },
     {
       "namespace": "hd::ga::pga",
       "name": "z_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 231
+      "source_line": 232
     },
     {
       "namespace": "hd::ga::pga",
       "name": "zx_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 279
+      "source_line": 280
     },
     {
       "namespace": "hd::ga::sta",
       "name": "I_4ds",
       "type": "const PScalar4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 410
+      "source_line": 411
     },
     {
       "namespace": "hd::ga::sta",
       "name": "I_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 412
+      "source_line": 413
     },
     {
       "namespace": "hd::ga::sta",
       "name": "I_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 413
+      "source_line": 414
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g1234_4ds",
       "type": "const PScalar4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 411
+      "source_line": 412
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g123_4ds",
       "type": "const TriVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 399
+      "source_line": 400
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g123_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 404
+      "source_line": 405
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g124_4ds",
       "type": "const TriVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 398
+      "source_line": 399
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g124_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 403
+      "source_line": 404
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g12_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 380
+      "source_line": 381
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g12_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 387
+      "source_line": 388
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g12_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 394
+      "source_line": 395
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g14_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 375
+      "source_line": 376
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g14_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 382
+      "source_line": 383
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g14_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 389
+      "source_line": 390
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g1_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 360
+      "source_line": 361
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g1_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 370
+      "source_line": 371
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g234_4ds",
       "type": "const TriVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 396
+      "source_line": 397
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g234_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 401
+      "source_line": 402
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g23_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 378
+      "source_line": 379
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g23_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 385
+      "source_line": 386
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g23_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 392
+      "source_line": 393
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g24_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 376
+      "source_line": 377
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g24_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 383
+      "source_line": 384
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g24_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 390
+      "source_line": 391
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g2_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 361
+      "source_line": 362
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g2_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 371
+      "source_line": 372
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g314_4ds",
       "type": "const TriVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 397
+      "source_line": 398
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g314_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 402
+      "source_line": 403
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g31_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 379
+      "source_line": 380
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g31_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 386
+      "source_line": 387
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g31_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 393
+      "source_line": 394
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g34_4ds",
       "type": "const BiVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 377
+      "source_line": 378
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g34_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 384
+      "source_line": 385
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g34_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 391
+      "source_line": 392
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g3_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 362
+      "source_line": 363
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g3_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 372
+      "source_line": 373
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g4_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 363
+      "source_line": 364
     },
     {
       "namespace": "hd::ga::sta",
       "name": "g4_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 373
+      "source_line": 374
     },
     {
       "namespace": "hd::ga::sta",
       "name": "one_4ds",
       "type": "const Scalar4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 406
+      "source_line": 407
     },
     {
       "namespace": "hd::ga::sta",
       "name": "one_4ds_mv",
       "type": "const MVec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 407
+      "source_line": 408
     },
     {
       "namespace": "hd::ga::sta",
       "name": "one_4ds_mv_e",
       "type": "const MVec4ds_E<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 408
+      "source_line": 409
     },
     {
       "namespace": "hd::ga::sta",
       "name": "sta4ds_metric",
       "type": "const std::array<int, 256>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 417
+      "source_line": 418
     },
     {
       "namespace": "hd::ga::sta",
       "name": "t_dir_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 368
+      "source_line": 369
     },
     {
       "namespace": "hd::ga::sta",
       "name": "x_dir_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 365
+      "source_line": 366
     },
     {
       "namespace": "hd::ga::sta",
       "name": "y_dir_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 366
+      "source_line": 367
     },
     {
       "namespace": "hd::ga::sta",
       "name": "z_dir_4ds",
       "type": "const Vec4ds<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 367
+      "source_line": 368
     }
   ],
   "enums": [

@@ -12,8 +12,6 @@
 #include "ga_mvec16_t.hpp" // full multivector
 #include "ga_mvec8_t.hpp"  // even and odd multivectors
 
-#include "ga_mvec2_t.hpp" // for DualNum4ds
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // consistent type and grade definitions in namespace hd::ga for pga4ds
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -28,10 +26,6 @@ template <typename T> using PScalar4ds = Scalar_t<T, pscalar4ds_tag>;
 template <typename T> using MVec4ds_E = MVec8_t<T, mvec4ds_e_tag>;
 template <typename T> using MVec4ds_U = MVec8_t<T, mvec4ds_u_tag>;
 template <typename T> using MVec4ds = MVec16_t<T, mvec4ds_tag>;
-
-// for the geometric norm as homogeneous quantity,
-// which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
-template <typename T> using DualNum4ds = MVec2_t<T, dual_number4ds_tag>;
 
 // return the grades of the basic types
 

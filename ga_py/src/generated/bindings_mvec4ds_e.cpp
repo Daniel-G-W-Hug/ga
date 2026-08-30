@@ -106,9 +106,6 @@ void bind_mvec4ds_e(nb::module_& m)
             "__add__", [](mvec4ds_e const& a, pscalar4ds const& b) { return a + b; },
             nb::is_operator())
         .def(
-            "__add__", [](mvec4ds_e const& a, dualnum4ds const& b) { return a + b; },
-            nb::is_operator())
-        .def(
             "__sub__", [](mvec4ds_e const& a, scalar4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -116,9 +113,6 @@ void bind_mvec4ds_e(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](mvec4ds_e const& a, pscalar4ds const& b) { return a - b; },
-            nb::is_operator())
-        .def(
-            "__sub__", [](mvec4ds_e const& a, dualnum4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](mvec4ds_e const& a, mvec4ds_e const& b) { return a * b; },

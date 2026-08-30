@@ -102,9 +102,6 @@ void bind_bivec4ds(nb::module_& m)
             "__add__", [](bivec4ds const& a, trivec4ds const& b) { return a + b; },
             nb::is_operator())
         .def(
-            "__add__", [](bivec4ds const& a, dualnum4ds const& b) { return a + b; },
-            nb::is_operator())
-        .def(
             "__sub__", [](bivec4ds const& a, scalar4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -118,9 +115,6 @@ void bind_bivec4ds(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](bivec4ds const& a, trivec4ds const& b) { return a - b; },
-            nb::is_operator())
-        .def(
-            "__sub__", [](bivec4ds const& a, dualnum4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](bivec4ds const& a, bivec4ds const& b) { return a * b; },

@@ -14,7 +14,7 @@
 // types used for STA (provided as templated types):
 //
 // Scalar4ds<T>, Vec4ds<T>, BiVec4ds<T>, TriVec4ds<T>, PScalar4ds<T>,
-// MVec4ds_E<T>, MVec4ds_U<T>, MVec4ds<T> DualNum2dp<T>, DualNum4ds<T>
+// MVec4ds_E<T>, MVec4ds_U<T>, MVec4ds<T>
 
 // types used for STA (provided as user types based on value_t for convenience):
 //

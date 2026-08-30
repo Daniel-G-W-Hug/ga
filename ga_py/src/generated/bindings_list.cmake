@@ -14,7 +14,6 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum4ds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp

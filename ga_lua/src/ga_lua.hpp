@@ -25,7 +25,7 @@ void register_3d_types(sol::state& lua);
 // PGA type registration functions
 void register_2dp_types(sol::state& lua);
 void register_3dp_types(sol::state& lua);
-// STA type registration (G(1,3,0): scalar4ds ... mvec4ds, dualnum4ds)
+// STA type registration (G(1,3,0): scalar4ds ... mvec4ds)
 void register_4ds_types(sol::state& lua);
 
 // CGA type registration (G(3,1,0) / G(4,1,0): scalar2dc ... mvec3dc, dualnum3dc)
@@ -5268,43 +5268,6 @@ void register_4ds_types(sol::state& lua)
                       sol::resolve<pscalar4ds(value_t, pscalar4ds)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar4ds(pscalar4ds, value_t)>(operator/));
-
-    // Dual numbers (for PGA-specific calculations)
-    lua.new_usertype<dualnum4ds>(
-        "dualnum4ds",
-        sol::constructors<dualnum4ds(), dualnum4ds(value_t, value_t),
-                          dualnum4ds(scalar4ds), dualnum4ds(pscalar4ds),
-                          dualnum4ds(scalar4ds, pscalar4ds),
-                          dualnum4ds(dualnum4ds const&), dualnum4ds(dualnum4ds&&)>(),
-        "copy", [](const dualnum4ds& obj) { return dualnum4ds(obj); },
-        // component access
-        "c0", &dualnum4ds::c0, "c1", &dualnum4ds::c1, sol::meta_function::to_string,
-        [](const dualnum4ds& dn) {
-            using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("DualNum4ds({},{})", suppress_negative_zero(dn.c0),
-                               suppress_negative_zero(dn.c1));
-        },
-        sol::meta_function::unary_minus,
-        sol::resolve<dualnum4ds(dualnum4ds const&)>(operator-),
-        sol::meta_function::addition,
-        sol::overload(
-            sol::resolve<dualnum4ds(dualnum4ds const&, dualnum4ds const&)>(operator+),
-            sol::resolve<dualnum4ds(scalar4ds, dualnum4ds const&)>(operator+),
-            sol::resolve<dualnum4ds(dualnum4ds const&, scalar4ds)>(operator+),
-            sol::resolve<dualnum4ds(pscalar4ds, dualnum4ds const&)>(operator+),
-            sol::resolve<dualnum4ds(dualnum4ds const&, pscalar4ds)>(operator+)),
-        sol::meta_function::subtraction,
-        sol::overload(
-            sol::resolve<dualnum4ds(dualnum4ds const&, dualnum4ds const&)>(operator-),
-            sol::resolve<dualnum4ds(scalar4ds, dualnum4ds const&)>(operator-),
-            sol::resolve<dualnum4ds(dualnum4ds const&, scalar4ds)>(operator-),
-            sol::resolve<dualnum4ds(pscalar4ds, dualnum4ds const&)>(operator-),
-            sol::resolve<dualnum4ds(dualnum4ds const&, pscalar4ds)>(operator-)),
-        sol::meta_function::multiplication,
-        sol::overload(sol::resolve<dualnum4ds(dualnum4ds const&, value_t)>(operator*),
-                      sol::resolve<dualnum4ds(value_t, dualnum4ds const&)>(operator*)),
-        sol::meta_function::division,
-        sol::resolve<dualnum4ds(dualnum4ds const&, value_t)>(operator/));
 
     // PGA 3DP multivector types
     lua.new_usertype<mvec4ds_e>(

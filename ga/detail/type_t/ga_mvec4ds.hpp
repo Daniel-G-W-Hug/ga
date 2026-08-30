@@ -288,8 +288,8 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator+(TriVec4ds<T> const& t,
     return MVec4ds<ctype>(s, Vec4ds<ctype>{}, BiVec4ds<ctype>{}, t, PScalar4ds<ctype>{});
 }
 
-// (scalar + pseudoscalar) and (pseudoscalar + scalar) intentionally NOT
-// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+// (scalar + pseudoscalar) and (pseudoscalar + scalar) are BOTH even in 4d, so they
+// are defined in ga_mvec4ds_e.hpp with the narrower MVec4ds_E result.
 
 // vector + bivector
 template <typename T, typename U>
@@ -469,8 +469,8 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator-(TriVec4ds<T> const& t,
     return MVec4ds<ctype>(-s, Vec4ds<ctype>{}, BiVec4ds<ctype>{}, t, PScalar4ds<ctype>{});
 }
 
-// (scalar - pseudoscalar) and (pseudoscalar - scalar) intentionally NOT
-// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+// (scalar - pseudoscalar) and (pseudoscalar - scalar) are BOTH even in 4d, so they
+// are defined in ga_mvec4ds_e.hpp with the narrower MVec4ds_E result.
 
 // vector - bivector
 template <typename T, typename U>

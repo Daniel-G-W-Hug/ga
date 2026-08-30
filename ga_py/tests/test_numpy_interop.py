@@ -48,7 +48,6 @@ _VEC_TYPES = [
     (ga_py.sta.mvec4ds, 16, tuple(float(i + 1) for i in range(16))),
     (ga_py.sta.mvec4ds_e, 8, tuple(float(i + 1) for i in range(8))),
     (ga_py.sta.mvec4ds_u, 8, tuple(float(i + 1) for i in range(8))),
-    (ga_py.sta.dualnum4ds, 2, (3.0, 4.0)),
     # Inherited-shape PGA primitives — fields come from the base type.
     (ga_py.pga.point2d, 2, (7.0, 8.0)),
     (ga_py.pga.point3d, 3, (1.0, 2.0, 3.0)),

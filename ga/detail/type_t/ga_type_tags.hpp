@@ -60,7 +60,6 @@ struct pscalar4ds_tag : public sta4ds_tag {};
 struct mvec4ds_e_tag : public sta4ds_tag {};
 struct mvec4ds_u_tag : public sta4ds_tag {};
 struct mvec4ds_tag : public sta4ds_tag {};
-struct dual_number4ds_tag : public sta4ds_tag {};
 
 struct cga2dc_tag {};
 struct scalar2dc_tag : public cga2dc_tag {};

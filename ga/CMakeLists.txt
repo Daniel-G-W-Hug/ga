@@ -55,7 +55,6 @@ set(HEADERS
     detail/type_t/ga_mvec4ds.hpp
     detail/type_t/ga_mvec4ds_e.hpp
     detail/type_t/ga_mvec4ds_u.hpp
-    detail/type_t/ga_dualnum4ds.hpp
     #
     # user facing includes
     #

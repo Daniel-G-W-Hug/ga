@@ -201,8 +201,23 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
     return MVec4ds_E<ctype>(B, ps);
 }
 
-// (pseudoscalar + scalar) and (scalar + pseudoscalar) intentionally NOT
-// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+// scalar + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(Scalar4ds<T> s, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, ps);
+}
+
+// pseudoscalar + scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(PScalar4ds<T> ps, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, ps);
+}
 
 // scalar + even grade mulivector => even grade multivector
 template <typename T, typename U>
@@ -311,8 +326,23 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
     return MVec4ds_E<ctype>(B, -ps);
 }
 
-// (pseudoscalar - scalar) and (scalar - pseudoscalar) intentionally NOT
-// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+// scalar - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(Scalar4ds<T> s, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, -ps);
+}
+
+// pseudoscalar - scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(PScalar4ds<T> ps, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-s, ps);
+}
 
 // scalar - even grade mulivector => even grade multivector
 template <typename T, typename U>
