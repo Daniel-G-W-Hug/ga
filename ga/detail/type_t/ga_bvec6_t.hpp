@@ -23,7 +23,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>
-    requires numeric_type<T>
+    requires(numeric_type<T>)
 struct BVec6_t {
 
     // ctors

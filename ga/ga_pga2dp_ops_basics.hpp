@@ -972,7 +972,7 @@ inline MVec2dp<T> unitize(MVec2dp<T> const& M)
 }
 
 template <typename T>
-    requires numeric_type<T>
+    requires(numeric_type<T>)
 inline Point2dp<T> unitize(Point2dp<T> const& p)
 {
     hd::ga::detail::check_unitization<T>(std::abs(p.z), "Point2dp");

@@ -134,7 +134,7 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
 // BVec6_t<T, Tag> - includes BiVec2dc<T> (CGA 2dc types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires std::is_same_v<Tag, hd::ga::bivec2dc_tag>
+    requires(std::is_same_v<Tag, hd::ga::bivec2dc_tag>)
 struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
@@ -272,7 +272,7 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
 // MVec16_t<T, Tag> includes MVec2dc<T> (CGA 2dc types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires std::is_same_v<Tag, hd::ga::mvec2dc_tag>
+    requires(std::is_same_v<Tag, hd::ga::mvec2dc_tag>)
 struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : fmt::nested_formatter<T> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {

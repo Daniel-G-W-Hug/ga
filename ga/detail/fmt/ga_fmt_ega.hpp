@@ -67,7 +67,7 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : fmt::nested_formatter<T> {
 // Vec2_t<T, Tag> includes Vec2d<T> (EGA types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires std::is_same_v<Tag, hd::ga::vec2d_tag>
+    requires(std::is_same_v<Tag, hd::ga::vec2d_tag>)
 struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : fmt::nested_formatter<T> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
@@ -154,7 +154,7 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : fmt::nested_formatter<T> {
 // MVec2_t<T, Tag> includes MVec2d_E<T> (EGA types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires std::is_same_v<Tag, hd::ga::mvec2d_e_tag>
+    requires(std::is_same_v<Tag, hd::ga::mvec2d_e_tag>)
 struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {

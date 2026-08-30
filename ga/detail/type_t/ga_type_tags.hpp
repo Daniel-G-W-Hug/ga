@@ -104,43 +104,43 @@ template <typename T> struct base_class {
 
 // Specialization for each base class family
 template <typename T>
-    requires std::is_base_of_v<ega2d_tag, T>
+    requires(std::is_base_of_v<ega2d_tag, T>)
 struct base_class<T> {
     using type = ega2d_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<ega3d_tag, T>
+    requires(std::is_base_of_v<ega3d_tag, T>)
 struct base_class<T> {
     using type = ega3d_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<pga2dp_tag, T>
+    requires(std::is_base_of_v<pga2dp_tag, T>)
 struct base_class<T> {
     using type = pga2dp_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<pga3dp_tag, T>
+    requires(std::is_base_of_v<pga3dp_tag, T>)
 struct base_class<T> {
     using type = pga3dp_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<sta4ds_tag, T>
+    requires(std::is_base_of_v<sta4ds_tag, T>)
 struct base_class<T> {
     using type = sta4ds_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<cga2dc_tag, T>
+    requires(std::is_base_of_v<cga2dc_tag, T>)
 struct base_class<T> {
     using type = cga2dc_tag;
 };
 
 template <typename T>
-    requires std::is_base_of_v<cga3dc_tag, T>
+    requires(std::is_base_of_v<cga3dc_tag, T>)
 struct base_class<T> {
     using type = cga3dc_tag;
 };
