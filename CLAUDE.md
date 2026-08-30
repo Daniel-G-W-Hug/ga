@@ -248,11 +248,26 @@ by searching upward from the file's directory, so the file must live **inside th
 tree** when formatted (a temp file under `/tmp/` silently falls back to LLVM defaults — see
 the "clang-format gotcha" note later in this file).
 
-**Version baseline:** the whole tree was reformatted once with **clang-format 22.x** (the
-config alone does not pin output — different clang-format versions reorder includes and
-break lines differently). Use a **matching major version (22.x)** so a format-on-save does
-not re-churn the repo. If you must use a newer major, expect a one-time repo-wide reflow and
-raise it before committing.
+**Version floor — 22 or later, NOT a pin (2026-08-30).** The tree was first
+formatted with **clang-format 22.x**, and the config alone does not pin output across
+majors (different versions can reorder includes and break lines differently) — so the
+question is empirical, and it was measured rather than assumed: **clang-format 23
+produces byte-identical output to 22 on every tracked C/C++ file.** The format guard
+therefore accepts **22 or newer** and skips only on something older, which could
+reflow the tree.
+
+**Before raising the floor, re-measure.** The check is one loop, and it is the only
+thing that makes the floor trustworthy:
+
+```bash
+# 0 differing files = that major agrees with the tree and may become the new floor
+for f in $(git ls-files '*.hpp' '*.cpp'); do
+    clang-format "$f" | cmp -s - "$f" || echo "would reformat: $f"
+done
+```
+
+An enclosing build that adds sources of its own should run the same sweep over those
+too before trusting the result.
 
 ```bash
 clang-format -i path/to/file.cpp   # format in place (picks up the repo-root .clang-format)

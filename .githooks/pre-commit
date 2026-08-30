@@ -15,10 +15,13 @@
 # Tracked hook -- activated once per clone with:  git config core.hooksPath .githooks
 # Bypass for a deliberate exception:              git commit --no-verify
 
-# clang-format major the tree is formatted with; a different major reflows the
-# whole tree, so a mismatch SKIPS (with a warning) rather than fighting it. See
-# CLAUDE.md, "C++ Formatting (clang-format)", for the version baseline.
-REQUIRED_MAJOR=22
+# Minimum clang-format major. The tree was first formatted with 22; 23 was then
+# measured to produce byte-identical output on all 496 tracked C/C++ files, so the
+# guard accepts 22 OR LATER rather than pinning one major. An older major could
+# reflow the tree and is refused. Re-measure before raising this floor: format the
+# whole tree with the candidate and require a zero-file diff. See CLAUDE.md,
+# "C++ Formatting (clang-format)".
+MINIMUM_MAJOR=22
 
 if ! command -v clang-format >/dev/null 2>&1; then
     echo "pre-commit: clang-format not found -- format check SKIPPED." >&2
@@ -26,9 +29,15 @@ if ! command -v clang-format >/dev/null 2>&1; then
 fi
 
 major=$(clang-format --version | sed -n 's/.*version \([0-9][0-9]*\).*/\1/p')
-if [ "$major" != "$REQUIRED_MAJOR" ]; then
-    echo "pre-commit: clang-format $major on PATH, tree is formatted with" \
-         "$REQUIRED_MAJOR -- format check SKIPPED (see CLAUDE.md)." >&2
+case "$major" in
+    ''|*[!0-9]*)
+        echo "pre-commit: cannot read the clang-format version -- check SKIPPED." >&2
+        exit 0
+        ;;
+esac
+if [ "$major" -lt "$MINIMUM_MAJOR" ]; then
+    echo "pre-commit: clang-format $major on PATH is older than the $MINIMUM_MAJOR" \
+         "baseline -- format check SKIPPED (see CLAUDE.md)." >&2
     exit 0
 fi
 
