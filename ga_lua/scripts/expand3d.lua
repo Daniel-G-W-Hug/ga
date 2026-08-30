@@ -10,7 +10,7 @@ print("v =", v)
 print("w =", w)
 print("B = ", B)
 print()
-local e = w ^ dual(B)
-print("e = expand(w,B) = w ^ dual(B) = ", w ^ dual(B))
-print("dual(e) = ", dual(e)) -- normal vector of plane 
+local e = w ^ ega.dual(B)
+print("e = expansion of w by B = w ^ ega.dual(B) = ", w ^ ega.dual(B))
+print("ega.dual(e) = ", ega.dual(e)) -- normal vector of plane 
 print()
