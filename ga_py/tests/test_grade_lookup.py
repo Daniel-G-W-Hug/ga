@@ -1,15 +1,19 @@
 """T2 --- Grade lookup verification.
 
 `gr()` returns the grade (0..n) of a graded GA element. `rgr()` returns
-the regressive (co-)grade `algebra_dim - grade`, defined only for PGA
-elements where the regressive metric is meaningful.
+the regressive (co-)grade, or anti-grade, `algebra_dim - grade`.
 
 By design, neither is defined for every type:
   * `gr()` is defined only for graded types (scalar, vector, bivector,
     trivector, pscalar). Multivectors are multi-graded; use their
     per-grade extractor methods `.gr0()`, `.gr1()`, ... `.grN()` instead.
-  * `rgr()` is defined only for PGA types --- the regressive grade is a
-    PGA-specific concept (degenerate metric).
+  * `rgr()` is defined for PGA and CGA only. The criterion is not the
+    metric -- anti-grade is just `n - grade` and needs none -- but the
+    ANTI-PRODUCT family: pga2dp/3dp and cga2dc/3dc carry rgpr, rdot and
+    rcmt, and the anti-grade is their grade bookkeeping. ega2d/3d and
+    sta4ds carry only rwdg, and define no rgr. (sta4ds did until
+    2026-08-30, with no caller and no test in any language; it was
+    removed to make the rule uniform.)
 
 This file tests only the cases where each function is defined.
 """
@@ -77,7 +81,8 @@ def test_gr_returns_correct_grade(submod, type_name, ctor_args, expected_grade):
 
 
 # --------------------------------------------------------------------------- #
-# rgr() --- PGA only; must return algebra_dim - grade
+# rgr() --- must return algebra_dim - grade. Parametrized over PGA here; the CGA
+# overloads are pinned on the C++ side instead (ga_cga2dc_test / ga_cga3dc_test).
 # --------------------------------------------------------------------------- #
 # pga2dp algebra_dim = 3, pga3dp algebra_dim = 4.
 

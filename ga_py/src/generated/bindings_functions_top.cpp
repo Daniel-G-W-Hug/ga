@@ -94,11 +94,6 @@ void register_functions_top(nb::module_& m)
     m.def("rgr", [](bivec3dp const& a0) { return rgr(a0); });
     m.def("rgr", [](trivec3dp const& a0) { return rgr(a0); });
     m.def("rgr", [](pscalar3dp const& a0) { return rgr(a0); });
-    m.def("rgr", [](scalar4ds const& a0) { return rgr(a0); });
-    m.def("rgr", [](vec4ds const& a0) { return rgr(a0); });
-    m.def("rgr", [](bivec4ds const& a0) { return rgr(a0); });
-    m.def("rgr", [](trivec4ds const& a0) { return rgr(a0); });
-    m.def("rgr", [](pscalar4ds const& a0) { return rgr(a0); });
     m.def("rgr", [](scalar2dc const& a0) { return rgr(a0); });
     m.def("rgr", [](vec2dc const& a0) { return rgr(a0); });
     m.def("rgr", [](bivec2dc const& a0) { return rgr(a0); });

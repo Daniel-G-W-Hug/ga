@@ -64,46 +64,9 @@ constexpr size_t gr([[maybe_unused]] PScalar4ds<T>)
     return 4;
 }
 
-// return the regressive grades of the basic types: rgr(arg) = n - gr(arg)
-// with n being the dimension of the space
-// => gr(arg) + rgr(arg) = n
-//
-// (Lengyel calls that anti-grade of an object, i.e. the number of dimensions
-//  of the space NOT populated by the object)
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t rgr([[maybe_unused]] Scalar4ds<T>)
-{
-    return 4; // 4 - 0
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t rgr([[maybe_unused]] Vec4ds<T> const&)
-{
-    return 3; // 4 - 1
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t rgr([[maybe_unused]] BiVec4ds<T> const&)
-{
-    return 2; // 2 - 2
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t rgr([[maybe_unused]] TriVec4ds<T> const&)
-{
-    return 1; // 4 - 3
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t rgr([[maybe_unused]] PScalar4ds<T>)
-{
-    return 0; // 4 - 4
-}
+// No rgr() here, deliberately. The anti-grade is the grade bookkeeping of the
+// ANTI-PRODUCT family (rgpr, rdot, rcmt), which sta4ds does not have -- it carries
+// only rwdg. ega2d/ega3d are in exactly the same position and define no rgr either;
+// pga2dp/3dp and cga2dc/3dc, which do have the full family, define it.
 
 } // namespace hd::ga

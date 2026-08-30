@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-30T17:36:08+00:00",
+  "generated_at": "2026-08-30T18:44:44+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -13678,42 +13678,162 @@
         {
           "return_type": "size_t",
           "param_types": [
-            "Scalar4ds<T>"
+            "Scalar2dc<T>"
           ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 76
+          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
+          "source_line": 91
         },
         {
           "return_type": "size_t",
           "param_types": [
-            "const Vec4ds<T> &"
+            "const Vec2dc<T> &"
           ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 83
+          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
+          "source_line": 98
         },
         {
           "return_type": "size_t",
           "param_types": [
-            "const BiVec4ds<T> &"
+            "const BiVec2dc<T> &"
           ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 90
+          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
+          "source_line": 105
         },
         {
           "return_type": "size_t",
           "param_types": [
-            "const TriVec4ds<T> &"
+            "const TriVec2dc<T> &"
           ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 97
+          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
+          "source_line": 112
         },
         {
           "return_type": "size_t",
           "param_types": [
-            "PScalar4ds<T>"
+            "PScalar2dc<T>"
           ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 104
+          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
+          "source_line": 119
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "Scalar3dc<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 106
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const Vec3dc<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 113
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const BiVec3dc<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 120
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const TriVec3dc<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 127
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const QuadVec3dc<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 134
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "PScalar3dc<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
+          "source_line": 141
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "Scalar2dp<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
+          "source_line": 81
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const Vec2dp<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
+          "source_line": 88
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const BiVec2dp<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
+          "source_line": 95
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "PScalar2dp<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
+          "source_line": 102
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "Scalar3dp<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
+          "source_line": 89
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const Vec3dp<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
+          "source_line": 96
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const BiVec3dp<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
+          "source_line": 103
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "const TriVec3dp<T> &"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
+          "source_line": 110
+        },
+        {
+          "return_type": "size_t",
+          "param_types": [
+            "PScalar3dp<T>"
+          ],
+          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
+          "source_line": 117
         },
         {
           "return_type": "size_t",
@@ -13878,46 +13998,6 @@
         {
           "return_type": "size_t",
           "param_types": [
-            "Scalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 76
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 83
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 90
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 97
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 104
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
@@ -14074,246 +14154,6 @@
           ],
           "source_file": "ga/detail/type_t/ga_type3dp.hpp",
           "source_line": 117
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 76
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 83
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 90
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 97
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 104
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar2dc<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 91
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec2dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 98
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec2dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 105
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec2dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 112
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar2dc<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 119
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar3dc<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 106
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec3dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 113
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec3dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 120
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec3dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 127
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const QuadVec3dc<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 134
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar3dc<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 141
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar2dp<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
-          "source_line": 81
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec2dp<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
-          "source_line": 88
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec2dp<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
-          "source_line": 95
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar2dp<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type2dp.hpp",
-          "source_line": 102
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar3dp<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
-          "source_line": 89
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec3dp<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
-          "source_line": 96
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec3dp<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
-          "source_line": 103
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec3dp<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
-          "source_line": 110
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar3dp<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type3dp.hpp",
-          "source_line": 117
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "Scalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 76
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const Vec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 83
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const BiVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 90
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "const TriVec4ds<T> &"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 97
-        },
-        {
-          "return_type": "size_t",
-          "param_types": [
-            "PScalar4ds<T>"
-          ],
-          "source_file": "ga/detail/type_t/ga_type4ds.hpp",
-          "source_line": 104
         },
         {
           "return_type": "size_t",

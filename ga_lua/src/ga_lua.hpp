@@ -4050,6 +4050,26 @@ void register_functions(sol::state& lua)
                                sol::resolve<size_t(bivec3dp const&)>(gr),
                                sol::resolve<size_t(trivec3dp const&)>(gr),
                                sol::resolve<size_t(pscalar3dp)>(gr)));
+    sta.set_function("gr", sol::overload(
+                               // STA
+                               sol::resolve<size_t(scalar4ds)>(gr),
+                               sol::resolve<size_t(vec4ds const&)>(gr),
+                               sol::resolve<size_t(bivec4ds const&)>(gr),
+                               sol::resolve<size_t(trivec4ds const&)>(gr),
+                               sol::resolve<size_t(pscalar4ds)>(gr)));
+    cga.set_function("gr", sol::overload(
+                               // CGA
+                               sol::resolve<size_t(scalar2dc)>(gr),
+                               sol::resolve<size_t(vec2dc const&)>(gr),
+                               sol::resolve<size_t(bivec2dc const&)>(gr),
+                               sol::resolve<size_t(trivec2dc const&)>(gr),
+                               sol::resolve<size_t(pscalar2dc)>(gr),
+                               sol::resolve<size_t(scalar3dc)>(gr),
+                               sol::resolve<size_t(vec3dc const&)>(gr),
+                               sol::resolve<size_t(bivec3dc const&)>(gr),
+                               sol::resolve<size_t(trivec3dc const&)>(gr),
+                               sol::resolve<size_t(quadvec3dc const&)>(gr),
+                               sol::resolve<size_t(pscalar3dc)>(gr)));
 
     pga.set_function("rinv",
                      sol::overload(sol::resolve<vec2dp(vec2dp const&)>(rinv),
@@ -4253,11 +4273,17 @@ void register_functions(sol::state& lua)
                                           sol::resolve<size_t(bivec3dp const&)>(rgr),
                                           sol::resolve<size_t(trivec3dp const&)>(rgr),
                                           sol::resolve<size_t(pscalar3dp)>(rgr)));
-    sta.set_function("rgr", sol::overload(sol::resolve<size_t(scalar4ds)>(rgr),
-                                          sol::resolve<size_t(vec4ds const&)>(rgr),
-                                          sol::resolve<size_t(bivec4ds const&)>(rgr),
-                                          sol::resolve<size_t(trivec4ds const&)>(rgr),
-                                          sol::resolve<size_t(pscalar4ds)>(rgr)));
+    cga.set_function("rgr", sol::overload(sol::resolve<size_t(scalar2dc)>(rgr),
+                                          sol::resolve<size_t(vec2dc const&)>(rgr),
+                                          sol::resolve<size_t(bivec2dc const&)>(rgr),
+                                          sol::resolve<size_t(trivec2dc const&)>(rgr),
+                                          sol::resolve<size_t(pscalar2dc)>(rgr),
+                                          sol::resolve<size_t(scalar3dc)>(rgr),
+                                          sol::resolve<size_t(vec3dc const&)>(rgr),
+                                          sol::resolve<size_t(bivec3dc const&)>(rgr),
+                                          sol::resolve<size_t(trivec3dc const&)>(rgr),
+                                          sol::resolve<size_t(quadvec3dc const&)>(rgr),
+                                          sol::resolve<size_t(pscalar3dc)>(rgr)));
 
     lua.set_function("sign", sol::resolve<value_t(value_t)>(sign));
     // sign() is never zero (+1 at 0); signum() is the classical three-valued one
