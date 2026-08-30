@@ -5,6 +5,7 @@
 
 #include "ga_pga3dp_ops_basics.hpp"
 #include "ga_pga3dp_ops_products.hpp"
+#include "ga_usr_consts.hpp"
 
 
 namespace hd::ga::pga {
@@ -177,7 +178,7 @@ constexpr MVec3dp_E<T> rexp(BiVec3dp<T> const& B)
         // We get the unitized line by projecting the momentum vector lm onto
         // the direction vector lv and by removing the non-orthogonal part
         dist = dot_lvlm * phi_inv; // length of projection of lm in direction of lv
-        l = l - dist * phi_inv * phi_inv * bivec3dp{0.0, 0.0, 0.0, B.vx, B.vy, B.vz};
+        l = l - dist * phi_inv * phi_inv * BiVec3dp<T>{0.0, 0.0, 0.0, B.vx, B.vy, B.vz};
     }
 
     return MVec3dp_E<T>(
@@ -911,7 +912,8 @@ template <typename T, typename U>
 constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
                                                   Plane3d<U> const& plane)
 {
-    return r_weight_expand3dp(point3dp{point}, plane);
+    using ctype = std::common_type_t<T, U>;
+    return r_weight_expand3dp(Point3dp<ctype>{point}, plane);
 }
 
 // expand to a new plane with contains the point p and is orthogonal to the line
@@ -921,7 +923,8 @@ template <typename T, typename U>
 constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
                                                    Line3d<U> const& line)
 {
-    return r_weight_expand3dp(point3dp{point}, line);
+    using ctype = std::common_type_t<T, U>;
+    return r_weight_expand3dp(Point3dp<ctype>{point}, line);
 }
 
 // expand to a new plane which contains the line and is perpendicular to the plane

@@ -5,6 +5,7 @@
 
 #include "ga_pga2dp_ops_basics.hpp"
 #include "ga_pga2dp_ops_products.hpp"
+#include "ga_usr_consts.hpp"
 
 
 namespace hd::ga::pga {

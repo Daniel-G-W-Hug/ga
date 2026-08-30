@@ -4,6 +4,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <algorithm> // std::max
+#include <cmath>     // std::abs
 #include <concepts>  // std::floating_point
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error

@@ -3,8 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_ega2d_ops.hpp" // ega2d ops (products, basics, exp/log, rotations)
-#include "ga_usr_fd.hpp"    // fd_scheme, central/compact schemes, fd_derivative
+#include "ga_ega2d_ops.hpp"  // ega2d ops (products, basics, exp/log, rotations)
+#include "ga_usr_consts.hpp" // named basis-blade constants
+#include "ga_usr_fd.hpp"     // fd_scheme, central/compact schemes, fd_derivative
 
 #include <cmath>       // std::sqrt
 #include <type_traits> // std::invoke_result_t, std::is_same_v

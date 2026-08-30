@@ -5,6 +5,7 @@
 
 #include "ga_ega2d_ops_basics.hpp"   // ega2d ops basics
 #include "ga_ega2d_ops_products.hpp" // ega2d ops products
+#include "ga_usr_consts.hpp"         // named basis-blade constants
 
 #include <utility> // std::pair
 #include <vector>

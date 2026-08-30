@@ -4,6 +4,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_sta4ds_ops.hpp" // sta4ds ops (products, basics, exp/log, transform)
+#include "ga_usr_consts.hpp" // named basis-blade constants
 #include "ga_usr_fd.hpp"     // fd_scheme, central/compact schemes, fd_derivative
 
 #include <cmath>       // std::sqrt

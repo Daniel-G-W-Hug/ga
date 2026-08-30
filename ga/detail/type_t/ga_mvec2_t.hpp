@@ -8,6 +8,7 @@
 #include <iostream> // std::ostream
 
 #include "../ga_error_handling.hpp"
+#include "ga_scalar_t.hpp" // Scalar_t<T, Tag> (graded ctor)
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {

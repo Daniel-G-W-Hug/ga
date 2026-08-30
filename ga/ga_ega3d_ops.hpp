@@ -5,6 +5,7 @@
 
 #include "ga_ega3d_ops_basics.hpp"   // ega3d ops basics
 #include "ga_ega3d_ops_products.hpp" // ega3d ops products
+#include "ga_usr_consts.hpp"         // named basis-blade constants
 
 #include <complex> // std::complex (the centre span{1, I_3d} of ega3d)
 #include <vector>
