@@ -5,9 +5,12 @@ set(LIB_NAME ga)
 set(HEADERS
     #
     detail/fmt/ga_fmt_core.hpp
+    detail/fmt/ga_fmt_cga.hpp
     detail/fmt/ga_fmt_ega.hpp
     detail/fmt/ga_fmt_pga.hpp
     detail/fmt/ga_fmt_sta.hpp
+    detail/fmt/ga_fmt_geodesics.hpp
+    detail/fmt/ga_fmt_mechanics.hpp
     detail/ga_fmt_support.hpp
     #
     detail/ga_error_handling.hpp
@@ -16,6 +19,7 @@ set(HEADERS
     detail/ga_ega_types.hpp
     detail/ga_pga_types.hpp
     detail/ga_sta_types.hpp
+    detail/ga_cga_types.hpp
     detail/ga_solver.hpp
     detail/ga_stencil.hpp
     #
@@ -23,15 +27,20 @@ set(HEADERS
     detail/type_t/ga_vec2_t.hpp
     detail/type_t/ga_vec3_t.hpp
     detail/type_t/ga_vec4_t.hpp
+    detail/type_t/ga_vec5_t.hpp
     detail/type_t/ga_bvec6_t.hpp
+    detail/type_t/ga_bvec10_t.hpp
     detail/type_t/ga_mvec2_t.hpp
     detail/type_t/ga_mvec4_t.hpp
     detail/type_t/ga_mvec8_t.hpp
     detail/type_t/ga_mvec16_t.hpp
+    detail/type_t/ga_mvec32_t.hpp
     detail/type_t/ga_type_tags.hpp
     detail/type_t/ga_type2d.hpp
+    detail/type_t/ga_type2dc.hpp
     detail/type_t/ga_type2dp.hpp
     detail/type_t/ga_type3d.hpp
+    detail/type_t/ga_type3dc.hpp
     detail/type_t/ga_type3dp.hpp
     detail/type_t/ga_type4ds.hpp
     #
@@ -56,13 +65,24 @@ set(HEADERS
     detail/type_t/ga_mvec4ds_e.hpp
     detail/type_t/ga_mvec4ds_u.hpp
     #
+    detail/type_t/ga_mvec2dc.hpp
+    detail/type_t/ga_mvec2dc_e.hpp
+    detail/type_t/ga_mvec2dc_u.hpp
+    #
+    detail/type_t/ga_mvec3dc.hpp
+    detail/type_t/ga_mvec3dc_e.hpp
+    detail/type_t/ga_mvec3dc_u.hpp
+    #
     # user facing includes
     #
     ga_ega.hpp
     ga_pga.hpp
     ga_sta.hpp
+    ga_cga.hpp
     #
     ga_usr_consts.hpp
+    ga_usr_fd.hpp
+    ga_usr_geodesics.hpp
     ga_usr_types.hpp
     ga_usr_types_mechanics.hpp
     ga_usr_utilities.hpp
@@ -72,25 +92,38 @@ set(HEADERS
     ga_ega2d_ops_basics.hpp
     ga_ega2d_ops_products.hpp
     ga_ega2d_ops.hpp
+    ga_ega2d_ops_calculus.hpp
     ga_ega3d_ops_basics.hpp
     ga_ega3d_ops_products.hpp
     ga_ega3d_ops.hpp
+    ga_ega3d_ops_calculus.hpp
     #
     ga_pga2dp_ops_basics.hpp
     ga_pga2dp_ops_products.hpp
     ga_pga2dp_ops.hpp
     ga_pga2dp_ops_mechanics.hpp
     ga_pga2dp_ops_constraints.hpp
+    ga_pga2dp_ops_contact.hpp
     #
     ga_pga3dp_ops_basics.hpp
     ga_pga3dp_ops_products.hpp
     ga_pga3dp_ops.hpp
     ga_pga3dp_ops_mechanics.hpp
     ga_pga3dp_ops_constraints.hpp
+    ga_pga3dp_ops_contact.hpp
     #
     ga_sta4ds_ops_basics.hpp
     ga_sta4ds_ops_products.hpp
     ga_sta4ds_ops.hpp
+    ga_sta4ds_ops_calculus.hpp
+    #
+    ga_cga2dc_ops_basics.hpp
+    ga_cga2dc_ops_products.hpp
+    ga_cga2dc_ops.hpp
+    #
+    ga_cga3dc_ops_basics.hpp
+    ga_cga3dc_ops_products.hpp
+    ga_cga3dc_ops.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)
