@@ -93,10 +93,34 @@ void bind_mvec3d_e(nb::module_& m)
             "__add__", [](mvec3d_e const& a, bivec3d const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](mvec3d_e const& a, mvec3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d_e const& a, mvec3d_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d_e const& a, vec3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3d_e const& a, pscalar3d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](mvec3d_e const& a, scalar3d const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](mvec3d_e const& a, bivec3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d_e const& a, mvec3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d_e const& a, mvec3d_u const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d_e const& a, vec3d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3d_e const& a, pscalar3d const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](mvec3d_e const& a, mvec3d_e const& b) { return a * b; },

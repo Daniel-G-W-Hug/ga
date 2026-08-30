@@ -130,6 +130,12 @@ void bind_scalar2dc(nb::module_& m)
             "__add__", [](scalar2dc const& a, trivec2dc const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](scalar2dc const& a, mvec2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](scalar2dc const& a, mvec2dc_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](scalar2dc const& a, bivec2dc const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -143,6 +149,12 @@ void bind_scalar2dc(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](scalar2dc const& a, trivec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar2dc const& a, mvec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar2dc const& a, mvec2dc_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](scalar2dc const& a, scalar2dc const& b) { return a * b; },

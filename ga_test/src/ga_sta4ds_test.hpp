@@ -2943,4 +2943,231 @@ TEST_SUITE("STA 3D Tests")
         CHECK(csq(l_cmpl(Sp)) > 0.0);
     }
 
+    TEST_CASE("MVec4ds: +/- closure over every type pair")
+    {
+        fmt::println("MVec4ds: +/- closure over every type pair");
+
+        // Every pair of sta4ds types must add and subtract, and the result must
+        // equal the same sum carried out in the full multivector. The operators
+        // themselves keep the NARROWEST type that holds the grade union; widening
+        // here is only so one reference expression can check them all.
+
+        auto const Scalar4ds_ = scalar4ds(2.0);
+        auto const Vec4ds_ = vec4ds(3.0, -4.0, 5.0, -6.0);
+        auto const BiVec4ds_ = bivec4ds(1.0, -2.0, 3.0, -4.0, 5.0, -6.0);
+        auto const TriVec4ds_ = trivec4ds(-7.0, 8.0, -9.0, 10.0);
+        auto const PScalar4ds_ = pscalar4ds(-11.0);
+        auto const MVec4ds_E_ = mvec4ds_e(
+            scalar4ds(1.5), bivec4ds(2.0, -3.0, 4.0, -5.0, 6.0, -7.0), pscalar4ds(8.5));
+        auto const MVec4ds_U_ =
+            mvec4ds_u(vec4ds(-1.0, 2.0, -3.0, 4.0), trivec4ds(5.0, -6.0, 7.0, -8.0));
+        auto const MVec4ds_ =
+            mvec4ds(scalar4ds(0.5), vec4ds(1.0, 2.0, 3.0, 4.0),
+                    bivec4ds(5.0, 6.0, 7.0, 8.0, 9.0, 10.0),
+                    trivec4ds(11.0, 12.0, 13.0, 14.0), pscalar4ds(15.0));
+
+        CHECK(mvec4ds(Scalar4ds_ + Scalar4ds_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - Scalar4ds_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(Scalar4ds_ + Vec4ds_) == mvec4ds(Scalar4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - Vec4ds_) == mvec4ds(Scalar4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ + BiVec4ds_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - BiVec4ds_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ + TriVec4ds_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - TriVec4ds_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ + PScalar4ds_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - PScalar4ds_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(Scalar4ds_ + MVec4ds_E_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(Scalar4ds_ - MVec4ds_E_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(Scalar4ds_ + MVec4ds_U_) ==
+              mvec4ds(Scalar4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(Scalar4ds_ - MVec4ds_U_) ==
+              mvec4ds(Scalar4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(Scalar4ds_ + MVec4ds_) == mvec4ds(Scalar4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(Scalar4ds_ - MVec4ds_) == mvec4ds(Scalar4ds_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ + Scalar4ds_) == mvec4ds(Vec4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(Vec4ds_ - Scalar4ds_) == mvec4ds(Vec4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(Vec4ds_ + Vec4ds_) == mvec4ds(Vec4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(Vec4ds_ - Vec4ds_) == mvec4ds(Vec4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(Vec4ds_ + BiVec4ds_) == mvec4ds(Vec4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ - BiVec4ds_) == mvec4ds(Vec4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ + TriVec4ds_) == mvec4ds(Vec4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ - TriVec4ds_) == mvec4ds(Vec4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ + PScalar4ds_) == mvec4ds(Vec4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(Vec4ds_ - PScalar4ds_) == mvec4ds(Vec4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(Vec4ds_ + MVec4ds_E_) == mvec4ds(Vec4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(Vec4ds_ - MVec4ds_E_) == mvec4ds(Vec4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(Vec4ds_ + MVec4ds_U_) == mvec4ds(Vec4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(Vec4ds_ - MVec4ds_U_) == mvec4ds(Vec4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(Vec4ds_ + MVec4ds_) == mvec4ds(Vec4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(Vec4ds_ - MVec4ds_) == mvec4ds(Vec4ds_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + Scalar4ds_) ==
+              mvec4ds(BiVec4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - Scalar4ds_) ==
+              mvec4ds(BiVec4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + Vec4ds_) == mvec4ds(BiVec4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - Vec4ds_) == mvec4ds(BiVec4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + BiVec4ds_) == mvec4ds(BiVec4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - BiVec4ds_) == mvec4ds(BiVec4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + TriVec4ds_) ==
+              mvec4ds(BiVec4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - TriVec4ds_) ==
+              mvec4ds(BiVec4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + PScalar4ds_) ==
+              mvec4ds(BiVec4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - PScalar4ds_) ==
+              mvec4ds(BiVec4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(BiVec4ds_ + MVec4ds_E_) ==
+              mvec4ds(BiVec4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(BiVec4ds_ - MVec4ds_E_) ==
+              mvec4ds(BiVec4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(BiVec4ds_ + MVec4ds_U_) ==
+              mvec4ds(BiVec4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(BiVec4ds_ - MVec4ds_U_) ==
+              mvec4ds(BiVec4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(BiVec4ds_ + MVec4ds_) == mvec4ds(BiVec4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(BiVec4ds_ - MVec4ds_) == mvec4ds(BiVec4ds_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + Scalar4ds_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - Scalar4ds_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + Vec4ds_) == mvec4ds(TriVec4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - Vec4ds_) == mvec4ds(TriVec4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + BiVec4ds_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - BiVec4ds_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + TriVec4ds_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - TriVec4ds_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + PScalar4ds_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - PScalar4ds_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(TriVec4ds_ + MVec4ds_E_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(TriVec4ds_ - MVec4ds_E_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(TriVec4ds_ + MVec4ds_U_) ==
+              mvec4ds(TriVec4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(TriVec4ds_ - MVec4ds_U_) ==
+              mvec4ds(TriVec4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(TriVec4ds_ + MVec4ds_) == mvec4ds(TriVec4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(TriVec4ds_ - MVec4ds_) == mvec4ds(TriVec4ds_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + Scalar4ds_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - Scalar4ds_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + Vec4ds_) == mvec4ds(PScalar4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - Vec4ds_) == mvec4ds(PScalar4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + BiVec4ds_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - BiVec4ds_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + TriVec4ds_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - TriVec4ds_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + PScalar4ds_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - PScalar4ds_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(PScalar4ds_ + MVec4ds_E_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(PScalar4ds_ - MVec4ds_E_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(PScalar4ds_ + MVec4ds_U_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(PScalar4ds_ - MVec4ds_U_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(PScalar4ds_ + MVec4ds_) ==
+              mvec4ds(PScalar4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(PScalar4ds_ - MVec4ds_) ==
+              mvec4ds(PScalar4ds_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + Scalar4ds_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - Scalar4ds_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + Vec4ds_) == mvec4ds(MVec4ds_E_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - Vec4ds_) == mvec4ds(MVec4ds_E_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + BiVec4ds_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - BiVec4ds_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + TriVec4ds_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - TriVec4ds_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + PScalar4ds_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - PScalar4ds_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ + MVec4ds_E_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_E_ - MVec4ds_E_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_E_ + MVec4ds_U_) ==
+              mvec4ds(MVec4ds_E_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_E_ - MVec4ds_U_) ==
+              mvec4ds(MVec4ds_E_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_E_ + MVec4ds_) == mvec4ds(MVec4ds_E_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_E_ - MVec4ds_) == mvec4ds(MVec4ds_E_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + Scalar4ds_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - Scalar4ds_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + Vec4ds_) == mvec4ds(MVec4ds_U_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - Vec4ds_) == mvec4ds(MVec4ds_U_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + BiVec4ds_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - BiVec4ds_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + TriVec4ds_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - TriVec4ds_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + PScalar4ds_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - PScalar4ds_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ + MVec4ds_E_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_U_ - MVec4ds_E_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_U_ + MVec4ds_U_) ==
+              mvec4ds(MVec4ds_U_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_U_ - MVec4ds_U_) ==
+              mvec4ds(MVec4ds_U_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_U_ + MVec4ds_) == mvec4ds(MVec4ds_U_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_U_ - MVec4ds_) == mvec4ds(MVec4ds_U_) - mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ + Scalar4ds_) == mvec4ds(MVec4ds_) + mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_ - Scalar4ds_) == mvec4ds(MVec4ds_) - mvec4ds(Scalar4ds_));
+        CHECK(mvec4ds(MVec4ds_ + Vec4ds_) == mvec4ds(MVec4ds_) + mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_ - Vec4ds_) == mvec4ds(MVec4ds_) - mvec4ds(Vec4ds_));
+        CHECK(mvec4ds(MVec4ds_ + BiVec4ds_) == mvec4ds(MVec4ds_) + mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ - BiVec4ds_) == mvec4ds(MVec4ds_) - mvec4ds(BiVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ + TriVec4ds_) == mvec4ds(MVec4ds_) + mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ - TriVec4ds_) == mvec4ds(MVec4ds_) - mvec4ds(TriVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ + PScalar4ds_) ==
+              mvec4ds(MVec4ds_) + mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_ - PScalar4ds_) ==
+              mvec4ds(MVec4ds_) - mvec4ds(PScalar4ds_));
+        CHECK(mvec4ds(MVec4ds_ + MVec4ds_E_) == mvec4ds(MVec4ds_) + mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_ - MVec4ds_E_) == mvec4ds(MVec4ds_) - mvec4ds(MVec4ds_E_));
+        CHECK(mvec4ds(MVec4ds_ + MVec4ds_U_) == mvec4ds(MVec4ds_) + mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_ - MVec4ds_U_) == mvec4ds(MVec4ds_) - mvec4ds(MVec4ds_U_));
+        CHECK(mvec4ds(MVec4ds_ + MVec4ds_) == mvec4ds(MVec4ds_) + mvec4ds(MVec4ds_));
+        CHECK(mvec4ds(MVec4ds_ - MVec4ds_) == mvec4ds(MVec4ds_) - mvec4ds(MVec4ds_));
+    }
+
 } // STA 3D Tests

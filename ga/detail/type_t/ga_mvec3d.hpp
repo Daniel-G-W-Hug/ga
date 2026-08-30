@@ -314,6 +314,188 @@ constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d<T> const& M, PScalar
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Addition operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(Scalar3d<T> s, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(s + gr0(M), gr1(M), gr2(M), gr3(M));
+}
+
+// vector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(Vec3d<T> const& v,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), v + gr1(M), gr2(M), gr3(M));
+}
+
+// bivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), gr1(M), B + gr2(M), gr3(M));
+}
+
+// pseudoscalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(PScalar3d<T> ps, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), gr1(M), gr2(M), ps + gr3(M));
+}
+
+// even grade multivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& E,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E) + gr0(M), gr1(M), gr2(E) + gr2(M), gr3(M));
+}
+
+// odd grade multivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& O,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), gr1(O) + gr1(M), gr2(M), gr3(O) + gr3(M));
+}
+
+// multivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d<T> const& M,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M) + gr0(E), gr1(M), gr2(M) + gr2(E), gr3(M));
+}
+
+// multivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d<T> const& M,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), gr1(M) + gr1(O), gr2(M), gr3(M) + gr3(O));
+}
+
+// even grade multivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& E,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), gr1(O), gr2(E), gr3(O));
+}
+
+// odd grade multivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& O,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), gr1(O), gr2(E), gr3(O));
+}
+
+// vector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(Vec3d<T> const& v,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), v, gr2(E), PScalar3d<ctype>{});
+}
+
+// even grade multivector + vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& E,
+                                                     Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), v, gr2(E), PScalar3d<ctype>{});
+}
+
+// pseudoscalar + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(PScalar3d<T> ps,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), Vec3d<ctype>{}, gr2(E), ps);
+}
+
+// even grade multivector + pseudoscalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& E,
+                                                     PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), Vec3d<ctype>{}, gr2(E), ps);
+}
+
+// scalar + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(Scalar3d<T> s, MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(s, gr1(O), BiVec3d<ctype>{}, gr3(O));
+}
+
+// odd grade multivector + scalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& O, Scalar3d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(s, gr1(O), BiVec3d<ctype>{}, gr3(O));
+}
+
+// bivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(Scalar3d<ctype>{}, gr1(O), B, gr3(O));
+}
+
+// odd grade multivector + bivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& O,
+                                                     BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(Scalar3d<ctype>{}, gr1(O), B, gr3(O));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // subtraction operations to combine scalars, pseudoscalar and vectors to multivectors
 // (only remaining combinations not covered in mvec3d_e.hpp and mvec3d_u.hpp)
 ////////////////////////////////////////////////////////////////////////////////
@@ -428,6 +610,187 @@ constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d<T> const& M, PScalar
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d<ctype>(gr0(M), gr1(M), gr2(M), gr3(M) - ps);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Subtraction operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(Scalar3d<T> s, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(s - gr0(M), -gr1(M), -gr2(M), -gr3(M));
+}
+
+// vector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(Vec3d<T> const& v,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(M), v - gr1(M), -gr2(M), -gr3(M));
+}
+
+// bivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(M), -gr1(M), B - gr2(M), -gr3(M));
+}
+
+// pseudoscalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(PScalar3d<T> ps, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(M), -gr1(M), -gr2(M), ps - gr3(M));
+}
+
+// even grade multivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& E,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E) - gr0(M), -gr1(M), gr2(E) - gr2(M), -gr3(M));
+}
+
+// odd grade multivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& O,
+                                                     MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(M), gr1(O) - gr1(M), -gr2(M), gr3(O) - gr3(M));
+}
+
+// multivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d<T> const& M,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M) - gr0(E), gr1(M), gr2(M) - gr2(E), gr3(M));
+}
+
+// multivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d<T> const& M,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(M), gr1(M) - gr1(O), gr2(M), gr3(M) - gr3(O));
+}
+
+// even grade multivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& E,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), -gr1(O), gr2(E), -gr3(O));
+}
+
+// odd grade multivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& O,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(E), gr1(O), -gr2(E), gr3(O));
+}
+
+// vector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(Vec3d<T> const& v,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(E), v, -gr2(E), PScalar3d<ctype>{});
+}
+
+// even grade multivector - vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& E,
+                                                     Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), -v, gr2(E), PScalar3d<ctype>{});
+}
+
+// pseudoscalar - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(PScalar3d<T> ps,
+                                                     MVec3d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-gr0(E), Vec3d<ctype>{}, -gr2(E), ps);
+}
+
+// even grade multivector - pseudoscalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& E,
+                                                     PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(gr0(E), Vec3d<ctype>{}, gr2(E), -ps);
+}
+
+// scalar - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(Scalar3d<T> s, MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(s, -gr1(O), BiVec3d<ctype>{}, -gr3(O));
+}
+
+// odd grade multivector - scalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& O, Scalar3d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(-s, gr1(O), BiVec3d<ctype>{}, gr3(O));
+}
+
+// bivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B,
+                                                     MVec3d_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(Scalar3d<ctype>{}, -gr1(O), B, -gr3(O));
+}
+
+// odd grade multivector - bivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& O,
+                                                     BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d<ctype>(Scalar3d<ctype>{}, gr1(O), -B, gr3(O));
 }
 
 } // namespace hd::ga

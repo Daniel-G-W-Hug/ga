@@ -4571,4 +4571,122 @@ TEST_SUITE("EGA 3D Tests")
                         std::invalid_argument);
     }
 
+    TEST_CASE("MVec3d: +/- closure over every type pair")
+    {
+        fmt::println("MVec3d: +/- closure over every type pair");
+
+        // Every pair of ega3d types must add and subtract, and the result must
+        // equal the same sum carried out in the full multivector. The operators
+        // themselves keep the NARROWEST type that holds the grade union; widening
+        // here is only so one reference expression can check them all.
+
+        auto const Scalar3d_ = scalar3d(2.0);
+        auto const Vec3d_ = vec3d(3.0, -4.0, 5.0);
+        auto const BiVec3d_ = bivec3d(-6.0, 7.0, 8.0);
+        auto const PScalar3d_ = pscalar3d(-9.0);
+        auto const MVec3d_E_ = mvec3d_e(scalar3d(1.5), bivec3d(2.5, -3.5, 4.5));
+        auto const MVec3d_U_ = mvec3d_u(vec3d(-1.25, 2.25, -3.25), pscalar3d(6.75));
+        auto const MVec3d_ = mvec3d(scalar3d(0.5), vec3d(1.0, 2.0, 3.0),
+                                    bivec3d(4.0, 5.0, 6.0), pscalar3d(7.0));
+
+        CHECK(mvec3d(Scalar3d_ + Scalar3d_) == mvec3d(Scalar3d_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(Scalar3d_ - Scalar3d_) == mvec3d(Scalar3d_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(Scalar3d_ + Vec3d_) == mvec3d(Scalar3d_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(Scalar3d_ - Vec3d_) == mvec3d(Scalar3d_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(Scalar3d_ + BiVec3d_) == mvec3d(Scalar3d_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(Scalar3d_ - BiVec3d_) == mvec3d(Scalar3d_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(Scalar3d_ + PScalar3d_) == mvec3d(Scalar3d_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(Scalar3d_ - PScalar3d_) == mvec3d(Scalar3d_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(Scalar3d_ + MVec3d_E_) == mvec3d(Scalar3d_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(Scalar3d_ - MVec3d_E_) == mvec3d(Scalar3d_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(Scalar3d_ + MVec3d_U_) == mvec3d(Scalar3d_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(Scalar3d_ - MVec3d_U_) == mvec3d(Scalar3d_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(Scalar3d_ + MVec3d_) == mvec3d(Scalar3d_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(Scalar3d_ - MVec3d_) == mvec3d(Scalar3d_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(Vec3d_ + Scalar3d_) == mvec3d(Vec3d_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(Vec3d_ - Scalar3d_) == mvec3d(Vec3d_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(Vec3d_ + Vec3d_) == mvec3d(Vec3d_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(Vec3d_ - Vec3d_) == mvec3d(Vec3d_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(Vec3d_ + BiVec3d_) == mvec3d(Vec3d_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(Vec3d_ - BiVec3d_) == mvec3d(Vec3d_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(Vec3d_ + PScalar3d_) == mvec3d(Vec3d_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(Vec3d_ - PScalar3d_) == mvec3d(Vec3d_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(Vec3d_ + MVec3d_E_) == mvec3d(Vec3d_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(Vec3d_ - MVec3d_E_) == mvec3d(Vec3d_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(Vec3d_ + MVec3d_U_) == mvec3d(Vec3d_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(Vec3d_ - MVec3d_U_) == mvec3d(Vec3d_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(Vec3d_ + MVec3d_) == mvec3d(Vec3d_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(Vec3d_ - MVec3d_) == mvec3d(Vec3d_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(BiVec3d_ + Scalar3d_) == mvec3d(BiVec3d_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(BiVec3d_ - Scalar3d_) == mvec3d(BiVec3d_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(BiVec3d_ + Vec3d_) == mvec3d(BiVec3d_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(BiVec3d_ - Vec3d_) == mvec3d(BiVec3d_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(BiVec3d_ + BiVec3d_) == mvec3d(BiVec3d_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(BiVec3d_ - BiVec3d_) == mvec3d(BiVec3d_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(BiVec3d_ + PScalar3d_) == mvec3d(BiVec3d_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(BiVec3d_ - PScalar3d_) == mvec3d(BiVec3d_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(BiVec3d_ + MVec3d_E_) == mvec3d(BiVec3d_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(BiVec3d_ - MVec3d_E_) == mvec3d(BiVec3d_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(BiVec3d_ + MVec3d_U_) == mvec3d(BiVec3d_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(BiVec3d_ - MVec3d_U_) == mvec3d(BiVec3d_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(BiVec3d_ + MVec3d_) == mvec3d(BiVec3d_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(BiVec3d_ - MVec3d_) == mvec3d(BiVec3d_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(PScalar3d_ + Scalar3d_) == mvec3d(PScalar3d_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(PScalar3d_ - Scalar3d_) == mvec3d(PScalar3d_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(PScalar3d_ + Vec3d_) == mvec3d(PScalar3d_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(PScalar3d_ - Vec3d_) == mvec3d(PScalar3d_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(PScalar3d_ + BiVec3d_) == mvec3d(PScalar3d_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(PScalar3d_ - BiVec3d_) == mvec3d(PScalar3d_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(PScalar3d_ + PScalar3d_) == mvec3d(PScalar3d_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(PScalar3d_ - PScalar3d_) == mvec3d(PScalar3d_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(PScalar3d_ + MVec3d_E_) == mvec3d(PScalar3d_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(PScalar3d_ - MVec3d_E_) == mvec3d(PScalar3d_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(PScalar3d_ + MVec3d_U_) == mvec3d(PScalar3d_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(PScalar3d_ - MVec3d_U_) == mvec3d(PScalar3d_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(PScalar3d_ + MVec3d_) == mvec3d(PScalar3d_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(PScalar3d_ - MVec3d_) == mvec3d(PScalar3d_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_E_ + Scalar3d_) == mvec3d(MVec3d_E_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_E_ - Scalar3d_) == mvec3d(MVec3d_E_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_E_ + Vec3d_) == mvec3d(MVec3d_E_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_E_ - Vec3d_) == mvec3d(MVec3d_E_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_E_ + BiVec3d_) == mvec3d(MVec3d_E_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_E_ - BiVec3d_) == mvec3d(MVec3d_E_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_E_ + PScalar3d_) == mvec3d(MVec3d_E_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_E_ - PScalar3d_) == mvec3d(MVec3d_E_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_E_ + MVec3d_E_) == mvec3d(MVec3d_E_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_E_ - MVec3d_E_) == mvec3d(MVec3d_E_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_E_ + MVec3d_U_) == mvec3d(MVec3d_E_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_E_ - MVec3d_U_) == mvec3d(MVec3d_E_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_E_ + MVec3d_) == mvec3d(MVec3d_E_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_E_ - MVec3d_) == mvec3d(MVec3d_E_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_U_ + Scalar3d_) == mvec3d(MVec3d_U_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_U_ - Scalar3d_) == mvec3d(MVec3d_U_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_U_ + Vec3d_) == mvec3d(MVec3d_U_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_U_ - Vec3d_) == mvec3d(MVec3d_U_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_U_ + BiVec3d_) == mvec3d(MVec3d_U_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_U_ - BiVec3d_) == mvec3d(MVec3d_U_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_U_ + PScalar3d_) == mvec3d(MVec3d_U_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_U_ - PScalar3d_) == mvec3d(MVec3d_U_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_U_ + MVec3d_E_) == mvec3d(MVec3d_U_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_U_ - MVec3d_E_) == mvec3d(MVec3d_U_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_U_ + MVec3d_U_) == mvec3d(MVec3d_U_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_U_ - MVec3d_U_) == mvec3d(MVec3d_U_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_U_ + MVec3d_) == mvec3d(MVec3d_U_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_U_ - MVec3d_) == mvec3d(MVec3d_U_) - mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_ + Scalar3d_) == mvec3d(MVec3d_) + mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_ - Scalar3d_) == mvec3d(MVec3d_) - mvec3d(Scalar3d_));
+        CHECK(mvec3d(MVec3d_ + Vec3d_) == mvec3d(MVec3d_) + mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_ - Vec3d_) == mvec3d(MVec3d_) - mvec3d(Vec3d_));
+        CHECK(mvec3d(MVec3d_ + BiVec3d_) == mvec3d(MVec3d_) + mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_ - BiVec3d_) == mvec3d(MVec3d_) - mvec3d(BiVec3d_));
+        CHECK(mvec3d(MVec3d_ + PScalar3d_) == mvec3d(MVec3d_) + mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_ - PScalar3d_) == mvec3d(MVec3d_) - mvec3d(PScalar3d_));
+        CHECK(mvec3d(MVec3d_ + MVec3d_E_) == mvec3d(MVec3d_) + mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_ - MVec3d_E_) == mvec3d(MVec3d_) - mvec3d(MVec3d_E_));
+        CHECK(mvec3d(MVec3d_ + MVec3d_U_) == mvec3d(MVec3d_) + mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_ - MVec3d_U_) == mvec3d(MVec3d_) - mvec3d(MVec3d_U_));
+        CHECK(mvec3d(MVec3d_ + MVec3d_) == mvec3d(MVec3d_) + mvec3d(MVec3d_));
+        CHECK(mvec3d(MVec3d_ - MVec3d_) == mvec3d(MVec3d_) - mvec3d(MVec3d_));
+    }
+
 } // EGA 3D Tests

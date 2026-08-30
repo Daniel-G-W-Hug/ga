@@ -425,6 +425,223 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds<T> const& M,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Addition operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(Scalar4ds<T> s, MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(s + gr0(M), gr1(M), gr2(M), gr3(M), gr4(M));
+}
+
+// vector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(Vec4ds<T> const& v,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), v + gr1(M), gr2(M), gr3(M), gr4(M));
+}
+
+// bivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(M), B + gr2(M), gr3(M), gr4(M));
+}
+
+// trivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(TriVec4ds<T> const& t,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(M), gr2(M), t + gr3(M), gr4(M));
+}
+
+// pseudoscalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(PScalar4ds<T> ps,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(M), gr2(M), gr3(M), ps + gr4(M));
+}
+
+// even grade multivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& E,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E) + gr0(M), gr1(M), gr2(E) + gr2(M), gr3(M),
+                          gr4(E) + gr4(M));
+}
+
+// odd grade multivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_U<T> const& O,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(O) + gr1(M), gr2(M), gr3(O) + gr3(M), gr4(M));
+}
+
+// multivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds<T> const& M,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M) + gr0(E), gr1(M), gr2(M) + gr2(E), gr3(M),
+                          gr4(M) + gr4(E));
+}
+
+// multivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds<T> const& M,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(M) + gr1(O), gr2(M), gr3(M) + gr3(O), gr4(M));
+}
+
+// even grade multivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& E,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), gr1(O), gr2(E), gr3(O), gr4(E));
+}
+
+// odd grade multivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_U<T> const& O,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), gr1(O), gr2(E), gr3(O), gr4(E));
+}
+
+// vector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(Vec4ds<T> const& v,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), v, gr2(E), TriVec4ds<ctype>{}, gr4(E));
+}
+
+// even grade multivector + vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& E,
+                                                      Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), v, gr2(E), TriVec4ds<ctype>{}, gr4(E));
+}
+
+// trivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(TriVec4ds<T> const& t,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), Vec4ds<ctype>{}, gr2(E), t, gr4(E));
+}
+
+// even grade multivector + trivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& E,
+                                                      TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), Vec4ds<ctype>{}, gr2(E), t, gr4(E));
+}
+
+// scalar + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(Scalar4ds<T> s,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(s, gr1(O), BiVec4ds<ctype>{}, gr3(O), PScalar4ds<ctype>{});
+}
+
+// odd grade multivector + scalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_U<T> const& O,
+                                                      Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(s, gr1(O), BiVec4ds<ctype>{}, gr3(O), PScalar4ds<ctype>{});
+}
+
+// bivector + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), B, gr3(O), PScalar4ds<ctype>{});
+}
+
+// odd grade multivector + bivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_U<T> const& O,
+                                                      BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), B, gr3(O), PScalar4ds<ctype>{});
+}
+
+// pseudoscalar + odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(PScalar4ds<T> ps,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), BiVec4ds<ctype>{}, gr3(O), ps);
+}
+
+// odd grade multivector + pseudoscalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator+(MVec4ds_U<T> const& O,
+                                                      PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), BiVec4ds<ctype>{}, gr3(O), ps);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // subtraction operations to combine scalars, pseudoscalar and vectors to multivectors
 // (only remaining combinations not covered in mvec4ds_e.hpp and mvec4ds_u.hpp)
 ////////////////////////////////////////////////////////////////////////////////
@@ -605,6 +822,222 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds<T> const& M,
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4ds<ctype>(gr0(M), gr1(M), gr2(M), gr3(M), gr4(M) - ps);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Subtraction operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(Scalar4ds<T> s, MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(s - gr0(M), -gr1(M), -gr2(M), -gr3(M), -gr4(M));
+}
+
+// vector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(Vec4ds<T> const& v,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(M), v - gr1(M), -gr2(M), -gr3(M), -gr4(M));
+}
+
+// bivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(M), -gr1(M), B - gr2(M), -gr3(M), -gr4(M));
+}
+
+// trivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(TriVec4ds<T> const& t,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(M), -gr1(M), -gr2(M), t - gr3(M), -gr4(M));
+}
+
+// pseudoscalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(PScalar4ds<T> ps,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(M), -gr1(M), -gr2(M), -gr3(M), ps - gr4(M));
+}
+
+// even grade multivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& E,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E) - gr0(M), -gr1(M), gr2(E) - gr2(M), -gr3(M),
+                          gr4(E) - gr4(M));
+}
+
+// odd grade multivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_U<T> const& O,
+                                                      MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(M), gr1(O) - gr1(M), -gr2(M), gr3(O) - gr3(M), -gr4(M));
+}
+
+// multivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds<T> const& M,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M) - gr0(E), gr1(M), gr2(M) - gr2(E), gr3(M),
+                          gr4(M) - gr4(E));
+}
+
+// multivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds<T> const& M,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(M), gr1(M) - gr1(O), gr2(M), gr3(M) - gr3(O), gr4(M));
+}
+
+// even grade multivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& E,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), -gr1(O), gr2(E), -gr3(O), gr4(E));
+}
+
+// odd grade multivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_U<T> const& O,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(E), gr1(O), -gr2(E), gr3(O), -gr4(E));
+}
+
+// vector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(Vec4ds<T> const& v,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(E), v, -gr2(E), TriVec4ds<ctype>{}, -gr4(E));
+}
+
+// even grade multivector - vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& E,
+                                                      Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), -v, gr2(E), TriVec4ds<ctype>{}, gr4(E));
+}
+
+// trivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(TriVec4ds<T> const& t,
+                                                      MVec4ds_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-gr0(E), Vec4ds<ctype>{}, -gr2(E), t, -gr4(E));
+}
+
+// even grade multivector - trivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& E,
+                                                      TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(gr0(E), Vec4ds<ctype>{}, gr2(E), -t, gr4(E));
+}
+
+// scalar - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(Scalar4ds<T> s,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(s, -gr1(O), BiVec4ds<ctype>{}, -gr3(O), PScalar4ds<ctype>{});
+}
+
+// odd grade multivector - scalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_U<T> const& O,
+                                                      Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(-s, gr1(O), BiVec4ds<ctype>{}, gr3(O), PScalar4ds<ctype>{});
+}
+
+// bivector - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, -gr1(O), B, -gr3(O), PScalar4ds<ctype>{});
+}
+
+// odd grade multivector - bivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_U<T> const& O,
+                                                      BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), -B, gr3(O), PScalar4ds<ctype>{});
+}
+
+// pseudoscalar - odd grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(PScalar4ds<T> ps,
+                                                      MVec4ds_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, -gr1(O), BiVec4ds<ctype>{}, -gr3(O), ps);
+}
+
+// odd grade multivector - pseudoscalar
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator-(MVec4ds_U<T> const& O,
+                                                      PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(Scalar4ds<ctype>{}, gr1(O), BiVec4ds<ctype>{}, gr3(O), -ps);
 }
 
 } // namespace hd::ga

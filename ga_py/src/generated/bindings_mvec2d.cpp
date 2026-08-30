@@ -99,6 +99,9 @@ void bind_mvec2d(nb::module_& m)
             "__add__", [](mvec2d const& a, pscalar2d const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](mvec2d const& a, mvec2d_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](mvec2d const& a, scalar2d const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -106,6 +109,9 @@ void bind_mvec2d(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](mvec2d const& a, pscalar2d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2d const& a, mvec2d_e const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](mvec2d const& a, mvec2d const& b) { return a * b; },

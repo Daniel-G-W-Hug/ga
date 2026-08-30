@@ -197,6 +197,80 @@ constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M, PScalar
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Addition operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Scalar2d<T> s, MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(s + gr0(M), gr1(M), gr2(M));
+}
+
+// vector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
+                                                     MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(M), v + gr1(M), gr2(M));
+}
+
+// pseudoscalar + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(PScalar2d<T> ps, MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(M), gr1(M), ps + gr2(M));
+}
+
+// even grade multivector + multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& E,
+                                                     MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(E) + gr0(M), gr1(M), gr2(E) + gr2(M));
+}
+
+// multivector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
+                                                     MVec2d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(M) + gr0(E), gr1(M), gr2(M) + gr2(E));
+}
+
+// vector + even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
+                                                     MVec2d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(E), v, gr2(E));
+}
+
+// even grade multivector + vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& E,
+                                                     Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(E), v, gr2(E));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // subtraction operations to combine scalars, pseudoscalar and vectors to multivectors
 // (only remaining combinations not covered in mvec2d_e.hpp)
 ////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +337,79 @@ constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M, PScalar
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M), gr1(M), gr2(M) - ps);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Subtraction operations completing the type matrix: the remaining pairs whose grade
+// union fits no subalgebra, hence returning the full multivector
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Scalar2d<T> s, MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(s - gr0(M), -gr1(M), -gr2(M));
+}
+
+// vector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
+                                                     MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(-gr0(M), v - gr1(M), -gr2(M));
+}
+
+// pseudoscalar - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(PScalar2d<T> ps, MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(-gr0(M), -gr1(M), ps - gr2(M));
+}
+
+// even grade multivector - multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& E,
+                                                     MVec2d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(E) - gr0(M), -gr1(M), gr2(E) - gr2(M));
+}
+
+// multivector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
+                                                     MVec2d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(M) - gr0(E), gr1(M), gr2(M) - gr2(E));
+}
+
+// vector - even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
+                                                     MVec2d_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(-gr0(E), v, -gr2(E));
+}
+
+// even grade multivector - vector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& E,
+                                                     Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(gr0(E), -v, gr2(E));
 }
 
 } // namespace hd::ga

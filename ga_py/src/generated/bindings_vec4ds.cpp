@@ -99,6 +99,12 @@ void bind_vec4ds(nb::module_& m)
             "__add__", [](vec4ds const& a, pscalar4ds const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](vec4ds const& a, mvec4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](vec4ds const& a, mvec4ds_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](vec4ds const& a, trivec4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -112,6 +118,12 @@ void bind_vec4ds(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](vec4ds const& a, pscalar4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](vec4ds const& a, mvec4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](vec4ds const& a, mvec4ds_e const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](vec4ds const& a, vec4ds const& b) { return a * b; },

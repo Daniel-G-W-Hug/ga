@@ -1093,4 +1093,231 @@ TEST_SUITE("CGA 2dc Tests")
         fmt::println("");
     }
 
+    TEST_CASE("MVec2dc: +/- closure over every type pair")
+    {
+        fmt::println("MVec2dc: +/- closure over every type pair");
+
+        // Every pair of cga2dc types must add and subtract, and the result must
+        // equal the same sum carried out in the full multivector. The operators
+        // themselves keep the NARROWEST type that holds the grade union; widening
+        // here is only so one reference expression can check them all.
+
+        auto const Scalar2dc_ = scalar2dc(2.0);
+        auto const Vec2dc_ = vec2dc(3.0, -4.0, 5.0, -6.0);
+        auto const BiVec2dc_ = bivec2dc(1.0, -2.0, 3.0, -4.0, 5.0, -6.0);
+        auto const TriVec2dc_ = trivec2dc(-7.0, 8.0, -9.0, 10.0);
+        auto const PScalar2dc_ = pscalar2dc(-11.0);
+        auto const MVec2dc_E_ = mvec2dc_e(
+            scalar2dc(1.5), bivec2dc(2.0, -3.0, 4.0, -5.0, 6.0, -7.0), pscalar2dc(8.5));
+        auto const MVec2dc_U_ =
+            mvec2dc_u(vec2dc(-1.0, 2.0, -3.0, 4.0), trivec2dc(5.0, -6.0, 7.0, -8.0));
+        auto const MVec2dc_ =
+            mvec2dc(scalar2dc(0.5), vec2dc(1.0, 2.0, 3.0, 4.0),
+                    bivec2dc(5.0, 6.0, 7.0, 8.0, 9.0, 10.0),
+                    trivec2dc(11.0, 12.0, 13.0, 14.0), pscalar2dc(15.0));
+
+        CHECK(mvec2dc(Scalar2dc_ + Scalar2dc_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - Scalar2dc_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(Scalar2dc_ + Vec2dc_) == mvec2dc(Scalar2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - Vec2dc_) == mvec2dc(Scalar2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ + BiVec2dc_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - BiVec2dc_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ + TriVec2dc_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - TriVec2dc_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ + PScalar2dc_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - PScalar2dc_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(Scalar2dc_ + MVec2dc_E_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(Scalar2dc_ - MVec2dc_E_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(Scalar2dc_ + MVec2dc_U_) ==
+              mvec2dc(Scalar2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(Scalar2dc_ - MVec2dc_U_) ==
+              mvec2dc(Scalar2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(Scalar2dc_ + MVec2dc_) == mvec2dc(Scalar2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(Scalar2dc_ - MVec2dc_) == mvec2dc(Scalar2dc_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ + Scalar2dc_) == mvec2dc(Vec2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(Vec2dc_ - Scalar2dc_) == mvec2dc(Vec2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(Vec2dc_ + Vec2dc_) == mvec2dc(Vec2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(Vec2dc_ - Vec2dc_) == mvec2dc(Vec2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(Vec2dc_ + BiVec2dc_) == mvec2dc(Vec2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ - BiVec2dc_) == mvec2dc(Vec2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ + TriVec2dc_) == mvec2dc(Vec2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ - TriVec2dc_) == mvec2dc(Vec2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ + PScalar2dc_) == mvec2dc(Vec2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(Vec2dc_ - PScalar2dc_) == mvec2dc(Vec2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(Vec2dc_ + MVec2dc_E_) == mvec2dc(Vec2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(Vec2dc_ - MVec2dc_E_) == mvec2dc(Vec2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(Vec2dc_ + MVec2dc_U_) == mvec2dc(Vec2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(Vec2dc_ - MVec2dc_U_) == mvec2dc(Vec2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(Vec2dc_ + MVec2dc_) == mvec2dc(Vec2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(Vec2dc_ - MVec2dc_) == mvec2dc(Vec2dc_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + Scalar2dc_) ==
+              mvec2dc(BiVec2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - Scalar2dc_) ==
+              mvec2dc(BiVec2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + Vec2dc_) == mvec2dc(BiVec2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - Vec2dc_) == mvec2dc(BiVec2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + BiVec2dc_) == mvec2dc(BiVec2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - BiVec2dc_) == mvec2dc(BiVec2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + TriVec2dc_) ==
+              mvec2dc(BiVec2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - TriVec2dc_) ==
+              mvec2dc(BiVec2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + PScalar2dc_) ==
+              mvec2dc(BiVec2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - PScalar2dc_) ==
+              mvec2dc(BiVec2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(BiVec2dc_ + MVec2dc_E_) ==
+              mvec2dc(BiVec2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(BiVec2dc_ - MVec2dc_E_) ==
+              mvec2dc(BiVec2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(BiVec2dc_ + MVec2dc_U_) ==
+              mvec2dc(BiVec2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(BiVec2dc_ - MVec2dc_U_) ==
+              mvec2dc(BiVec2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(BiVec2dc_ + MVec2dc_) == mvec2dc(BiVec2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(BiVec2dc_ - MVec2dc_) == mvec2dc(BiVec2dc_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + Scalar2dc_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - Scalar2dc_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + Vec2dc_) == mvec2dc(TriVec2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - Vec2dc_) == mvec2dc(TriVec2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + BiVec2dc_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - BiVec2dc_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + TriVec2dc_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - TriVec2dc_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + PScalar2dc_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - PScalar2dc_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(TriVec2dc_ + MVec2dc_E_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(TriVec2dc_ - MVec2dc_E_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(TriVec2dc_ + MVec2dc_U_) ==
+              mvec2dc(TriVec2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(TriVec2dc_ - MVec2dc_U_) ==
+              mvec2dc(TriVec2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(TriVec2dc_ + MVec2dc_) == mvec2dc(TriVec2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(TriVec2dc_ - MVec2dc_) == mvec2dc(TriVec2dc_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + Scalar2dc_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - Scalar2dc_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + Vec2dc_) == mvec2dc(PScalar2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - Vec2dc_) == mvec2dc(PScalar2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + BiVec2dc_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - BiVec2dc_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + TriVec2dc_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - TriVec2dc_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + PScalar2dc_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - PScalar2dc_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(PScalar2dc_ + MVec2dc_E_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(PScalar2dc_ - MVec2dc_E_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(PScalar2dc_ + MVec2dc_U_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(PScalar2dc_ - MVec2dc_U_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(PScalar2dc_ + MVec2dc_) ==
+              mvec2dc(PScalar2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(PScalar2dc_ - MVec2dc_) ==
+              mvec2dc(PScalar2dc_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + Scalar2dc_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - Scalar2dc_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + Vec2dc_) == mvec2dc(MVec2dc_E_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - Vec2dc_) == mvec2dc(MVec2dc_E_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + BiVec2dc_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - BiVec2dc_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + TriVec2dc_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - TriVec2dc_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + PScalar2dc_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - PScalar2dc_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ + MVec2dc_E_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_E_ - MVec2dc_E_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_E_ + MVec2dc_U_) ==
+              mvec2dc(MVec2dc_E_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_E_ - MVec2dc_U_) ==
+              mvec2dc(MVec2dc_E_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_E_ + MVec2dc_) == mvec2dc(MVec2dc_E_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_E_ - MVec2dc_) == mvec2dc(MVec2dc_E_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + Scalar2dc_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - Scalar2dc_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + Vec2dc_) == mvec2dc(MVec2dc_U_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - Vec2dc_) == mvec2dc(MVec2dc_U_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + BiVec2dc_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - BiVec2dc_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + TriVec2dc_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - TriVec2dc_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + PScalar2dc_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - PScalar2dc_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ + MVec2dc_E_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_U_ - MVec2dc_E_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_U_ + MVec2dc_U_) ==
+              mvec2dc(MVec2dc_U_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_U_ - MVec2dc_U_) ==
+              mvec2dc(MVec2dc_U_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_U_ + MVec2dc_) == mvec2dc(MVec2dc_U_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_U_ - MVec2dc_) == mvec2dc(MVec2dc_U_) - mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ + Scalar2dc_) == mvec2dc(MVec2dc_) + mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_ - Scalar2dc_) == mvec2dc(MVec2dc_) - mvec2dc(Scalar2dc_));
+        CHECK(mvec2dc(MVec2dc_ + Vec2dc_) == mvec2dc(MVec2dc_) + mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_ - Vec2dc_) == mvec2dc(MVec2dc_) - mvec2dc(Vec2dc_));
+        CHECK(mvec2dc(MVec2dc_ + BiVec2dc_) == mvec2dc(MVec2dc_) + mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ - BiVec2dc_) == mvec2dc(MVec2dc_) - mvec2dc(BiVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ + TriVec2dc_) == mvec2dc(MVec2dc_) + mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ - TriVec2dc_) == mvec2dc(MVec2dc_) - mvec2dc(TriVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ + PScalar2dc_) ==
+              mvec2dc(MVec2dc_) + mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_ - PScalar2dc_) ==
+              mvec2dc(MVec2dc_) - mvec2dc(PScalar2dc_));
+        CHECK(mvec2dc(MVec2dc_ + MVec2dc_E_) == mvec2dc(MVec2dc_) + mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_ - MVec2dc_E_) == mvec2dc(MVec2dc_) - mvec2dc(MVec2dc_E_));
+        CHECK(mvec2dc(MVec2dc_ + MVec2dc_U_) == mvec2dc(MVec2dc_) + mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_ - MVec2dc_U_) == mvec2dc(MVec2dc_) - mvec2dc(MVec2dc_U_));
+        CHECK(mvec2dc(MVec2dc_ + MVec2dc_) == mvec2dc(MVec2dc_) + mvec2dc(MVec2dc_));
+        CHECK(mvec2dc(MVec2dc_ - MVec2dc_) == mvec2dc(MVec2dc_) - mvec2dc(MVec2dc_));
+    }
+
 } // TEST_SUITE("CGA 2dc Tests")

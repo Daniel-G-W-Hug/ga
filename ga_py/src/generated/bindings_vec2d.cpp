@@ -86,10 +86,22 @@ void bind_vec2d(nb::module_& m)
             "__add__", [](vec2d const& a, pscalar2d const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](vec2d const& a, mvec2d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](vec2d const& a, mvec2d_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](vec2d const& a, scalar2d const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](vec2d const& a, pscalar2d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](vec2d const& a, mvec2d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](vec2d const& a, mvec2d_e const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](vec2d const& a, vec2d const& b) { return a * b; },

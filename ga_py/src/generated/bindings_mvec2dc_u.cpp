@@ -99,10 +99,40 @@ void bind_mvec2dc_u(nb::module_& m)
             "__add__", [](mvec2dc_u const& a, vec2dc const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](mvec2dc_u const& a, mvec2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec2dc_u const& a, mvec2dc_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec2dc_u const& a, scalar2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec2dc_u const& a, bivec2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec2dc_u const& a, pscalar2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](mvec2dc_u const& a, trivec2dc const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__sub__", [](mvec2dc_u const& a, vec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2dc_u const& a, mvec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2dc_u const& a, mvec2dc_e const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2dc_u const& a, scalar2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2dc_u const& a, bivec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec2dc_u const& a, pscalar2dc const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](mvec2dc_u const& a, mvec2dc_u const& b) { return a * b; },

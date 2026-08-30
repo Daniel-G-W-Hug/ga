@@ -130,6 +130,12 @@ void bind_scalar4ds(nb::module_& m)
             "__add__", [](scalar4ds const& a, trivec4ds const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](scalar4ds const& a, mvec4ds const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](scalar4ds const& a, mvec4ds_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](scalar4ds const& a, bivec4ds const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -143,6 +149,12 @@ void bind_scalar4ds(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](scalar4ds const& a, trivec4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar4ds const& a, mvec4ds const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar4ds const& a, mvec4ds_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](scalar4ds const& a, scalar4ds const& b) { return a * b; },

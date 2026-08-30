@@ -124,6 +124,9 @@ void bind_scalar2d(nb::module_& m)
             "__add__", [](scalar2d const& a, vec2d const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](scalar2d const& a, mvec2d const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](scalar2d const& a, pscalar2d const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -131,6 +134,9 @@ void bind_scalar2d(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](scalar2d const& a, vec2d const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](scalar2d const& a, mvec2d const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](scalar2d const& a, scalar2d const& b) { return a * b; },

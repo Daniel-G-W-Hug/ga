@@ -99,6 +99,12 @@ void bind_trivec2dc(nb::module_& m)
             "__add__", [](trivec2dc const& a, pscalar2dc const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](trivec2dc const& a, mvec2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](trivec2dc const& a, mvec2dc_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](trivec2dc const& a, vec2dc const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -112,6 +118,12 @@ void bind_trivec2dc(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](trivec2dc const& a, pscalar2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](trivec2dc const& a, mvec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](trivec2dc const& a, mvec2dc_e const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](trivec2dc const& a, trivec2dc const& b) { return a * b; },

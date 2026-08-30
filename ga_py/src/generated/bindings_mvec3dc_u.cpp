@@ -120,6 +120,21 @@ void bind_mvec3dc_u(nb::module_& m)
             "__add__", [](mvec3dc_u const& a, pscalar3dc const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](mvec3dc_u const& a, mvec3dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dc_u const& a, mvec3dc_e const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dc_u const& a, scalar3dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dc_u const& a, bivec3dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](mvec3dc_u const& a, quadvec3dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](mvec3dc_u const& a, vec3dc const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -127,6 +142,21 @@ void bind_mvec3dc_u(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](mvec3dc_u const& a, pscalar3dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dc_u const& a, mvec3dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dc_u const& a, mvec3dc_e const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dc_u const& a, scalar3dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dc_u const& a, bivec3dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](mvec3dc_u const& a, quadvec3dc const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](mvec3dc_u const& a, mvec3dc_u const& b) { return a * b; },

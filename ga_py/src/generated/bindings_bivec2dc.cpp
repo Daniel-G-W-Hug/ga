@@ -102,6 +102,12 @@ void bind_bivec2dc(nb::module_& m)
             "__add__", [](bivec2dc const& a, trivec2dc const& b) { return a + b; },
             nb::is_operator())
         .def(
+            "__add__", [](bivec2dc const& a, mvec2dc const& b) { return a + b; },
+            nb::is_operator())
+        .def(
+            "__add__", [](bivec2dc const& a, mvec2dc_u const& b) { return a + b; },
+            nb::is_operator())
+        .def(
             "__sub__", [](bivec2dc const& a, scalar2dc const& b) { return a - b; },
             nb::is_operator())
         .def(
@@ -115,6 +121,12 @@ void bind_bivec2dc(nb::module_& m)
             nb::is_operator())
         .def(
             "__sub__", [](bivec2dc const& a, trivec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec2dc const& a, mvec2dc const& b) { return a - b; },
+            nb::is_operator())
+        .def(
+            "__sub__", [](bivec2dc const& a, mvec2dc_u const& b) { return a - b; },
             nb::is_operator())
         .def(
             "__mul__", [](bivec2dc const& a, bivec2dc const& b) { return a * b; },
