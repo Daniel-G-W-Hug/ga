@@ -97,6 +97,29 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 - Build directory structure: `build/ga_lua/`, `build/ga_test/`, `build/ga_prdxpr/`, etc.
 - Always run builds from the project root's `build/` directory
 
+**A NEW FILE IS NOT DONE UNTIL IT IS IN THE CMake FILE LIST (2026-08-30).** After
+adding, renaming or deleting any source or header, check the enclosing
+`CMakeLists.txt` and update its file list. Nothing enforces this, and the failure
+is silent in both directions:
+
+- **`ga` is an INTERFACE library**, so its `set(HEADERS ...)` list is never
+  compiled -- an omission produces no error, no warning, and not even a wrong
+  build, because ninja tracks headers through the compiler's own depfiles and
+  rebuilds correctly regardless. The list is the target's *declared file set*:
+  what an IDE shows for the target, and the manifest a rename is checked
+  against. It is invisible precisely because nothing depends on it.
+- **A stale entry** -- a path left behind by a rename or deletion -- is the same
+  class in reverse, and equally quiet for the same reason.
+
+That is how `ga/CMakeLists.txt` came to be missing **29 of its 101 headers**: the
+entire CGA algebra (`ga_cga.hpp`, both `ops` triples, the six `mvec*dc` headers,
+`ga_cga_types.hpp`, `ga_fmt_cga.hpp`) plus its storage primitives `vec5_t`,
+`bvec10_t`, `mvec32_t`, and later additions -- the three `ops_calculus` headers,
+both `ops_contact` headers, `ga_usr_fd.hpp`, `ga_usr_geodesics.hpp`. Each was
+added over months by someone who never had a reason to open the build file. The
+check is one comparison of the list against the directory; run it whenever a file
+appears or disappears, not once a year.
+
 **Build Workflow:**
 
 1. Always start from the project root directory (`<repo>/`)
