@@ -60,6 +60,31 @@ dofile(script_dir .. "test_pga2dp.lua")
 print("\n" .. string.rep("=", 60))
 dofile(script_dir .. "test_pga3dp.lua")
 
+-- Test STA functionality
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_sta.lua")
+
+-- Test CGA functionality
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_cga.lua")
+
+-- Test the Lua-level template forwarders (register_forwarders)
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_forwarders.lua")
+
 -- Test MIXED functionality
 print("\n" .. string.rep("=", 60))
 dofile(script_dir .. "test_application.lua")
+
+-- Cross-cutting checks of the BINDING surface rather than of one algebra:
+-- the +/- type matrix, the grade functions, and the most recently bound
+-- free functions. Each of these covers a gap that went unnoticed until
+-- 2026-08-30 precisely because nothing exercised it.
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_operators.lua")
+
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_grades.lua")
+
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_functions.lua")
