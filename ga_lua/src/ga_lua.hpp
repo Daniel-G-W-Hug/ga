@@ -28,7 +28,7 @@ void register_3dp_types(sol::state& lua);
 // STA type registration (G(1,3,0): scalar4ds ... mvec4ds)
 void register_4ds_types(sol::state& lua);
 
-// CGA type registration (G(3,1,0) / G(4,1,0): scalar2dc ... mvec3dc, dualnum3dc)
+// CGA type registration (G(3,1,0) / G(4,1,0): scalar2dc ... mvec3dc)
 void register_2dc_types(sol::state& lua);
 void register_3dc_types(sol::state& lua);
 // PGA geometric convenience types (point / vector / line / plane subclasses)
@@ -5512,29 +5512,6 @@ void register_2dc_types(sol::state& lua)
         sol::meta_function::division,
         sol::resolve<pscalar2dc(pscalar2dc, value_t)>(operator/));
 
-    lua.new_usertype<dualnum2dc>(
-        "dualnum2dc",
-        sol::constructors<dualnum2dc(), dualnum2dc(value_t, value_t),
-                          dualnum2dc(dualnum2dc const&), dualnum2dc(dualnum2dc&&)>(),
-        "copy", [](const dualnum2dc& obj) { return dualnum2dc(obj); }, "c0",
-        &dualnum2dc::c0, "c1", &dualnum2dc::c1, sol::meta_function::to_string,
-        [](const dualnum2dc& d) {
-            using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("DualNum2dc({},{})", suppress_negative_zero(d.c0),
-                               suppress_negative_zero(d.c1));
-        },
-        sol::meta_function::unary_minus,
-        sol::resolve<dualnum2dc(dualnum2dc const&)>(operator-),
-        sol::meta_function::addition,
-        sol::resolve<dualnum2dc(dualnum2dc const&, dualnum2dc const&)>(operator+),
-        sol::meta_function::subtraction,
-        sol::resolve<dualnum2dc(dualnum2dc const&, dualnum2dc const&)>(operator-),
-        sol::meta_function::multiplication,
-        sol::overload(sol::resolve<dualnum2dc(dualnum2dc const&, value_t)>(operator*),
-                      sol::resolve<dualnum2dc(value_t, dualnum2dc const&)>(operator*)),
-        sol::meta_function::division,
-        sol::resolve<dualnum2dc(dualnum2dc const&, value_t)>(operator/));
-
     lua.new_usertype<mvec2dc_e>(
         "mvec2dc_e",
         sol::constructors<mvec2dc_e(),
@@ -5801,29 +5778,6 @@ void register_3dc_types(sol::state& lua)
                       sol::resolve<pscalar3dc(value_t, pscalar3dc)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar3dc(pscalar3dc, value_t)>(operator/));
-
-    lua.new_usertype<dualnum3dc>(
-        "dualnum3dc",
-        sol::constructors<dualnum3dc(), dualnum3dc(value_t, value_t),
-                          dualnum3dc(dualnum3dc const&), dualnum3dc(dualnum3dc&&)>(),
-        "copy", [](const dualnum3dc& obj) { return dualnum3dc(obj); }, "c0",
-        &dualnum3dc::c0, "c1", &dualnum3dc::c1, sol::meta_function::to_string,
-        [](const dualnum3dc& d) {
-            using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("DualNum3dc({},{})", suppress_negative_zero(d.c0),
-                               suppress_negative_zero(d.c1));
-        },
-        sol::meta_function::unary_minus,
-        sol::resolve<dualnum3dc(dualnum3dc const&)>(operator-),
-        sol::meta_function::addition,
-        sol::resolve<dualnum3dc(dualnum3dc const&, dualnum3dc const&)>(operator+),
-        sol::meta_function::subtraction,
-        sol::resolve<dualnum3dc(dualnum3dc const&, dualnum3dc const&)>(operator-),
-        sol::meta_function::multiplication,
-        sol::overload(sol::resolve<dualnum3dc(dualnum3dc const&, value_t)>(operator*),
-                      sol::resolve<dualnum3dc(value_t, dualnum3dc const&)>(operator*)),
-        sol::meta_function::division,
-        sol::resolve<dualnum3dc(dualnum3dc const&, value_t)>(operator/));
 
     lua.new_usertype<mvec3dc_e>(
         "mvec3dc_e",

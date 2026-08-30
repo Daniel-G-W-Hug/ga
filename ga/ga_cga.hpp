@@ -14,12 +14,11 @@
 // types used for CGA (provided as templated types):
 //
 // Scalar2dc<T>, Vec2dc<T>, BiVec2dc<T>, TriVec2dc<T>, PScalar2dc<T>,
-// MVec2dc_E<T>, MVec2dc_U<T>, MVec2dc<T>, DualNum2dc<T>
+// MVec2dc_E<T>, MVec2dc_U<T>, MVec2dc<T>
 
 // types used for CGA (provided as user types based on value_t for convenience):
 //
-// scalar2dc, vec2dc, bivec2dc, trivec2dc, pscalar2dc, mvec2dc_e, mvec2dc_u, mvec2dc,
-// dualnum2dc
+// scalar2dc, vec2dc, bivec2dc, trivec2dc, pscalar2dc, mvec2dc_e, mvec2dc_u, mvec2dc
 
 // commonly used GA stuff is in namespace hd::ga
 #include "ga_value_t.hpp" // default type for scalar, vector & bivector components

@@ -30,7 +30,6 @@
 // - Scalar2dc<T>, Vec2dc<T>, BiVec2dc<T>, TriVec2dc<T>, PScalar2dc<T>
 // - MVec2dc_E<T> (even subalgebra), MVec2dc_U<T> (uneven (or odd) subalgebra)
 // - MVec2dc<T> (full multivector)
-// - DualNum2dc<T> (dual numbers for 2dc space)
 //
 // **cga3dc (G(4,1,0) after diagonalization of the null-basis metric):**
 //
@@ -38,7 +37,6 @@
 //   PScalar3dc<T>
 // - MVec3dc_E<T> (even subalgebra), MVec3dc_U<T> (uneven (or odd) subalgebra)
 // - MVec3dc<T> (full multivector)
-// - DualNum3dc<T> (dual numbers for 3dc space)
 //
 // The conformal algebra adds TWO projective dimensions to 2D Euclidean space:
 // the homogeneous dimension known from PGA (e3, w) and a round dimension (e4,

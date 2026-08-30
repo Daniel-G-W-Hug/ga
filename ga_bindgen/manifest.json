@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-30T15:18:23+00:00",
+  "generated_at": "2026-08-30T15:49:57+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -77,7 +77,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 40
+      "source_line": 38
     },
     {
       "namespace": "hd::ga",
@@ -247,7 +247,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 47
+      "source_line": 45
     },
     {
       "namespace": "hd::ga",
@@ -371,46 +371,6 @@
     },
     {
       "namespace": "hd::ga",
-      "name": "DualNum2dc",
-      "underlying": "MVec2_t<T, dual_number2dc_tag>",
-      "canonical_underlying": "MVec2_t<type-parameter-0-0, hd::ga::dual_number2dc_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 49
-    },
-    {
-      "namespace": "hd::ga",
       "name": "DualNum2dp",
       "underlying": "MVec2_t<T, dual_number2dp_tag>",
       "canonical_underlying": "MVec2_t<type-parameter-0-0, hd::ga::dual_number2dp_tag>",
@@ -464,46 +424,6 @@
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dp.hpp",
       "source_line": 40
-    },
-    {
-      "namespace": "hd::ga",
-      "name": "DualNum3dc",
-      "underlying": "MVec2_t<T, dual_number3dc_tag>",
-      "canonical_underlying": "MVec2_t<type-parameter-0-0, hd::ga::dual_number3dc_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 57
     },
     {
       "namespace": "hd::ga",
@@ -865,7 +785,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 45
+      "source_line": 43
     },
     {
       "namespace": "hd::ga",
@@ -975,7 +895,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 43
+      "source_line": 41
     },
     {
       "namespace": "hd::ga",
@@ -1061,7 +981,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 44
+      "source_line": 42
     },
     {
       "namespace": "hd::ga",
@@ -1825,7 +1745,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 53
+      "source_line": 51
     },
     {
       "namespace": "hd::ga",
@@ -1975,7 +1895,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 51
+      "source_line": 49
     },
     {
       "namespace": "hd::ga",
@@ -2125,7 +2045,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 52
+      "source_line": 50
     },
     {
       "namespace": "hd::ga",
@@ -2901,7 +2821,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 42
+      "source_line": 40
     },
     {
       "namespace": "hd::ga",
@@ -2976,7 +2896,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 50
+      "source_line": 48
     },
     {
       "namespace": "hd::ga",
@@ -3081,7 +3001,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 49
+      "source_line": 47
     },
     {
       "namespace": "hd::ga",
@@ -3131,7 +3051,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 38
+      "source_line": 36
     },
     {
       "namespace": "hd::ga",
@@ -3206,7 +3126,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 45
+      "source_line": 43
     },
     {
       "namespace": "hd::ga",
@@ -3306,7 +3226,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 41
+      "source_line": 39
     },
     {
       "namespace": "hd::ga",
@@ -3386,7 +3306,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 48
+      "source_line": 46
     },
     {
       "namespace": "hd::ga",
@@ -3576,7 +3496,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-      "source_line": 39
+      "source_line": 37
     },
     {
       "namespace": "hd::ga",
@@ -3721,7 +3641,7 @@
       ],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-      "source_line": 46
+      "source_line": 44
     },
     {
       "namespace": "hd::ga",
@@ -3832,7 +3752,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type_tags.hpp",
-      "source_line": 153
+      "source_line": 151
     },
     {
       "namespace": "hd::ga",
@@ -4062,7 +3982,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 139
+      "source_line": 136
     },
     {
       "namespace": "hd::ga",
@@ -4197,46 +4117,6 @@
     },
     {
       "namespace": "hd::ga",
-      "name": "dualnum2dc",
-      "underlying": "DualNum2dc<value_t>",
-      "canonical_underlying": "MVec2_t<double, hd::ga::dual_number2dc_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 133
-    },
-    {
-      "namespace": "hd::ga",
       "name": "dualnum2dp",
       "underlying": "DualNum2dp<value_t>",
       "canonical_underlying": "MVec2_t<double, hd::ga::dual_number2dp_tag>",
@@ -4290,46 +4170,6 @@
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
       "source_line": 75
-    },
-    {
-      "namespace": "hd::ga",
-      "name": "dualnum3dc",
-      "underlying": "DualNum3dc<value_t>",
-      "canonical_underlying": "MVec2_t<double, hd::ga::dual_number3dc_tag>",
-      "fields": [
-        {
-          "name": "c0",
-          "type": "T"
-        },
-        {
-          "name": "c1",
-          "type": "T"
-        }
-      ],
-      "constructors": [
-        {
-          "param_types": []
-        },
-        {
-          "param_types": [
-            "T",
-            "T"
-          ]
-        },
-        {
-          "param_types": [
-            "const MVec2_t<T, Tag> &"
-          ]
-        },
-        {
-          "param_types": [
-            "MVec2_t<T, Tag> &&"
-          ]
-        }
-      ],
-      "base_class": null,
-      "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 148
     },
     {
       "namespace": "hd::ga",
@@ -5854,7 +5694,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 145
+      "source_line": 142
     },
     {
       "namespace": "hd::ga",
@@ -6004,7 +5844,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 143
+      "source_line": 140
     },
     {
       "namespace": "hd::ga",
@@ -6154,7 +5994,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 144
+      "source_line": 141
     },
     {
       "namespace": "hd::ga",
@@ -7136,7 +6976,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 142
+      "source_line": 139
     },
     {
       "namespace": "hd::ga",
@@ -7241,7 +7081,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 141
+      "source_line": 138
     },
     {
       "namespace": "hd::ga",
@@ -7366,7 +7206,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 137
+      "source_line": 134
     },
     {
       "namespace": "hd::ga",
@@ -7546,7 +7386,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 140
+      "source_line": 137
     },
     {
       "namespace": "hd::ga",
@@ -7657,7 +7497,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/type_t/ga_type_tags.hpp",
-      "source_line": 111
+      "source_line": 109
     },
     {
       "namespace": "hd::ga",
@@ -7903,7 +7743,7 @@
       ],
       "base_class": null,
       "source_file": "ga/ga_usr_types.hpp",
-      "source_line": 138
+      "source_line": 135
     },
     {
       "namespace": "hd::ga",
@@ -9867,7 +9707,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 55
+          "source_line": 49
         },
         {
           "return_type": "size_t",
@@ -9875,7 +9715,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 62
+          "source_line": 56
         },
         {
           "return_type": "size_t",
@@ -9883,7 +9723,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 69
+          "source_line": 63
         },
         {
           "return_type": "size_t",
@@ -9891,7 +9731,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 76
+          "source_line": 70
         },
         {
           "return_type": "size_t",
@@ -9899,7 +9739,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 83
+          "source_line": 77
         },
         {
           "return_type": "size_t",
@@ -9907,7 +9747,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 63
+          "source_line": 57
         },
         {
           "return_type": "size_t",
@@ -9915,7 +9755,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 70
+          "source_line": 64
         },
         {
           "return_type": "size_t",
@@ -9923,7 +9763,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 77
+          "source_line": 71
         },
         {
           "return_type": "size_t",
@@ -9931,7 +9771,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 84
+          "source_line": 78
         },
         {
           "return_type": "size_t",
@@ -9939,7 +9779,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 91
+          "source_line": 85
         },
         {
           "return_type": "size_t",
@@ -9947,7 +9787,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 98
+          "source_line": 92
         },
         {
           "return_type": "size_t",
@@ -10123,7 +9963,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 55
+          "source_line": 49
         },
         {
           "return_type": "size_t",
@@ -10131,7 +9971,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 62
+          "source_line": 56
         },
         {
           "return_type": "size_t",
@@ -10139,7 +9979,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 69
+          "source_line": 63
         },
         {
           "return_type": "size_t",
@@ -10147,7 +9987,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 76
+          "source_line": 70
         },
         {
           "return_type": "size_t",
@@ -10155,7 +9995,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 83
+          "source_line": 77
         },
         {
           "return_type": "size_t",
@@ -10163,7 +10003,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 63
+          "source_line": 57
         },
         {
           "return_type": "size_t",
@@ -10171,7 +10011,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 70
+          "source_line": 64
         },
         {
           "return_type": "size_t",
@@ -10179,7 +10019,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 77
+          "source_line": 71
         },
         {
           "return_type": "size_t",
@@ -10187,7 +10027,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 84
+          "source_line": 78
         },
         {
           "return_type": "size_t",
@@ -10195,7 +10035,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 91
+          "source_line": 85
         },
         {
           "return_type": "size_t",
@@ -10203,7 +10043,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 98
+          "source_line": 92
         },
         {
           "return_type": "size_t",
@@ -10379,7 +10219,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 55
+          "source_line": 49
         },
         {
           "return_type": "size_t",
@@ -10387,7 +10227,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 62
+          "source_line": 56
         },
         {
           "return_type": "size_t",
@@ -10395,7 +10235,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 69
+          "source_line": 63
         },
         {
           "return_type": "size_t",
@@ -10403,7 +10243,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 76
+          "source_line": 70
         },
         {
           "return_type": "size_t",
@@ -10411,7 +10251,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 83
+          "source_line": 77
         },
         {
           "return_type": "size_t",
@@ -10419,7 +10259,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 63
+          "source_line": 57
         },
         {
           "return_type": "size_t",
@@ -10427,7 +10267,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 70
+          "source_line": 64
         },
         {
           "return_type": "size_t",
@@ -10435,7 +10275,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 77
+          "source_line": 71
         },
         {
           "return_type": "size_t",
@@ -10443,7 +10283,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 84
+          "source_line": 78
         },
         {
           "return_type": "size_t",
@@ -10451,7 +10291,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 91
+          "source_line": 85
         },
         {
           "return_type": "size_t",
@@ -10459,7 +10299,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 98
+          "source_line": 92
         },
         {
           "return_type": "size_t",
@@ -10635,7 +10475,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 55
+          "source_line": 49
         },
         {
           "return_type": "size_t",
@@ -10643,7 +10483,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 62
+          "source_line": 56
         },
         {
           "return_type": "size_t",
@@ -10651,7 +10491,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 69
+          "source_line": 63
         },
         {
           "return_type": "size_t",
@@ -10659,7 +10499,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 76
+          "source_line": 70
         },
         {
           "return_type": "size_t",
@@ -10667,7 +10507,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 83
+          "source_line": 77
         },
         {
           "return_type": "size_t",
@@ -10675,7 +10515,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 63
+          "source_line": 57
         },
         {
           "return_type": "size_t",
@@ -10683,7 +10523,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 70
+          "source_line": 64
         },
         {
           "return_type": "size_t",
@@ -10691,7 +10531,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 77
+          "source_line": 71
         },
         {
           "return_type": "size_t",
@@ -10699,7 +10539,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 84
+          "source_line": 78
         },
         {
           "return_type": "size_t",
@@ -10707,7 +10547,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 91
+          "source_line": 85
         },
         {
           "return_type": "size_t",
@@ -10715,7 +10555,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 98
+          "source_line": 92
         }
       ]
     },
@@ -13881,7 +13721,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 97
+          "source_line": 91
         },
         {
           "return_type": "size_t",
@@ -13889,7 +13729,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 104
+          "source_line": 98
         },
         {
           "return_type": "size_t",
@@ -13897,7 +13737,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 111
+          "source_line": 105
         },
         {
           "return_type": "size_t",
@@ -13905,7 +13745,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 118
+          "source_line": 112
         },
         {
           "return_type": "size_t",
@@ -13913,7 +13753,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 125
+          "source_line": 119
         },
         {
           "return_type": "size_t",
@@ -13921,7 +13761,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 112
+          "source_line": 106
         },
         {
           "return_type": "size_t",
@@ -13929,7 +13769,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 119
+          "source_line": 113
         },
         {
           "return_type": "size_t",
@@ -13937,7 +13777,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 126
+          "source_line": 120
         },
         {
           "return_type": "size_t",
@@ -13945,7 +13785,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 133
+          "source_line": 127
         },
         {
           "return_type": "size_t",
@@ -13953,7 +13793,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 140
+          "source_line": 134
         },
         {
           "return_type": "size_t",
@@ -13961,7 +13801,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 147
+          "source_line": 141
         },
         {
           "return_type": "size_t",
@@ -14081,7 +13921,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 97
+          "source_line": 91
         },
         {
           "return_type": "size_t",
@@ -14089,7 +13929,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 104
+          "source_line": 98
         },
         {
           "return_type": "size_t",
@@ -14097,7 +13937,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 111
+          "source_line": 105
         },
         {
           "return_type": "size_t",
@@ -14105,7 +13945,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 118
+          "source_line": 112
         },
         {
           "return_type": "size_t",
@@ -14113,7 +13953,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 125
+          "source_line": 119
         },
         {
           "return_type": "size_t",
@@ -14121,7 +13961,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 112
+          "source_line": 106
         },
         {
           "return_type": "size_t",
@@ -14129,7 +13969,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 119
+          "source_line": 113
         },
         {
           "return_type": "size_t",
@@ -14137,7 +13977,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 126
+          "source_line": 120
         },
         {
           "return_type": "size_t",
@@ -14145,7 +13985,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 133
+          "source_line": 127
         },
         {
           "return_type": "size_t",
@@ -14153,7 +13993,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 140
+          "source_line": 134
         },
         {
           "return_type": "size_t",
@@ -14161,7 +14001,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 147
+          "source_line": 141
         },
         {
           "return_type": "size_t",
@@ -14281,7 +14121,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 97
+          "source_line": 91
         },
         {
           "return_type": "size_t",
@@ -14289,7 +14129,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 104
+          "source_line": 98
         },
         {
           "return_type": "size_t",
@@ -14297,7 +14137,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 111
+          "source_line": 105
         },
         {
           "return_type": "size_t",
@@ -14305,7 +14145,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 118
+          "source_line": 112
         },
         {
           "return_type": "size_t",
@@ -14313,7 +14153,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 125
+          "source_line": 119
         },
         {
           "return_type": "size_t",
@@ -14321,7 +14161,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 112
+          "source_line": 106
         },
         {
           "return_type": "size_t",
@@ -14329,7 +14169,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 119
+          "source_line": 113
         },
         {
           "return_type": "size_t",
@@ -14337,7 +14177,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 126
+          "source_line": 120
         },
         {
           "return_type": "size_t",
@@ -14345,7 +14185,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 133
+          "source_line": 127
         },
         {
           "return_type": "size_t",
@@ -14353,7 +14193,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 140
+          "source_line": 134
         },
         {
           "return_type": "size_t",
@@ -14361,7 +14201,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 147
+          "source_line": 141
         },
         {
           "return_type": "size_t",
@@ -14481,7 +14321,7 @@
             "Scalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 97
+          "source_line": 91
         },
         {
           "return_type": "size_t",
@@ -14489,7 +14329,7 @@
             "const Vec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 104
+          "source_line": 98
         },
         {
           "return_type": "size_t",
@@ -14497,7 +14337,7 @@
             "const BiVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 111
+          "source_line": 105
         },
         {
           "return_type": "size_t",
@@ -14505,7 +14345,7 @@
             "const TriVec2dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 118
+          "source_line": 112
         },
         {
           "return_type": "size_t",
@@ -14513,7 +14353,7 @@
             "PScalar2dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type2dc.hpp",
-          "source_line": 125
+          "source_line": 119
         },
         {
           "return_type": "size_t",
@@ -14521,7 +14361,7 @@
             "Scalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 112
+          "source_line": 106
         },
         {
           "return_type": "size_t",
@@ -14529,7 +14369,7 @@
             "const Vec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 119
+          "source_line": 113
         },
         {
           "return_type": "size_t",
@@ -14537,7 +14377,7 @@
             "const BiVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 126
+          "source_line": 120
         },
         {
           "return_type": "size_t",
@@ -14545,7 +14385,7 @@
             "const TriVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 133
+          "source_line": 127
         },
         {
           "return_type": "size_t",
@@ -14553,7 +14393,7 @@
             "const QuadVec3dc<T> &"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 140
+          "source_line": 134
         },
         {
           "return_type": "size_t",
@@ -14561,7 +14401,7 @@
             "PScalar3dc<T>"
           ],
           "source_file": "ga/detail/type_t/ga_type3dc.hpp",
-          "source_line": 147
+          "source_line": 141
         }
       ]
     },
@@ -18598,16 +18438,6 @@
         {
           "return_type": "bool",
           "param_types": [
-            "const DualNum2dc<T> &",
-            "const DualNum2dc<U> &",
-            "value_t"
-          ],
-          "source_file": "ga/ga_cga2dc_ops.hpp",
-          "source_line": 785
-        },
-        {
-          "return_type": "bool",
-          "param_types": [
             "Scalar3dc<T>",
             "Scalar3dc<U>",
             "value_t"
@@ -18694,16 +18524,6 @@
           ],
           "source_file": "ga/ga_cga3dc_ops.hpp",
           "source_line": 1012
-        },
-        {
-          "return_type": "bool",
-          "param_types": [
-            "const DualNum3dc<T> &",
-            "const DualNum3dc<U> &",
-            "value_t"
-          ],
-          "source_file": "ga/ga_cga3dc_ops.hpp",
-          "source_line": 1034
         }
       ]
     },
@@ -18835,7 +18655,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_cga2dc_ops.hpp",
-          "source_line": 801
+          "source_line": 792
         },
         {
           "return_type": "bool",
@@ -18845,7 +18665,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_cga3dc_ops.hpp",
-          "source_line": 1050
+          "source_line": 1041
         }
       ]
     },
@@ -74693,10 +74513,28 @@
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -74705,7 +74543,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -74714,7 +74552,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -74723,7 +74561,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -74732,7 +74570,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -74741,7 +74579,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -74840,7 +74678,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 297
+          "source_line": 298
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74849,7 +74687,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 308
+          "source_line": 309
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74858,7 +74696,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74867,7 +74705,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 330
+          "source_line": 331
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74876,7 +74714,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 341
+          "source_line": 342
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74885,7 +74723,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 351
+          "source_line": 352
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74894,7 +74732,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 361
+          "source_line": 362
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74903,7 +74741,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 371
+          "source_line": 372
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74912,7 +74750,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 381
+          "source_line": 382
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74921,7 +74759,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 390
+          "source_line": 391
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74930,7 +74768,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 400
+          "source_line": 401
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74939,7 +74777,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 410
+          "source_line": 411
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -74948,7 +74786,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 420
+          "source_line": 421
         },
         {
           "return_type": "BVec10_t<std::common_type_t<T, U>, Tag>",
@@ -77050,10 +76888,28 @@
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -77062,7 +76918,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -77071,7 +76927,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -77080,7 +76936,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -77089,7 +76945,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -77098,7 +76954,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -77197,7 +77053,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 297
+          "source_line": 298
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77206,7 +77062,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 308
+          "source_line": 309
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77215,7 +77071,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77224,7 +77080,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 330
+          "source_line": 331
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77233,7 +77089,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 341
+          "source_line": 342
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77242,7 +77098,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 351
+          "source_line": 352
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77251,7 +77107,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 361
+          "source_line": 362
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77260,7 +77116,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 371
+          "source_line": 372
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77269,7 +77125,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 381
+          "source_line": 382
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77278,7 +77134,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 390
+          "source_line": 391
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77287,7 +77143,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 400
+          "source_line": 401
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77296,7 +77152,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 410
+          "source_line": 411
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -77305,7 +77161,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 420
+          "source_line": 421
         },
         {
           "return_type": "BVec10_t<std::common_type_t<T, U>, Tag>",
@@ -79407,10 +79263,28 @@
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -79419,7 +79293,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -79428,7 +79302,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -79437,7 +79311,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -79446,7 +79320,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -79455,7 +79329,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -79554,7 +79428,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 297
+          "source_line": 298
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79563,7 +79437,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 308
+          "source_line": 309
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79572,7 +79446,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79581,7 +79455,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 330
+          "source_line": 331
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79590,7 +79464,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 341
+          "source_line": 342
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79599,7 +79473,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 351
+          "source_line": 352
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79608,7 +79482,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 361
+          "source_line": 362
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79617,7 +79491,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 371
+          "source_line": 372
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79626,7 +79500,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 381
+          "source_line": 382
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79635,7 +79509,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 390
+          "source_line": 391
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79644,7 +79518,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 400
+          "source_line": 401
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79653,7 +79527,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 410
+          "source_line": 411
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -79662,7 +79536,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 420
+          "source_line": 421
         },
         {
           "return_type": "BVec10_t<std::common_type_t<T, U>, Tag>",
@@ -81764,10 +81638,28 @@
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 207
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 216
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 210
+          "source_line": 225
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -81776,7 +81668,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 220
+          "source_line": 235
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -81785,7 +81677,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 230
+          "source_line": 245
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -81794,7 +81686,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 241
+          "source_line": 256
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -81803,7 +81695,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 252
+          "source_line": 267
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -81812,7 +81704,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 262
+          "source_line": 277
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -81911,7 +81803,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 297
+          "source_line": 298
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81920,7 +81812,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 308
+          "source_line": 309
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81929,7 +81821,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 319
+          "source_line": 320
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81938,7 +81830,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 330
+          "source_line": 331
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81947,7 +81839,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 341
+          "source_line": 342
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81956,7 +81848,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 351
+          "source_line": 352
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81965,7 +81857,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 361
+          "source_line": 362
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81974,7 +81866,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 371
+          "source_line": 372
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81983,7 +81875,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 381
+          "source_line": 382
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -81992,7 +81884,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 390
+          "source_line": 391
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -82001,7 +81893,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 400
+          "source_line": 401
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -82010,7 +81902,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 410
+          "source_line": 411
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -82019,7 +81911,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 420
+          "source_line": 421
         },
         {
           "return_type": "BVec10_t<std::common_type_t<T, U>, Tag>",
@@ -85260,7 +85152,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85269,7 +85161,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85278,7 +85170,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85287,7 +85179,25 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85296,7 +85206,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85305,7 +85215,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85314,7 +85224,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85323,7 +85233,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85332,7 +85242,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -85341,7 +85251,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -85404,7 +85314,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 435
+          "source_line": 436
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85413,7 +85323,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 445
+          "source_line": 446
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85422,7 +85332,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 455
+          "source_line": 456
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85431,7 +85341,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 465
+          "source_line": 466
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85440,7 +85350,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 478
+          "source_line": 480
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85449,7 +85359,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 489
+          "source_line": 491
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85458,7 +85368,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 500
+          "source_line": 502
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85467,7 +85377,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 511
+          "source_line": 513
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85476,7 +85386,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 522
+          "source_line": 524
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85485,7 +85395,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 533
+          "source_line": 535
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85494,7 +85404,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 544
+          "source_line": 546
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85503,7 +85413,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 554
+          "source_line": 556
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85512,7 +85422,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 564
+          "source_line": 566
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85521,7 +85431,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 573
+          "source_line": 575
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85530,7 +85440,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 583
+          "source_line": 585
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85539,7 +85449,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 593
+          "source_line": 595
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -85548,7 +85458,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 603
+          "source_line": 605
         },
         {
           "return_type": "BVec10_t<T, Tag>",
@@ -87713,7 +87623,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87722,7 +87632,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87731,7 +87641,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87740,7 +87650,25 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87749,7 +87677,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87758,7 +87686,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87767,7 +87695,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87776,7 +87704,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87785,7 +87713,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -87794,7 +87722,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -87857,7 +87785,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 435
+          "source_line": 436
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87866,7 +87794,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 445
+          "source_line": 446
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87875,7 +87803,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 455
+          "source_line": 456
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87884,7 +87812,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 465
+          "source_line": 466
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87893,7 +87821,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 478
+          "source_line": 480
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87902,7 +87830,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 489
+          "source_line": 491
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87911,7 +87839,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 500
+          "source_line": 502
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87920,7 +87848,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 511
+          "source_line": 513
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87929,7 +87857,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 522
+          "source_line": 524
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87938,7 +87866,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 533
+          "source_line": 535
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87947,7 +87875,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 544
+          "source_line": 546
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87956,7 +87884,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 554
+          "source_line": 556
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87965,7 +87893,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 564
+          "source_line": 566
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87974,7 +87902,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 573
+          "source_line": 575
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87983,7 +87911,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 583
+          "source_line": 585
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -87992,7 +87920,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 593
+          "source_line": 595
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -88001,7 +87929,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 603
+          "source_line": 605
         },
         {
           "return_type": "BVec10_t<T, Tag>",
@@ -90166,7 +90094,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90175,7 +90103,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90184,7 +90112,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90193,7 +90121,25 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90202,7 +90148,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90211,7 +90157,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90220,7 +90166,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90229,7 +90175,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90238,7 +90184,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -90247,7 +90193,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -90310,7 +90256,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 435
+          "source_line": 436
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90319,7 +90265,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 445
+          "source_line": 446
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90328,7 +90274,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 455
+          "source_line": 456
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90337,7 +90283,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 465
+          "source_line": 466
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90346,7 +90292,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 478
+          "source_line": 480
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90355,7 +90301,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 489
+          "source_line": 491
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90364,7 +90310,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 500
+          "source_line": 502
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90373,7 +90319,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 511
+          "source_line": 513
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90382,7 +90328,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 522
+          "source_line": 524
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90391,7 +90337,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 533
+          "source_line": 535
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90400,7 +90346,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 544
+          "source_line": 546
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90409,7 +90355,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 554
+          "source_line": 556
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90418,7 +90364,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 564
+          "source_line": 566
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90427,7 +90373,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 573
+          "source_line": 575
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90436,7 +90382,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 583
+          "source_line": 585
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90445,7 +90391,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 593
+          "source_line": 595
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -90454,7 +90400,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 603
+          "source_line": 605
         },
         {
           "return_type": "BVec10_t<T, Tag>",
@@ -92619,7 +92565,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 277
+          "source_line": 292
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92628,7 +92574,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 287
+          "source_line": 302
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92637,7 +92583,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 297
+          "source_line": 312
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92646,7 +92592,25 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 307
+          "source_line": 322
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "Scalar2dc<T>",
+            "PScalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 332
+        },
+        {
+          "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
+          "param_types": [
+            "PScalar2dc<T>",
+            "Scalar2dc<U>"
+          ],
+          "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
+          "source_line": 341
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92655,7 +92619,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 320
+          "source_line": 350
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92664,7 +92628,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 330
+          "source_line": 360
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92673,7 +92637,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 340
+          "source_line": 370
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92682,7 +92646,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 351
+          "source_line": 381
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92691,7 +92655,7 @@
             "const MVec2dc_E<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 362
+          "source_line": 392
         },
         {
           "return_type": "MVec2dc_E<std::common_type_t<T, U>>",
@@ -92700,7 +92664,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc_e.hpp",
-          "source_line": 373
+          "source_line": 403
         },
         {
           "return_type": "MVec2dc_U<std::common_type_t<T, U>>",
@@ -92763,7 +92727,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 435
+          "source_line": 436
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92772,7 +92736,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 445
+          "source_line": 446
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92781,7 +92745,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 455
+          "source_line": 456
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92790,7 +92754,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 465
+          "source_line": 466
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92799,7 +92763,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 478
+          "source_line": 480
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92808,7 +92772,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 489
+          "source_line": 491
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92817,7 +92781,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 500
+          "source_line": 502
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92826,7 +92790,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 511
+          "source_line": 513
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92835,7 +92799,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 522
+          "source_line": 524
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92844,7 +92808,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 533
+          "source_line": 535
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92853,7 +92817,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 544
+          "source_line": 546
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92862,7 +92826,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 554
+          "source_line": 556
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92871,7 +92835,7 @@
             "Scalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 564
+          "source_line": 566
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92880,7 +92844,7 @@
             "const Vec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 573
+          "source_line": 575
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92889,7 +92853,7 @@
             "const BiVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 583
+          "source_line": 585
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92898,7 +92862,7 @@
             "const TriVec2dc<U> &"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 593
+          "source_line": 595
         },
         {
           "return_type": "MVec2dc<std::common_type_t<T, U>>",
@@ -92907,7 +92871,7 @@
             "PScalar2dc<U>"
           ],
           "source_file": "ga/detail/type_t/ga_mvec2dc.hpp",
-          "source_line": 603
+          "source_line": 605
         },
         {
           "return_type": "BVec10_t<T, Tag>",

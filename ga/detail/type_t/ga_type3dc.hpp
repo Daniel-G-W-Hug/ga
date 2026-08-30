@@ -12,8 +12,6 @@
 #include "ga_mvec16_t.hpp" // even and uneven (odd) multivectors
 #include "ga_mvec32_t.hpp" // full multivector
 
-#include "ga_mvec2_t.hpp" // for DualNum3dc
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // consistent type and grade definitions in namespace hd::ga for cga3dc
 //
@@ -51,10 +49,6 @@ template <typename T> using PScalar3dc = Scalar_t<T, pscalar3dc_tag>;
 template <typename T> using MVec3dc_E = MVec16_t<T, mvec3dc_e_tag>;
 template <typename T> using MVec3dc_U = MVec16_t<T, mvec3dc_u_tag>;
 template <typename T> using MVec3dc = MVec32_t<T, mvec3dc_tag>;
-
-// for the geometric norm as homogeneous quantity,
-// which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
-template <typename T> using DualNum3dc = MVec2_t<T, dual_number3dc_tag>;
 
 // return the grades of the basic types
 

@@ -186,8 +186,6 @@ FIELD_ORDER = {
     "bivec3dc": ("vx", "vy", "vz", "mx", "my", "mz", "px", "py", "pz", "pw"),
     "trivec3dc": ("vx", "vy", "vz", "mx", "my", "mz", "px", "py", "pz", "pw"),
     "quadvec3dc": ("x", "y", "z", "w", "u"),
-    "dualnum2dc": ("c0", "c1"),
-    "dualnum3dc": ("c0", "c1"),
 }
 
 

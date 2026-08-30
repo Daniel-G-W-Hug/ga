@@ -1029,15 +1029,6 @@ bool is_close(MVec3dc<T> const& a, MVec3dc<U> const& b, value_t rel_tol = eps_co
         rel_tol);
 }
 
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-bool is_close(DualNum3dc<T> const& a, DualNum3dc<U> const& b,
-              value_t rel_tol = eps_congruent)
-{
-    return detail::coeffs_close<2>({value_t(a.c0), value_t(a.c1)},
-                                   {value_t(b.c0), value_t(b.c1)}, rel_tol);
-}
-
 // Do two motors describe the same conformal transformation? NOT the same
 // question as M1 == M2: versors double-cover the transformations (M and -M
 // act identically), and any uniform rescaling of a versor changes only the

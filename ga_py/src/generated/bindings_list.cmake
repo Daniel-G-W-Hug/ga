@@ -10,9 +10,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec4ds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_body2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_body3dp.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp

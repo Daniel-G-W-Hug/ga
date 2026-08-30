@@ -33,13 +33,11 @@ CGA_TYPES = [
     ("bivec2dc", 6),
     ("trivec2dc", 4),
     ("mvec2dc", 16), ("mvec2dc_e", 8), ("mvec2dc_u", 8),
-    ("dualnum2dc", 2),
     ("vec3dc", 5),
     ("bivec3dc", 10),
     ("trivec3dc", 10),
     ("quadvec3dc", 5),
     ("mvec3dc", 32), ("mvec3dc_e", 16), ("mvec3dc_u", 16),
-    ("dualnum3dc", 2),
 ]
 
 STA_TYPES = [

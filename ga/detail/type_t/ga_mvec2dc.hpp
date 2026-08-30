@@ -288,8 +288,9 @@ constexpr MVec2dc<std::common_type_t<T, U>> operator+(TriVec2dc<T> const& t,
     return MVec2dc<ctype>(s, Vec2dc<ctype>{}, BiVec2dc<ctype>{}, t, PScalar2dc<ctype>{});
 }
 
-// (scalar + pseudoscalar) and (pseudoscalar + scalar) intentionally NOT
-// defined here — see ga_dualnum2dc.hpp for the canonical DualNum2dc result.
+// (scalar + pseudoscalar) and (pseudoscalar + scalar) are BOTH even in 2dc (the
+// pseudoscalar is grade 4), so they are defined in ga_mvec2dc_e.hpp with the
+// narrower MVec2dc_E result.
 
 // vector + bivector
 template <typename T, typename U>
@@ -469,8 +470,9 @@ constexpr MVec2dc<std::common_type_t<T, U>> operator-(TriVec2dc<T> const& t,
     return MVec2dc<ctype>(-s, Vec2dc<ctype>{}, BiVec2dc<ctype>{}, t, PScalar2dc<ctype>{});
 }
 
-// (scalar - pseudoscalar) and (pseudoscalar - scalar) intentionally NOT
-// defined here — see ga_dualnum2dc.hpp for the canonical DualNum2dc result.
+// (scalar - pseudoscalar) and (pseudoscalar - scalar) are BOTH even in 2dc (the
+// pseudoscalar is grade 4), so they are defined in ga_mvec2dc_e.hpp with the
+// narrower MVec2dc_E result.
 
 // vector - bivector
 template <typename T, typename U>

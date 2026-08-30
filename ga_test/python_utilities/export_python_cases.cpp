@@ -257,15 +257,6 @@ std::string emit_value(JsonValue const& v)
              M.c12, M.c13, M.c14, M.c15}};
 }
 
-[[maybe_unused]] JsonValue to_json(DualNum2dc<value_t> const& d)
-{
-    return {"dualnum2dc", {d.c0, d.c1}};
-}
-[[maybe_unused]] JsonValue to_json(DualNum3dc<value_t> const& d)
-{
-    return {"dualnum3dc", {d.c0, d.c1}};
-}
-
 [[maybe_unused]] JsonValue to_json(DualNum2dp<value_t> const& d)
 {
     return {"dualnum2dp", {d.c0, d.c1}};

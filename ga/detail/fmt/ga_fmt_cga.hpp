@@ -168,42 +168,6 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2_t<T, Tag> includes DualNumber2dc<T> (CGA types only)
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename Tag>
-    requires(std::is_same_v<Tag, hd::ga::dual_number2dc_tag>)
-struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
-    {
-        return fmt::nested_formatter<T>::parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
-    {
-        using hd::ga::detail::suppress_negative_zero;
-        if constexpr (std::is_same_v<hd::ga::MVec2_t<T, Tag>,
-                                     hd::ga::MVec2_t<T, hd::ga::dual_number2dc_tag>>) {
-            auto out = fmt::format_to(ctx.out(), "DualNum2dc(");
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ",");
-            ctx.advance_to(out);
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            return fmt::format_to(out, ")");
-        }
-        else {
-            auto out = fmt::format_to(ctx.out(), "(");
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ",");
-            ctx.advance_to(out);
-            out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            return fmt::format_to(out, ")");
-        }
-    }
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
 // MVec8_t<T, Tag> includes MVec2dc_E<T> and MVec2dc_U<T> (CGA 2dc types only)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
@@ -539,31 +503,6 @@ struct fmt::formatter<hd::ga::BVec10_t<T, Tag>> : fmt::nested_formatter<T> {
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.pw)));
             return fmt::format_to(out, ")");
         }
-    }
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec2_t<T, Tag> as DualNum3dc<T> (CGA 3dc type only)
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename Tag>
-    requires(std::is_same_v<Tag, hd::ga::dual_number3dc_tag>)
-struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
-    {
-        return fmt::nested_formatter<T>::parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
-    {
-        using hd::ga::detail::suppress_negative_zero;
-        auto out = fmt::format_to(ctx.out(), "DualNum3dc(");
-        out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-        out = fmt::format_to(out, ",");
-        ctx.advance_to(out);
-        out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-        return fmt::format_to(out, ")");
     }
 };
 

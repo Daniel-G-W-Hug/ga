@@ -70,7 +70,6 @@ struct pscalar2dc_tag : public cga2dc_tag {};
 struct mvec2dc_e_tag : public cga2dc_tag {};
 struct mvec2dc_u_tag : public cga2dc_tag {};
 struct mvec2dc_tag : public cga2dc_tag {};
-struct dual_number2dc_tag : public cga2dc_tag {};
 
 struct cga3dc_tag {};
 struct scalar3dc_tag : public cga3dc_tag {};
@@ -82,7 +81,6 @@ struct pscalar3dc_tag : public cga3dc_tag {};
 struct mvec3dc_e_tag : public cga3dc_tag {};
 struct mvec3dc_u_tag : public cga3dc_tag {};
 struct mvec3dc_tag : public cga3dc_tag {};
-struct dual_number3dc_tag : public cga3dc_tag {};
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

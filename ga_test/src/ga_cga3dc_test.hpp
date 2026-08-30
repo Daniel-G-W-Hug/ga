@@ -758,16 +758,4 @@ TEST_SUITE("CGA 3dc Tests")
         fmt::println("");
     }
 
-
-    TEST_CASE("DualNum3dc: is_close")
-    {
-        fmt::println("DualNum3dc: is_close");
-
-        auto D = dualnum3dc{2.0, -3.0};
-        auto E = D;
-        CHECK(is_close(D, E));
-        E.c0 += 1.0e-6;
-        CHECK(!is_close(D, E));
-    }
-
 } // TEST_SUITE("CGA 3dc Tests")
