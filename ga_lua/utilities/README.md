@@ -12,13 +12,36 @@ Introspects the **built** `ga_py` extension and diffs its exposed surface agains
 what `ga_lua/src/ga_lua.hpp` binds, reporting the gaps **per algebra**
 (`ega` / `pga` / `sta`) plus the top-level free functions.
 
-It compares three kinds:
+It compares four kinds:
 
-| kind        | ga_py source              | ga_lua source (regex on `ga_lua.hpp`) |
-| ----------- | ------------------------- | ------------------------------------- |
-| `types`     | classes on the submodule  | `new_usertype<NAME>`                  |
-| `functions` | callables on the submodule| `set_function("NAME", ...)`           |
-| `constants` | data attributes           | `lua["NAME"] = ...`                   |
+| kind        | ga_py source                 | ga_lua source (parsed from `ga_lua.hpp`) |
+| ----------- | ---------------------------- | ---------------------------------------- |
+| `types`     | classes on the submodule     | `new_usertype<NAME>`                     |
+| `functions` | callables on the submodule   | `set_function("NAME", ...)`              |
+| `constants` | data attributes              | `lua["NAME"] = ...`                      |
+| `operators` | ordered pairs where `a + b` / `a - b` succeeds | `sol::resolve<R(A, B)>(operator+)`, placed where Lua can actually reach it |
+
+### The `operators` kind
+
+Types-only checking says nothing about the operator surface, and that blind spot
+was worth 340 of 428 missing type pairs until 2026-08-30. This kind closes it, and
+it models Lua's dispatch rather than merely grepping for the resolve:
+
+- for `a + b` Lua takes `__add` from **a**'s metatable and only falls back to
+  **b**'s if a has none at all;
+- so a resolve for `A + B` sitting in B's block, when A binds `operator+` itself,
+  is **dead code** -- it compiles, reads correctly, and can never fire. Those are
+  listed under `=== UNREACHABLE ===` (there were 10 such at the time this was
+  written, e.g. `pscalar2dp + dualnum2dp`);
+- `sol::base_classes` widens reachability: a resolve taking a base accepts a
+  derived argument, so `point3dp + vec3dp` is reachable through `vec3dp`'s set.
+  The converse bites too -- two derived operands with no operator between them
+  fail with "attempt to perform arithmetic", which base classes do not fix.
+
+The target set is obtained by TRYING every ordered pair in ga_py rather than from
+a table of type names, so cross-family pairs (a 2d type with a 3d one, sharing the
+`ega` submodule but no algebra) drop out by themselves and newly bound types are
+picked up without editing the script.
 
 ### Usage
 
@@ -32,6 +55,7 @@ ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py            # full report
 ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py --summary  # totals only
 ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py --algebra=sta
 ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py --kind=types
+ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py --kind=operators
 ga_py/.venv/bin/python ga_lua/utilities/lua_coverage.py --present  # also list bound
 ```
 
