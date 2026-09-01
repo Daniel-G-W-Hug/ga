@@ -40,9 +40,10 @@ namespace hd::ga::cga {
 // - flat_point3dc()         -> flat point from a Euclidean position
 // - sphere3dc()             -> sphere from center and radius
 // - circle3dc()             -> circle from center, radius and unit normal
-// - dipole3dc()             -> dipole from center, radius and unit axis
+// - dipole3dc()             -> dipole from center, radius and DIRECTION
 // - line3dc()               -> line through a point with a direction
 // - plane3dc()              -> plane from a unit normal and origin distance
+//   (each also as an overload taking EGA vec3d position/direction/normal)
 //
 // (the bulk/weight split, the part/center norms, unitize and cconj live in
 // ga_cga3dc_ops_basics.hpp with the other algebras' norm layer; the radius
@@ -51,6 +52,15 @@ namespace hd::ga::cga {
 // - radius_nrm_sq()         -> the antidot square u (o) u = r^2 (signed:
 //                              negative for imaginary radii)
 // - radius_sq()             -> squared radius (radius_nrm_sq / round_weight^2)
+// - radius()                -> the radius itself (throws: flat, or imaginary)
+// - position()              -> the centre as a Euclidean vec3d (throws for a
+//                              line or plane, which have no centre)
+// - direction()             -> the object's characteristic direction as a
+//                              Euclidean unit vector: the axis of a dipole,
+//                              the direction of a line, the normal of a
+//                              circle's plane or of a plane (ONE accessor,
+//                              so mixed objects need no branch); throws for
+//                              the kinds that have none
 //
 // Geometric properties of the round objects:
 //
@@ -387,6 +397,25 @@ inline MVec3dc_U<T> get_loxodromic(BiVec3dc<T> const& d, T phi, T delta)
 // The derived constructors are product chains over round points (wedge =
 // join, rwdg = meet), so their component forms follow from the generated
 // products; the orientation conventions are pinned in the tests.
+//
+// DIRECTIONAL ARGUMENTS (one rule, both algebras). Every constructor that
+// takes a direction is given the object's OWN direction -- its attitude --
+// and never a normal, except where the object IS a hyperplane, whose defining
+// datum is a normal and nothing else:
+//
+//     direction:  dipole2dc, line2dc, dipole3dc, line3dc   (1-dimensional)
+//     normal:     plane3dc, and circle3dc for its plane    (hyperplane datum)
+//
+// In the plane a line is both 1-dimensional and of codimension one, and the
+// direction wins -- matching the pga2dp bivector basis, which was chosen so a
+// line's components run ALONG the line (the force convention) rather than
+// normal to it. The rule is stated as one checkable invariant:
+//
+//     att(unitize(u)) returns the constructor's directional argument
+//
+// with a positive sign, for every object above; the codim-1 constructors
+// return their normal by the same test. Each constructor's orientation is
+// fixed to satisfy it, and the test suite pins it per object.
 ////////////////////////////////////////////////////////////////////////////////
 
 // round point with center (px, py, pz) and radius r (unitized: origin weight
@@ -470,16 +499,70 @@ constexpr TriVec3dc<T> circle3dc(T px, T py, T pz, T r, T nx, T ny, T nz)
     return -rwdg(sphere3dc(px, py, pz, r), plane3dc(nx, ny, nz, d));
 }
 
-// dipole with center (px, py, pz), radius r and unit axis (nx, ny, nz) (the
-// two points lie at center +/- r * axis): the meet of the sphere with the
-// line through the center ALONG the axis (in 3D the normal points along the
-// carrier line, unlike the 2D convention); negated so that att() recovers the
-// requested axis with POSITIVE sign
+// dipole with center (px, py, pz), radius r and unit DIRECTION (nx, ny, nz)
+// (the two points lie at center +/- r * direction): the meet of the sphere
+// with the line through the center ALONG that direction; negated so that att()
+// recovers the requested direction with POSITIVE sign, as dipole2dc does
 template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec3dc<T> dipole3dc(T px, T py, T pz, T r, T nx, T ny, T nz)
 {
     return -rwdg(sphere3dc(px, py, pz, r), line3dc(px, py, pz, nx, ny, nz));
+}
+
+// vector-taking overloads: the same constructors with the Euclidean position,
+// direction and normal given as EGA vectors instead of loose components --
+// position() and the direction accessors return those, so a construction chain
+// can be written without unpacking coordinates in between
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec3dc<T> round_point3dc(Vec3d<T> const& p, T r)
+{
+    return round_point3dc(p.x, p.y, p.z, r);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dc<T> flat_point3dc(Vec3d<T> const& p)
+{
+    return flat_point3dc(p.x, p.y, p.z);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr QuadVec3dc<T> sphere3dc(Vec3d<T> const& p, T r)
+{
+    return sphere3dc(p.x, p.y, p.z, r);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec3dc<T> line3dc(Vec3d<T> const& p, Vec3d<T> const& dir)
+{
+    return line3dc(p.x, p.y, p.z, dir.x, dir.y, dir.z);
+}
+
+// the normal is the plane's defining datum -- see the directional-argument
+// rule at the head of this section
+template <typename T>
+    requires(numeric_type<T>)
+constexpr QuadVec3dc<T> plane3dc(Vec3d<T> const& n, T d)
+{
+    return plane3dc(n.x, n.y, n.z, d);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec3dc<T> circle3dc(Vec3d<T> const& p, T r, Vec3d<T> const& n)
+{
+    return circle3dc(p.x, p.y, p.z, r, n.x, n.y, n.z);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dc<T> dipole3dc(Vec3d<T> const& p, T r, Vec3d<T> const& dir)
+{
+    return dipole3dc(p.x, p.y, p.z, r, dir.x, dir.y, dir.z);
 }
 
 
@@ -489,7 +572,14 @@ constexpr BiVec3dc<T> dipole3dc(T px, T py, T pz, T r, T nx, T ny, T nz)
 // The radius norm square is the ANTIDOT square u (o) u = rdot(u, u) = r^2 (for
 // a unitized object; the dot square gives dot(u, u) = -r^2). It is SIGNED:
 // negative values mean an imaginary radius (e.g. the meet of two
-// non-intersecting spheres), so no square root is taken here. These live in
+// non-intersecting spheres), so no square root is taken here. A vanishing
+// ROUND WEIGHT is different from a negative radius and throws instead: it
+// means the object has no radius at all -- every flat has none, and so does
+// a degenerate meet that is NOT flat (two CONCENTRIC spheres, whose meet
+// keeps a round bulk). That guard is unconditional; leaving it to the
+// _HD_GA_EXTENDED_TEST_DIV_BY_ZERO check would return +/-inf in an ordinary
+// build, which a caller's `radius_sq(m) < 0` sign test reads as a clean
+// miss. These live in
 // the geometric layer (not in ops_basics with the other norms) because rdot is
 // a product-layer operation.
 ////////////////////////////////////////////////////////////////////////////////
@@ -532,6 +622,9 @@ template <typename T>
 inline T radius_sq(Vec3dc<T> const& v)
 {
     T const wn_sq = round_weight_nrm_sq(v);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "round point (round weight)");
     return radius_nrm_sq(v) / wn_sq;
 }
@@ -541,6 +634,9 @@ template <typename T>
 inline T radius_sq(BiVec3dc<T> const& B)
 {
     T const wn_sq = round_weight_nrm_sq(B);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "dipole (round weight)");
     return radius_nrm_sq(B) / wn_sq;
 }
@@ -550,6 +646,9 @@ template <typename T>
 inline T radius_sq(TriVec3dc<T> const& t)
 {
     T const wn_sq = round_weight_nrm_sq(t);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "circle (round weight)");
     return radius_nrm_sq(t) / wn_sq;
 }
@@ -559,6 +658,9 @@ template <typename T>
 inline T radius_sq(QuadVec3dc<T> const& Q)
 {
     T const wn_sq = round_weight_nrm_sq(Q);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "sphere (round weight)");
     return radius_nrm_sq(Q) / wn_sq;
 }
@@ -761,6 +863,214 @@ template <typename T>
 constexpr TriVec3dc<T> att(QuadVec3dc<T> const& Q)
 {
     return rwdg(Q, cmpl(Vec3dc<T>(T(0.0), T(0.0), T(0.0), T(1.0), T(0.0))));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Euclidean accessors: radius and position
+//
+// The layers above return conformal elements -- cen(u) is a round point, not a
+// position, and radius_sq(u) is the signed square. These two read the plain
+// Euclidean quantity out, which is what application code wants at the end of a
+// construction chain.
+//
+// radius(u) is sqrt(radius_sq(u)) and rejects the two cases where a radius
+// does not exist, both geometry rather than defects: a FLAT object has none
+// (its round weight vanishes), and an IMAGINARY round has radius_sq < 0 --
+// the meet of two spheres that do not reach each other. Both throw, and the
+// flat case is tested with is_flat() rather than left to radius_sq's own
+// division guard, which is compiled out unless _HD_GA_EXTENDED_TEST_DIV_BY_ZERO
+// is defined -- there radius_sq(flat) is inf, so the throw must not depend on
+// it. Where a meet may miss, test the SIGN of radius_sq first, as
+// dipole_points does; radius_sq is the application-level quantity throughout
+// (weight-independent and signed), radius_nrm_sq only the primitive under it.
+//
+// position(u) is the centre as a Euclidean vector. For a round object it is
+// cen(u) with the round weight divided out. A FLAT POINT also has a position,
+// but carries it in the flat part instead, so the two are selected by
+// is_flat(); a line and a plane have no centre at all and throw.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(Vec3dc<T> const& v)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(v) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(v);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(BiVec3dc<T> const& B)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(B) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(B);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(TriVec3dc<T> const& t)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(t) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(t);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(QuadVec3dc<T> const& Q)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(Q) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(Q);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+// the centre of a round object as a Euclidean position
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> position(Vec3dc<T> const& v)
+{
+    if (is_flat(v)) throw std::runtime_error("position: the point at infinity has none");
+    auto const c = cen(v);
+    if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
+}
+
+// grade 2 carries both kinds and BOTH have a position: the dipole its centre,
+// the flat point itself -- the latter held in the flat bulk over the flat weight
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> position(BiVec3dc<T> const& B)
+{
+    if (is_flat(B)) {
+        hd::ga::detail::check_normalization<T>(std::abs(B.pw),
+                                               "flat point (flat weight)");
+        return Vec3d<T>(B.px / B.pw, B.py / B.pw, B.pz / B.pw);
+    }
+    auto const c = cen(B);
+    if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> position(TriVec3dc<T> const& t)
+{
+    if (is_flat(t)) throw std::runtime_error("position: a line has no centre");
+    auto const c = cen(t);
+    if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> position(QuadVec3dc<T> const& Q)
+{
+    if (is_flat(Q)) throw std::runtime_error("position: a plane has no centre");
+    auto const c = cen(Q);
+    if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// direction: the object's characteristic direction as a Euclidean unit vector
+//
+// ONE accessor for what is a direction on the 1-dimensional objects and a
+// normal on the hyperplanes, so a loop over mixed objects needs no branch on
+// the kind. It is the inverse of the constructors' directional argument
+// (equation: att carries it, see the directional-argument rule above):
+//
+//     dipole   -> its axis          circle  -> its plane's normal
+//     line     -> its direction     plane   -> its normal
+//
+// and it throws for the objects that have none: a round point, a flat point
+// and a sphere. Both branches of a shared grade are served -- at grade 3 a
+// line gives a direction and a circle a normal -- which is what is_flat() is
+// consulted for.
+//
+// The attitude is read WITHOUT unitize(): unitize divides by the round weight,
+// which vanishes on every flat, so it returns NaN for exactly the line and
+// plane cases this must serve. Normalising the extracted vector removes the
+// object's weight instead, and works for both kinds.
+////////////////////////////////////////////////////////////////////////////////
+
+// The normalisation is written out in each overload rather than factored into
+// a helper: a free helper here would be scanned into the language bindings as
+// public API, and a nested cga::detail to hide it would SHADOW hd::ga::detail,
+// whose check_normalization etc. are used unqualified throughout this file.
+
+// grade 2: a dipole has an axis; a flat point has no direction
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> direction(BiVec3dc<T> const& B)
+{
+    if (is_flat(B)) throw std::runtime_error("direction: a flat point has none");
+    auto const a = att(B);
+    T const n = std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+    if (n == T(0.0)) throw std::runtime_error("direction: the object has none");
+    return Vec3d<T>(a.x / n, a.y / n, a.z / n);
+}
+
+// grade 3: a line gives its direction, a circle the normal of its plane
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> direction(TriVec3dc<T> const& t)
+{
+    auto const a = att(t);
+    T const x = is_flat(t) ? a.px : a.mx; // line: direction / circle: normal
+    T const y = is_flat(t) ? a.py : a.my;
+    T const z = is_flat(t) ? a.pz : a.mz;
+    T const n = std::sqrt(x * x + y * y + z * z);
+    if (n == T(0.0)) throw std::runtime_error("direction: the object has none");
+    return Vec3d<T>(x / n, y / n, z / n);
+}
+
+// grade 4: a plane gives its normal; a sphere has no direction
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> direction(QuadVec3dc<T> const& Q)
+{
+    if (!is_flat(Q)) throw std::runtime_error("direction: a sphere has none");
+    auto const a = att(Q);
+    T const n = std::sqrt(a.mx * a.mx + a.my * a.my + a.mz * a.mz);
+    if (n == T(0.0)) throw std::runtime_error("direction: the object has none");
+    return Vec3d<T>(a.mx / n, a.my / n, a.mz / n);
 }
 
 

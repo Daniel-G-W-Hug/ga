@@ -34,8 +34,10 @@ namespace hd::ga::cga {
 // - round_point2dc()        -> round point from center and radius (r = 0: the
 //                              null-point embedding of a Euclidean point)
 // - flat_point2dc()         -> flat point from a Euclidean position
-// - dipole2dc()             -> dipole from center, radius and normal
+// - dipole2dc()             -> dipole from center, radius and DIRECTION
 // - circle2dc()             -> circle from center and radius
+// - line2dc()               -> line through a point with a direction
+//   (each also as an overload taking EGA vec2d position/direction)
 //
 // (the bulk/weight split, the part/center norms, unitize and cconj live in
 // ga_cga2dc_ops_basics.hpp with the other algebras' norm layer; the radius
@@ -44,6 +46,14 @@ namespace hd::ga::cga {
 // - radius_nrm_sq()         -> the antidot square u (o) u = r^2 (signed:
 //                              negative for imaginary radii)
 // - radius_sq()             -> squared radius (radius_nrm_sq / round_weight^2)
+// - radius()                -> the radius itself (throws: flat, or imaginary)
+// - position()              -> the centre as a Euclidean vec2d (throws for a
+//                              line, which has no centre)
+// - direction()             -> the object's characteristic direction as a
+//                              Euclidean unit vector: the axis of a dipole,
+//                              the direction of a line (ONE accessor, named
+//                              as in cga3dc, so mixed objects need no
+//                              branch); throws for the kinds that have none
 //
 // Geometric properties of the round objects:
 //
@@ -291,6 +301,25 @@ inline MVec2dc_E<T> get_dilation(T mx, T my, T sigma)
 //
 // The circle's weight component is intentionally NEGATIVE for the standard
 // construction so the center can be read directly off the flat-line part.
+//
+// DIRECTIONAL ARGUMENTS (one rule, both algebras). Every constructor that
+// takes a direction is given the object's OWN direction -- its attitude --
+// and never a normal, except where the object IS a hyperplane, whose defining
+// datum is a normal and nothing else:
+//
+//     direction:  dipole2dc, line2dc, dipole3dc, line3dc   (1-dimensional)
+//     normal:     plane3dc, and circle3dc for its plane    (hyperplane datum)
+//
+// In the plane a line is both 1-dimensional and of codimension one, and the
+// direction wins -- matching the pga2dp bivector basis, which was chosen so a
+// line's components run ALONG the line (the force convention) rather than
+// normal to it. The rule is stated as one checkable invariant:
+//
+//     att(unitize(u)) returns the constructor's directional argument
+//
+// with a positive sign, for every object above; the codim-1 constructors
+// return their normal by the same test. Each constructor's orientation is
+// fixed to satisfy it, and the test suite pins it per object.
 ////////////////////////////////////////////////////////////////////////////////
 
 // round point with center (px, py) and radius r (unitized: origin weight 1);
@@ -310,23 +339,41 @@ constexpr BiVec2dc<T> flat_point2dc(T px, T py)
     return BiVec2dc<T>(T(0.0), T(0.0), T(0.0), -px, -py, T(-1.0));
 }
 
-// dipole with center (px, py), radius r and normal (nx, ny); its two points
-// lie at distance r from the center, PERPENDICULAR to the normal (in 2D the
-// normal is perpendicular to the carrier line, as for lines)
+// forward declarations of the two constructors the dipole is built from
+// (defined below it, keeping the round objects in ascending grade order)
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec2dc<T> dipole2dc(T px, T py, T r, T nx, T ny)
+constexpr TriVec2dc<T> circle2dc(T px, T py, T r);
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> line2dc(T px, T py, T vx, T vy);
+
+// dipole with center (px, py), radius r and unit DIRECTION (dx, dy): its two
+// points lie at center +/- r * direction, and att() returns that direction --
+// the same convention as dipole3dc and as the lines of both algebras (see the
+// directional-argument rule at the head of this section)
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> dipole2dc(T px, T py, T r, T dx, T dy)
 {
-    T const pn = px * nx + py * ny; // p . n
-    T const hs = T(0.5) * (px * px + py * py + r * r);
-    T const pxn = px * ny - py * nx; // p x n (2d cross product)
-    T const gx = nx;
-    T const gy = ny;
-    T const gz = -pn;
-    T const ppx = hs * ny - pxn * px;
-    T const ppy = -hs * nx - pxn * py;
-    T const ppz = -pxn;
-    return BiVec2dc<T>(gy, -gx, gz, -ppx, -ppy, -ppz);
+    // the meet of the circle with the line through the center ALONG the
+    // direction -- the same construction as dipole3dc, which meets the sphere
+    // with that line. No negation is needed here, unlike in 3d: the meet of
+    // two grade-3 objects in the 4d algebra already carries the orientation
+    // that makes att() return the direction (pinned in the tests).
+    return rwdg(circle2dc(px, py, r), line2dc(px, py, dx, dy));
+}
+
+// line through (px, py) with direction (vx, vy): the join of two round points
+// on it with the point at infinity -- the plane's flat of grade 3, built
+// exactly as line3dc is
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> line2dc(T px, T py, T vx, T vy)
+{
+    auto const a1 = round_point2dc(px, py, T(0.0));
+    auto const a2 = round_point2dc(px + vx, py + vy, T(0.0));
+    return wdg(wdg(a1, a2), Vec2dc<T>(T(0.0), T(0.0), T(0.0), T(1.0)));
 }
 
 // circle with center (px, py) and radius r (unitized, carrier weight -1)
@@ -337,6 +384,45 @@ constexpr TriVec2dc<T> circle2dc(T px, T py, T r)
     return TriVec2dc<T>(py, -px, T(-0.5) * (px * px + py * py - r * r), T(-1.0));
 }
 
+// vector-taking overloads: the same constructors with the Euclidean position
+// and direction given as EGA vectors instead of loose components -- position()
+// and the direction accessors return those, so a construction chain can be
+// written without unpacking coordinates in between
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> round_point2dc(Vec2d<T> const& p, T r)
+{
+    return round_point2dc(p.x, p.y, r);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> flat_point2dc(Vec2d<T> const& p)
+{
+    return flat_point2dc(p.x, p.y);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> dipole2dc(Vec2d<T> const& p, T r, Vec2d<T> const& dir)
+{
+    return dipole2dc(p.x, p.y, r, dir.x, dir.y);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> circle2dc(Vec2d<T> const& p, T r)
+{
+    return circle2dc(p.x, p.y, r);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> line2dc(Vec2d<T> const& p, Vec2d<T> const& dir)
+{
+    return line2dc(p.x, p.y, dir.x, dir.y);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // radius norm and squared radius
@@ -344,7 +430,14 @@ constexpr TriVec2dc<T> circle2dc(T px, T py, T r)
 // The radius norm square is the ANTIDOT square u (o) u = rdot(u, u) = r^2 (for
 // a unitized object; the dot square gives dot(u, u) = -r^2). It is SIGNED:
 // negative values mean an imaginary radius (e.g. the meet of two
-// non-intersecting circles), so no square root is taken here. These live in
+// non-intersecting circles), so no square root is taken here. A vanishing
+// ROUND WEIGHT is different from a negative radius and throws instead: it
+// means the object has no radius at all -- every flat has none, and so does
+// a degenerate meet that is NOT flat (two CONCENTRIC circles, whose meet
+// keeps a round bulk). That guard is unconditional; leaving it to the
+// _HD_GA_EXTENDED_TEST_DIV_BY_ZERO check would return +/-inf in an ordinary
+// build, which a caller's `radius_sq(m) < 0` sign test reads as a clean
+// miss. These live in
 // the geometric layer (not in ops_basics with the other norms) because rdot is
 // a product-layer operation.
 ////////////////////////////////////////////////////////////////////////////////
@@ -381,6 +474,9 @@ template <typename T>
 inline T radius_sq(Vec2dc<T> const& v)
 {
     T const wn_sq = round_weight_nrm_sq(v);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "round point (round weight)");
     return radius_nrm_sq(v) / wn_sq;
 }
@@ -390,6 +486,9 @@ template <typename T>
 inline T radius_sq(BiVec2dc<T> const& B)
 {
     T const wn_sq = round_weight_nrm_sq(B);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "dipole (round weight)");
     return radius_nrm_sq(B) / wn_sq;
 }
@@ -399,6 +498,9 @@ template <typename T>
 inline T radius_sq(TriVec2dc<T> const& t)
 {
     T const wn_sq = round_weight_nrm_sq(t);
+    if (wn_sq == T(0.0))
+        throw std::runtime_error(
+            "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
     hd::ga::detail::check_normalization<T>(wn_sq, "circle (round weight)");
     return radius_nrm_sq(t) / wn_sq;
 }
@@ -555,6 +657,169 @@ template <typename T>
 constexpr BiVec2dc<T> att(TriVec2dc<T> const& t)
 {
     return rwdg(t, r_cmpl(Vec2dc<T>(T(0.0), T(0.0), T(1.0), T(0.0))));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Euclidean accessors: radius and position
+//
+// The layers above return conformal elements -- cen(u) is a round point, not a
+// position, and radius_sq(u) is the signed square. These two read the plain
+// Euclidean quantity out, which is what application code wants at the end of a
+// construction chain.
+//
+// radius(u) is sqrt(radius_sq(u)) and rejects the two cases where a radius
+// does not exist, both geometry rather than defects: a FLAT object has none
+// (its round weight vanishes), and an IMAGINARY round has radius_sq < 0 --
+// the meet of two circles that do not reach each other. Both throw, and the
+// flat case is tested with is_flat() rather than left to radius_sq's own
+// division guard, which is compiled out unless _HD_GA_EXTENDED_TEST_DIV_BY_ZERO
+// is defined -- there radius_sq(flat) is inf, so the throw must not depend on
+// it. Where a meet may miss, test the SIGN of radius_sq first, as
+// dipole_points does; radius_sq is the application-level quantity throughout
+// (weight-independent and signed), radius_nrm_sq only the primitive under it.
+//
+// position(u) is the centre as a Euclidean vector. For a round object it is
+// cen(u) with the round weight divided out. A FLAT POINT also has a position,
+// but carries it in the flat part instead, so the two are selected by
+// is_flat(); a line has no centre at all and throws.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(Vec2dc<T> const& v)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(v) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(v);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(BiVec2dc<T> const& B)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(B) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(B);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline T radius(TriVec2dc<T> const& t)
+{
+    // the precondition of radius_sq is a non-zero round weight. Every flat
+    // object has none, and so does a degenerate meet that is NOT flat (two
+    // concentric spheres), so guard the divisor itself rather than is_flat.
+    if (round_weight_nrm_sq(t) == T(0.0))
+        throw std::runtime_error(
+            "radius: no round weight (flat, or a degenerate meet) -- no radius");
+    T const r_sq = radius_sq(t);
+    if (r_sq < T(0.0))
+        throw std::runtime_error("radius: imaginary radius, test radius_sq first");
+    return std::sqrt(r_sq);
+}
+
+// the centre of a round object as a Euclidean position
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> position(Vec2dc<T> const& v)
+{
+    if (is_flat(v)) throw std::runtime_error("position: the point at infinity has none");
+    auto const c = cen(v);
+    if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    return Vec2d<T>(c.x / c.z, c.y / c.z);
+}
+
+// grade 2 carries both kinds and BOTH have a position: the dipole its centre,
+// the flat point itself -- the latter held in the flat bulk over the flat weight
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> position(BiVec2dc<T> const& B)
+{
+    if (is_flat(B)) {
+        hd::ga::detail::check_normalization<T>(std::abs(B.mz),
+                                               "flat point (flat weight)");
+        return Vec2d<T>(B.mx / B.mz, B.my / B.mz);
+    }
+    auto const c = cen(B);
+    if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    return Vec2d<T>(c.x / c.z, c.y / c.z);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> position(TriVec2dc<T> const& t)
+{
+    if (is_flat(t)) throw std::runtime_error("position: a line has no centre");
+    auto const c = cen(t);
+    if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
+    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    return Vec2d<T>(c.x / c.z, c.y / c.z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// direction: the object's characteristic direction as a Euclidean unit vector
+//
+// ONE accessor, matching cga3dc, so a loop over mixed objects needs no branch
+// on the kind. It is the inverse of the constructors' directional argument:
+//
+//     dipole   -> its axis          line -> its direction
+//
+// and it throws for the objects that have none: a round point, a flat point
+// and a circle (the top round of the plane has no direction; the 3d circle's
+// normal is the direction of its plane, which the plane has and this does not).
+//
+// The attitude is read WITHOUT unitize(): unitize divides by the round weight,
+// which vanishes on every flat, so it returns NaN for exactly the line case
+// this must serve. Normalising the extracted vector removes the object's
+// weight instead, and works for both kinds.
+////////////////////////////////////////////////////////////////////////////////
+
+// The normalisation is written out in each overload rather than factored into
+// a helper: a free helper here would be scanned into the language bindings as
+// public API, and a nested cga::detail to hide it would SHADOW hd::ga::detail,
+// whose check_normalization etc. are used unqualified throughout this file.
+
+// grade 2: a dipole has an axis; a flat point has no direction
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> direction(BiVec2dc<T> const& B)
+{
+    if (is_flat(B)) throw std::runtime_error("direction: a flat point has none");
+    auto const a = att(B);
+    T const n = std::sqrt(a.x * a.x + a.y * a.y);
+    if (n == T(0.0)) throw std::runtime_error("direction: the object has none");
+    return Vec2d<T>(a.x / n, a.y / n);
+}
+
+// grade 3: a line gives its direction; a circle has none in the plane
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> direction(TriVec2dc<T> const& t)
+{
+    if (!is_flat(t)) throw std::runtime_error("direction: a circle has none in 2d");
+    auto const a = att(t);
+    T const n = std::sqrt(a.mx * a.mx + a.my * a.my);
+    if (n == T(0.0)) throw std::runtime_error("direction: the object has none");
+    return Vec2d<T>(a.mx / n, a.my / n);
 }
 
 

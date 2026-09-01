@@ -598,7 +598,7 @@ TEST_SUITE("CGA 2dc Tests")
         // a dipole's two points lie perpendicular to its normal: for center
         // (1,2), r=2, normal (0,1) the points are (-1,2) and (3,2); the join
         // of those embedded points is congruent to the constructed dipole
-        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
         CHECK(is_congruent(d, wdg(point2dc(-1.0, 2.0), point2dc(3.0, 2.0))));
 
         // the flat point is the dipole with vanishing carrier-line part
@@ -645,7 +645,7 @@ TEST_SUITE("CGA 2dc Tests")
 
         auto a = round_point2dc(1.0, 2.0, 1.0);
         auto c = circle2dc(1.0, 2.0, 1.0);
-        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
 
         // carrier: lowest-dimensional flat containing the object. For a round
         // point: the flat point at the same position (congruent to it)
@@ -676,7 +676,7 @@ TEST_SUITE("CGA 2dc Tests")
 
         auto a = round_point2dc(1.0, 2.0, 1.0);
         auto c = circle2dc(1.0, 2.0, 1.0);
-        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
 
         // cen: the round point with the object's position AND radius
         CHECK(cen(a) == a); // unitized round point is its own center
@@ -731,6 +731,171 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(dot(o1, o2) == scalar2dc(0.0));
     }
 
+    TEST_CASE("cga2dc: flat/round classification")
+    {
+        fmt::println("cga2dc: flat/round classification");
+
+        // in the plane the pairs are dipole/flat point at grade 2 and
+        // circle/line at grade 3
+        auto rp = round_point2dc(1.0, 2.0, 0.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
+        auto c = circle2dc(1.0, 2.0, 2.0);
+        auto fp = flat_point2dc(1.0, 2.0);
+        // cga2dc has no line ctor -- build the flat from its definition,
+        // a line is the join of two points with the point at infinity
+        auto l = wdg(wdg(round_point2dc(0.0, 0.0, 0.0), round_point2dc(1.0, 0.0, 0.0)),
+                     e4_2dc);
+
+        CHECK(is_round(rp));
+        CHECK(is_round(d)); // grade 2, round
+        CHECK(is_flat(fp)); // grade 2, flat
+        CHECK(is_round(c)); // grade 3, round
+        CHECK(is_flat(l));  // grade 3, flat
+
+        CHECK(is_round(d) == !is_flat(d));
+        CHECK(is_flat(car(rp))); // the carrier of a round point is a flat point
+
+        // relative, so independent of the object's weight
+        CHECK(is_flat(1.0e8 * l));
+        CHECK(is_round(1.0e8 * c));
+
+        // discriminates at the tolerance, not at exact zero
+        CHECK(is_flat(l + 1.0e-13 * c));
+        CHECK(is_round(l + 1.0e-10 * c));
+        CHECK(is_flat(1.0e8 * (l + 1.0e-13 * c)));
+        CHECK(is_round(1.0e8 * (l + 1.0e-10 * c)));
+        CHECK(is_flat(l + 1.0e-6 * c, 1.0e-3));
+
+        CHECK(round_weight_nrm_sq(l) == 0.0);
+        CHECK(round_weight_nrm_sq(c) != 0.0);
+    }
+
+    TEST_CASE("cga2dc: directional-argument convention and vector overloads")
+    {
+        fmt::println("cga2dc: directional-argument convention and vector overloads");
+
+        auto const p = vec2d(1.0, 2.0);
+        double const r = 2.0;
+
+        // the 2D dipole now takes its DIRECTION, like dipole3dc and like the
+        // lines of both algebras: its two points lie at center +/- r*direction
+        for (auto const& d : {vec2d(1.0, 0.0), vec2d(0.0, 1.0), vec2d(0.6, 0.8)}) {
+            auto dp = dipole2dc(p.x, p.y, r, d.x, d.y);
+            auto pts = dipole_points(dp);
+            CHECK(pts.first.x / pts.first.z == doctest::Approx(p.x + r * d.x));
+            CHECK(pts.first.y / pts.first.z == doctest::Approx(p.y + r * d.y));
+            CHECK(pts.second.x / pts.second.z == doctest::Approx(p.x - r * d.x));
+            CHECK(pts.second.y / pts.second.z == doctest::Approx(p.y - r * d.y));
+
+            // the new line2dc: points along the direction are incident with it
+            auto l = line2dc(p.x, p.y, d.x, d.y);
+            auto on = round_point2dc(p.x + 3.0 * d.x, p.y + 3.0 * d.y, 0.0);
+            CHECK(is_close(mvec2dc(wdg(on, l)), mvec2dc(scalar2dc(0.0))));
+            // a line is FLAT, a dipole is ROUND -- same grade split as in 3d
+            CHECK(is_flat(l));
+            CHECK(is_round(dp));
+        }
+
+        // line2dc matches the hand-built join of two points with infinity
+        auto l0 = line2dc(0.0, 0.0, 1.0, 0.0);
+        auto l0_by_hand = wdg(
+            wdg(round_point2dc(0.0, 0.0, 0.0), round_point2dc(1.0, 0.0, 0.0)), e4_2dc);
+        CHECK(l0 == l0_by_hand);
+
+        // the vector-taking overloads build exactly the component-form object
+        auto d = vec2d(0.0, 1.0);
+        CHECK(round_point2dc(p, r) == round_point2dc(p.x, p.y, r));
+        CHECK(flat_point2dc(p) == flat_point2dc(p.x, p.y));
+        CHECK(circle2dc(p, r) == circle2dc(p.x, p.y, r));
+        CHECK(dipole2dc(p, r, d) == dipole2dc(p.x, p.y, r, d.x, d.y));
+        CHECK(line2dc(p, d) == line2dc(p.x, p.y, d.x, d.y));
+
+        // the accessors feed straight back in
+        auto c = circle2dc(p, r);
+        CHECK(circle2dc(position(c), radius(c)) == c);
+    }
+
+    TEST_CASE("cga2dc: direction as one accessor over the object kinds")
+    {
+        fmt::println("cga2dc: direction as one accessor over the object kinds");
+
+        auto const p = vec2d(1.0, 2.0);
+        auto const d = vec2d(0.6, 0.8); // unit
+        double const r = 2.0;
+
+        auto same = [](vec2d const& a, vec2d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y);
+        };
+
+        CHECK(same(direction(dipole2dc(p, r, d)), d));
+        CHECK(same(direction(line2dc(p, d)), d));
+
+        // weight-independent
+        CHECK(same(direction(1.0e7 * dipole2dc(p, r, d)), d));
+        CHECK(same(direction(1.0e-7 * line2dc(p, d)), d));
+
+        // the kinds that have none: a flat point, and in the plane a circle
+        CHECK_THROWS_AS(direction(flat_point2dc(p)), std::runtime_error);
+        CHECK_THROWS_AS(direction(circle2dc(p, r)), std::runtime_error);
+
+        // a rotation by pi/2 carries x to y for both kinds at once
+        auto R = get_rotation(0.0, 0.0, pi / 2.0);
+        auto const ex = vec2d(1.0, 0.0), ey = vec2d(0.0, 1.0);
+        CHECK(same(direction(transform(dipole2dc(p, r, ex), R)), ey));
+        CHECK(same(direction(transform(line2dc(p, ex), R)), ey));
+        // a translation leaves the direction alone
+        auto M = get_translation(4.0, -5.0);
+        CHECK(same(direction(transform(line2dc(p, d), M)), d));
+    }
+
+    TEST_CASE("cga2dc: Euclidean accessors - radius and position")
+    {
+        fmt::println("cga2dc: Euclidean accessors - radius and position");
+
+        double const px = 1.0, py = 2.0, r = 2.5;
+        auto rp = round_point2dc(px, py, r);
+        auto d = dipole2dc(px, py, r, 1.0, 0.0);
+        auto c = circle2dc(px, py, r);
+        auto fp = flat_point2dc(px, py);
+
+        CHECK(radius(rp) == doctest::Approx(r));
+        CHECK(radius(d) == doctest::Approx(r));
+        CHECK(radius(c) == doctest::Approx(r));
+
+        // position returns an EGA vec2d; ga_cga.hpp carries the EGA types but
+        // not the EGA operations, so compare componentwise here
+        auto same = [](vec2d const& a, vec2d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y);
+        };
+        auto const expect = vec2d(px, py);
+        CHECK(same(position(rp), expect));
+        CHECK(same(position(d), expect));
+        CHECK(same(position(c), expect));
+        CHECK(same(position(fp), expect)); // flat point: from the flat part
+
+        CHECK(radius(1.0e6 * c) == doctest::Approx(r));
+        CHECK(same(position(1.0e6 * c), expect));
+        CHECK(same(position(1.0e6 * fp), expect));
+
+        CHECK(radius_sq(par(c)) == doctest::Approx(-r * r));
+        CHECK_THROWS_AS(radius(par(c)), std::runtime_error);
+
+        // two circles that do not reach each other meet in an imaginary dipole
+        auto miss = rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(10.0, 0.0, 1.0));
+        CHECK(radius_sq(miss) < 0.0);
+        CHECK_THROWS_AS(radius(miss), std::runtime_error);
+
+        // a line has no centre
+        auto l = wdg(wdg(round_point2dc(0.0, 0.0, 0.0), round_point2dc(1.0, 0.0, 0.0)),
+                     e4_2dc);
+        CHECK_THROWS_AS(position(l), std::runtime_error);
+        CHECK_THROWS(radius(l));
+
+        auto M = get_translation(1.0, -2.0);
+        CHECK(same(position(transform(c, M)), vec2d(px + 1.0, py - 2.0)));
+        CHECK(radius(transform(c, M)) == doctest::Approx(r));
+    }
+
     TEST_CASE("cga2dc: circle intersection end to end")
     {
         fmt::println("cga2dc: circle intersection end to end");
@@ -772,10 +937,32 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK_FALSE(
             intersect(circle2dc(0.0, 0.0, 1.0), circle2dc(5.0, 0.0, 1.0), p1, p2));
 
-        // concentric circles: the meet has zero round weight (a flat object),
-        // radius_sq must throw rather than give a bogus answer
+        // concentric circles: a DEGENERATE meet. It is not a flat object -- it
+        // keeps a round bulk, so is_flat is false -- but it has no round weight
+        // at all, hence no radius and no centre. All three accessors must
+        // refuse rather than divide by zero (in an ordinary build, without
+        // _HD_GA_EXTENDED_TEST_DIV_BY_ZERO, the unguarded division returns
+        // -inf, which a caller's `radius_sq < 0` sign test reads as a clean
+        // miss). The MESSAGE is pinned because this build's division check
+        // would throw anyway, so a bare CHECK_THROWS cannot see the guard.
         auto dcc = rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(0.0, 0.0, 2.0));
-        CHECK_THROWS(radius_sq(dcc));
+        CHECK_FALSE(is_flat(dcc));
+        CHECK(round_weight_nrm_sq(dcc) == 0.0);
+        CHECK_THROWS_WITH_AS(radius_sq(dcc), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(radius(dcc), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(position(dcc), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        // is_degenerate names that condition, independently of flat/round
+        CHECK(is_degenerate(dcc));
+        CHECK(is_round(dcc)); // round AND degenerate: the two are independent
+        CHECK(is_degenerate(circle2dc(0.0, 0.0, 1.0)) == false); // an ordinary circle
+        // nearly concentric: an exact `round_weight_nrm_sq == 0` test misses it,
+        // the relative one does not -- the reason this is a function
+        auto const near_ = rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(1.0e-16, 0.0, 2.0));
+        CHECK(round_weight_nrm_sq(near_) > 0.0);
+        CHECK(is_degenerate(near_));
 
         // the same chain intersects a circle with a LINE, and the line need not
         // pass through the center: a line is the join of two of its points with
@@ -850,7 +1037,7 @@ TEST_SUITE("CGA 2dc Tests")
         fmt::println("cga2dc: conformal conjugate and containment");
 
         auto a = round_point2dc(1.0, 2.0, 1.0);
-        auto d = dipole2dc(1.0, 2.0, 2.0, 0.0, 1.0);
+        auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
         auto c = circle2dc(1.0, 2.0, 1.0);
 
         // involution

@@ -1403,7 +1403,7 @@
       "submodule": "cga",
       "op": "radius_sq",
       "args": [
-        {"type": "bivec2dc", "fields": [0, -1, -0, -0, 0.5, 0]}
+        {"type": "bivec2dc", "fields": [0, -1, 0, 0, 0.5, 0]}
       ],
       "expected": {"type": "double", "fields": [1]},
       "tolerance": 1e-12
@@ -1413,9 +1413,9 @@
       "submodule": "cga",
       "op": "car",
       "args": [
-        {"type": "bivec2dc", "fields": [0, -1, -0, -0, 0.5, 0]}
+        {"type": "bivec2dc", "fields": [0, -1, 0, 0, 0.5, 0]}
       ],
-      "expected": {"type": "trivec2dc", "fields": [0, -1, 0, 0]},
+      "expected": {"type": "trivec2dc", "fields": [0, -1, 0, -0]},
       "tolerance": 1e-12
     },
     {

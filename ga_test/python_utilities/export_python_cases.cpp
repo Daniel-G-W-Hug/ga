@@ -617,8 +617,10 @@ void emit_cga_cases()
         add("cga_circle2dc_att", "cga", "att", att(c1), c1);
         add("cga_circle2dc_unitize", "cga", "unitize", unitize(c2), c2);
 
-        // dipole2dc(center_x, center_y, radius, normal_x, normal_y)
-        bivec2dc dip = dipole2dc(0.0, 0.0, 1.0, 1.0, 0.0);
+        // dipole2dc(center_x, center_y, radius, direction_x, direction_y)
+        // (the same dipole as before the argument became a direction: the
+        // former normal (1, 0) is the direction (0, -1))
+        bivec2dc dip = dipole2dc(0.0, 0.0, 1.0, 0.0, -1.0);
         add("cga_dipole2dc_radius_sq", "cga", "radius_sq", radius_sq(dip), dip);
         add("cga_dipole2dc_car", "cga", "car", car(dip), dip);
 

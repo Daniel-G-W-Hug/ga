@@ -29,11 +29,21 @@ namespace hd::ga::cga {
 // - r_antidual()                  -> right metric antidual
 // - l_antidual()                  -> left metric antidual
 //
-// - round_bulk(), round_weight(), flat_bulk(), flat_weight()
-//                                 -> the four-part bulk/weight split
-// - round_bulk_nrm{,_sq}(), round_weight_nrm{,_sq}(),
-//   flat_bulk_nrm{,_sq}(), flat_weight_nrm{,_sq}() -> the four part norms
+// - round_bulk(),                 -> the four-part bulk/weight split
+//   round_weight(),
+//   flat_bulk(), flat_weight()
+//
+// - round_bulk_nrm{,_sq}(),       -> the four part norms
+//   round_weight_nrm{,_sq}(),
+//   flat_bulk_nrm{,_sq}(),
+//   flat_weight_nrm{,_sq}()
+//
 // - center_nrm{,_sq}()            -> weighted distance origin <-> center
+// - is_flat(), is_round()         -> which object kind a grade carries (flat =
+//                                    contains the point at infinity e4)
+// - is_degenerate()               -> has the object no round weight, hence no
+//                                    centre and no radius? (independent of
+//                                    flat/round: a concentric meet is round)
 // - unitize()                     -> scale so the round weight norm equals one
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1078,13 +1088,149 @@ constexpr T center_nrm(TriVec2dc<T> const& t)
     return std::sqrt(center_nrm_sq(t));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// flat/round classification
+//
+// The grade alone does not say which object a component set describes: a
+// bivector is a dipole or a flat point, a trivector a circle or a line. What
+// separates the two kinds is the point at infinity e4. A flat object carries
+// e4 in every one of its blades, a round object does not, so in terms of the
+// split above a flat object is the one without a round part:
+//
+//     u is flat   <=>   round_bulk(u) == 0 and round_weight(u) == 0
+//                 <=>   wdg(u, e4) == 0
+//
+// the second form because wedging with e4 annihilates exactly those blades
+// that already contain it. The split form is used here: it needs no product,
+// which keeps the test in this layer.
+//
+// The comparison is RELATIVE -- the round part is measured against the
+// object's own magnitude -- so the answer does not depend on the object's
+// weight. The zero element is not an object: it has no round part and is
+// reported flat (and rejected by check_normalization in an extended-test
+// build).
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_flat(Vec2dc<T> const& v, value_t rel_tol = eps_congruent)
+{
+    T const round_sq = round_bulk_nrm_sq(v) + round_weight_nrm_sq(v);
+    T const total_sq = round_sq + flat_bulk_nrm_sq(v) + flat_weight_nrm_sq(v);
+    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_flat(BiVec2dc<T> const& B, value_t rel_tol = eps_congruent)
+{
+    T const round_sq = round_bulk_nrm_sq(B) + round_weight_nrm_sq(B);
+    T const total_sq = round_sq + flat_bulk_nrm_sq(B) + flat_weight_nrm_sq(B);
+    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_flat(TriVec2dc<T> const& t, value_t rel_tol = eps_congruent)
+{
+    T const round_sq = round_bulk_nrm_sq(t) + round_weight_nrm_sq(t);
+    T const total_sq = round_sq + flat_bulk_nrm_sq(t) + flat_weight_nrm_sq(t);
+    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
+// a round object is one that is not flat (the two are complementary for every
+// non-zero object)
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_round(Vec2dc<T> const& v, value_t rel_tol = eps_congruent)
+{
+    return !is_flat(v, rel_tol);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_round(BiVec2dc<T> const& B, value_t rel_tol = eps_congruent)
+{
+    return !is_flat(B, rel_tol);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_round(TriVec2dc<T> const& t, value_t rel_tol = eps_congruent)
+{
+    return !is_flat(t, rel_tol);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// degeneracy: has the object a centre at all?
+//
+// A SEPARATE question from flat vs round, and independent of it. The round
+// weight is a round object's homogeneous weight; where it vanishes the object
+// has no finite centre, hence no radius either, and unitize(), radius_sq(),
+// radius() and position() all refuse. Every flat object has no round weight --
+// but so does a case that is NOT flat, and that is the one worth naming: the
+// meet of two CONCENTRIC circles keeps a round bulk, so is_flat is false,
+// while the meet has no centre to speak of.
+//
+//     u degenerate   <=>   round_weight(u) == 0
+//
+// Why a function rather than `round_weight_nrm_sq(u) == 0.0` at the call site:
+// exact equality only catches exactly-equal centres, and a meet computed
+// through a chain lands near zero instead. This compares the round weight
+// against the object's own magnitude, so it is scale-free and has a tolerance
+// the caller can widen.
+//
+// The intended use is the three-way ladder of any meet-based intersection,
+// which needs no comparison of the inputs' centres:
+//
+//     auto m = rwdg(a, b);
+//     if (is_degenerate(m))    -> concentric: no centre, no radius
+//     else if (radius_sq(m)<0) -> no real intersection (imaginary radius)
+//     else                     -> real: radius(m), position(m)
+//
+// Only the first branch is new: a merely NEAR-concentric pair leaves a tiny
+// round weight and a hugely negative radius_sq, which the sign test in the
+// second branch already reads correctly as "no intersection".
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_degenerate(Vec2dc<T> const& v, value_t rel_tol = eps_congruent)
+{
+    T const w_sq = round_weight_nrm_sq(v);
+    T const total_sq =
+        round_bulk_nrm_sq(v) + w_sq + flat_bulk_nrm_sq(v) + flat_weight_nrm_sq(v);
+    return w_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_degenerate(BiVec2dc<T> const& B, value_t rel_tol = eps_congruent)
+{
+    T const w_sq = round_weight_nrm_sq(B);
+    T const total_sq =
+        round_bulk_nrm_sq(B) + w_sq + flat_bulk_nrm_sq(B) + flat_weight_nrm_sq(B);
+    return w_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_degenerate(TriVec2dc<T> const& t, value_t rel_tol = eps_congruent)
+{
+    T const w_sq = round_weight_nrm_sq(t);
+    T const total_sq =
+        round_bulk_nrm_sq(t) + w_sq + flat_bulk_nrm_sq(t) + flat_weight_nrm_sq(t);
+    return w_sq <= T(rel_tol) * T(rel_tol) * total_sq;
+}
+
 // scale a round object so its round weight norm becomes one (sign preserved;
 // throws for flat objects)
 // HINT: unitize() cannot be constexpr due to the checks for division by zero
 //       which might throw
-
-// scale a round object so its round weight norm becomes one (sign preserved;
-// throws for flat objects)
 template <typename T>
     requires(numeric_type<T>)
 inline Vec2dc<T> unitize(Vec2dc<T> const& v)

@@ -4344,6 +4344,91 @@ void register_functions(sol::state& lua)
                                           sol::resolve<vec3dc(trivec3dc const&)>(cen),
                                           sol::resolve<vec3dc(quadvec3dc const&)>(cen)));
 
+    cga.set_function("is_flat",
+                     sol::overload(
+                         sol::resolve<bool(vec2dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(bivec2dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(trivec2dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(vec3dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(bivec3dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(trivec3dc const&, value_t)>(is_flat),
+                         sol::resolve<bool(quadvec3dc const&, value_t)>(is_flat),
+                         // default-tolerance forms (Lua has no default args)
+                         [](vec2dc const& u) { return is_flat(u); },
+                         [](bivec2dc const& u) { return is_flat(u); },
+                         [](trivec2dc const& u) { return is_flat(u); },
+                         [](vec3dc const& u) { return is_flat(u); },
+                         [](bivec3dc const& u) { return is_flat(u); },
+                         [](trivec3dc const& u) { return is_flat(u); },
+                         [](quadvec3dc const& u) { return is_flat(u); }));
+
+    cga.set_function("is_degenerate",
+                     sol::overload(
+                         sol::resolve<bool(vec2dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(bivec2dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(trivec2dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(vec3dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(bivec3dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(trivec3dc const&, value_t)>(is_degenerate),
+                         sol::resolve<bool(quadvec3dc const&, value_t)>(is_degenerate),
+                         // default-tolerance forms (Lua has no default args)
+                         [](vec2dc const& u) { return is_degenerate(u); },
+                         [](bivec2dc const& u) { return is_degenerate(u); },
+                         [](trivec2dc const& u) { return is_degenerate(u); },
+                         [](vec3dc const& u) { return is_degenerate(u); },
+                         [](bivec3dc const& u) { return is_degenerate(u); },
+                         [](trivec3dc const& u) { return is_degenerate(u); },
+                         [](quadvec3dc const& u) { return is_degenerate(u); }));
+
+    cga.set_function("is_round",
+                     sol::overload(
+                         sol::resolve<bool(vec2dc const&, value_t)>(is_round),
+                         sol::resolve<bool(bivec2dc const&, value_t)>(is_round),
+                         sol::resolve<bool(trivec2dc const&, value_t)>(is_round),
+                         sol::resolve<bool(vec3dc const&, value_t)>(is_round),
+                         sol::resolve<bool(bivec3dc const&, value_t)>(is_round),
+                         sol::resolve<bool(trivec3dc const&, value_t)>(is_round),
+                         sol::resolve<bool(quadvec3dc const&, value_t)>(is_round),
+                         // default-tolerance forms (Lua has no default args)
+                         [](vec2dc const& u) { return is_round(u); },
+                         [](bivec2dc const& u) { return is_round(u); },
+                         [](trivec2dc const& u) { return is_round(u); },
+                         [](vec3dc const& u) { return is_round(u); },
+                         [](bivec3dc const& u) { return is_round(u); },
+                         [](trivec3dc const& u) { return is_round(u); },
+                         [](quadvec3dc const& u) { return is_round(u); }));
+
+    cga.set_function("radius",
+                     sol::overload(sol::resolve<value_t(vec2dc const&)>(radius),
+                                   sol::resolve<value_t(bivec2dc const&)>(radius),
+                                   sol::resolve<value_t(trivec2dc const&)>(radius),
+                                   sol::resolve<value_t(vec3dc const&)>(radius),
+                                   sol::resolve<value_t(bivec3dc const&)>(radius),
+                                   sol::resolve<value_t(trivec3dc const&)>(radius),
+                                   sol::resolve<value_t(quadvec3dc const&)>(radius)));
+
+    cga.set_function("position",
+                     sol::overload(sol::resolve<vec2d(vec2dc const&)>(position),
+                                   sol::resolve<vec2d(bivec2dc const&)>(position),
+                                   sol::resolve<vec2d(trivec2dc const&)>(position),
+                                   sol::resolve<vec3d(vec3dc const&)>(position),
+                                   sol::resolve<vec3d(bivec3dc const&)>(position),
+                                   sol::resolve<vec3d(trivec3dc const&)>(position),
+                                   sol::resolve<vec3d(quadvec3dc const&)>(position)));
+
+    cga.set_function("direction",
+                     sol::overload(sol::resolve<vec2d(bivec2dc const&)>(direction),
+                                   sol::resolve<vec2d(trivec2dc const&)>(direction),
+                                   sol::resolve<vec3d(bivec3dc const&)>(direction),
+                                   sol::resolve<vec3d(trivec3dc const&)>(direction),
+                                   sol::resolve<vec3d(quadvec3dc const&)>(direction)));
+
+    cga.set_function(
+        "line2dc",
+        sol::overload(
+            sol::resolve<trivec2dc(value_t, value_t, value_t, value_t)>(line2dc),
+            sol::resolve<trivec2dc(vec2d const&, vec2d const&)>(line2dc)));
+
     cga.set_function("center_nrm",
                      sol::overload(sol::resolve<value_t(vec2dc const&)>(center_nrm),
                                    sol::resolve<value_t(bivec2dc const&)>(center_nrm),
@@ -4365,12 +4450,17 @@ void register_functions(sol::state& lua)
 
     cga.set_function(
         "circle2dc",
-        sol::overload(sol::resolve<trivec2dc(value_t, value_t, value_t)>(circle2dc)));
+        sol::overload(sol::resolve<trivec2dc(value_t, value_t, value_t)>(circle2dc),
+                      // cga
+                      sol::resolve<trivec2dc(vec2d const&, value_t)>(circle2dc)));
 
     cga.set_function(
         "circle3dc",
-        sol::overload(sol::resolve<trivec3dc(value_t, value_t, value_t, value_t, value_t,
-                                             value_t, value_t)>(circle3dc)));
+        sol::overload(
+            sol::resolve<trivec3dc(value_t, value_t, value_t, value_t, value_t, value_t,
+                                   value_t)>(circle3dc),
+            // cga
+            sol::resolve<trivec3dc(vec3d const&, value_t, vec3d const&)>(circle3dc)));
 
     cga.set_function("con",
                      sol::overload(sol::resolve<trivec2dc(vec2dc const&)>(con),
@@ -4383,13 +4473,19 @@ void register_functions(sol::state& lua)
 
     cga.set_function(
         "dipole2dc",
-        sol::overload(sol::resolve<bivec2dc(value_t, value_t, value_t, value_t, value_t)>(
-            dipole2dc)));
+        sol::overload(
+            sol::resolve<bivec2dc(value_t, value_t, value_t, value_t, value_t)>(
+                dipole2dc),
+            // cga
+            sol::resolve<bivec2dc(vec2d const&, value_t, vec2d const&)>(dipole2dc)));
 
     cga.set_function(
         "dipole3dc",
-        sol::overload(sol::resolve<bivec3dc(value_t, value_t, value_t, value_t, value_t,
-                                            value_t, value_t)>(dipole3dc)));
+        sol::overload(
+            sol::resolve<bivec3dc(value_t, value_t, value_t, value_t, value_t, value_t,
+                                  value_t)>(dipole3dc),
+            // cga
+            sol::resolve<bivec3dc(vec3d const&, value_t, vec3d const&)>(dipole3dc)));
 
     cga.set_function(
         "flat_bulk",
@@ -4423,11 +4519,15 @@ void register_functions(sol::state& lua)
 
     cga.set_function(
         "flat_point2dc",
-        sol::overload(sol::resolve<bivec2dc(value_t, value_t)>(flat_point2dc)));
+        sol::overload(sol::resolve<bivec2dc(value_t, value_t)>(flat_point2dc),
+                      // cga
+                      sol::resolve<bivec2dc(vec2d const&)>(flat_point2dc)));
 
     cga.set_function(
         "flat_point3dc",
-        sol::overload(sol::resolve<bivec3dc(value_t, value_t, value_t)>(flat_point3dc)));
+        sol::overload(sol::resolve<bivec3dc(value_t, value_t, value_t)>(flat_point3dc),
+                      // cga
+                      sol::resolve<bivec3dc(vec3d const&)>(flat_point3dc)));
 
     cga.set_function(
         "flat_weight",
@@ -4500,7 +4600,9 @@ void register_functions(sol::state& lua)
         "line3dc",
         sol::overload(
             sol::resolve<trivec3dc(value_t, value_t, value_t, value_t, value_t, value_t)>(
-                line3dc)));
+                line3dc),
+            // cga
+            sol::resolve<trivec3dc(vec3d const&, vec3d const&)>(line3dc)));
 
     cga.set_function("par",
                      sol::overload(sol::resolve<vec2dc(vec2dc const&)>(par),
@@ -4514,7 +4616,9 @@ void register_functions(sol::state& lua)
     cga.set_function(
         "plane3dc",
         sol::overload(
-            sol::resolve<quadvec3dc(value_t, value_t, value_t, value_t)>(plane3dc)));
+            sol::resolve<quadvec3dc(value_t, value_t, value_t, value_t)>(plane3dc),
+            // cga
+            sol::resolve<quadvec3dc(vec3d const&, value_t)>(plane3dc)));
 
     cga.set_function("r_antidual",
                      sol::overload(sol::resolve<pscalar2dc(scalar2dc)>(r_antidual),
@@ -4590,12 +4694,16 @@ void register_functions(sol::state& lua)
 
     cga.set_function(
         "round_point2dc",
-        sol::overload(sol::resolve<vec2dc(value_t, value_t, value_t)>(round_point2dc)));
+        sol::overload(sol::resolve<vec2dc(value_t, value_t, value_t)>(round_point2dc),
+                      // cga
+                      sol::resolve<vec2dc(vec2d const&, value_t)>(round_point2dc)));
 
     cga.set_function(
         "round_point3dc",
         sol::overload(
-            sol::resolve<vec3dc(value_t, value_t, value_t, value_t)>(round_point3dc)));
+            sol::resolve<vec3dc(value_t, value_t, value_t, value_t)>(round_point3dc),
+            // cga
+            sol::resolve<vec3dc(vec3d const&, value_t)>(round_point3dc)));
 
     cga.set_function(
         "round_weight",
@@ -4630,7 +4738,9 @@ void register_functions(sol::state& lua)
     cga.set_function(
         "sphere3dc",
         sol::overload(
-            sol::resolve<quadvec3dc(value_t, value_t, value_t, value_t)>(sphere3dc)));
+            sol::resolve<quadvec3dc(value_t, value_t, value_t, value_t)>(sphere3dc),
+            // cga
+            sol::resolve<quadvec3dc(vec3d const&, value_t)>(sphere3dc)));
 
     ega.set_function(
         "is_close",

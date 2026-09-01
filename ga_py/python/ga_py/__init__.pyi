@@ -7,7 +7,7 @@ from collections.abc import Sequence
 import enum
 from typing import overload
 
-from _ga_py import cga as cga, ega as ega, pga as pga, sta as sta
+from . import cga as cga, ega as ega, pga as pga, sta as sta
 
 
 class fd_kind(enum.Enum):

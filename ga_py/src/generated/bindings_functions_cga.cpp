@@ -92,9 +92,13 @@ void register_functions_cga(nb::module_& m)
     m.def("center_nrm_sq", [](quadvec3dc const& a0) { return center_nrm_sq(a0); });
     m.def("circle2dc",
           [](double a0, double a1, double a2) { return circle2dc(a0, a1, a2); });
+    m.def("circle2dc", [](vec2d const& a0, double a1) { return circle2dc(a0, a1); });
     m.def("circle3dc",
           [](double a0, double a1, double a2, double a3, double a4, double a5,
              double a6) { return circle3dc(a0, a1, a2, a3, a4, a5, a6); });
+    m.def("circle3dc", [](vec3d const& a0, double a1, vec3d const& a2) {
+        return circle3dc(a0, a1, a2);
+    });
     m.def("cmpl", [](scalar3dc const& a0) { return cmpl(a0); });
     m.def("cmpl", [](vec3dc const& a0) { return cmpl(a0); });
     m.def("cmpl", [](bivec3dc const& a0) { return cmpl(a0); });
@@ -194,11 +198,22 @@ void register_functions_cga(nb::module_& m)
     m.def("dipole2dc", [](double a0, double a1, double a2, double a3, double a4) {
         return dipole2dc(a0, a1, a2, a3, a4);
     });
+    m.def("dipole2dc", [](vec2d const& a0, double a1, vec2d const& a2) {
+        return dipole2dc(a0, a1, a2);
+    });
     m.def("dipole3dc",
           [](double a0, double a1, double a2, double a3, double a4, double a5,
              double a6) { return dipole3dc(a0, a1, a2, a3, a4, a5, a6); });
+    m.def("dipole3dc", [](vec3d const& a0, double a1, vec3d const& a2) {
+        return dipole3dc(a0, a1, a2);
+    });
     m.def("dipole_points", [](bivec2dc const& a0) { return dipole_points(a0); });
     m.def("dipole_points", [](bivec3dc const& a0) { return dipole_points(a0); });
+    m.def("direction", [](bivec2dc const& a0) { return direction(a0); });
+    m.def("direction", [](trivec2dc const& a0) { return direction(a0); });
+    m.def("direction", [](bivec3dc const& a0) { return direction(a0); });
+    m.def("direction", [](trivec3dc const& a0) { return direction(a0); });
+    m.def("direction", [](quadvec3dc const& a0) { return direction(a0); });
     m.def("dot", [](mvec2dc const& a0, mvec2dc const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dc_e const& a0, mvec2dc_e const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dc_u const& a0, mvec2dc_u const& a1) { return dot(a0, a1); });
@@ -247,8 +262,10 @@ void register_functions_cga(nb::module_& m)
     m.def("flat_bulk_nrm_sq", [](trivec3dc const& a0) { return flat_bulk_nrm_sq(a0); });
     m.def("flat_bulk_nrm_sq", [](quadvec3dc const& a0) { return flat_bulk_nrm_sq(a0); });
     m.def("flat_point2dc", [](double a0, double a1) { return flat_point2dc(a0, a1); });
+    m.def("flat_point2dc", [](vec2d const& a0) { return flat_point2dc(a0); });
     m.def("flat_point3dc",
           [](double a0, double a1, double a2) { return flat_point3dc(a0, a1, a2); });
+    m.def("flat_point3dc", [](vec3d const& a0) { return flat_point3dc(a0); });
     m.def("flat_weight", [](vec2dc const& a0) { return flat_weight(a0); });
     m.def("flat_weight", [](bivec2dc const& a0) { return flat_weight(a0); });
     m.def("flat_weight", [](trivec2dc const& a0) { return flat_weight(a0); });
@@ -426,6 +443,34 @@ void register_functions_cga(nb::module_& m)
     m.def("is_congruent", [](pscalar3dc const& a0, pscalar3dc const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
+    m.def("is_degenerate",
+          [](vec2dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](bivec2dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](trivec2dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](vec3dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](bivec3dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](trivec3dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_degenerate",
+          [](quadvec3dc const& a0, double a1) { return is_degenerate(a0, a1); });
+    m.def("is_flat", [](vec2dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](bivec2dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](trivec2dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](vec3dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](bivec3dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](trivec3dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_flat", [](quadvec3dc const& a0, double a1) { return is_flat(a0, a1); });
+    m.def("is_round", [](vec2dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](bivec2dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](trivec2dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](vec3dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](bivec3dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](trivec3dc const& a0, double a1) { return is_round(a0, a1); });
+    m.def("is_round", [](quadvec3dc const& a0, double a1) { return is_round(a0, a1); });
     m.def("is_same_transform", [](mvec2dc_e const& a0, mvec2dc_e const& a1, double a2) {
         return is_same_transform(a0, a1, a2);
     });
@@ -456,8 +501,13 @@ void register_functions_cga(nb::module_& m)
     m.def("l_dual", [](mvec2dc_e const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2dc_u const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2dc const& a0) { return l_dual(a0); });
+    m.def("line2dc", [](double a0, double a1, double a2, double a3) {
+        return line2dc(a0, a1, a2, a3);
+    });
+    m.def("line2dc", [](vec2d const& a0, vec2d const& a1) { return line2dc(a0, a1); });
     m.def("line3dc", [](double a0, double a1, double a2, double a3, double a4,
                         double a5) { return line3dc(a0, a1, a2, a3, a4, a5); });
+    m.def("line3dc", [](vec3d const& a0, vec3d const& a1) { return line3dc(a0, a1); });
     m.def("par", [](vec2dc const& a0) { return par(a0); });
     m.def("par", [](bivec2dc const& a0) { return par(a0); });
     m.def("par", [](trivec2dc const& a0) { return par(a0); });
@@ -468,6 +518,14 @@ void register_functions_cga(nb::module_& m)
     m.def("plane3dc", [](double a0, double a1, double a2, double a3) {
         return plane3dc(a0, a1, a2, a3);
     });
+    m.def("plane3dc", [](vec3d const& a0, double a1) { return plane3dc(a0, a1); });
+    m.def("position", [](vec2dc const& a0) { return position(a0); });
+    m.def("position", [](bivec2dc const& a0) { return position(a0); });
+    m.def("position", [](trivec2dc const& a0) { return position(a0); });
+    m.def("position", [](vec3dc const& a0) { return position(a0); });
+    m.def("position", [](bivec3dc const& a0) { return position(a0); });
+    m.def("position", [](trivec3dc const& a0) { return position(a0); });
+    m.def("position", [](quadvec3dc const& a0) { return position(a0); });
     m.def("r_antidual", [](scalar2dc const& a0) { return r_antidual(a0); });
     m.def("r_antidual", [](vec2dc const& a0) { return r_antidual(a0); });
     m.def("r_antidual", [](bivec2dc const& a0) { return r_antidual(a0); });
@@ -492,6 +550,13 @@ void register_functions_cga(nb::module_& m)
     m.def("r_dual", [](mvec2dc_e const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2dc_u const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2dc const& a0) { return r_dual(a0); });
+    m.def("radius", [](vec2dc const& a0) { return radius(a0); });
+    m.def("radius", [](bivec2dc const& a0) { return radius(a0); });
+    m.def("radius", [](trivec2dc const& a0) { return radius(a0); });
+    m.def("radius", [](vec3dc const& a0) { return radius(a0); });
+    m.def("radius", [](bivec3dc const& a0) { return radius(a0); });
+    m.def("radius", [](trivec3dc const& a0) { return radius(a0); });
+    m.def("radius", [](quadvec3dc const& a0) { return radius(a0); });
     m.def("radius_nrm_sq", [](vec2dc const& a0) { return radius_nrm_sq(a0); });
     m.def("radius_nrm_sq", [](bivec2dc const& a0) { return radius_nrm_sq(a0); });
     m.def("radius_nrm_sq", [](trivec2dc const& a0) { return radius_nrm_sq(a0); });
@@ -806,9 +871,13 @@ void register_functions_cga(nb::module_& m)
           [](quadvec3dc const& a0) { return round_bulk_nrm_sq(a0); });
     m.def("round_point2dc",
           [](double a0, double a1, double a2) { return round_point2dc(a0, a1, a2); });
+    m.def("round_point2dc",
+          [](vec2d const& a0, double a1) { return round_point2dc(a0, a1); });
     m.def("round_point3dc", [](double a0, double a1, double a2, double a3) {
         return round_point3dc(a0, a1, a2, a3);
     });
+    m.def("round_point3dc",
+          [](vec3d const& a0, double a1) { return round_point3dc(a0, a1); });
     m.def("round_weight", [](vec2dc const& a0) { return round_weight(a0); });
     m.def("round_weight", [](bivec2dc const& a0) { return round_weight(a0); });
     m.def("round_weight", [](trivec2dc const& a0) { return round_weight(a0); });
@@ -1009,6 +1078,7 @@ void register_functions_cga(nb::module_& m)
     m.def("sphere3dc", [](double a0, double a1, double a2, double a3) {
         return sphere3dc(a0, a1, a2, a3);
     });
+    m.def("sphere3dc", [](vec3d const& a0, double a1) { return sphere3dc(a0, a1); });
     m.def("transform",
           [](vec2dc const& a0, mvec2dc_e const& a1) { return transform(a0, a1); });
     m.def("transform",

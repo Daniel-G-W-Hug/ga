@@ -428,6 +428,235 @@ TEST_SUITE("CGA 3dc Tests")
                           round_point3dc(3.0, 4.0, 0.0, 0.0))) == -12.5);
     }
 
+    TEST_CASE("cga3dc: flat/round classification")
+    {
+        fmt::println("cga3dc: flat/round classification");
+
+        // the grade does not decide the kind: each grade from 2 to 4 carries a
+        // round and a flat object, and is_flat separates them
+        auto rp = round_point3dc(1.0, 2.0, 3.0, 0.0);
+        auto d = dipole3dc(1.0, 2.0, 3.0, 2.5, 0.0, 0.0, 1.0);
+        auto c = circle3dc(1.0, 2.0, 3.0, 2.5, 0.0, 0.0, 1.0);
+        auto s = sphere3dc(1.0, 2.0, 3.0, 2.5);
+        auto fp = flat_point3dc(1.0, 2.0, 3.0);
+        auto l = line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0);
+        auto p = plane3dc(0.0, 0.0, 1.0, 4.0);
+
+        CHECK(is_round(rp));
+        CHECK(is_round(d)); // grade 2, round
+        CHECK(is_flat(fp)); // grade 2, flat
+        CHECK(is_round(c)); // grade 3, round
+        CHECK(is_flat(l));  // grade 3, flat
+        CHECK(is_round(s)); // grade 4, round
+        CHECK(is_flat(p));  // grade 4, flat
+
+        // the two are complementary
+        CHECK(is_round(d) == !is_flat(d));
+        CHECK(is_round(l) == !is_flat(l));
+
+        // a COMPUTED flat is classified too: the carrier of a round point is
+        // the flat point through it (4.25), and a transformed line stays flat
+        CHECK(is_flat(car(rp)));
+        CHECK(is_flat(transform(l, get_translation(1.0, 2.0, 3.0))));
+        CHECK(
+            is_round(transform(s, get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 3.0))));
+
+        // the test is RELATIVE: the object's weight must not change the answer
+        CHECK(is_flat(1.0e8 * l));
+        CHECK(is_flat(1.0e-8 * l));
+        CHECK(is_round(1.0e8 * s));
+
+        // and it discriminates at the tolerance, not at exact zero: a line
+        // contaminated by a fraction f of a circle is flat below eps_congruent
+        // and round above it (falsification of the tolerance itself -- an
+        // absolute test would answer differently at the two scales below)
+        CHECK(is_flat(l + 1.0e-13 * c));
+        CHECK(is_round(l + 1.0e-10 * c));
+        CHECK(is_flat(1.0e8 * (l + 1.0e-13 * c)));
+        CHECK(is_round(1.0e8 * (l + 1.0e-10 * c)));
+
+        // an explicit tolerance moves the threshold
+        CHECK(is_round(l + 1.0e-6 * c));
+        CHECK(is_flat(l + 1.0e-6 * c, 1.0e-3));
+
+        // a flat has no radius: radius_sq divides by the vanishing round weight
+        CHECK(round_weight_nrm_sq(l) == 0.0);
+        CHECK(round_weight_nrm_sq(p) == 0.0);
+        CHECK(round_weight_nrm_sq(s) != 0.0);
+    }
+
+    TEST_CASE("cga3dc: directional-argument convention and vector overloads")
+    {
+        fmt::println("cga3dc: directional-argument convention and vector overloads");
+
+        auto const p = vec3d(1.0, 2.0, 3.0);
+        double const r = 2.0;
+
+        // DIRECTION objects: the argument is the object's own direction, which
+        // is pinned geometrically rather than by reading components -- the two
+        // points of a dipole lie at center +/- r * direction
+        for (auto const& d :
+             {vec3d(1.0, 0.0, 0.0), vec3d(0.0, 1.0, 0.0), vec3d(0.0, 0.0, 1.0)}) {
+            auto dp = dipole3dc(p.x, p.y, p.z, r, d.x, d.y, d.z);
+            auto pts = dipole_points(dp);
+            CHECK(pts.first.x == doctest::Approx(p.x + r * d.x));
+            CHECK(pts.first.y == doctest::Approx(p.y + r * d.y));
+            CHECK(pts.first.z == doctest::Approx(p.z + r * d.z));
+            CHECK(pts.second.x == doctest::Approx(p.x - r * d.x));
+            CHECK(pts.second.y == doctest::Approx(p.y - r * d.y));
+            CHECK(pts.second.z == doctest::Approx(p.z - r * d.z));
+
+            // a line's direction: points along it are incident with it
+            auto l = line3dc(p.x, p.y, p.z, d.x, d.y, d.z);
+            auto on =
+                round_point3dc(p.x + 3.0 * d.x, p.y + 3.0 * d.y, p.z + 3.0 * d.z, 0.0);
+            CHECK(is_close(mvec3dc(wdg(on, l)), mvec3dc(scalar3dc(0.0))));
+        }
+
+        // NORMAL objects: the hyperplane datum. A plane contains every point
+        // it should, and a circle's plane is the one with the given normal
+        auto n = vec3d(0.0, 0.0, 1.0);
+        auto pl = plane3dc(n.x, n.y, n.z, 3.0);
+        CHECK(is_close(mvec3dc(wdg(round_point3dc(5.0, -7.0, 3.0, 0.0), pl)),
+                       mvec3dc(scalar3dc(0.0)))); // z = d = 3 lies in it
+        auto ci = circle3dc(p.x, p.y, p.z, r, n.x, n.y, n.z);
+        // a point of the circle: centre + r * (unit vector perpendicular to n)
+        CHECK(is_close(mvec3dc(wdg(round_point3dc(p.x + r, p.y, p.z, 0.0), ci)),
+                       mvec3dc(scalar3dc(0.0))));
+
+        // the vector-taking overloads build exactly the component-form object
+        auto d = vec3d(0.0, 1.0, 0.0);
+        CHECK(round_point3dc(p, r) == round_point3dc(p.x, p.y, p.z, r));
+        CHECK(flat_point3dc(p) == flat_point3dc(p.x, p.y, p.z));
+        CHECK(sphere3dc(p, r) == sphere3dc(p.x, p.y, p.z, r));
+        CHECK(line3dc(p, d) == line3dc(p.x, p.y, p.z, d.x, d.y, d.z));
+        CHECK(plane3dc(n, 3.0) == plane3dc(n.x, n.y, n.z, 3.0));
+        CHECK(circle3dc(p, r, n) == circle3dc(p.x, p.y, p.z, r, n.x, n.y, n.z));
+        CHECK(dipole3dc(p, r, d) == dipole3dc(p.x, p.y, p.z, r, d.x, d.y, d.z));
+
+        // and the accessors feed straight back into them (the reason for the
+        // overloads): position() returns the vec3d a constructor takes
+        auto s = sphere3dc(p, r);
+        CHECK(sphere3dc(position(s), radius(s)) == s);
+    }
+
+    TEST_CASE("cga3dc: direction as one accessor over the object kinds")
+    {
+        fmt::println("cga3dc: direction as one accessor over the object kinds");
+
+        auto const p = vec3d(1.0, 2.0, 3.0);
+        auto const d = vec3d(0.6, 0.0, 0.8); // unit
+        double const r = 2.0;
+
+        auto same = [](vec3d const& a, vec3d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y) &&
+                   a.z == doctest::Approx(b.z);
+        };
+
+        // ONE name over four kinds: the axis of a dipole, the direction of a
+        // line, the normal of a circle's plane and of a plane -- each the
+        // constructor's own directional argument, recovered
+        CHECK(same(direction(dipole3dc(p, r, d)), d));
+        CHECK(same(direction(line3dc(p, d)), d));
+        CHECK(same(direction(circle3dc(p, r, d)), d)); // d is the plane normal
+        CHECK(same(direction(plane3dc(d, 3.0)), d));
+
+        // weight-independent: the result is a unit vector whatever the scale
+        CHECK(same(direction(1.0e7 * dipole3dc(p, r, d)), d));
+        CHECK(same(direction(1.0e-7 * line3dc(p, d)), d));
+        CHECK(same(direction(1.0e7 * plane3dc(d, 3.0)), d));
+
+        // both branches of the shared grade 3 are served, which is why is_flat
+        // is consulted: a line gives a direction, a circle a normal
+        auto l = line3dc(p, d);
+        auto c = circle3dc(p, r, d);
+        CHECK(is_flat(l));
+        CHECK(is_round(c));
+        CHECK(same(direction(l), direction(c))); // same vector, different meaning
+
+        // the kinds that have none
+        CHECK_THROWS_AS(direction(flat_point3dc(p)), std::runtime_error);
+        CHECK_THROWS_AS(direction(sphere3dc(p, r)), std::runtime_error);
+
+        // it survives a rigid motion the way a direction must: a rotation by
+        // pi/2 about z carries x to y for every kind at once
+        auto R = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 2.0);
+        auto const ex = vec3d(1.0, 0.0, 0.0), ey = vec3d(0.0, 1.0, 0.0);
+        CHECK(same(direction(transform(dipole3dc(p, r, ex), R)), ey));
+        CHECK(same(direction(transform(line3dc(p, ex), R)), ey));
+        CHECK(same(direction(transform(plane3dc(ex, 3.0), R)), ey));
+        // and a translation leaves every direction alone
+        auto M = get_translation(4.0, -5.0, 6.0);
+        CHECK(same(direction(transform(line3dc(p, d), M)), d));
+        CHECK(same(direction(transform(circle3dc(p, r, d), M)), d));
+    }
+
+    TEST_CASE("cga3dc: Euclidean accessors - radius and position")
+    {
+        fmt::println("cga3dc: Euclidean accessors - radius and position");
+
+        double const px = 1.0, py = 2.0, pz = 3.0, r = 2.5;
+        auto rp = round_point3dc(px, py, pz, r);
+        auto d = dipole3dc(px, py, pz, r, 0.0, 0.0, 1.0);
+        auto c = circle3dc(px, py, pz, r, 0.0, 0.0, 1.0);
+        auto s = sphere3dc(px, py, pz, r);
+        auto fp = flat_point3dc(px, py, pz);
+
+        // round trip against the constructor's own arguments, at every grade
+        CHECK(radius(rp) == doctest::Approx(r));
+        CHECK(radius(d) == doctest::Approx(r));
+        CHECK(radius(c) == doctest::Approx(r));
+        CHECK(radius(s) == doctest::Approx(r));
+
+        // position returns an EGA vec3d; ga_cga.hpp carries the EGA types but
+        // not the EGA operations, so compare componentwise here
+        auto same = [](vec3d const& a, vec3d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y) &&
+                   a.z == doctest::Approx(b.z);
+        };
+        auto const expect = vec3d(px, py, pz);
+        CHECK(same(position(rp), expect));
+        CHECK(same(position(d), expect));
+        CHECK(same(position(c), expect));
+        CHECK(same(position(s), expect));
+        // the flat point has a position too, held in the flat part instead
+        CHECK(same(position(fp), expect));
+
+        // both are independent of the object's weight
+        CHECK(radius(1.0e6 * s) == doctest::Approx(r));
+        CHECK(same(position(1.0e6 * s), expect));
+        CHECK(same(position(1.0e6 * fp), expect));
+
+        // radius is the square root of the signed square, and the partner --
+        // same centre, r^2 negated -- is exactly the imaginary case that throws
+        CHECK(radius_sq(s) == doctest::Approx(r * r));
+        CHECK(radius_sq(par(s)) == doctest::Approx(-r * r));
+        CHECK_THROWS_AS(radius(par(s)), std::runtime_error);
+
+        // a flat has no radius, and a line or plane has no centre
+        auto l = line3dc(px, py, pz, 1.0, 0.0, 0.0);
+        auto p = plane3dc(0.0, 0.0, 1.0, 4.0);
+        CHECK_THROWS(radius(l));
+        CHECK_THROWS(radius(p));
+        CHECK_THROWS_AS(position(l), std::runtime_error);
+        CHECK_THROWS_AS(position(p), std::runtime_error);
+
+        // an unreachable two-link target makes the meet imaginary: radius_sq
+        // is the sign test that decides BEFORE the square root is taken
+        auto miss = rwdg(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(10.0, 0.0, 0.0, 1.0));
+        CHECK(radius_sq(miss) < 0.0);
+        CHECK_THROWS_AS(radius(miss), std::runtime_error);
+
+        // the centre survives a rigid motion the way a position must
+        auto M = get_translation(1.0, -2.0, 0.5);
+        CHECK(same(position(transform(s, M)), vec3d(px + 1.0, py - 2.0, pz + 0.5)));
+        CHECK(radius(transform(s, M)) == doctest::Approx(r));
+        // and a dilation scales the radius by sigma while fixing its centre
+        auto D = get_dilation(px, py, pz, 2.0);
+        CHECK(radius(transform(s, D)) == doctest::Approx(2.0 * r));
+        CHECK(same(position(transform(s, D)), expect));
+    }
+
     TEST_CASE("cga3dc: off-center intersections with lines and planes")
     {
         fmt::println("cga3dc: off-center intersections with lines and planes");
@@ -481,6 +710,186 @@ TEST_SUITE("CGA 3dc Tests")
             is_close(unitize(cen(unitize(cut(1.0)))), round_point3dc(0.0, 0.0, 1.0, s3)));
         CHECK(radius_sq(cut(2.0)) == 0.0);  // tangent plane
         CHECK(radius_sq(cut(3.0)) == -5.0); // plane misses the sphere
+
+        // read the cut circle back with the Euclidean accessors: its plane is
+        // the cutting plane, so its normal is that plane's normal, and its
+        // centre is the foot of the perpendicular from the sphere's centre
+        auto const same = [](vec3d const& a, vec3d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y) &&
+                   a.z == doctest::Approx(b.z);
+        };
+        auto const c1 = cut(1.0);
+        CHECK(radius(c1) == doctest::Approx(s3));
+        CHECK(same(position(c1), vec3d(0.0, 0.0, 1.0)));
+        CHECK(std::abs(direction(c1).z) == doctest::Approx(1.0)); // plane normal
+        CHECK(direction(c1).x == doctest::Approx(0.0));
+        CHECK(direction(c1).y == doctest::Approx(0.0));
+
+        // the TANGENT plane touches at a single point: a zero-radius circle
+        // sitting exactly on the sphere
+        CHECK(radius(cut(2.0)) == doctest::Approx(0.0));
+        CHECK(same(position(cut(2.0)), vec3d(0.0, 0.0, 2.0)));
+        // and the missing plane has no real radius to take
+        CHECK_THROWS_AS(radius(cut(3.0)), std::runtime_error);
+
+        // the same for the LINE meets: the chord is a dipole whose axis is the
+        // line's own direction and whose centre is the chord's midpoint
+        auto const d1 = rwdg(s, line3dc(0.0, 1.0, 0.0, 1.0, 0.0, 0.0));
+        CHECK(is_round(d1)); // a dipole, not a flat point
+        CHECK(radius(d1) == doctest::Approx(s3));
+        CHECK(same(position(d1), vec3d(0.0, 1.0, 0.0)));
+        CHECK(std::abs(direction(d1).x) == doctest::Approx(1.0)); // along the line
+        CHECK(direction(d1).y == doctest::Approx(0.0));
+        CHECK(direction(d1).z == doctest::Approx(0.0));
+        // tangent line: the dipole degenerates to the touch point
+        auto const d2 = rwdg(s, line3dc(0.0, 2.0, 0.0, 1.0, 0.0, 0.0));
+        CHECK(radius(d2) == doctest::Approx(0.0));
+        CHECK(same(position(d2), vec3d(0.0, 2.0, 0.0)));
+        // missing line: imaginary, so no real points
+        CHECK_THROWS_AS(radius(rwdg(s, line3dc(0.0, 3.0, 0.0, 1.0, 0.0, 0.0))),
+                        std::runtime_error);
+        CHECK_THROWS_AS(dipole_points(rwdg(s, line3dc(0.0, 3.0, 0.0, 1.0, 0.0, 0.0))),
+                        std::runtime_error);
+    }
+
+    TEST_CASE("cga3dc: sphere-sphere intersection end to end")
+    {
+        fmt::println("cga3dc: sphere-sphere intersection end to end");
+
+        // The 3d counterpart of the cga2dc circle-circle case. Two spheres meet
+        // in a CIRCLE (quadvector v quadvector -> trivector), and one chain
+        // covers every configuration: meet -> sign of radius_sq -> the circle.
+        // Nothing branches on whether they intersect; the radius decides.
+        // (sphere v plane and sphere v line are the neighbouring case,
+        // "off-center intersections with lines and planes".)
+        auto const meet2 = [](quadvec3dc const& a, quadvec3dc const& b) {
+            return rwdg(a, b);
+        };
+        auto const same = [](vec3d const& a, vec3d const& b) {
+            return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y) &&
+                   a.z == doctest::Approx(b.z);
+        };
+
+        // SECANT: two r=2 spheres at (0,0,0) and (2,0,0) meet in the circle of
+        // radius sqrt(3) in the plane x = 1, whose normal is the centre line
+        auto sec = meet2(sphere3dc(0.0, 0.0, 0.0, 2.0), sphere3dc(2.0, 0.0, 0.0, 2.0));
+        CHECK(radius_sq(sec) == doctest::Approx(3.0)); // r^2 - d^2 = 4 - 1
+        CHECK(radius(sec) == doctest::Approx(std::sqrt(3.0)));
+        CHECK(same(position(sec), vec3d(1.0, 0.0, 0.0)));
+        CHECK(is_round(sec)); // the meet of two spheres is a round circle
+        // its plane's normal lies along the line of centres (sign is the
+        // meet's orientation, so compare up to it)
+        auto n = direction(sec);
+        CHECK(std::abs(n.x) == doctest::Approx(1.0));
+        CHECK(n.y == doctest::Approx(0.0));
+        CHECK(n.z == doctest::Approx(0.0));
+        // every point of that circle lies on BOTH spheres
+        auto const on = round_point3dc(1.0, std::sqrt(3.0), 0.0, 0.0);
+        CHECK(is_close(mvec3dc(wdg(on, sphere3dc(0.0, 0.0, 0.0, 2.0))),
+                       mvec3dc(scalar3dc(0.0))));
+        CHECK(is_close(mvec3dc(wdg(on, sphere3dc(2.0, 0.0, 0.0, 2.0))),
+                       mvec3dc(scalar3dc(0.0))));
+
+        // EXTERNALLY TANGENT: r=1 at the origin and r=2 at (3,0,0) touch at
+        // (1,0,0) -- the circle degenerates to a point, radius exactly zero
+        auto ext = meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(3.0, 0.0, 0.0, 2.0));
+        CHECK(radius_sq(ext) == doctest::Approx(0.0));
+        CHECK(radius(ext) == doctest::Approx(0.0));
+        CHECK(same(position(ext), vec3d(1.0, 0.0, 0.0)));
+
+        // INTERNALLY TANGENT: r=3 at the origin and r=2 at (1,0,0) touch at
+        // (3,0,0) -- also a zero-radius circle, from the inside
+        auto in_ = meet2(sphere3dc(0.0, 0.0, 0.0, 3.0), sphere3dc(1.0, 0.0, 0.0, 2.0));
+        CHECK(radius_sq(in_) == doctest::Approx(0.0));
+        CHECK(same(position(in_), vec3d(3.0, 0.0, 0.0)));
+
+        // DISJOINT: the meet still exists, with an imaginary radius -- this is
+        // the sign test a caller makes before taking the square root
+        auto dis = meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(5.0, 0.0, 0.0, 1.0));
+        CHECK(radius_sq(dis) < 0.0);
+        CHECK(radius_sq(dis) == doctest::Approx(-5.25));
+        CHECK_THROWS_AS(radius(dis), std::runtime_error);
+
+        // ONE SPHERE INSIDE THE OTHER, not touching: also imaginary, so the
+        // same sign test covers the second way of not intersecting
+        auto nes = meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(0.5, 0.0, 0.0, 3.0));
+        CHECK(radius_sq(nes) < 0.0);
+        CHECK_THROWS_AS(radius(nes), std::runtime_error);
+
+        // CONCENTRIC: a degenerate meet. It is NOT flat -- it keeps a round
+        // bulk -- yet it has no round weight at all, so it has neither a
+        // radius nor a centre, and both accessors must refuse rather than
+        // divide by zero (the guard is on the round weight, not on is_flat)
+        auto con2 = meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(0.0, 0.0, 0.0, 2.0));
+        CHECK_FALSE(is_flat(con2));
+        CHECK(round_weight_nrm_sq(con2) == 0.0);
+        // the MESSAGE is pinned, not just the throw: this build defines
+        // _HD_GA_EXTENDED_TEST_DIV_BY_ZERO, so radius_sq's division check would
+        // throw here even with the old, narrower is_flat guard -- and a bare
+        // CHECK_THROWS therefore passes whether or not the round-weight guard
+        // exists. Naming the message is what actually pins it.
+        CHECK_THROWS_WITH_AS(radius_sq(con2), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(radius(con2), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(position(con2), doctest::Contains("no round weight"),
+                             std::runtime_error);
+        // is_degenerate names that condition, and is INDEPENDENT of flat/round:
+        // the concentric meet is round AND degenerate
+        CHECK(is_degenerate(con2));
+        CHECK(is_round(con2));
+        // every ordinary meet above is non-degenerate, whatever its radius sign
+        CHECK_FALSE(is_degenerate(sec));
+        CHECK_FALSE(is_degenerate(ext));
+        CHECK_FALSE(is_degenerate(dis));
+        // a flat is degenerate too (no round weight at all), so the two
+        // questions overlap without either implying the other
+        CHECK(is_degenerate(plane3dc(0.0, 0.0, 1.0, 1.0)));
+        CHECK(is_flat(plane3dc(0.0, 0.0, 1.0, 1.0)));
+
+        // the reason it is a FUNCTION and not `round_weight_nrm_sq(m) == 0.0`
+        // at the call site: a meet of NEARLY concentric spheres leaves a tiny
+        // but non-zero weight, which an exact test misses. The relative test
+        // catches it, and widening rel_tol moves the threshold.
+        auto const near_ =
+            meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(1.0e-16, 0.0, 0.0, 2.0));
+        CHECK(round_weight_nrm_sq(near_) > 0.0); // an exact == 0.0 test FAILS here
+        CHECK(is_degenerate(near_));             // the relative one does not
+        // further apart, it is an ordinary (here: non-intersecting) pair again
+        auto const far_ =
+            meet2(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(0.1, 0.0, 0.0, 2.0));
+        CHECK_FALSE(is_degenerate(far_));
+        CHECK(radius_sq(far_) < 0.0);    // nested, so no real intersection
+        CHECK(is_degenerate(far_, 0.5)); // a wide tolerance calls it degenerate
+
+        // the documented three-way ladder, exercised as a caller would write it
+        auto const classify = [](quadvec3dc const& a, quadvec3dc const& b) -> int {
+            auto m = rwdg(a, b);
+            if (is_degenerate(m)) return 0;   // concentric: no centre, no radius
+            if (radius_sq(m) < 0.0) return 1; // no real intersection
+            return 2;                         // real circle or tangent point
+        };
+        CHECK(classify(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(0.0, 0.0, 0.0, 2.0)) ==
+              0);
+        CHECK(classify(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(5.0, 0.0, 0.0, 1.0)) ==
+              1);
+        CHECK(classify(sphere3dc(0.0, 0.0, 0.0, 2.0), sphere3dc(2.0, 0.0, 0.0, 2.0)) ==
+              2);
+        CHECK(classify(sphere3dc(0.0, 0.0, 0.0, 1.0), sphere3dc(3.0, 0.0, 0.0, 2.0)) ==
+              2); // tangent
+
+        // the whole ladder is monotone in the centre distance: as the second
+        // sphere moves away, the meet radius shrinks through zero into the
+        // imaginary range, with no branch anywhere in the chain
+        value_t prev = 1.0e30;
+        for (value_t d : {0.0, 1.0, 2.0, 3.0, 4.0, 5.0}) {
+            auto m = meet2(sphere3dc(0.0, 0.0, 0.0, 2.0), sphere3dc(d, 0.0, 0.0, 2.0));
+            if (d == 0.0) continue; // concentric: no radius (checked above)
+            value_t const rs = radius_sq(m);
+            CHECK(rs < prev); // strictly decreasing
+            prev = rs;
+        }
+        CHECK(prev < 0.0); // ends imaginary, i.e. separated
     }
 
     TEST_CASE("cga3dc: dipole points and two-link inverse kinematics")

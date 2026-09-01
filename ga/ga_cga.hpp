@@ -29,6 +29,12 @@
 #include "ga_usr_types.hpp"     // consistent user types
 #include "ga_usr_utilities.hpp" // helper functions
 
+// CGA models Euclidean space, so its Euclidean accessors (position, radius,
+// direction, normal) hand back EGA vectors -- pull in the EGA operations too,
+// or the returned vectors would be inert here (their types alone come with the
+// foundation, their operations do not)
+#include "ga_ega.hpp"
+
 // CGA-specific operations are in namespace hd::ga::cga
 #include "ga_cga2dc_ops_basics.hpp"   // involutions, complements, duals, antiduals
 #include "ga_cga2dc_ops_products.hpp" // products (dot, wdg, contractions, gpr, rgpr,
