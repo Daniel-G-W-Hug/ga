@@ -124,8 +124,11 @@ It is a **drafting aid** — review each block before pasting:
 The *apply* counterpart to `gen_lua_overloads.py`. That one drafts a whole new
 `set_function` block for a name nothing binds yet; this one **extends an existing
 block** with one family's overloads, in place. Use it when a name is already bound for
-some algebras and a newly-registered family adds more to the same name — a name binds
-once in `ga_lua`, so all its overloads must live in a single `sol::overload(...)`.
+a family and newly added library overloads have to join the same block.
+
+A name is bound **per algebra table** — `ega.wdg`, `pga.wdg`, `cga.wdg` and `sta.wdg`
+are four separate bindings of one name, and 53 names sit on more than one table. So
+`--algebra` selects both the manifest namespace to read *and* the table to edit.
 
 ```bash
 python3 ga_lua/utilities/splice_overloads.py --algebra=cga --dry-run   # report only
@@ -137,6 +140,22 @@ It reads the family's overloads from the manifest (sharing the concretiser with 
 generator), paren-matches the enclosing `sol::overload(`, and inserts the missing
 `sol::resolve` lines before its close under a `// <family>` comment. It creates no new
 blocks and skips any name that is not already bound.
+
+**`--exclude REGEX` expresses a per-CLASS decision.** The tool works per *name*, but a
+name's overloads rarely all belong to one class -- 4 of pga `wdg`'s 70 gaps take the
+named `point`/`line`/`plane` types and the other 66 do not. Any generated signature
+matching the regex is skipped and counted, so a class decision becomes a recorded,
+repeatable invocation instead of a hand-edit afterwards:
+
+```bash
+EXCL='\b(point|line|plane)[0-9]|std::vector|dualnum'     # named types, batch, dualnum
+python3 splice_overloads.py --algebra=pga --exclude "$EXCL" "wdg,rwdg,rgpr,dot"
+# cmt/rcmt additionally: a commutator with a SCALAR is zero in every algebra, and with
+# a PSEUDOSCALAR wherever I is central (ega3d, pga2dp) -- binding those adds surface
+# that can only answer 0
+python3 splice_overloads.py --algebra=pga \
+    --exclude "$EXCL"'|\bscalar|\bpscalar3d\b|\bpscalar2dp\b' "cmt,rcmt"
+```
 
 **It is idempotent, and that has to survive clang-format.** The presence test compares
 signatures with all whitespace removed, because the file it edits has already been

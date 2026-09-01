@@ -71,11 +71,15 @@ _spec.loader.exec_module(gen)
 _UNRESOLVED = re.compile(r"\bstd\b(?!::)")
 
 
-def family_resolves(manifest, family, name):
+def family_resolves(manifest, family, name, exclude=None):
     """Deduped `sol::resolve<Ret(Args)>(name)` strings for one name in one family.
 
     Returns (resolves, n_skipped): signatures the concretiser could not express
-    are skipped and counted, never emitted.
+    are skipped and counted, never emitted. `exclude` is an optional compiled
+    regex; any signature it matches is dropped the same way, which is how a
+    per-CLASS decision is expressed -- the tool otherwise works per NAME, and a
+    name's overloads rarely all belong to one class (4 of pga `wdg`'s 70 gaps
+    take the named point/line/plane types, the rest do not).
     """
     ns = gen.ALGEBRA_NS[family]
     seen, out, skipped = set(), [], 0
@@ -88,7 +92,7 @@ def family_resolves(manifest, family, name):
             if sig in seen:
                 continue
             seen.add(sig)
-            if _UNRESOLVED.search(sig):
+            if _UNRESOLVED.search(sig) or (exclude and exclude.search(sig)):
                 skipped += 1
                 continue
             out.append((sig, f"sol::resolve<{sig}>({name})"))
@@ -177,12 +181,19 @@ def main():
                     help="family whose overloads to splice in (ega/pga/cga/sta/top)")
     ap.add_argument("--dry-run", action="store_true",
                     help="report changes, write nothing")
+    ap.add_argument("--exclude", default=None, metavar="REGEX",
+                    help="skip any overload whose concretised signature matches "
+                    "REGEX -- how a per-class decision is expressed, e.g. "
+                    r"'\b(point|line|plane)[0-9]' for the named PGA types, "
+                    r"'std::vector' for the batch overloads, or "
+                    r"'\bscalar' to drop the identically-zero commutators")
     args = ap.parse_args()
 
     src = HPP.read_text()
     manifest = json.loads(MANIFEST.read_text())
     # bound ON THIS FAMILY'S TABLE -- a name bound only on ega is not bound for
     # cga, and treating it as bound sends the splice into the wrong block
+    exclude = re.compile(args.exclude) if args.exclude else None
     table = FAMILY_TABLE[args.algebra]
     bound = set(re.findall(re.escape(table) + r'\.set_function\(\s*"([A-Za-z0-9_]+)"',
                            src))
@@ -201,10 +212,10 @@ def main():
             print(f"  {name}: not bound on {table}. "
                   f"(use gen_lua_overloads.py to add a block)")
             continue
-        resolves, skipped = family_resolves(manifest, args.algebra, name)
+        resolves, skipped = family_resolves(manifest, args.algebra, name, exclude)
         if skipped:
-            print(f"  {name}: {skipped} overload(s) not expressible as sol::resolve "
-                  f"(std::pair etc.) -- bind by hand with a lambda, skipped")
+            print(f"  {name}: {skipped} overload(s) skipped "
+                  f"(unrepresentable, or matched --exclude)")
         if not resolves:
             continue
         span = _block_span(src, table, name)
