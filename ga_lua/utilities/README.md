@@ -119,6 +119,45 @@ It is a **drafting aid** — review each block before pasting:
 - decide per overload whether it belongs in the REPL;
 - after pasting, `clang-format` the file, build `ga_lua`, and re-run `lua_coverage.py`.
 
+## `splice_overloads.py`
+
+The *apply* counterpart to `gen_lua_overloads.py`. That one drafts a whole new
+`set_function` block for a name nothing binds yet; this one **extends an existing
+block** with one family's overloads, in place. Use it when a name is already bound for
+some algebras and a newly-registered family adds more to the same name — a name binds
+once in `ga_lua`, so all its overloads must live in a single `sol::overload(...)`.
+
+```bash
+python3 ga_lua/utilities/splice_overloads.py --algebra=cga --dry-run   # report only
+python3 ga_lua/utilities/splice_overloads.py --algebra=cga             # all bound names
+python3 ga_lua/utilities/splice_overloads.py --algebra=sta nrm,dot,inv # a subset
+```
+
+It reads the family's overloads from the manifest (sharing the concretiser with the
+generator), paren-matches the enclosing `sol::overload(`, and inserts the missing
+`sol::resolve` lines before its close under a `// <family>` comment. It creates no new
+blocks and skips any name that is not already bound.
+
+**It is idempotent, and that has to survive clang-format.** The presence test compares
+signatures with all whitespace removed, because the file it edits has already been
+formatted and a long signature is wrapped at whatever column the formatter chose:
+
+```cpp
+sol::resolve<std::vector<vec4ds>(std::vector<vec4ds> const&,
+                                 mvec4ds_e const&)>(transform_opt),
+```
+
+A line-based substring test does not find that, and appends a **second, identical**
+`sol::resolve` — which compiles, since `sol::overload` accepts duplicates, so nothing
+downstream complains. Measured on the tree as it stood: 7 such duplicates across four
+families, all in the longest signatures (the `std::vector` batch overloads of
+`transform_opt`/`rotate_opt`, the 7-argument `circle3dc`/`dipole3dc`). Fixed 2026-09-01;
+if the tool ever grows another comparison against the file's text, normalise it the
+same way.
+
+After splicing: `clang-format` the file, build `ga_lua`, re-run `lua_coverage.py`, run a
+smoke script, and review the diff — decide per overload whether it belongs in the REPL.
+
 ## Closure roadmap (bring `ga_lua` to `ga_py` parity)
 
 Two scope decisions are fixed: **bind only the pure-data PODs** (the stateful
