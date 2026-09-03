@@ -178,6 +178,44 @@ ProductConfig get_cga2dc_gpr_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_cga2dc_gpr_alt_config()
+{
+    return {.product_name = "gpr (alternative)",
+            .description =
+                "cga2dc geometric product (defined from Grassmann algebra operations)",
+            .display_name = "geometric product (alternative definition from Grassmann "
+                            "algebra operations)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases = {}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_cga2dc_twdg1_config()
+{
+    return {.product_name = "twdg1",
+            .description = "cga2dc transwedge product for k=1 (see gpr (alternative))",
+            .display_name = "transwedge product (k=1)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases =
+                {{"twdg1(ps,vec) -> trivec", "svBtps", "svBtps", "ps", "vec"},
+                 {"twdg1(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
+                 {"twdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+                 {"twdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+                 {"twdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                 {"twdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                 {"twdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                 {"twdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                 {"twdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                 {"twdg1(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_cga2dc_wdg_config()
 {
     return {.product_name = "wdg",
@@ -646,6 +684,47 @@ ProductConfig get_cga2dc_rgpr_config()
              {"rgpr(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
              // s
              {"rgpr(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
+ProductConfig get_cga2dc_rgpr_alt_config()
+{
+    return {.product_name = "rgpr (alternative)",
+            .description = "cga2dc regressive geometric product (defined from Grassmann "
+                           "algebra operations)",
+            .display_name =
+                "regressive geometric product (alternative definition from Grassmann "
+                "algebra operations)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases = {}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_cga2dc_rtwdg1_config()
+{
+    return {
+        .product_name = "rtwdg1",
+        .description =
+            "cga2dc regressive transwedge product for k=1 (see gpr (alternative))",
+        .display_name = "regressive transwedge product (k=1)",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases =
+            {{"rtwdg1(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"rtwdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+             {"rtwdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+             {"rtwdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+             {"rtwdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+             {"rtwdg1(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             {"rtwdg1(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+             {"rtwdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"rtwdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+             {"rtwdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};

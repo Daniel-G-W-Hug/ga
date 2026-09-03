@@ -15,10 +15,12 @@ namespace configurable {
 AlgebraData create_sta4ds_algebra_data();
 
 // sta4ds product configurations
-ProductConfig get_sta4ds_gpr_config(); // geometric product
-ProductConfig get_sta4ds_cmt_config(); // commutator product
-ProductConfig get_sta4ds_wdg_config(); // wedge product
-ProductConfig get_sta4ds_dot_config(); // inner product
+ProductConfig get_sta4ds_gpr_config();     // geometric product
+ProductConfig get_sta4ds_gpr_alt_config(); // geometric product (alternative def.)
+ProductConfig get_sta4ds_twdg1_config();   // transwedge product for k=1
+ProductConfig get_sta4ds_cmt_config();     // commutator product
+ProductConfig get_sta4ds_wdg_config();     // wedge product
+ProductConfig get_sta4ds_dot_config();     // inner product
 
 ProductConfig get_sta4ds_l_contract_config(); // left contraction
 ProductConfig get_sta4ds_r_contract_config(); // right contraction
@@ -27,10 +29,12 @@ ProductConfig get_sta4ds_r_contract_config(); // right contraction
 ProductConfig get_sta4ds_l_expand_config(); // left expansion
 ProductConfig get_sta4ds_r_expand_config(); // right expansion
 
-ProductConfig get_sta4ds_rgpr_config(); // regressive geometric product
-ProductConfig get_sta4ds_rcmt_config(); // regressive commutator product
-ProductConfig get_sta4ds_rwdg_config(); // regressive wedge product
-ProductConfig get_sta4ds_rdot_config(); // regressive inner product
+ProductConfig get_sta4ds_rgpr_config();     // regressive geometric product
+ProductConfig get_sta4ds_rgpr_alt_config(); // regr. geometric product (alt. def.)
+ProductConfig get_sta4ds_rtwdg1_config();   // regressive transwedge product for k=1
+ProductConfig get_sta4ds_rcmt_config();     // regressive commutator product
+ProductConfig get_sta4ds_rwdg_config();     // regressive wedge product
+ProductConfig get_sta4ds_rdot_config();     // regressive inner product
 
 ProductConfig get_sta4ds_sandwich_gpr_config(); // sandwich product
 

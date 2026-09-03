@@ -27,10 +27,12 @@ AlgebraData create_cga3dc_algebra_data();
 
 // cga3dc product configurations (initial set; further products follow the
 // established per-product workflow, mirroring the cga2dc rollout)
-ProductConfig get_cga3dc_gpr_config(); // geometric product (multi-term rules)
-ProductConfig get_cga3dc_cmt_config(); // commutator product (multi-term rules)
-ProductConfig get_cga3dc_wdg_config(); // wedge product
-ProductConfig get_cga3dc_dot_config(); // inner product
+ProductConfig get_cga3dc_gpr_config();     // geometric product (multi-term rules)
+ProductConfig get_cga3dc_gpr_alt_config(); // geometric product (alternative def.)
+ProductConfig get_cga3dc_twdg1_config();   // transwedge product for k=1
+ProductConfig get_cga3dc_cmt_config();     // commutator product (multi-term rules)
+ProductConfig get_cga3dc_wdg_config();     // wedge product
+ProductConfig get_cga3dc_dot_config();     // inner product
 
 ProductConfig get_cga3dc_l_contract_config(); // left contraction
 ProductConfig get_cga3dc_r_contract_config(); // right contraction
@@ -39,10 +41,12 @@ ProductConfig get_cga3dc_r_contract_config(); // right contraction
 ProductConfig get_cga3dc_l_expand_config(); // left expansion
 ProductConfig get_cga3dc_r_expand_config(); // right expansion
 
-ProductConfig get_cga3dc_rgpr_config(); // regressive geometric product (multi-term)
-ProductConfig get_cga3dc_rcmt_config(); // regressive commutator product (multi-term)
-ProductConfig get_cga3dc_rwdg_config(); // regressive wedge product
-ProductConfig get_cga3dc_rdot_config(); // regressive inner product
+ProductConfig get_cga3dc_rgpr_config();     // regressive geometric product (multi-term)
+ProductConfig get_cga3dc_rgpr_alt_config(); // regr. geometric product (alt. def.)
+ProductConfig get_cga3dc_rtwdg1_config();   // regressive transwedge product k=1
+ProductConfig get_cga3dc_rcmt_config();     // regressive commutator product (multi-term)
+ProductConfig get_cga3dc_rwdg_config();     // regressive wedge product
+ProductConfig get_cga3dc_rdot_config();     // regressive inner product
 ProductConfig get_cga3dc_sandwich_rgpr_config(); // regressive sandwich product
 
 } // namespace configurable

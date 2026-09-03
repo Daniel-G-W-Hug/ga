@@ -641,6 +641,148 @@ calculate_regressive_transwedge_geometric_product(
     return {tab_res, tab};
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// (regressive) transwedge summands for non-orthogonal metrics
+////////////////////////////////////////////////////////////////////////////////
+
+// The two functions below return the per-summand tables of the transwedge
+// decomposition (already carrying their (-1)^[k*(k-1)/2] sign) instead of the
+// string-added total. Both are parameterized by the complement and dual rule
+// tables, so the odd-dimensional form is obtained by passing the algebra's
+// single cmpl/dual tables for all three arguments.
+
+std::vector<prd_table> transwedge_summand_tabs(mvec_coeff const& basis,
+                                               std::vector<mvec_coeff> const& basis_kvec,
+                                               prd_rules const& wdg_rules,
+                                               prd_rules const& l_cmpl_rules,
+                                               prd_rules const& r_cmpl_rules,
+                                               prd_rules const& r_dual_rules)
+{
+    // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+    // l_cmpl(wdg(c,r_cmpl(a)))
+    auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+        auto lhs_rcmpl = coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
+        auto rhs_rcmpl = apply_rules_to_mv(basis, r_cmpl_rules);
+        auto basis_tab_with_rules = apply_rules_to_tab(
+            mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()), wdg_rules);
+        auto lhs_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_rules);
+        return lhs_tab[index];
+    };
+
+    // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
+    // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
+    auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+        auto lhs_rcmpl = apply_rules_to_mv(basis, r_cmpl_rules);
+        auto rhs_rcmpl =
+            apply_rules_to_mv(apply_rules_to_mv(coeff, r_dual_rules), r_cmpl_rules);
+        auto basis_tab_with_rules = apply_rules_to_tab(
+            mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()), wdg_rules);
+        auto rhs_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_rules);
+        mvec_coeff rhs = rhs_tab[index];
+        for (size_t i = 0; i < coeff.size(); ++i) {
+            rhs[i] = rhs_tab[i][index];
+        }
+        return rhs;
+    };
+
+    return calculate_transwedge_geometric_product(basis, basis_kvec, wdg_rules, get_lhs,
+                                                  get_rhs)
+        .second;
+}
+
+std::vector<prd_table> regressive_transwedge_summand_tabs(
+    mvec_coeff const& basis, std::vector<mvec_coeff> const& basis_kvec,
+    prd_rules const& wdg_rules, prd_rules const& l_cmpl_rules,
+    prd_rules const& r_cmpl_rules, prd_rules const& r_dual_rules)
+{
+    // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
+    auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+        auto lhs_tab = apply_rules_to_tab(
+            apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(coeff, basis, wdg_str()),
+                               wdg_rules),
+            l_cmpl_rules);
+        return lhs_tab[index];
+    };
+
+    // Lambda for calculating right-hand side: l_cmpl(wdg(b,r_cmpl(r_dual(c))))
+    auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+        auto rhs_arg =
+            apply_rules_to_mv(apply_rules_to_mv(coeff, r_dual_rules), r_cmpl_rules);
+        auto rhs_tab = apply_rules_to_tab(
+            apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(basis, rhs_arg, wdg_str()),
+                               wdg_rules),
+            l_cmpl_rules);
+        mvec_coeff rhs = rhs_tab[index];
+        for (size_t i = 0; i < coeff.size(); ++i) {
+            rhs[i] = rhs_tab[i][index];
+        }
+        return rhs;
+    };
+
+    return calculate_regressive_transwedge_geometric_product(
+               basis, basis_kvec, wdg_rules, r_cmpl_rules, get_lhs, get_rhs)
+        .second;
+}
+
+// Merge the selected summand tables into ONE multi-term table.
+//
+// Every summand is built from wedge, complement and dual alone and is therefore
+// single-term. Their SUM need not be: under a non-orthogonal (null-pair) metric
+// several summands land on the same basis element, which is precisely how the
+// multi-term geometric product arises there. Merging the integer coefficients
+// here keeps that exact -- add_prd_tab would only concatenate the strings, and
+// the single-term extractor would then mangle the coefficient expressions.
+mt_table merge_summand_tabs_to_mt(std::vector<prd_table> const& tabs, size_t first_index,
+                                  size_t count)
+{
+    if (tabs.empty()) {
+        throw std::runtime_error("merge_summand_tabs_to_mt: no summand tables");
+    }
+    size_t const n = tabs.front().size();
+    std::vector<std::vector<std::map<std::string, int>>> acc(
+        n, std::vector<std::map<std::string, int>>(n));
+
+    for (size_t t = first_index; t < first_index + count; ++t) {
+        if (t >= tabs.size()) {
+            throw std::runtime_error("merge_summand_tabs_to_mt: summand index out of "
+                                     "range");
+        }
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                std::string cell = tabs[t][i][j];
+                if (cell == zero_str()) continue;
+                int sign = 1;
+                if (cell.starts_with(minus_str())) {
+                    sign = -1;
+                    cell = cell.substr(1, cell.size() - 1);
+                }
+                acc[i][j][cell] += sign;
+            }
+        }
+    }
+
+    mt_table res(n, std::vector<prd_terms>(n));
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            for (auto const& [blade, coeff] : acc[i][j]) {
+                if (coeff != 0) res[i][j].push_back(prd_term{coeff, blade});
+            }
+        }
+    }
+    return res;
+}
+
+// index range of the grade-k basis elements within the flat basis ordering
+std::pair<size_t, size_t> kvec_index_range(std::vector<mvec_coeff> const& basis_kvec,
+                                           size_t k)
+{
+    size_t first = 0;
+    for (size_t g = 0; g < k; ++g) {
+        first += basis_kvec[g].size();
+    }
+    return {first, basis_kvec[k].size()};
+}
+
 void ConfigurableGenerator::generate_product_expressions(AlgebraData const& algebra,
                                                          ProductConfig const& config,
                                                          GeneratorOptions const& options)
@@ -2871,6 +3013,111 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_sta4ds_rules);
         }
 
+        else if (product_name == "gpr (alternative)") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
+                auto rhs_rcmpl = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_sta4ds_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, r_dual_sta4ds_rules), r_cmpl_sta4ds_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_sta4ds_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mvsta4ds_basis, mvsta4ds_basis_kvec, wdg_sta4ds_rules, get_lhs, get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("sta4ds geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mvsta4ds_basis_kvec);
+
+            return tab_res;
+        }
+
+        else if (product_name == "twdg1") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
+                auto rhs_rcmpl = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_sta4ds_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, r_dual_sta4ds_rules), r_cmpl_sta4ds_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_sta4ds_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mvsta4ds_basis, mvsta4ds_basis_kvec, wdg_sta4ds_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            tab_res = add_prd_tab(tab_res, tab[4]);
+            return tab_res; // return transwedge product for k=1
+        }
+
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             //                   cmt(A,B) = asym(gpr(A,B))
@@ -2943,6 +3190,111 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
+        else if (product_name == "rgpr (alternative)") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mvsta4ds_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_sta4ds_rules),
+                    l_cmpl_sta4ds_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // l_cmpl(wdg(b,r_cmpl(r_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mvsta4ds_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, r_dual_sta4ds_rules), r_cmpl_sta4ds_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_sta4ds_rules),
+                    l_cmpl_sta4ds_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mvsta4ds_basis, mvsta4ds_basis_kvec, wdg_sta4ds_rules,
+                r_cmpl_sta4ds_rules, get_lhs, get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("sta4ds regressive geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mvsta4ds_basis_kvec);
+
+            return tab_res;
+        }
+
+        else if (product_name == "rtwdg1") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mvsta4ds_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_sta4ds_rules),
+                    l_cmpl_sta4ds_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // l_cmpl(wdg(b,r_cmpl(r_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mvsta4ds_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, r_dual_sta4ds_rules), r_cmpl_sta4ds_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_sta4ds_rules),
+                    l_cmpl_sta4ds_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mvsta4ds_basis, mvsta4ds_basis_kvec, wdg_sta4ds_rules,
+                r_cmpl_sta4ds_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            tab_res = add_prd_tab(tab_res, tab[4]);
+            return tab_res; // return regressive transwedge product for k=1
+        }
+
         else if (product_name == "rcmt") {
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
@@ -2990,6 +3342,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         if (product_name == "gpr") {
             throw std::invalid_argument(
                 "cga2dc::gpr is multi-term — handled by the mt basis-table path");
+        }
+
+        else if (product_name == "gpr (alternative)") {
+            // multi-term for cga2dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument("cga2dc::gpr (alternative) is multi-term — "
+                                        "handled by the mt basis-table path");
+        }
+
+        else if (product_name == "twdg1") {
+            // multi-term for cga2dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument(
+                "cga2dc::twdg1 is multi-term — handled by the mt basis-table path");
         }
 
         else if (product_name == "wdg") {
@@ -3044,6 +3412,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_cga2dc_rules);
         }
 
+        else if (product_name == "rgpr (alternative)") {
+            // multi-term for cga2dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument("cga2dc::rgpr (alternative) is multi-term — "
+                                        "handled by the mt basis-table path");
+        }
+
+        else if (product_name == "rtwdg1") {
+            // multi-term for cga2dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument(
+                "cga2dc::rtwdg1 is multi-term — handled by the mt basis-table path");
+        }
+
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2dc_basis, r_cmpl_cga2dc_rules);
@@ -3071,6 +3455,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         if (product_name == "gpr") {
             throw std::invalid_argument(
                 "cga3dc::gpr is multi-term — handled by the mt basis-table path");
+        }
+
+        else if (product_name == "gpr (alternative)") {
+            // multi-term for cga3dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument("cga3dc::gpr (alternative) is multi-term — "
+                                        "handled by the mt basis-table path");
+        }
+
+        else if (product_name == "twdg1") {
+            // multi-term for cga3dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument(
+                "cga3dc::twdg1 is multi-term — handled by the mt basis-table path");
         }
 
         else if (product_name == "wdg") {
@@ -3125,6 +3525,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_cga3dc_rules);
         }
 
+        else if (product_name == "rgpr (alternative)") {
+            // multi-term for cga3dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument("cga3dc::rgpr (alternative) is multi-term — "
+                                        "handled by the mt basis-table path");
+        }
+
+        else if (product_name == "rtwdg1") {
+            // multi-term for cga3dc (null-pair metric): the transwedge summands are
+            // single-term, but their sum collapses onto shared basis elements — it goes
+            // through get_mt_basis_table_for_product / uses_mt_basis_table instead
+            throw std::invalid_argument(
+                "cga3dc::rtwdg1 is multi-term — handled by the mt basis-table path");
+        }
+
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dc_basis, cmpl_cga3dc_rules);
@@ -3158,7 +3574,9 @@ bool ConfigurableGenerator::uses_mt_basis_table(AlgebraData const& algebra,
     // family (gpr, its commutator, and the regressive counterparts)
     return (algebra.name == "cga2dc" || algebra.name == "cga3dc") &&
            (product_name == "gpr" || product_name == "cmt" || product_name == "rgpr" ||
-            product_name == "rcmt" || product_name == "sandwich_rgpr");
+            product_name == "rcmt" || product_name == "sandwich_rgpr" ||
+            product_name == "gpr (alternative)" || product_name == "twdg1" ||
+            product_name == "rgpr (alternative)" || product_name == "rtwdg1");
 }
 
 mt_table
@@ -3188,6 +3606,42 @@ ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra
                 mv3dc_basis, gpr_cga3dc_rules_mt, cmpl_cga3dc_rules, cmpl_cga3dc_rules,
                 mul_str()));
         }
+        else if (product_name == "gpr (alternative)" || product_name == "twdg1") {
+            // geometric product from Grassmann-algebra primitives alone (wdg, rwdg,
+            // cmpl and dual), as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html): the transwedge
+            // summands of order k sum to the geometric product. Under the null-pair
+            // metric several summands share a basis element, so the sum is multi-term.
+            auto tabs = transwedge_summand_tabs(mv3dc_basis, mv3dc_basis_kvec,
+                                                wdg_cga3dc_rules, cmpl_cga3dc_rules,
+                                                cmpl_cga3dc_rules, dual_cga3dc_rules);
+            if (product_name == "twdg1") {
+                auto const [first, count] = kvec_index_range(mv3dc_basis_kvec, 1);
+                return merge_summand_tabs_to_mt(tabs, first, count);
+            }
+            fmt::println("cga3dc geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tabs, mv3dc_basis_kvec);
+            return merge_summand_tabs_to_mt(tabs, 0, tabs.size());
+        }
+
+        else if (product_name == "rgpr (alternative)" || product_name == "rtwdg1") {
+            // the regressive counterpart of the block above
+            auto tabs = regressive_transwedge_summand_tabs(
+                mv3dc_basis, mv3dc_basis_kvec, wdg_cga3dc_rules, cmpl_cga3dc_rules,
+                cmpl_cga3dc_rules, dual_cga3dc_rules);
+            if (product_name == "rtwdg1") {
+                auto const [first, count] = kvec_index_range(mv3dc_basis_kvec, 1);
+                return merge_summand_tabs_to_mt(tabs, first, count);
+            }
+            fmt::println("cga3dc regressive geometric product (alternative definition) "
+                         "- intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tabs, mv3dc_basis_kvec);
+            return merge_summand_tabs_to_mt(tabs, 0, tabs.size());
+        }
+
         throw std::invalid_argument("no multi-term basis table for cga3dc product '" +
                                     product_name + "'");
     }
@@ -3213,6 +3667,41 @@ ConfigurableGenerator::get_mt_basis_table_for_product(AlgebraData const& algebra
             return get_mt_tab_asym(build_mt_basis_table_cmpl_conjugated(
                 mv2dc_basis, gpr_cga2dc_rules_mt, r_cmpl_cga2dc_rules,
                 l_cmpl_cga2dc_rules, mul_str()));
+        }
+        else if (product_name == "gpr (alternative)" || product_name == "twdg1") {
+            // geometric product from Grassmann-algebra primitives alone (wdg, rwdg,
+            // cmpl and dual), as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html): the transwedge
+            // summands of order k sum to the geometric product. Under the null-pair
+            // metric several summands share a basis element, so the sum is multi-term.
+            auto tabs = transwedge_summand_tabs(mv2dc_basis, mv2dc_basis_kvec,
+                                                wdg_cga2dc_rules, l_cmpl_cga2dc_rules,
+                                                r_cmpl_cga2dc_rules, r_dual_cga2dc_rules);
+            if (product_name == "twdg1") {
+                auto const [first, count] = kvec_index_range(mv2dc_basis_kvec, 1);
+                return merge_summand_tabs_to_mt(tabs, first, count);
+            }
+            fmt::println("cga2dc geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tabs, mv2dc_basis_kvec);
+            return merge_summand_tabs_to_mt(tabs, 0, tabs.size());
+        }
+
+        else if (product_name == "rgpr (alternative)" || product_name == "rtwdg1") {
+            // the regressive counterpart of the block above
+            auto tabs = regressive_transwedge_summand_tabs(
+                mv2dc_basis, mv2dc_basis_kvec, wdg_cga2dc_rules, l_cmpl_cga2dc_rules,
+                r_cmpl_cga2dc_rules, r_dual_cga2dc_rules);
+            if (product_name == "rtwdg1") {
+                auto const [first, count] = kvec_index_range(mv2dc_basis_kvec, 1);
+                return merge_summand_tabs_to_mt(tabs, first, count);
+            }
+            fmt::println("cga2dc regressive geometric product (alternative definition) "
+                         "- intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tabs, mv2dc_basis_kvec);
+            return merge_summand_tabs_to_mt(tabs, 0, tabs.size());
         }
     }
     throw std::invalid_argument("Unsupported mt product: " + algebra.name +

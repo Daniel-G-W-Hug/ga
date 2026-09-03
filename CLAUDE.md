@@ -632,8 +632,22 @@ The `ga_prdxpr/` directory contains a sophisticated **code generator** that prod
 optimized C++ expressions for geometric algebra operations. It supports four complete
 algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP, plus STA4D (G(1,3,0), algebra name
 `sta4ds`). STA4D's `.cases` are populated for `dot, gpr, wdg, l/r contraction,
-rwdg, cmt` (354 signatures, all pasted into the library); `rdot, rcmt, rgpr`
-remain empty by design (the regressive products are fleshed out for PGA).
+rwdg, cmt, twdg1, rtwdg1` (374 signatures, all pasted into the library); `rdot, rcmt,
+rgpr` remain empty by design (the regressive products are fleshed out for PGA).
+
+**Transwedge products (`twdg1` / `rtwdg1`, `gpr (alternative)` / `rgpr (alternative)`)
+are provided for ALL SEVEN algebras.** `gpr (alternative)` is Lengyel's decomposition
+`a ⟑ b = Σₖ (-1)^[k(k-1)/2] (a ⨉ₖ b)` evaluated from wedge, complement and dual alone
+(no geometric product anywhere in the derivation), and `twdg1` is its k=1 summand; the
+`r`-prefixed pair is the regressive counterpart. The sum reproduces the algebra's own
+`gpr` / `rgpr` basis product table cell for cell in every algebra, including the two
+CGA algebras whose null-pair metric is NOT orthogonal — there the individual summands
+stay single-term while their sum collapses onto shared basis elements, which is exactly
+how the multi-term geometric product arises. Consequence for the generator: for cga2dc
+and cga3dc these four products go through the **multi-term** path
+(`uses_mt_basis_table` / `get_mt_basis_table_for_product`), because the single-term
+`prd_table` can only concatenate the summand strings and the single-term extractor then
+mangles the coefficient expressions (silently — it produced no validator warning).
 
 ### C++ Code Generation (`--output=code`)
 
@@ -647,7 +661,7 @@ delegations.
   `ga_codegen_emitter.{hpp,cpp}`).
 - Validation pipeline: `ga_prdxpr/src_prdxpr/codegen/tools/`
   (`diff_codegen.py`, `inline_to_tempvars.py`, `expand_delegations.py`).
-- Default output (`ga_prdxpr` with no args) is a stable reference (currently 55652
+- Default output (`ga_prdxpr` with no args) is a stable reference (currently 58088
   lines, see the README's "Verification" section) — `code` is opt-in only.
 - See `ga_prdxpr/README.md` for usage, the invocation matrix, and the
   "Open Codegen Work" section (sandwich product codegen, STA4D rollout).

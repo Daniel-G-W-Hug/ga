@@ -366,14 +366,17 @@ void ArgumentParser::print_list() const
     fmt::println("  rwdg                - Regressive wedge product");
     fmt::println("  rcmt                - Regressive commutator product");
     fmt::println("  rdot                - Regressive inner product");
+    fmt::println("  twdg1               - Transwedge product (k=1)");
+    fmt::println("  rtwdg1              - Regressive transwedge product (k=1)");
+    fmt::println(
+        "  gpr (alternative)   - Geometric product as the transwedge sum over k");
+    fmt::println("  rgpr (alternative)  - Regressive geometric product as the same sum");
     fmt::println("");
     fmt::println("EGA Product Types (ega2d, ega3d):");
     fmt::println("  l_contract          - Left contraction");
     fmt::println("  r_contract          - Right contraction");
     fmt::println("  l_expand            - Left expansion");
     fmt::println("  r_expand            - Right expansion");
-    fmt::println("  rgpr (alternative)  - Alternative regressive geometric product");
-    fmt::println("  rtwdg1              - Regressive triple wedge (first variant)");
     fmt::println("  sandwich_gpr        - Sandwich product (geometric)");
     fmt::println("");
     fmt::println("STA4DS Product Types (sta4ds):");
@@ -382,6 +385,13 @@ void ArgumentParser::print_list() const
     fmt::println("  l_expand            - Left expansion");
     fmt::println("  r_expand            - Right expansion");
     fmt::println("  sandwich_gpr        - Sandwich product (geometric)");
+    fmt::println("");
+    fmt::println("CGA Product Types (cga2dc, cga3dc):");
+    fmt::println("  l_contract          - Left contraction");
+    fmt::println("  r_contract          - Right contraction");
+    fmt::println("  l_expand            - Left expansion");
+    fmt::println("  r_expand            - Right expansion");
+    fmt::println("  sandwich_rgpr       - Sandwich product (regressive)");
     fmt::println("");
     fmt::println("PGA Product Types (pga2dp, pga3dp):");
     fmt::println("  l_bulk_contract     - Left bulk contraction");
@@ -392,8 +402,6 @@ void ArgumentParser::print_list() const
     fmt::println("  r_bulk_expand       - Right bulk expansion");
     fmt::println("  l_weight_expand     - Left weight expansion");
     fmt::println("  r_weight_expand     - Right weight expansion");
-    fmt::println("  rgpr (alternative)  - Alternative regressive geometric product");
-    fmt::println("  rtwdg1              - Regressive triple wedge (first variant)");
     fmt::println("  sandwich_rgpr       - Sandwich product (regressive)");
     fmt::println("");
     fmt::println("Output Types:");

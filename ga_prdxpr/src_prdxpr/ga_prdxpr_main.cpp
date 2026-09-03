@@ -222,14 +222,16 @@ int main(int argc, char const* argv[])
              options.should_show_code())) {
             auto sta4ds_algebra = create_sta4ds_algebra_data();
             std::vector<ProductConfig> sta4ds_configs = {
-                get_sta4ds_gpr_config(),         get_sta4ds_cmt_config(),
+                get_sta4ds_gpr_config(),         get_sta4ds_gpr_alt_config(),
+                get_sta4ds_twdg1_config(),       get_sta4ds_cmt_config(),
                 get_sta4ds_wdg_config(),         get_sta4ds_dot_config(),
 
                 get_sta4ds_l_contract_config(),  get_sta4ds_r_contract_config(),
 
                 get_sta4ds_l_expand_config(),    get_sta4ds_r_expand_config(),
 
-                get_sta4ds_rgpr_config(),        get_sta4ds_rcmt_config(),
+                get_sta4ds_rgpr_config(),        get_sta4ds_rgpr_alt_config(),
+                get_sta4ds_rtwdg1_config(),      get_sta4ds_rcmt_config(),
                 get_sta4ds_rwdg_config(),        get_sta4ds_rdot_config(),
 
                 get_sta4ds_sandwich_gpr_config()};
@@ -245,14 +247,16 @@ int main(int argc, char const* argv[])
              options.should_show_code())) {
             auto cga2dc_algebra = create_cga2dc_algebra_data();
             std::vector<ProductConfig> cga2dc_configs = {
-                get_cga2dc_gpr_config(),          get_cga2dc_cmt_config(),
+                get_cga2dc_gpr_config(),          get_cga2dc_gpr_alt_config(),
+                get_cga2dc_twdg1_config(),        get_cga2dc_cmt_config(),
                 get_cga2dc_wdg_config(),          get_cga2dc_dot_config(),
 
                 get_cga2dc_l_contract_config(),   get_cga2dc_r_contract_config(),
 
                 get_cga2dc_l_expand_config(),     get_cga2dc_r_expand_config(),
 
-                get_cga2dc_rgpr_config(),         get_cga2dc_rcmt_config(),
+                get_cga2dc_rgpr_config(),         get_cga2dc_rgpr_alt_config(),
+                get_cga2dc_rtwdg1_config(),       get_cga2dc_rcmt_config(),
                 get_cga2dc_rwdg_config(),         get_cga2dc_rdot_config(),
 
                 get_cga2dc_sandwich_rgpr_config()};
@@ -267,11 +271,13 @@ int main(int argc, char const* argv[])
 
             auto cga3dc_algebra = create_cga3dc_algebra_data();
             std::vector<ProductConfig> cga3dc_configs = {
-                get_cga3dc_gpr_config(),          get_cga3dc_cmt_config(),
+                get_cga3dc_gpr_config(),          get_cga3dc_gpr_alt_config(),
+                get_cga3dc_twdg1_config(),        get_cga3dc_cmt_config(),
                 get_cga3dc_wdg_config(),          get_cga3dc_dot_config(),
                 get_cga3dc_l_contract_config(),   get_cga3dc_r_contract_config(),
                 get_cga3dc_l_expand_config(),     get_cga3dc_r_expand_config(),
-                get_cga3dc_rgpr_config(),         get_cga3dc_rcmt_config(),
+                get_cga3dc_rgpr_config(),         get_cga3dc_rgpr_alt_config(),
+                get_cga3dc_rtwdg1_config(),       get_cga3dc_rcmt_config(),
                 get_cga3dc_rwdg_config(),         get_cga3dc_rdot_config(),
                 get_cga3dc_sandwich_rgpr_config()};
 

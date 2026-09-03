@@ -26,6 +26,9 @@ namespace hd::ga::cga {
 // - rcmt()                  -> regressive commutator product
 //                              (= asymmetric part of rgpr)
 //
+// - twdg1()                 -> transwedge product (k=1)
+// - rtwdg1()                -> regressive transwedge product (k=1)
+//
 // - operator*()             -> geometric product (= gpr)
 // - rgpr()                  -> regressive geometric product
 //
@@ -4424,6 +4427,382 @@ constexpr Scalar3dc<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar3dc<T>
     using ctype = std::common_type_t<T, U>;
     return Scalar3dc<ctype>(0.0);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// twdg1(ps,vec) = quadvector
+//     -> identical to the geometric product gpr(ps,vec)
+//     -> identical to the right contraction ps >> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr QuadVec3dc<std::common_type_t<T, U>> twdg1(PScalar3dc<T> ps, Vec3dc<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * v.x;
+    ctype const c1 = ctype(ps) * v.y;
+    ctype const c2 = ctype(ps) * v.z;
+    ctype const c3 = -ctype(ps) * v.u;
+    ctype const c4 = -ctype(ps) * v.w;
+    return QuadVec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// twdg1(vec,ps) = quadvector
+//     -> identical to the geometric product gpr(vec,ps)
+//     -> identical to the left contraction vec << ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr QuadVec3dc<std::common_type_t<T, U>> twdg1(Vec3dc<T> const& v, PScalar3dc<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * ctype(ps);
+    ctype const c1 = v.y * ctype(ps);
+    ctype const c2 = v.z * ctype(ps);
+    ctype const c3 = -v.u * ctype(ps);
+    ctype const c4 = -v.w * ctype(ps);
+    return QuadVec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// twdg1(trivec,vec) = bivector
+//     -> identical to the right contraction trivec >> vec
+//     -> identical to the left contraction vec << trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> twdg1(TriVec3dc<T> const& t,
+                                                   Vec3dc<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.vx * v.w - t.py * v.z + t.pz * v.y;
+    ctype const c1 = -t.vy * v.w + t.px * v.z - t.pz * v.x;
+    ctype const c2 = -t.vz * v.w - t.px * v.y + t.py * v.x;
+    ctype const c3 = -t.mx * v.w - t.px * v.u - t.pw * v.x;
+    ctype const c4 = -t.my * v.w - t.py * v.u - t.pw * v.y;
+    ctype const c5 = -t.mz * v.w - t.pz * v.u - t.pw * v.z;
+    ctype const c6 = -t.vx * v.u + t.my * v.z - t.mz * v.y;
+    ctype const c7 = -t.vy * v.u - t.mx * v.z + t.mz * v.x;
+    ctype const c8 = -t.vz * v.u + t.mx * v.y - t.my * v.x;
+    ctype const c9 = -t.vx * v.x - t.vy * v.y - t.vz * v.z;
+    return BiVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// twdg1(vec,trivec) = bivector
+//     -> identical to the left contraction vec << trivec
+//     -> identical to the right contraction trivec >> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> twdg1(Vec3dc<T> const& v,
+                                                   TriVec3dc<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.y * t.pz - v.z * t.py - v.w * t.vx;
+    ctype const c1 = -v.x * t.pz + v.z * t.px - v.w * t.vy;
+    ctype const c2 = v.x * t.py - v.y * t.px - v.w * t.vz;
+    ctype const c3 = -v.x * t.pw - v.w * t.mx - v.u * t.px;
+    ctype const c4 = -v.y * t.pw - v.w * t.my - v.u * t.py;
+    ctype const c5 = -v.z * t.pw - v.w * t.mz - v.u * t.pz;
+    ctype const c6 = -v.y * t.mz + v.z * t.my - v.u * t.vx;
+    ctype const c7 = v.x * t.mz - v.z * t.mx - v.u * t.vy;
+    ctype const c8 = -v.x * t.my + v.y * t.mx - v.u * t.vz;
+    ctype const c9 = -v.x * t.vx - v.y * t.vy - v.z * t.vz;
+    return BiVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// twdg1(trivec,bivec) = trivector
+//     -> identical to the commutator product cmt(trivec,bivec)
+//     -> identical to the negated commutator product cmt(bivec,trivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec3dc<std::common_type_t<T, U>> twdg1(TriVec3dc<T> const& t,
+                                                    BiVec3dc<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.vy * B.mz + t.vz * B.my - t.my * B.vz + t.mz * B.vy -
+                     t.py * B.pz + t.pz * B.py;
+    ctype const c1 =
+        t.vx * B.mz - t.vz * B.mx + t.mx * B.vz - t.mz * B.vx + t.px * B.pz - t.pz * B.px;
+    ctype const c2 = -t.vx * B.my + t.vy * B.mx - t.mx * B.vy + t.my * B.vx -
+                     t.px * B.py + t.py * B.px;
+    ctype const c3 = -t.vy * B.pz + t.vz * B.py - t.mx * B.pw - t.my * B.mz +
+                     t.mz * B.my - t.pw * B.px;
+    ctype const c4 =
+        t.vx * B.pz - t.vz * B.px + t.mx * B.mz - t.my * B.pw - t.mz * B.mx - t.pw * B.py;
+    ctype const c5 = -t.vx * B.py + t.vy * B.px - t.mx * B.my + t.my * B.mx -
+                     t.mz * B.pw - t.pw * B.pz;
+    ctype const c6 = -t.vy * B.vz + t.vz * B.vy + t.px * B.pw - t.py * B.mz +
+                     t.pz * B.my + t.pw * B.vx;
+    ctype const c7 =
+        t.vx * B.vz - t.vz * B.vx + t.px * B.mz + t.py * B.pw - t.pz * B.mx + t.pw * B.vy;
+    ctype const c8 = -t.vx * B.vy + t.vy * B.vx - t.px * B.my + t.py * B.mx +
+                     t.pz * B.pw + t.pw * B.vz;
+    ctype const c9 =
+        t.mx * B.vx + t.my * B.vy + t.mz * B.vz - t.px * B.px - t.py * B.py - t.pz * B.pz;
+    return TriVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// twdg1(bivec,trivec) = trivector
+//     -> identical to the commutator product cmt(bivec,trivec)
+//     -> identical to the negated commutator product cmt(trivec,bivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec3dc<std::common_type_t<T, U>> twdg1(BiVec3dc<T> const& B,
+                                                    TriVec3dc<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -B.vy * t.mz + B.vz * t.my - B.my * t.vz + B.mz * t.vy -
+                     B.py * t.pz + B.pz * t.py;
+    ctype const c1 =
+        B.vx * t.mz - B.vz * t.mx + B.mx * t.vz - B.mz * t.vx + B.px * t.pz - B.pz * t.px;
+    ctype const c2 = -B.vx * t.my + B.vy * t.mx - B.mx * t.vy + B.my * t.vx -
+                     B.px * t.py + B.py * t.px;
+    ctype const c3 = -B.my * t.mz + B.mz * t.my + B.px * t.pw - B.py * t.vz +
+                     B.pz * t.vy + B.pw * t.mx;
+    ctype const c4 =
+        B.mx * t.mz - B.mz * t.mx + B.px * t.vz + B.py * t.pw - B.pz * t.vx + B.pw * t.my;
+    ctype const c5 = -B.mx * t.my + B.my * t.mx - B.px * t.vy + B.py * t.vx +
+                     B.pz * t.pw + B.pw * t.mz;
+    ctype const c6 = -B.vx * t.pw - B.vy * t.vz + B.vz * t.vy - B.my * t.pz +
+                     B.mz * t.py - B.pw * t.px;
+    ctype const c7 =
+        B.vx * t.vz - B.vy * t.pw - B.vz * t.vx + B.mx * t.pz - B.mz * t.px - B.pw * t.py;
+    ctype const c8 = -B.vx * t.vy + B.vy * t.vx - B.vz * t.pw - B.mx * t.py +
+                     B.my * t.px - B.pw * t.pz;
+    ctype const c9 = -B.vx * t.mx - B.vy * t.my - B.vz * t.mz + B.px * t.px +
+                     B.py * t.py + B.pz * t.pz;
+    return TriVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// twdg1(bivec,bivec) = bivector
+//     -> identical to the commutator product cmt(bivec,bivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> twdg1(BiVec3dc<T> const& B1,
+                                                   BiVec3dc<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B1.vx * B2.pw - B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz +
+                     B1.mz * B2.vy - B1.pw * B2.vx;
+    ctype const c1 = B1.vx * B2.mz + B1.vy * B2.pw - B1.vz * B2.mx + B1.mx * B2.vz -
+                     B1.mz * B2.vx - B1.pw * B2.vy;
+    ctype const c2 = -B1.vx * B2.my + B1.vy * B2.mx + B1.vz * B2.pw - B1.mx * B2.vy +
+                     B1.my * B2.vx - B1.pw * B2.vz;
+    ctype const c3 = -B1.vy * B2.pz + B1.vz * B2.py - B1.my * B2.mz + B1.mz * B2.my -
+                     B1.py * B2.vz + B1.pz * B2.vy;
+    ctype const c4 = B1.vx * B2.pz - B1.vz * B2.px + B1.mx * B2.mz - B1.mz * B2.mx +
+                     B1.px * B2.vz - B1.pz * B2.vx;
+    ctype const c5 = -B1.vx * B2.py + B1.vy * B2.px - B1.mx * B2.my + B1.my * B2.mx -
+                     B1.px * B2.vy + B1.py * B2.vx;
+    ctype const c6 = -B1.my * B2.pz + B1.mz * B2.py - B1.px * B2.pw - B1.py * B2.mz +
+                     B1.pz * B2.my + B1.pw * B2.px;
+    ctype const c7 = B1.mx * B2.pz - B1.mz * B2.px + B1.px * B2.mz - B1.py * B2.pw -
+                     B1.pz * B2.mx + B1.pw * B2.py;
+    ctype const c8 = -B1.mx * B2.py + B1.my * B2.px - B1.px * B2.my + B1.py * B2.mx -
+                     B1.pz * B2.pw + B1.pw * B2.pz;
+    ctype const c9 = B1.vx * B2.px + B1.vy * B2.py + B1.vz * B2.pz - B1.px * B2.vx -
+                     B1.py * B2.vy - B1.pz * B2.vz;
+    return BiVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// twdg1(bivec,vec) = vector
+//     -> identical to the commutator product cmt(bivec,vec)
+//     -> identical to the negated right contraction bivec >> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> twdg1(BiVec3dc<T> const& B, Vec3dc<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * v.u - B.my * v.z + B.mz * v.y - B.px * v.w;
+    ctype const c1 = B.vy * v.u + B.mx * v.z - B.mz * v.x - B.py * v.w;
+    ctype const c2 = B.vz * v.u - B.mx * v.y + B.my * v.x - B.pz * v.w;
+    ctype const c3 = B.vx * v.x + B.vy * v.y + B.vz * v.z - B.pw * v.w;
+    ctype const c4 = -B.px * v.x - B.py * v.y - B.pz * v.z + B.pw * v.u;
+    return Vec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// twdg1(vec,bivec) = vector
+//     -> identical to the commutator product cmt(vec,bivec)
+//     -> identical to the negated left contraction vec << bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> twdg1(Vec3dc<T> const& v, BiVec3dc<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.y * B.mz + v.z * B.my + v.w * B.px - v.u * B.vx;
+    ctype const c1 = v.x * B.mz - v.z * B.mx + v.w * B.py - v.u * B.vy;
+    ctype const c2 = -v.x * B.my + v.y * B.mx + v.w * B.pz - v.u * B.vz;
+    ctype const c3 = -v.x * B.vx - v.y * B.vy - v.z * B.vz + v.w * B.pw;
+    ctype const c4 = v.x * B.px + v.y * B.py + v.z * B.pz - v.u * B.pw;
+    return Vec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// twdg1(vec,vec) = scalar
+//     -> identical to the dot product dot(vec,vec)
+//     -> identical to the left contraction vec << vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3dc<std::common_type_t<T, U>> twdg1(Vec3dc<T> const& v1,
+                                                    Vec3dc<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dc<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z - v1.w * v2.u -
+                            v1.u * v2.w);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// rtwdg1(trivec,trivec) = trivector
+//     -> identical to the regressive commutator product rcmt(trivec,trivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec3dc<std::common_type_t<T, U>> rtwdg1(TriVec3dc<T> const& t1,
+                                                     TriVec3dc<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t1.vy * t2.vz - t1.vz * t2.vy + t1.my * t2.pz - t1.mz * t2.py +
+                     t1.py * t2.mz - t1.pz * t2.my;
+    ctype const c1 = -t1.vx * t2.vz + t1.vz * t2.vx - t1.mx * t2.pz + t1.mz * t2.px -
+                     t1.px * t2.mz + t1.pz * t2.mx;
+    ctype const c2 = t1.vx * t2.vy - t1.vy * t2.vx + t1.mx * t2.py - t1.my * t2.px +
+                     t1.px * t2.my - t1.py * t2.mx;
+    ctype const c3 = t1.vy * t2.mz - t1.vz * t2.my - t1.mx * t2.pw + t1.my * t2.vz -
+                     t1.mz * t2.vy + t1.pw * t2.mx;
+    ctype const c4 = -t1.vx * t2.mz + t1.vz * t2.mx - t1.mx * t2.vz - t1.my * t2.pw +
+                     t1.mz * t2.vx + t1.pw * t2.my;
+    ctype const c5 = t1.vx * t2.my - t1.vy * t2.mx + t1.mx * t2.vy - t1.my * t2.vx -
+                     t1.mz * t2.pw + t1.pw * t2.mz;
+    ctype const c6 = t1.vy * t2.pz - t1.vz * t2.py + t1.px * t2.pw + t1.py * t2.vz -
+                     t1.pz * t2.vy - t1.pw * t2.px;
+    ctype const c7 = -t1.vx * t2.pz + t1.vz * t2.px - t1.px * t2.vz + t1.py * t2.pw +
+                     t1.pz * t2.vx - t1.pw * t2.py;
+    ctype const c8 = t1.vx * t2.py - t1.vy * t2.px + t1.px * t2.vy - t1.py * t2.vx +
+                     t1.pz * t2.pw - t1.pw * t2.pz;
+    ctype const c9 = -t1.mx * t2.px - t1.my * t2.py - t1.mz * t2.pz + t1.px * t2.mx +
+                     t1.py * t2.my + t1.pz * t2.mz;
+    return TriVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// rtwdg1(trivec,bivec) = bivector
+//     -> identical to the regressive commutator product rcmt(trivec,bivec)
+//     -> identical to the negated regressive commutator product rcmt(bivec,trivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> rtwdg1(TriVec3dc<T> const& t,
+                                                    BiVec3dc<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        t.vy * B.vz - t.vz * B.vy - t.px * B.pw + t.py * B.mz - t.pz * B.my - t.pw * B.vx;
+    ctype const c1 = -t.vx * B.vz + t.vz * B.vx - t.px * B.mz - t.py * B.pw +
+                     t.pz * B.mx - t.pw * B.vy;
+    ctype const c2 =
+        t.vx * B.vy - t.vy * B.vx + t.px * B.my - t.py * B.mx - t.pz * B.pw - t.pw * B.vz;
+    ctype const c3 =
+        t.vy * B.mz - t.vz * B.my + t.my * B.vz - t.mz * B.vy + t.py * B.pz - t.pz * B.py;
+    ctype const c4 = -t.vx * B.mz + t.vz * B.mx - t.mx * B.vz + t.mz * B.vx -
+                     t.px * B.pz + t.pz * B.px;
+    ctype const c5 =
+        t.vx * B.my - t.vy * B.mx + t.mx * B.vy - t.my * B.vx + t.px * B.py - t.py * B.px;
+    ctype const c6 =
+        t.vy * B.pz - t.vz * B.py + t.mx * B.pw + t.my * B.mz - t.mz * B.my + t.pw * B.px;
+    ctype const c7 = -t.vx * B.pz + t.vz * B.px - t.mx * B.mz + t.my * B.pw +
+                     t.mz * B.mx + t.pw * B.py;
+    ctype const c8 =
+        t.vx * B.py - t.vy * B.px + t.mx * B.my - t.my * B.mx + t.mz * B.pw + t.pw * B.pz;
+    ctype const c9 =
+        t.mx * B.vx + t.my * B.vy + t.mz * B.vz - t.px * B.px - t.py * B.py - t.pz * B.pz;
+    return BiVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// rtwdg1(bivec,trivec) = bivector
+//     -> identical to the regressive commutator product rcmt(bivec,trivec)
+//     -> identical to the negated regressive commutator product rcmt(trivec,bivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dc<std::common_type_t<T, U>> rtwdg1(BiVec3dc<T> const& B,
+                                                    TriVec3dc<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        B.vx * t.pw + B.vy * t.vz - B.vz * t.vy + B.my * t.pz - B.mz * t.py + B.pw * t.px;
+    ctype const c1 = -B.vx * t.vz + B.vy * t.pw + B.vz * t.vx - B.mx * t.pz +
+                     B.mz * t.px + B.pw * t.py;
+    ctype const c2 =
+        B.vx * t.vy - B.vy * t.vx + B.vz * t.pw + B.mx * t.py - B.my * t.px + B.pw * t.pz;
+    ctype const c3 =
+        B.vy * t.mz - B.vz * t.my + B.my * t.vz - B.mz * t.vy + B.py * t.pz - B.pz * t.py;
+    ctype const c4 = -B.vx * t.mz + B.vz * t.mx - B.mx * t.vz + B.mz * t.vx -
+                     B.px * t.pz + B.pz * t.px;
+    ctype const c5 =
+        B.vx * t.my - B.vy * t.mx + B.mx * t.vy - B.my * t.vx + B.px * t.py - B.py * t.px;
+    ctype const c6 =
+        B.my * t.mz - B.mz * t.my - B.px * t.pw + B.py * t.vz - B.pz * t.vy - B.pw * t.mx;
+    ctype const c7 = -B.mx * t.mz + B.mz * t.mx - B.px * t.vz - B.py * t.pw +
+                     B.pz * t.vx - B.pw * t.my;
+    ctype const c8 =
+        B.mx * t.my - B.my * t.mx + B.px * t.vy - B.py * t.vx - B.pz * t.pw - B.pw * t.mz;
+    ctype const c9 = -B.vx * t.mx - B.vy * t.my - B.vz * t.mz + B.px * t.px +
+                     B.py * t.py + B.pz * t.pz;
+    return BiVec3dc<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9);
+}
+
+// rtwdg1(trivec,vec) = vector
+//     -> identical to the regressive commutator product rcmt(trivec,vec)
+//     -> identical to the negated regressive commutator product rcmt(vec,trivec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> rtwdg1(TriVec3dc<T> const& t,
+                                                  Vec3dc<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t.vy * v.z - t.vz * v.y + t.mx * v.w - t.px * v.u;
+    ctype const c1 = -t.vx * v.z + t.vz * v.x + t.my * v.w - t.py * v.u;
+    ctype const c2 = t.vx * v.y - t.vy * v.x + t.mz * v.w - t.pz * v.u;
+    ctype const c3 = -t.px * v.x - t.py * v.y - t.pz * v.z - t.pw * v.w;
+    ctype const c4 = t.mx * v.x + t.my * v.y + t.mz * v.z + t.pw * v.u;
+    return Vec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// rtwdg1(vec,trivec) = vector
+//     -> identical to the regressive commutator product rcmt(vec,trivec)
+//     -> identical to the negated regressive commutator product rcmt(trivec,vec)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> rtwdg1(Vec3dc<T> const& v,
+                                                  TriVec3dc<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.y * t.vz - v.z * t.vy - v.w * t.mx + v.u * t.px;
+    ctype const c1 = -v.x * t.vz + v.z * t.vx - v.w * t.my + v.u * t.py;
+    ctype const c2 = v.x * t.vy - v.y * t.vx - v.w * t.mz + v.u * t.pz;
+    ctype const c3 = v.x * t.px + v.y * t.py + v.z * t.pz + v.w * t.pw;
+    ctype const c4 = -v.x * t.mx - v.y * t.my - v.z * t.mz - v.u * t.pw;
+    return Vec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
+// rtwdg1(bivec,bivec) = vector
+//     -> no equivalent among the other cga3dc products: in five dimensions this
+//        is the grade-1 part of rgpr(bivec,bivec), which no named product isolates
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dc<std::common_type_t<T, U>> rtwdg1(BiVec3dc<T> const& B1,
+                                                  BiVec3dc<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B1.vy * B2.pz - B1.vz * B2.py + B1.mx * B2.pw - B1.py * B2.vz +
+                     B1.pz * B2.vy + B1.pw * B2.mx;
+    ctype const c1 = -B1.vx * B2.pz + B1.vz * B2.px + B1.my * B2.pw + B1.px * B2.vz -
+                     B1.pz * B2.vx + B1.pw * B2.my;
+    ctype const c2 = B1.vx * B2.py - B1.vy * B2.px + B1.mz * B2.pw - B1.px * B2.vy +
+                     B1.py * B2.vx + B1.pw * B2.mz;
+    ctype const c3 = B1.vx * B2.mx + B1.vy * B2.my + B1.vz * B2.mz + B1.mx * B2.vx +
+                     B1.my * B2.vy + B1.mz * B2.vz;
+    ctype const c4 = B1.mx * B2.px + B1.my * B2.py + B1.mz * B2.pz + B1.px * B2.mx +
+                     B1.py * B2.my + B1.pz * B2.mz;
+    return Vec3dc<ctype>(c0, c1, c2, c3, c4);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B: "A contracted onto B"
