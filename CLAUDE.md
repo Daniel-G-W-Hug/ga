@@ -526,6 +526,30 @@ the functions above: they were written to one convention and a second idiom for 
 job beside it costs more clarity than the null check does. Change them together or not at
 all.
 
+### Windows/MSVC identifier traps (`near`, `far`, ...)
+
+**Never name a variable `near` or `far`.** `<windows.h>` defines both as EMPTY macros ---
+the legacy 16-bit memory-model keywords --- and on MSVC it arrives through doctest's
+implementation section, so `auto near = big;` preprocesses to `auto = big;`. The compiler
+reports `C2513: no variable declared before "="` followed by a cascade of syntax errors
+pointing at the *following* lines, so the declaration the error names is not the one that
+is wrong: the NAME is. Use `nearby`, or `is_near` for a comparison helper.
+
+This has bitten twice. First at the `is_near` lambda in `ga_appl3dp_mechanics_test.hpp`,
+which carries the warning in a comment; then again in the two `is_close` cases in
+`ga_ega{2,3}d_test.hpp`, written later without it. The second time is the instructive
+one --- it broke `ga_ega_test` and NOTHING else, so the tree looked healthy on a
+Clang-only run and the failure waited for a Windows build to surface it.
+
+The same applies to the other identifiers the Windows headers claim: `small`
+(`rpcndr.h`), `interface` (`basetyps.h`), `ERROR` (`wingdi.h`), `IN`/`OUT` (`windef.h`),
+and `min`/`max` unless `NOMINMAX` is defined. One grep before naming costs less than a
+Windows-only build failure that somebody else finds:
+
+```bash
+grep -rnE '\b(auto|value_t|double|int)( const)? +(near|far|small)\b' --include=*.hpp .
+```
+
 ### Function-body style for ops_products
 
 In `ga/*_ops_products.hpp`, primitive product functions follow a uniform
