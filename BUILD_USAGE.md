@@ -73,9 +73,19 @@ cmake --build . --target ga_bench_division_guard ga_bench_division_guard_off
 ./ga_test/ga_bench_division_guard && ./ga_test/ga_bench_division_guard_off
 ```
 
-Last measurement (2026-09-05, Apple M5 Pro, Homebrew clang 22, `-O3`): **1.73 vs
-1.19 ns per pair, 1.46x**, checksums identical to 12 digits; on a larger control loop
-of the same shape the whole cycle measured 1.6-1.95x. MSVC figure: not yet taken.
+There is no single number to quote, because the cost is a TOOLCHAIN property, not
+machine noise -- the same bench, same day (2026-09-05), interleaved A/B x3:
+
+| toolchain | guard ON | guard OFF | ratio |
+| --------- | -------- | --------- | ----- |
+| Apple M5 Pro, Homebrew clang 22, `-O3` | 1.73 ns/pair | 1.19 ns/pair | **1.46x** |
+| AMD 9950X3D, MSVC 2022, `/O2` | 3.51 ns/pair | 3.35 ns/pair | **1.05x** |
+
+Checksums identical between ON and OFF on each platform. Clang vectorizes the loop
+once nothing in it can throw; MSVC evidently does not vectorize it either way, so there
+is little to unblock. A larger application loop of the same shape corroborates both
+(1.6-1.95x under Clang, 1.11x under MSVC). So: measure on YOUR compiler before deciding,
+and expect GCC/Clang targets to behave like the first row.
 
 ## Dependencies
 
