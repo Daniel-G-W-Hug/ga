@@ -46,6 +46,37 @@ cmake .. -D_GA_BUILD_PYTHON=ON
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
+### The division guard: safe by default, speed as a per-target opt-out
+
+Every target that links `ga` compiles with `_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (an
+interface requirement of the library target): every library division, normalization and
+unitization checks its divisor against a safe epsilon and **throws** on a near-zero, so a
+degenerate element fails where it happens instead of surfacing as a NaN downstream. It is
+a development safety gate -- keep it wherever code is being developed and tested.
+
+It costs speed in tight loops, and not because of the check: a division that *may throw*
+is an exception edge inside the innermost loop, which the vectorizer and the inliner have
+to respect (outlining the throw into a cold helper measured no difference). Where a
+consumer targets speed rather than safety, switch it off for that consumer's targets only:
+
+```cmake
+ga_division_guard(my_fast_target OFF)     # defined in ga/CMakeLists.txt, beside the guard
+```
+
+The choice is per translation unit (the library is header-only), hence per target. To see
+what it costs on your compiler, build and run the bench pair -- one kernel (a pairwise
+inverse-cube vector sum, the shape of any N-body-like inner loop), once with the guard and
+once without:
+
+```bash
+cmake --build . --target ga_bench_division_guard ga_bench_division_guard_off
+./ga_test/ga_bench_division_guard && ./ga_test/ga_bench_division_guard_off
+```
+
+Last measurement (2026-09-05, Apple M5 Pro, Homebrew clang 22, `-O3`): **1.73 vs
+1.19 ns per pair, 1.46x**, checksums identical to 12 digits; on a larger control loop
+of the same shape the whole cycle measured 1.6-1.95x. MSVC figure: not yet taken.
+
 ## Dependencies
 
 Only **fmt** is needed to use the library (header-only; FetchContent fallback if it is not

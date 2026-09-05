@@ -85,8 +85,11 @@ else()
   add_compile_options(-Wall -Wextra -Wshadow -pedantic -Werror)
 endif()
 
-### Extended testing for division by zero (optional, may cost speed)
-add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+### Extended checking of divisions / normalizations (_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+# is ON by default for every target that links `ga`, as an INTERFACE usage requirement
+# of the library target, and switched off per consumer target with
+# ga_division_guard(<target> OFF). Both live in ga/CMakeLists.txt beside the target --
+# the reasoning, the cost and the bench that measures it are documented there.
 
 #################################################################
 # Cross-platform dependency management

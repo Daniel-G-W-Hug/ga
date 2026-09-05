@@ -47,3 +47,24 @@ add_custom_target(run_${BENCH_TRANSFORM}
     COMMENT "Running sta4ds transform benchmark"
     VERBATIM
 )
+
+# The division-guard bench PAIR: one source, two binaries, the second through
+# ga_division_guard(... OFF). What the guard costs on this compiler, as a ratio of two
+# ns/op figures -- see the comment block at the guard's definition in ga/CMakeLists.txt.
+foreach(_arm "" "_off")
+    set(_t ga_bench_division_guard${_arm})
+    add_executable(${_t} bench_division_guard.cpp)
+    target_include_directories(${_t} PRIVATE ${GA_ROOT})
+    target_link_libraries(${_t} PRIVATE ga)
+    link_fmt_to_target(${_t})
+    set_target_properties(${_t} PROPERTIES
+        EXCLUDE_FROM_ALL TRUE
+        RUNTIME_OUTPUT_DIRECTORY "${_BENCH_OUTPUT_DIR}")
+    target_compile_definitions(${_t} PRIVATE NDEBUG)
+    if(MSVC)
+        target_compile_options(${_t} PRIVATE /O2)
+    else()
+        target_compile_options(${_t} PRIVATE -O3)
+    endif()
+endforeach()
+ga_division_guard(ga_bench_division_guard_off OFF)

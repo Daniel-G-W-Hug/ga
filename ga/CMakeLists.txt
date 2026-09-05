@@ -133,3 +133,54 @@ add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by u
 # automatically -- crucially cross-scope, e.g. a target added by an enclosing build, where
 # a GA_ROOT set inside this repository is not visible.
 target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# THE DIVISION GUARD: ON BY DEFAULT, OFF PER TARGET WHERE SPEED IS THE GOAL.
+#
+# With _HD_GA_EXTENDED_TEST_DIV_BY_ZERO defined, every library division, normalization
+# and unitization checks its divisor against a safe epsilon and THROWS on a near-zero
+# (ga/detail/ga_error_handling.hpp), so a degenerate element fails where it happens
+# instead of surfacing as a NaN three functions later. That is a development safety
+# gate, and it is the default for every consumer: the definition is an INTERFACE usage
+# requirement of `ga`, so linking the library is enough to get it -- in this tree and in
+# any enclosing build that adds it via add_subdirectory.
+#
+# It is not free. The check is a compare-and-branch, but a throw inside an innermost
+# loop can stop the compiler inlining and vectorizing the loop around it. With the
+# throw INLINE that was measured at 1.63x on a pair-summation control loop (byte-
+# identical output); since the throw has been outlined into a cold, non-returning helper
+# the remaining cost is what the two benches below report -- build and run them:
+#
+#     cmake --build . --target ga_bench_division_guard ga_bench_division_guard_off
+#     ./ga_test/ga_bench_division_guard && ./ga_test/ga_bench_division_guard_off
+#
+# The same kernel (a pairwise inverse-cube vector sum, the shape of any N-body-like
+# inner loop), built once with the guard and once without through the function below.
+# The ratio between the two ns/op figures is the cost on THIS compiler; the number
+# recorded in BUILD_USAGE.md ("Build Options") is the last measurement.
+#
+# TO GO FOR SPEED: call ga_division_guard(<your target> OFF) on the targets that need
+# it -- and only on those. The choice is per TRANSLATION UNIT (the library is header-
+# only, so the check is instantiated in the consumer), hence per target, never per
+# call site; a target that keeps the guard while linking the same library is exactly
+# what "guarded application over a fast library" looks like. Two binaries are needed to
+# compare, which is why the bench is a pair: the same inline templates with two
+# different bodies in ONE binary would be an ODR violation.
+#
+# Mechanism: the generator expression reads the CONSUMING target's own
+# GA_DIVISION_GUARD_OFF property (a TARGET_PROPERTY expression without a target name
+# evaluates on the target being compiled), so the default needs nothing from the
+# consumer and the opt-out is a property set on the consumer alone.
+define_property(TARGET PROPERTY GA_DIVISION_GUARD_OFF
+    BRIEF_DOCS "TRUE removes the ga division guard from this target's translation units"
+    FULL_DOCS "Set through ga_division_guard(<target> OFF); see ga/CMakeLists.txt.")
+target_compile_definitions(${LIB_NAME} INTERFACE
+    $<$<NOT:$<BOOL:$<TARGET_PROPERTY:GA_DIVISION_GUARD_OFF>>>:_HD_GA_EXTENDED_TEST_DIV_BY_ZERO>)
+
+# ga_division_guard(<target> ON|OFF): keep (default) or drop the guard for one target.
+function(ga_division_guard target state)
+    if(state)
+        set_property(TARGET ${target} PROPERTY GA_DIVISION_GUARD_OFF FALSE)
+    else()
+        set_property(TARGET ${target} PROPERTY GA_DIVISION_GUARD_OFF TRUE)
+    endif()
+endfunction()
