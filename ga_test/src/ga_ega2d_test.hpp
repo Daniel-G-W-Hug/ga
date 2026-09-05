@@ -3112,10 +3112,13 @@ TEST_SUITE("EGA 2D Tests")
         // the threshold is RELATIVE: at a large scale a small absolute difference is
         // still close, while operator== (absolute eps) already says different
         auto big = mvec2d{1.0e9, 2.0e9, 3.0e9, 4.0e9};
-        auto near = big;
-        near.c3 += 1.0e-4;
-        CHECK(is_close(big, near));
-        CHECK(!(big == near));
+        // NOT named `near`: on MSVC <windows.h> arrives via doctest's implementation
+        // section and defines the legacy `near`/`far` memory-model keywords as EMPTY
+        // macros, so `auto near = ...` would expand to `auto = ...`.
+        auto nearby = big;
+        nearby.c3 += 1.0e-4;
+        CHECK(is_close(big, nearby));
+        CHECK(!(big == nearby));
     }
 
     TEST_CASE("MVec2d: exp, cos and sin of a general multivector")

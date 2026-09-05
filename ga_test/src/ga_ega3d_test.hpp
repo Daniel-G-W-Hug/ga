@@ -3699,10 +3699,13 @@ TEST_SUITE("EGA 3D Tests")
 
         // relative, not absolute: cf. operator==
         auto big = mvec3d{1.0e9, 2.0e9, 3.0e9, 4.0e9, 5.0e9, 6.0e9, 7.0e9, 8.0e9};
-        auto near = big;
-        near.c3 += 1.0e-4;
-        CHECK(is_close(big, near));
-        CHECK(!(big == near));
+        // NOT named `near`: on MSVC <windows.h> arrives via doctest's implementation
+        // section and defines the legacy `near`/`far` memory-model keywords as EMPTY
+        // macros, so `auto near = ...` would expand to `auto = ...`.
+        auto nearby = big;
+        nearby.c3 += 1.0e-4;
+        CHECK(is_close(big, nearby));
+        CHECK(!(big == nearby));
     }
 
     TEST_CASE("PScalar3d: exp of a pseudoscalar (duality rotation, NOT a rotor)")
