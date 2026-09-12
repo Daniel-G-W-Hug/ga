@@ -6231,6 +6231,44 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(try_unitize(point3dp{3.0, 6.0, 9.0, 3.0}) == point3dp{1.0, 2.0, 3.0, 1.0});
     }
 
+    TEST_CASE("PGA3dp: is_simple -- is a bivector a line at all?")
+    {
+        fmt::println("PGA3dp: is_simple -- is a bivector a line at all?");
+
+        // pga3dp is 4d, so a bivector is a line only if it satisfies the Pluecker
+        // condition B ^ B == 0. A line built from two points always does; a bivector
+        // assembled by hand need not, and then it represents no line.
+
+        auto const L = wdg(point3d{0.3, -0.7, 0.2}, point3d{1.5, 0.9, -0.4});
+        CHECK(is_simple(bivec3dp(L)));
+        CHECK(is_simple(bivec3dp(wdg(point3d{0, 0, 0}, point3d{1, 0, 0}))));
+        CHECK(is_simple(e41_3dp));    // a basis line
+        CHECK(is_simple(bivec3dp{})); // the zero bivector, trivially
+
+        // a sum of two blades that share no point: not a line
+        auto const N = bivec3dp{1.0, 0.5, 2.0, 0.25, 3.0, 1.0};
+        CHECK(value_t(wdg(N, N)) != 0.0);
+        CHECK(!is_simple(N));
+
+        SUBCASE("the answer does not depend on the scale of the coordinates")
+        {
+            // B ^ B grows with the components SQUARED, so an absolute bound would answer
+            // false for a genuine line as soon as the coordinates carry a physical scale
+            for (double s : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+                auto const Ls = wdg(point3d{1.1 * s, 0.37 * s, 2.9 * s},
+                                    point3d{3.7 * s, 1.3 * s, 0.57 * s});
+                INFO("scale = ", s, "  |B^B| = ", std::abs(value_t(wdg(Ls, Ls))));
+                CHECK(is_simple(bivec3dp(Ls)));
+            }
+            for (double s : {1.0, 1.0e3, 1.0e6}) {
+                auto const Ns =
+                    bivec3dp{1.0 * s, 0.5 * s, 2.0 * s, 0.25 * s, 3.0 * s, 1.0 * s};
+                INFO("scale = ", s);
+                CHECK(!is_simple(Ns));
+            }
+        }
+    }
+
     TEST_CASE("PGA3dp: the comparison contract")
     {
         fmt::println("PGA3dp: the comparison contract");

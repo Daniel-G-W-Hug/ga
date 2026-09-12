@@ -141,7 +141,7 @@ void register_functions_sta(nb::module_& m)
     m.def("is_same_transform", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
         return is_same_transform(a0, a1, a2);
     });
-    m.def("is_simple", [](bivec4ds const& a0) { return is_simple(a0); });
+    m.def("is_simple", [](bivec4ds const& a0, double a1) { return is_simple(a0, a1); });
     m.def("is_spacelike", [](vec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](bivec4ds const& a0) { return is_spacelike(a0); });
     m.def("is_spacelike", [](trivec4ds const& a0) { return is_spacelike(a0); });

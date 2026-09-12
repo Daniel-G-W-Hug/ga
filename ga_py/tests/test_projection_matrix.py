@@ -38,10 +38,24 @@ _f = st.floats(min_value=-20.0, max_value=20.0, allow_nan=False,
                allow_infinity=False)
 
 
-def _close(a, b, nrm_sq, scale=1.0):
-    """relative comparison on GA objects, via the algebra's own squared norm"""
-    return abs(nrm_sq(a - b)) <= EPS_LOOSE * max(abs(nrm_sq(a)), abs(nrm_sq(b)),
-                                                 scale)
+# Component fields per type. The comparisons below gauge magnitude by the SUM OF
+# SQUARED COMPONENTS, not by nrm_sq: in a Minkowski metric nrm_sq vanishes for a null
+# vector (hypothesis finds (1,0,0,1) immediately), and a relative bound built on it then
+# collapses to zero. The component sum is metric-free and never does that.
+_VEC4 = ("x", "y", "z", "w")
+_BIVEC4 = ("vx", "vy", "vz", "mx", "my", "mz")
+_BIVEC3 = ("x", "y", "z")
+_VEC3 = ("x", "y", "z")
+
+
+def _mag_sq(x, fields):
+    return sum(getattr(x, f) ** 2 for f in fields)
+
+
+def _close(a, b, fields, floor=1.0):
+    """relative comparison, gauged on the components rather than on the metric"""
+    return _mag_sq(a - b, fields) <= (EPS_LOOSE ** 2) * max(
+        _mag_sq(a, fields), _mag_sq(b, fields), floor)
 
 
 @st.composite
@@ -70,16 +84,16 @@ def test_ega3d_bivec_projection(A, B):
     par = ega.project_onto(A, B)
     rej = ega.reject_from(A, B)
     # the split is complete and orthogonal
-    assert _close(par + rej, A, ega.nrm_sq, ega.nrm_sq(A))
+    assert _close(par + rej, A, _BIVEC3)
     # the bound needs a floor: hypothesis happily draws a subnormal A (1e-217),
     # where nrm(A) underflows to zero and a purely relative bound is unsatisfiable
     assert abs(float(ega.dot(rej, B))) <= EPS_LOOSE * max(ega.nrm(A) * ega.nrm(B),
                                                           1.0)
     # idempotence -- the sign gate
-    assert _close(ega.project_onto(par, B), par, ega.nrm_sq, ega.nrm_sq(A))
-    assert _close(ega.project_onto(B, B), B, ega.nrm_sq, ega.nrm_sq(B))
+    assert _close(ega.project_onto(par, B), par, _BIVEC3)
+    assert _close(ega.project_onto(B, B), B, _BIVEC3)
     # the target's scale stays out
-    assert _close(ega.project_onto(A, 3.0 * B), par, ega.nrm_sq, ega.nrm_sq(A))
+    assert _close(ega.project_onto(A, 3.0 * B), par, _BIVEC3)
 
 
 # --------------------------------------------------------------------------- #
@@ -92,16 +106,15 @@ def test_sta4ds_hyperplane_projection(a, b, t):
     assume(abs(sta.nrm_sq(t)) > 1.0)
     pa = sta.project_onto(a, t)
     ra = sta.reject_from(a, t)
-    assert _close(pa + ra, a, sta.nrm_sq, abs(sta.nrm_sq(a)))
+    assert _close(pa + ra, a, _VEC4)
     # idempotence, and the target's scale stays out
-    assert _close(sta.project_onto(pa, t), pa, sta.nrm_sq, abs(sta.nrm_sq(a)))
-    assert _close(sta.project_onto(a, 3.0 * t), pa, sta.nrm_sq,
-                  abs(sta.nrm_sq(a)))
+    assert _close(sta.project_onto(pa, t), pa, _VEC4)
+    assert _close(sta.project_onto(a, 3.0 * t), pa, _VEC4)
     # the grades agree: a projection distributes over the wedge
     B = sta.wdg(a, b)
     lhs = sta.wdg(pa, sta.project_onto(b, t))
     rhs = sta.project_onto(B, t)
-    assert _close(lhs, rhs, sta.nrm_sq, abs(sta.nrm_sq(lhs)) + 1.0)
+    assert _close(lhs, rhs, _BIVEC4)
     # the rejection of the bivector is still a 2-plane (the target is a
     # hyperplane, so the leftover is simple)
     rB = sta.reject_from(B, t)

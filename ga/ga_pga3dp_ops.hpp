@@ -39,6 +39,7 @@ namespace hd::ga::pga {
 // - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 //
+// - is_simple()                          -> is a bivector a line? (Pluecker condition)
 // - is_congruent()                       -> Same up to a scalar factor (is same subspace)
 // - is_close()                           -> Same value within a RELATIVE tolerance
 // - is_same_motion()                     -> Do two motors describe the same rigid
@@ -1246,6 +1247,31 @@ constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
         return DualNum3dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// is a bivector a LINE?
+////////////////////////////////////////////////////////////////////////////////
+
+// A bivector represents a line only if it is simple, i.e. B ^ B == 0 -- the Plücker
+// condition. In 3d every bivector is simple and the question does not arise, but pga3dp
+// is 4d: a general bivector there is a sum of two blades and represents no line at all.
+// One out of a wedge of two points always passes; one that was integrated, interpolated
+// or read from data need not.
+//
+// The test is RELATIVE, and has to be: B ^ B grows with the components SQUARED, so an
+// absolute bound answers false for a genuine line as soon as the coordinates carry a
+// scale. Dividing by the sum of the squared components makes it exactly scale-invariant
+// -- both are quadratic in B -- and keeps it defined in this degenerate metric, where
+// weight_nrm_sq vanishes for an ideal line and bulk_nrm_sq for a line through the origin.
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_simple(BiVec3dp<T> const& B, T rel_tol = T(eps_congruent))
+{
+    T const scale =
+        B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my + B.mz * B.mz;
+    return std::abs(T(wdg(B, B))) <= rel_tol * scale;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // test congruence (same up to a scalar factor, i.e. representing same subspace)

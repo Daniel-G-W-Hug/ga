@@ -3622,6 +3622,12 @@ void register_functions(sol::state& lua)
             [](vec3d const& a, vec3d const& b) { return is_congruent(a, b); },
             [](bivec3d const& a, bivec3d const& b) { return is_congruent(a, b); },
             [](pscalar3d a, pscalar3d b) { return is_congruent(a, b); }));
+    // is a pga3dp bivector a line at all? (Pluecker condition; 3d has no such question)
+    pga.set_function(
+        "is_simple",
+        sol::overload([](bivec3dp const& B) { return is_simple(B); },
+                      sol::resolve<bool(bivec3dp const&, value_t)>(is_simple)));
+
     pga.set_function(
         "is_congruent",
         sol::overload(
@@ -5225,8 +5231,10 @@ void register_functions(sol::state& lua)
 
     // STA bivector structure: a simple bivector is a pure rotation or a pure boost,
     // and a general one splits into the two commuting parts
-    sta.set_function("is_simple",
-                     sol::overload(sol::resolve<bool(bivec4ds const&)>(is_simple)));
+    sta.set_function(
+        "is_simple",
+        sol::overload([](bivec4ds const& B) { return is_simple(B); },
+                      sol::resolve<bool(bivec4ds const&, value_t)>(is_simple)));
     sta.set_function("boost_part",
                      sol::overload(sol::resolve<bivec4ds(bivec4ds const&)>(boost_part)));
     sta.set_function("rot_part",

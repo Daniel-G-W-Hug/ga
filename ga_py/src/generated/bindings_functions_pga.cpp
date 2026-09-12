@@ -395,6 +395,7 @@ void register_functions_pga(nb::module_& m)
     m.def("is_same_motion", [](mvec3dp_e const& a0, mvec3dp_e const& a1, double a2) {
         return is_same_motion(a0, a1, a2);
     });
+    m.def("is_simple", [](bivec3dp const& a0, double a1) { return is_simple(a0, a1); });
     m.def("join", [](bivec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, bivec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });

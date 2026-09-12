@@ -836,11 +836,26 @@ constexpr BiVec4ds<std::common_type_t<T, U>> rel_bivec_split(BiVec4ds<T> const& 
 
 // true if the bivector lies in a single plane, i.e. B ^ B == 0 (always true in 3d, but
 // NOT in 4d: a generic sta bivector is a sum of two volutors)
+//
+// The test is RELATIVE, and it has to be: B ^ B scales with the components SQUARED, so an
+// absolute bound answers false for a genuine 2-blade as soon as the coordinates carry a
+// scale. Measured on a blade built from two vectors, the absolute form (against
+// safe_epsilon) said FALSE at every magnitude from 1 upward, while |B ^ B| divided by the
+// sum of the squared components stayed at ~1e-17 -- against 1.56 for a bivector that is
+// genuinely not simple. Dividing by that sum makes the test exactly scale-invariant,
+// since both it and B ^ B are quadratic in B, and it stays defined in a degenerate or
+// Lorentzian metric, where nrm_sq may vanish for a non-zero blade.
+//
+// The default tolerance is eps_congruent, as for is_congruent and is_close: the question
+// is asked of a bivector that was computed, and the answer separates by sixteen orders of
+// magnitude, so there is nothing to buy from a tighter bound.
 template <typename T>
     requires(numeric_type<T>)
-inline bool is_simple(BiVec4ds<T> const& B)
+inline bool is_simple(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return std::abs(T(gr4(MVec4ds_E<T>(B) * B))) <= detail::safe_epsilon<T>();
+    T const scale =
+        B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my + B.mz * B.mz;
+    return std::abs(T(wdg(B, B))) <= rel_tol * scale;
 }
 
 // the time-like (boost-generating) part; squares to >= 0

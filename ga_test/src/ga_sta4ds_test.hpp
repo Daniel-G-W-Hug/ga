@@ -2570,6 +2570,29 @@ TEST_SUITE("STA 3D Tests")
 
         CHECK(!is_simple(F));
         CHECK(is_simple(S));
+
+        SUBCASE("simplicity is scale-invariant, and the test has to be relative")
+        {
+            // B ^ B grows with the components SQUARED, so an absolute bound answers
+            // FALSE for a genuine 2-blade as soon as the coordinates carry a scale.
+            // These are the same blade at four magnitudes; the values are chosen so the
+            // cancellation in B ^ B is not exact in binary and a real residue is left.
+            for (double s : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+                auto const Bs =
+                    bivec4ds(wdg(vec4ds{1.1 * s, 0.37 * s, 2.9 * s, 0.13 * s},
+                                 vec4ds{3.7 * s, 1.3 * s, 0.57 * s, 2.3 * s}));
+                INFO("scale = ", s, "  |B^B| = ", std::abs(value_t(wdg(Bs, Bs))));
+                CHECK(is_simple(Bs));
+            }
+            // and a bivector that is genuinely not simple stays that way at any scale --
+            // the ratio |B^B| / sum(components^2) is scale-free, here 1.56 against ~1e-17
+            for (double s : {1.0, 1.0e3, 1.0e6}) {
+                auto const Fs =
+                    bivec4ds{1.0 * s, 0.5 * s, 2.0 * s, 0.25 * s, 3.0 * s, 1.0 * s};
+                INFO("scale = ", s);
+                CHECK(!is_simple(Fs));
+            }
+        }
         CHECK(is_simple(Tl));
         CHECK(is_simple(Sp));
         CHECK(is_simple(Nl));
