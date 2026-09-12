@@ -453,6 +453,9 @@ ga_py/
 ├── README.md                   # this file
 ├── src/
 │   ├── module.cpp              # hand-written entry point (NB_MODULE)
+│   ├── bindings_rk4_step.cpp   # hand-written: rk4_step per VecType (§6.5)
+│   ├── bindings_mechanics.cpp  # hand-written: the inertia surface (§6.6)
+│   ├── bindings_projections.cpp # hand-written: the generic templates (§6.10)
 │   └── generated/              # produced by ga_bindgen — do not edit
 │       ├── bindings_*.cpp      # one file per bound user type (46 today)
 │       ├── bindings_constants_*.cpp
@@ -461,8 +464,8 @@ ga_py/
 │       └── bindings_list.cmake # generated source list, included by CMakeLists.txt
 ├── python/
 │   └── ga_py/__init__.py       # re-exports ega/pga/sta submodules + Python forwarders
-│                               #   for fully-generic C++ templates that the
-│                               #   binding generator cannot enumerate
+│                               #   for the generic C++ templates that are
+│                               #   one-line compositions (see §6.10)
 └── tests/
     ├── conftest.py             # tolerance fixtures, component extraction
     ├── test_constants.py       # T1: constants verification (143 tests)
@@ -474,10 +477,12 @@ ga_py/
         └── ga_test_cases.json  # captured (op, args, expected) tuples from C++
 ```
 
-The `python/ga_py/__init__.py` shim contains pure-Python forwarders for a handful of `ga/`
+The `python/ga_py/__init__.py` shim contains pure-Python forwarders for some of the `ga/`
 free functions written as fully-generic C++ templates (`template<typename A, typename B>
-auto f(A&&, B&&)`) — there is no overload list for the generator to enumerate. The
-forwarders compose already-bound C++ functions; they contain **no Python math**.
+auto f(A&&, B&&)`) — there is no overload list for the generator to enumerate. Those
+forwarders compose already-bound C++ functions; they contain **no Python math**. The
+generic templates that are NOT one-line compositions are bound from C++ instead, in
+`src/bindings_projections.cpp` — §6.10 says which and why the line falls there.
 
 ### 5.3 Build modes
 
@@ -636,12 +641,14 @@ ga_py/python/ga_py/py.typed       # PEP 561 marker
 Pipeline: `nanobind.stubgen` against the compiled extension (full `@overload` resolution
 for operators, free functions and the four `rk4_step` `VecType` instantiations), then two
 post-passes — `__format__` injection on every bound class, and signatures for the
-pure-Python forwarders that `__init__.py` injects into `ga_py.pga` at import time
-(`ortho_proj{2,3}dp`, `dist{2,3}dp`, `*_contract*` / `*_expand*` families).
+pure-Python forwarders that `__init__.py` injects into `ga_py.pga` / `ga_py.sta` at import
+time (the `*_contract*` / `*_expand*` families).
 
-Forwarders are typed loosely as `(a: Any, b: Any) -> Any` — they're generic compositions
-whose return type depends on the (a, b) input combination. Tightening them to per-grade
-overloads is mechanical but deferred.
+Those forwarders are typed loosely as `(a: Any, b: Any) -> Any` — they are generic
+compositions whose return type depends on the (a, b) input combination. The projection
+families, `dist{2,3}dp` and `try_unitize` used to be in that group and are now bound from
+C++ (§6.10), so stubgen types them per pair: `def ortho_proj3dp(a: vec3dp, b: trivec3dp)
+-> vec3dp`. A typed stub is one of the reasons to bind rather than forward.
 
 Regenerate via the dedicated CMake target (depends on `_ga_py` being built):
 
@@ -885,3 +892,53 @@ to relax the scanner's allow-list — it's to **promote that specific symbol out
 `detail`** in the C++ library. `hd::ga::detail` is the universally-recognised C++ idiom
 for "internal; subject to change without notice"; breaking that convention to suit a
 binding generator would muddy the public surface for C++ users too.
+
+### 6.10 Generic templates: forwarded in Python, or bound in C++?
+
+Some `ga/` free functions are declared as fully generic forwarding templates,
+
+```cpp
+template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&&, arg2&&)
+```
+
+and the generator cannot type them: `manifest.json` records `param_types: ["arg1 &&",
+"arg2 &&"]` with a `decltype(auto)` return, which the emitter's resolver has nothing to
+map onto a nanobind signature. (The scanner *does* see them — `FUNCTION_TEMPLATE` is
+collected beside `FUNCTION_DECL`. The obstacle is the generic form, not the template:
+`project_onto` is a template too and is bound automatically, because it is templated on
+the scalar type only and names concrete types in its signature.)
+
+There are two ways to expose such a function, and the line between them is **whether the
+C++ body is a one-line composition of already-bound primitives**:
+
+| | forward in `python/ga_py/__init__.py` | bind in `src/bindings_projections.cpp` |
+| --- | --- | --- |
+| which | the bulk/weight contractions and expansions (16 in PGA), `sta.l_expand4ds` / `r_expand4ds` | the projection / antiprojection families (8 in PGA + `ega.ortho_proj3d` + `sta.ortho_proj4ds`), `dist{2,3}dp`, `try_unitize`, `is_simple`'s defaulted tolerance |
+| why | the Python wrapper IS the C++ body — `l_bulk_contract2dp(a, b)` is `rwdg(bulk_dual(a), b)` in both — so it cannot drift, and the bound `rwdg` / `wdg` / `dual` it composes cover every grade pair automatically | the body carries a threshold (`detail::by_weight_sq` divides only when `weight_nrm_sq > safe_epsilon²`), a guard (`is_simple` under `_HD_GA_EXTENDED_TEST_BLADE_TARGET`) or an `if constexpr` dispatch on the grade sum. A Python wrapper can only reproduce those by copying constants, and when it did, it drifted |
+| cost | typed loosely in the stub: `(a: Any, b: Any) -> Any` | the operand pairs are hand-kept, one `def` per meaningful grade combination |
+
+The second column used to be the first, and the two drifts are what moved it. Both are now
+gates in `tests/test_projection_matrix.py`:
+
+- an **ideal target** (`weight_nrm_sq = 1e-32`) keeps its weight, because the library
+  divides only above `safe_epsilon²`; the Python wrapper divided whenever the weight was
+  not exactly zero, putting the two results 10³² apart;
+- a **non-blade target** throws, since it represents no subspace; the Python wrapper
+  returned a plausible wrong answer.
+
+Two gaps closed at the same time. **`try_unitize` was not bound at all** — it reports
+whether it divided through a trailing `bool*` out-parameter, which has no nanobind
+mapping — although the projection documentation tells the reader to call it on a result
+for a canonical representative. In Python it returns `(object, unitized)`, and the derived
+primitives keep their own type (`point3dp` in, `point3dp` out), so the *derived* overloads
+are registered first: nanobind resolves in registration order, and a `vec3dp` overload
+registered earlier would upcast the point and hand back a `vec3dp`. **`is_simple`
+required its tolerance explicitly**, because the generator drops default arguments; the
+one-argument form is added beside the generated two-argument one.
+
+Adding a pair is one line. A pair that is missing shows up as a `TypeError`, not as a
+wrong answer — which is the right failure direction, but it is a second place that has to
+follow the library. The better end state is a declared pair list the emitter
+instantiates from (one table in `emit_nanobind.py`, regenerated with everything else,
+stubs typed by the generator); it subsumes this file and is deferred only because it
+changes the generator.

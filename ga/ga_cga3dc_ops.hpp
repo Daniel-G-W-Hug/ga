@@ -177,7 +177,8 @@ inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M)
     std::complex<T> const sh_ow = (std::abs(w) > T(1e-2))
                                       ? std::sinh(w) / w
                                       : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
-    // singular exactly at the full-turn versors (central part -I)
+    // singular exactly at the full-turn versors (central part -I); sh_ow is a
+    // dimensionless series value of natural scale one, so the floor is absolute
     hd::ga::detail::check_normalization<T>(std::abs(sh_ow),
                                            "regressive logarithm (full-turn versor)");
     return T(1.0) / sh_ow.real() * V;
@@ -317,7 +318,8 @@ inline MVec3dc_U<T> get_rotation(T px, T py, T pz, T vx, T vy, T vz, T theta)
     auto const l = line3dc(px, py, pz, vx, vy, vz);
     auto const sq = rgpr(l, l); // = alpha * I, alpha = -|v|^2 (elliptic)
     T const alpha = T(gr5(sq));
-    hd::ga::detail::check_normalization<T>(std::abs(alpha), "rotation axis line");
+    hd::ga::detail::check_invertible<T>(alpha, hd::ga::detail::coeff_sq(l),
+                                        "rotation axis line");
     auto const lu = T(1.0) / std::sqrt(-alpha) * l;
     return rexp(TriVec3dc<T>(T(0.5) * theta * lu));
 }
@@ -329,6 +331,8 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec3dc_U<T> get_dilation(T mx, T my, T mz, T sigma)
 {
+    // sigma is a dimensionless ratio and must be POSITIVE (log(sigma) below), which
+    // the unsigned comparison in check_normalization covers as well
     hd::ga::detail::check_normalization<T>(sigma, "dilation scale factor");
     T const delta = -T(0.5) * std::log(sigma);
     auto const g = antidual(flat_point3dc(mx, my, mz));
@@ -373,13 +377,15 @@ inline MVec3dc_U<T> get_loxodromic(BiVec3dc<T> const& d, T phi, T delta)
     auto const l = car(du);
     auto const sql = rgpr(l, l);
     T const al = T(gr5(sql));
-    hd::ga::detail::check_normalization<T>(std::abs(al), "dipole carrier line");
+    hd::ga::detail::check_invertible<T>(al, hd::ga::detail::coeff_sq(l),
+                                        "dipole carrier line");
     auto const lu = T(1.0) / std::sqrt(-al) * l;
     // hyperbolic part: the antidual of the dipole (fixes the same two points)
     auto const h = antidual(du);
     auto const sqh = rgpr(h, h);
     T const ah = T(gr5(sqh));
-    hd::ga::detail::check_normalization<T>(std::abs(ah), "dipole antidual");
+    hd::ga::detail::check_invertible<T>(ah, hd::ga::detail::coeff_sq(h),
+                                        "dipole antidual");
     auto const hu = T(1.0) / std::sqrt(ah) * h;
     return rgpr(rexp(TriVec3dc<T>(T(0.5) * phi * lu)), rexp(TriVec3dc<T>(-delta * hu)));
 }
@@ -625,7 +631,8 @@ inline T radius_sq(Vec3dc<T> const& v)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "round point (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(v),
+                                        "round point (round weight)");
     return radius_nrm_sq(v) / wn_sq;
 }
 
@@ -637,7 +644,8 @@ inline T radius_sq(BiVec3dc<T> const& B)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "dipole (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(B),
+                                        "dipole (round weight)");
     return radius_nrm_sq(B) / wn_sq;
 }
 
@@ -649,7 +657,8 @@ inline T radius_sq(TriVec3dc<T> const& t)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "circle (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(t),
+                                        "circle (round weight)");
     return radius_nrm_sq(t) / wn_sq;
 }
 
@@ -661,7 +670,8 @@ inline T radius_sq(QuadVec3dc<T> const& Q)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "sphere (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(Q),
+                                        "sphere (round weight)");
     return radius_nrm_sq(Q) / wn_sq;
 }
 
@@ -964,7 +974,7 @@ inline Vec3d<T> position(Vec3dc<T> const& v)
     if (is_flat(v)) throw std::runtime_error("position: the point at infinity has none");
     auto const c = cen(v);
     if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.w), "round object (round weight)");
     return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
 }
 
@@ -975,13 +985,12 @@ template <typename T>
 inline Vec3d<T> position(BiVec3dc<T> const& B)
 {
     if (is_flat(B)) {
-        hd::ga::detail::check_normalization<T>(std::abs(B.pw),
-                                               "flat point (flat weight)");
+        hd::ga::detail::check_unitization<T>(std::abs(B.pw), "flat point (flat weight)");
         return Vec3d<T>(B.px / B.pw, B.py / B.pw, B.pz / B.pw);
     }
     auto const c = cen(B);
     if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.w), "round object (round weight)");
     return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
 }
 
@@ -992,7 +1001,7 @@ inline Vec3d<T> position(TriVec3dc<T> const& t)
     if (is_flat(t)) throw std::runtime_error("position: a line has no centre");
     auto const c = cen(t);
     if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.w), "round object (round weight)");
     return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
 }
 
@@ -1003,7 +1012,7 @@ inline Vec3d<T> position(QuadVec3dc<T> const& Q)
     if (is_flat(Q)) throw std::runtime_error("position: a plane has no centre");
     auto const c = cen(Q);
     if (c.w == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.w), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.w), "round object (round weight)");
     return Vec3d<T>(c.x / c.w, c.y / c.w, c.z / c.w);
 }
 

@@ -14,6 +14,7 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
 // Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);
 void bind_mechanics(nb::module_& pga);
+void bind_projections(nb::module_& ega, nb::module_& pga, nb::module_& sta);
 
 NB_MODULE(_ga_py, m)
 {
@@ -29,4 +30,5 @@ NB_MODULE(_ga_py, m)
     register_all(m, ega, pga, cga, sta);
     bind_rk4_step(m);
     bind_mechanics(pga);
+    bind_projections(ega, pga, sta);
 }

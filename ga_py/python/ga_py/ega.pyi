@@ -1,7 +1,7 @@
 """Euclidean geometric algebra (2D, 3D)"""
 
 from collections.abc import Sequence
-from typing import Annotated, Any, overload
+from typing import Annotated, overload
 
 import numpy
 from numpy.typing import NDArray
@@ -3488,8 +3488,7 @@ z_dir_3d: vec3d = ...
 
 zx_3d: bivec3d = ...
 
-
-# Pure-Python forwarders injected at import time from ga_py/__init__.py
-# (typed loosely — return type depends on the (a, b) combination at the call site)
-
-def ortho_proj3d(a: Any, b: Any) -> Any: ...
+def ortho_proj3d(a: vec3d, b: bivec3d) -> vec3d:
+    """
+    Orthogonal projection of a onto the larger-grade b. The target's scale is divided out and the source's is kept, so f(a, k*b) == f(a, b) and f(k*a, b) == k*f(a, b). The result is NOT unitized -- call try_unitize() on it for a canonical representative, since a projection may legitimately land at infinity. REQUIRES gr(a) < gr(b), and a target that is a blade.
+    """

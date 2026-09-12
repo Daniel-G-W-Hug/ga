@@ -438,4 +438,30 @@ std::ostream& operator<<(std::ostream& os, MVec32_t<T, Tag> const& v)
     return os;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// coeff_sq: the sum of the squared coefficients -- a METRIC-FREE gauge of "how big is
+// this object", used to judge degeneracy relative to the object itself (see
+// detail::check_invertible in ga_error_handling.hpp). It is NOT a norm: no metric enters,
+// which is the point -- nrm_sq vanishes on a null blade in a Lorentzian or conformal
+// metric and on an ideal one in a degenerate metric, exactly where a gauge is needed.
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T coeff_sq(MVec32_t<T, Tag> const& v)
+{
+    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
+           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7 + v.c8 * v.c8 + v.c9 * v.c9 +
+           v.c10 * v.c10 + v.c11 * v.c11 + v.c12 * v.c12 + v.c13 * v.c13 + v.c14 * v.c14 +
+           v.c15 * v.c15 + v.c16 * v.c16 + v.c17 * v.c17 + v.c18 * v.c18 + v.c19 * v.c19 +
+           v.c20 * v.c20 + v.c21 * v.c21 + v.c22 * v.c22 + v.c23 * v.c23 + v.c24 * v.c24 +
+           v.c25 * v.c25 + v.c26 * v.c26 + v.c27 * v.c27 + v.c28 * v.c28 + v.c29 * v.c29 +
+           v.c30 * v.c30 + v.c31 * v.c31;
+}
+
+} // namespace detail
+
 } // namespace hd::ga

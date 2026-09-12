@@ -1049,6 +1049,26 @@ NON-generated files — each one surfaced as a test failure when missed:
 Helpers used only by the C++ ops (not public API) belong in `hd::ga::detail`, which
 `scan.py` excludes from the binding — see the STA rotor section below.
 
+**Three files are HAND-written and the generator never touches them** (`ga_py/src/`):
+`bindings_rk4_step.cpp` (templated on `VecType`), `bindings_mechanics.cpp` (the `inertia*`
+struct shapes), and `bindings_projections.cpp` (the fully generic
+`decltype(auto) f(arg1&&, arg2&&)` templates: the projection / antiprojection families,
+`dist{2,3}dp`, `try_unitize`, `is_simple`'s defaulted tolerance). Adding one means a
+declaration + call in `module.cpp` and an entry in `ga_py/CMakeLists.txt`'s source list.
+
+**The line between a C++ binding and a Python forwarder in `__init__.py`** — both exist
+for the same reason, that a fully generic template has no signature the emitter can map —
+is **whether the C++ body is a one-line composition of already-bound primitives.** If it
+is (the bulk/weight contractions and expansions: `l_bulk_contract2dp(a, b)` IS
+`rwdg(bulk_dual(a), b)`), the Python forwarder is strictly better: it cannot drift, and it
+covers every grade pair the composed primitives accept, where a C++ binding covers only
+the pairs someone enumerated. If the body carries a threshold, a guard or an
+`if constexpr` dispatch, a Python wrapper can only reproduce it by copying constants — and
+when it did, it drifted twice (it divided by an ideal target's weight, which the library
+leaves alone below `safe_epsilon²`, and it had no blade-target guard). Those belong in
+C++. Do not "finish" either half into the other; `ga_py/README.md` §6.10 states this with
+the measurements.
+
 **Binding scope.** The generator binds user type-aliases (the GA value types), free
 functions, operators, constants, and **pure-data structs** — concrete (non-template)
 aggregates whose members are *all* public fields (the physics PODs `pose2dp`/`pose3dp`,
@@ -1325,6 +1345,32 @@ Two distinct multiplicative inverses live in `*_ops_products.hpp`:
   the **scalar has no `rinv`** (dual to the pseudoscalar having no `inv`), while the
   **pseudoscalar gains an `rinv`** (dual to the scalar's `inv`). `rinv()` is bound into
   `ga_py` (regenerate via the scan chain if its signature set changes).
+
+### Which degeneracy guard to reach for (`detail/ga_error_handling.hpp`)
+
+Four helpers, and picking the wrong one has twice produced a library that rejected
+perfectly good geometry. The deciding question is **what degree the divisor carries and
+whether the result is a ratio**, not "does this divide?":
+
+| helper | use when | form |
+| ------ | -------- | ---- |
+| `check_invertible(divisor, gauge)` | the divisor is a METRIC quantity — a squared norm, a Hitzer–Sangwine determinant, a regressive square — and the result is invariant under rescaling the operand | relative: `\|divisor\| > eps * gauge`, the gauge being `coeff_sq` raised to the divisor's own degree. The negated comparison also rejects NaN |
+| `check_nonzero(divisor)` | the divisor IS the object's own gauge — a Euclidean squared norm, a scalar, or a "the zero element is not an object" precondition | only zero (or an underflow) fails |
+| `check_unitization(weight)` | the WEIGHT divisions: `unitize()`, and the dehomogenizing accessors (`position()`) | absolute, deliberately — no relative form separates "ideal" from "very far away", since the two differ exactly by that comparison of weight against bulk |
+| `check_normalization(magnitude)` | the divisor is DIMENSIONLESS with natural scale one — a series coefficient, a dilation factor | absolute, and appropriate: the number is already a ratio |
+
+`detail::coeff_sq(x)` (one overload per storage template, in `detail/type_t/`) is the
+metric-free gauge: the plain sum of the squared coefficients. It is **not** a norm, and
+that is the point — `nrm_sq` vanishes on a null blade in a Lorentzian or conformal metric
+and on an ideal one in a degenerate metric, i.e. exactly where a gauge is needed. In a
+Euclidean metric the divisor and the gauge are the SAME quantity, the ratio is 1 by
+construction, and the question collapses to `check_nonzero`.
+
+The failure mode an absolute floor produces is **scale dependence**: `inv(v)` threw at
+`|v| ~ 1e-9` although its inverse `7e7` is representable, so the same geometry in
+millimetres instead of metres failed — while a genuinely degenerate blade at a large scale
+sailed through. Each algebra gates this with `"<alg>: a small object is not a degenerate
+one"` (EGA/PGA/STA/CGA).
 
 ## STA4D rotor operations (`ga_sta4ds_ops.hpp`)
 

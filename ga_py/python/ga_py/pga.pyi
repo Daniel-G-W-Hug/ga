@@ -4953,7 +4953,14 @@ def is_same_motion(arg0: mvec2dp_u, arg1: mvec2dp_u, arg2: float, /) -> bool: ..
 @overload
 def is_same_motion(arg0: mvec3dp_e, arg1: mvec3dp_e, arg2: float, /) -> bool: ...
 
+@overload
 def is_simple(arg0: bivec3dp, arg1: float, /) -> bool: ...
+
+@overload
+def is_simple(B: bivec3dp) -> bool:
+    """
+    Is this bivector a blade, i.e. does it represent a line? The Pluecker condition wdg(B, B) == 0, measured relative to the sum of the squared components. Tolerance defaults to eps_congruent.
+    """
 
 @overload
 def join(arg0: bivec2dp, arg1: vec2dp, /) -> pscalar2dp: ...
@@ -7201,6 +7208,140 @@ class inertia3dp:
 
     def __format__(self, format_spec: str = "") -> str: ...
 
+def ortho_proj2dp(a: vec2dp, b: bivec2dp) -> vec2dp:
+    """
+    Orthogonal projection of a onto the larger-grade b. The target's scale is divided out and the source's is kept, so f(a, k*b) == f(a, b) and f(k*a, b) == k*f(a, b). The result is NOT unitized -- call try_unitize() on it for a canonical representative, since a projection may legitimately land at infinity. REQUIRES gr(a) < gr(b), and a target that is a blade.
+    """
+
+def central_proj2dp(a: vec2dp, b: bivec2dp) -> vec2dp:
+    """
+    Central projection of a onto the larger-grade b (towards the origin): the same expression with the bulk expansion in place of the weight one. Same scaling contract as ortho_proj. REQUIRES gr(a) < gr(b).
+    """
+
+def ortho_antiproj2dp(a: bivec2dp, b: vec2dp) -> bivec2dp:
+    """
+    Orthogonal antiprojection: the smallest object of a's grade that contains b. REQUIRES gr(a) > gr(b).
+    """
+
+def central_antiproj2dp(a: bivec2dp, b: vec2dp) -> bivec2dp:
+    """
+    Central antiprojection: the antiprojection counterpart of central_proj, completing the four-way family. REQUIRES gr(a) > gr(b).
+    """
+
+@overload
+def dist2dp(a: vec2dp, b: vec2dp) -> dualnum2dp: ...
+
+@overload
+def dist2dp(a: vec2dp, b: bivec2dp) -> dualnum2dp: ...
+
+@overload
+def dist2dp(a: bivec2dp, b: vec2dp) -> dualnum2dp:
+    """
+    Euclidean distance between two 2dp objects as a homogeneous magnitude, returned as dualnum2dp(distance_numerator, weight). Divide the first by the second for the metric distance.
+    """
+
+@overload
+def ortho_proj3dp(a: vec3dp, b: bivec3dp) -> vec3dp: ...
+
+@overload
+def ortho_proj3dp(a: vec3dp, b: trivec3dp) -> vec3dp: ...
+
+@overload
+def ortho_proj3dp(a: bivec3dp, b: trivec3dp) -> bivec3dp:
+    """
+    Orthogonal projection of a onto the larger-grade b. The target's scale is divided out and the source's is kept, so f(a, k*b) == f(a, b) and f(k*a, b) == k*f(a, b). The result is NOT unitized -- call try_unitize() on it for a canonical representative, since a projection may legitimately land at infinity. REQUIRES gr(a) < gr(b), and a target that is a blade.
+    """
+
+@overload
+def central_proj3dp(a: vec3dp, b: bivec3dp) -> vec3dp: ...
+
+@overload
+def central_proj3dp(a: vec3dp, b: trivec3dp) -> vec3dp: ...
+
+@overload
+def central_proj3dp(a: bivec3dp, b: trivec3dp) -> bivec3dp:
+    """
+    Central projection of a onto the larger-grade b (towards the origin): the same expression with the bulk expansion in place of the weight one. Same scaling contract as ortho_proj. REQUIRES gr(a) < gr(b).
+    """
+
+@overload
+def ortho_antiproj3dp(a: bivec3dp, b: vec3dp) -> bivec3dp: ...
+
+@overload
+def ortho_antiproj3dp(a: trivec3dp, b: vec3dp) -> trivec3dp: ...
+
+@overload
+def ortho_antiproj3dp(a: trivec3dp, b: bivec3dp) -> trivec3dp:
+    """
+    Orthogonal antiprojection: the smallest object of a's grade that contains b. REQUIRES gr(a) > gr(b).
+    """
+
+@overload
+def central_antiproj3dp(a: bivec3dp, b: vec3dp) -> bivec3dp: ...
+
+@overload
+def central_antiproj3dp(a: trivec3dp, b: vec3dp) -> trivec3dp: ...
+
+@overload
+def central_antiproj3dp(a: trivec3dp, b: bivec3dp) -> trivec3dp:
+    """
+    Central antiprojection: the antiprojection counterpart of central_proj, completing the four-way family. REQUIRES gr(a) > gr(b).
+    """
+
+@overload
+def dist3dp(a: vec3dp, b: vec3dp) -> dualnum3dp: ...
+
+@overload
+def dist3dp(a: vec3dp, b: bivec3dp) -> dualnum3dp: ...
+
+@overload
+def dist3dp(a: vec3dp, b: trivec3dp) -> dualnum3dp: ...
+
+@overload
+def dist3dp(a: bivec3dp, b: vec3dp) -> dualnum3dp: ...
+
+@overload
+def dist3dp(a: bivec3dp, b: bivec3dp) -> dualnum3dp: ...
+
+@overload
+def dist3dp(a: trivec3dp, b: vec3dp) -> dualnum3dp:
+    """
+    Euclidean distance between two 3dp objects as a homogeneous magnitude, returned as dualnum3dp(distance_numerator, weight). Divide the first by the second for the metric distance.
+    """
+
+@overload
+def try_unitize(x: point2dp) -> tuple[point2dp, bool]: ...
+
+@overload
+def try_unitize(x: line2d) -> tuple[line2d, bool]: ...
+
+@overload
+def try_unitize(x: point3dp) -> tuple[point3dp, bool]: ...
+
+@overload
+def try_unitize(x: line3d) -> tuple[line3d, bool]: ...
+
+@overload
+def try_unitize(x: plane3d) -> tuple[plane3d, bool]: ...
+
+@overload
+def try_unitize(x: vec2dp) -> tuple[vec2dp, bool]: ...
+
+@overload
+def try_unitize(x: bivec2dp) -> tuple[bivec2dp, bool]: ...
+
+@overload
+def try_unitize(x: vec3dp) -> tuple[vec3dp, bool]: ...
+
+@overload
+def try_unitize(x: bivec3dp) -> tuple[bivec3dp, bool]: ...
+
+@overload
+def try_unitize(x: trivec3dp) -> tuple[trivec3dp, bool]:
+    """
+    Unitize if the object carries weight, else return it unchanged. Returns (object, unitized): the flag is False for an ideal object, which unitize() would refuse instead.
+    """
+
 
 # Pure-Python forwarders injected at import time from ga_py/__init__.py
 # (typed loosely — return type depends on the (a, b) combination at the call site)
@@ -7213,10 +7354,6 @@ def l_bulk_expand2dp(a: Any, b: Any) -> Any: ...
 def l_weight_expand2dp(a: Any, b: Any) -> Any: ...
 def r_bulk_expand2dp(a: Any, b: Any) -> Any: ...
 def r_weight_expand2dp(a: Any, b: Any) -> Any: ...
-def ortho_proj2dp(a: Any, b: Any) -> Any: ...
-def central_proj2dp(a: Any, b: Any) -> Any: ...
-def ortho_antiproj2dp(a: Any, b: Any) -> Any: ...
-def dist2dp(a: Any, b: Any) -> Any: ...
 def l_bulk_contract3dp(a: Any, b: Any) -> Any: ...
 def l_weight_contract3dp(a: Any, b: Any) -> Any: ...
 def r_bulk_contract3dp(a: Any, b: Any) -> Any: ...
@@ -7225,7 +7362,3 @@ def l_bulk_expand3dp(a: Any, b: Any) -> Any: ...
 def l_weight_expand3dp(a: Any, b: Any) -> Any: ...
 def r_bulk_expand3dp(a: Any, b: Any) -> Any: ...
 def r_weight_expand3dp(a: Any, b: Any) -> Any: ...
-def ortho_proj3dp(a: Any, b: Any) -> Any: ...
-def central_proj3dp(a: Any, b: Any) -> Any: ...
-def ortho_antiproj3dp(a: Any, b: Any) -> Any: ...
-def dist3dp(a: Any, b: Any) -> Any: ...

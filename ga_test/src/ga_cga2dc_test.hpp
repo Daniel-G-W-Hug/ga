@@ -554,6 +554,40 @@ TEST_SUITE("CGA 2dc Tests")
         }
     }
 
+    TEST_CASE("cga2dc: a small object is not a degenerate one")
+    {
+        fmt::println("cga2dc: a small object is not a degenerate one");
+
+        // The same contract as in cga3dc: what makes a conformal blade degenerate is
+        // null-ness, not size, so every divisor is judged against the object's own sum of
+        // squared coefficients -- and the same geometry in millimetres instead of metres
+        // answers the same.
+        double const px = 1.0, py = 2.0, r = 2.5;
+        auto const c0 = circle2dc(px, py, r);
+        auto const d0 = dipole2dc(px, py, r, 1.0, 0.0);
+        auto const l0 = line2dc(px, py, 1.0, 0.0);
+        auto const rp0 = round_point2dc(px, py, r);
+        auto const v0 = vec2dc(1.0, 2.0, 0.5, 2.0);
+        auto const one_e = mvec2dc_e(scalar2dc(1.0));
+
+        for (double w : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+            INFO("weight = ", w);
+            CHECK(radius_sq(trivec2dc(w * c0)) == doctest::Approx(r * r));
+            CHECK(radius_sq(bivec2dc(w * d0)) == doctest::Approx(r * r));
+            CHECK(radius_sq(vec2dc(w * rp0)) == doctest::Approx(r * r));
+            CHECK(radius(trivec2dc(w * c0)) == doctest::Approx(r));
+            CHECK(!is_flat(trivec2dc(w * c0)));
+            CHECK(is_round(trivec2dc(w * c0)));
+            CHECK(is_flat(trivec2dc(w * l0)));
+            CHECK(is_close(vec2dc(w * v0) * inv(vec2dc(w * v0)), one_e));
+            CHECK_THROWS(inv(vec2dc(w * round_point2dc(px, py, 0.0))));
+        }
+
+        // the zero element is not a conformal object: it is neither flat nor round
+        CHECK_THROWS(is_flat(vec2dc(0.0, 0.0, 0.0, 0.0)));
+        CHECK_THROWS(is_round(trivec2dc(0.0, 0.0, 0.0, 0.0)));
+    }
+
     TEST_CASE("cga2dc: congruence and closeness")
     {
         fmt::println("cga2dc: congruence and closeness");

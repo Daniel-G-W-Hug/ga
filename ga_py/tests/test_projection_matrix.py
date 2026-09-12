@@ -150,16 +150,17 @@ def test_pga3dp_line_rejected_from_plane():
 
 
 # --------------------------------------------------------------------------- #
-# the ortho_proj shims must compute what the C++ project_onto computes
+# project_onto delegates to ortho_proj*, and both are the C++ function
 # --------------------------------------------------------------------------- #
 
-def test_ortho_proj_shims_agree_with_project_onto():
-    """ga_py implements ortho_proj* in Python, so it can drift from the library.
+def test_project_onto_delegates_to_ortho_proj():
+    """Both names reach the same C++ code, so they agree by construction.
 
-    It did: the shims used to unitize the result and never divided the target's
-    scale out, which is the behaviour the C++ side gave up when try_unitize()
-    was introduced. These pin them to project_onto, which delegates to the same
-    operation in C++.
+    This used to be the gate on a Python REIMPLEMENTATION of ortho_proj*, which
+    drifted twice (see test_ideal_target_is_left_undivided and
+    test_non_blade_target_throws below for what the drift was). Both are bound
+    in C++ now, so what is left to assert is the library's own delegation:
+    project_onto calls ortho_proj* wherever the grades differ.
     """
     T = pga.wdg(pga.wdg(pga.vec3dp(-1, -1, 0, 1), pga.vec3dp(1, -1, 1, 1)),
                 pga.vec3dp(-1, 1, 1, 1))
@@ -184,3 +185,89 @@ def test_ortho_proj_shims_agree_with_project_onto():
     assert pga.ortho_proj3dp(P, 3.0 * T) == pga.ortho_proj3dp(P, T)
     assert ega.ortho_proj3d(v, 3.0 * B) == ega.ortho_proj3d(v, B)
     assert sta.ortho_proj4ds(w, 3.0 * t) == sta.ortho_proj4ds(w, t)
+
+
+def test_ideal_target_is_left_undivided():
+    """An IDEAL target has no scale to remove, and the library leaves it alone.
+
+    detail::by_weight_sq divides only when weight_nrm_sq > safe_epsilon^2, so a
+    target whose weight squared is 1e-32 keeps its weight in the result. The
+    Python reimplementation this replaced divided whenever the weight was not
+    exactly zero, which put the two 1e32 apart -- invisible to every other
+    assertion here, since they all use unit-weight targets.
+    """
+    T = pga.trivec3dp(0.0, 0.0, 1.0e-16, 3.0)      # weight_nrm_sq = 1e-32
+    assert float(pga.weight_nrm_sq(T)) < 1.0e-30
+    P = pga.vec3dp(1.0, 2.0, 3.0, 1.0)
+    assert pga.ortho_proj3dp(P, T) == pga.project_onto(P, T)
+    # and the weight is still in there: an undivided result is ~1e-32 in scale
+    assert abs(pga.ortho_proj3dp(P, T).w) < 1.0e-30
+
+
+def test_non_blade_target_throws():
+    """A target that is not a blade represents no subspace, so there is nothing
+    to project onto -- the library says so instead of returning a plausible
+    wrong answer. In 4d a bivector can fail this; `l1 + l2` is the short example
+    (the sum of two lines is not a line). Bound from C++, Python inherits the
+    guard; the Python reimplementation did not have it.
+    """
+    O = pga.vec3dp(0.0, 0.0, 0.0, 1.0)
+    NB = (pga.wdg(O, pga.vec3dp(1.0, 0.0, 0.0, 1.0))
+          + pga.wdg(pga.vec3dp(0.0, 1.0, 0.0, 1.0), pga.vec3dp(0.0, 0.0, 1.0, 1.0)))
+    assert not pga.is_simple(NB)
+    P = pga.vec3dp(2.0, 3.0, 5.0, 1.0)
+    for f in (pga.ortho_proj3dp, pga.central_proj3dp, pga.project_onto):
+        with pytest.raises(RuntimeError, match="not a blade"):
+            f(P, NB)
+
+
+def test_try_unitize_returns_the_flag():
+    """try_unitize reports through a trailing `bool*` in C++, which has no
+    nanobind mapping -- it was unbound entirely, although the projection
+    documentation tells the reader to call it on a result. In Python it returns
+    (object, unitized), and the derived primitives keep their own type.
+    """
+    v, flag = pga.try_unitize(pga.vec3dp(2.0, 4.0, 6.0, 2.0))
+    assert flag and v == pga.vec3dp(1.0, 2.0, 3.0, 1.0)
+
+    ideal, flag = pga.try_unitize(pga.vec3dp(2.0, 4.0, 6.0, 0.0))
+    assert not flag and ideal == pga.vec3dp(2.0, 4.0, 6.0, 0.0)
+
+    pt, flag = pga.try_unitize(pga.point3dp(2.0, 4.0, 6.0, 2.0))
+    assert flag and type(pt) is pga.point3dp
+
+    pl, flag = pga.try_unitize(pga.plane3d(0.0, 0.0, 2.0, 4.0))
+    assert flag and type(pl) is pga.plane3d
+
+
+def test_is_simple_tolerance_defaults():
+    """The generator drops default arguments, so is_simple required its
+    tolerance explicitly. Both arities are available now, in both algebras that
+    have the predicate.
+    """
+    L = pga.wdg(pga.vec3dp(0.0, 0.0, 0.0, 1.0), pga.vec3dp(1.0, 2.0, 3.0, 1.0))
+    assert pga.is_simple(L)
+    assert pga.is_simple(L, 1.0e-12)
+    assert not sta.is_simple(sta.bivec4ds(1.0, 0.5, 2.0, 0.25, 3.0, 1.0))
+    assert sta.is_simple(sta.bivec4ds(1.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+
+def test_the_four_way_family_is_reachable():
+    """central_antiproj*dp had no Python wrapper at all -- the four-way family
+    (orthogonal / central x projection / antiprojection) was three quarters
+    bound. All four are present in both PGA algebras now.
+    """
+    P = pga.vec3dp(1.0, 2.0, 3.0, 1.0)
+    L = pga.wdg(pga.vec3dp(-1.0, 0.5, -1.5, 1.0), pga.vec3dp(1.0, 0.5, 2.5, 1.0))
+    T = pga.wdg(L, pga.vec3dp(0.0, 3.0, 0.0, 1.0))
+    for f in (pga.ortho_proj3dp, pga.central_proj3dp):
+        assert f(P, T) is not None
+    for f in (pga.ortho_antiproj3dp, pga.central_antiproj3dp):
+        assert f(T, P) is not None
+
+    p2 = pga.vec2dp(2.0, 1.0, 1.0)
+    l2 = pga.wdg(pga.vec2dp(0.3, -0.7, 1.0), pga.vec2dp(1.5, 0.9, 1.0))
+    assert pga.ortho_proj2dp(p2, l2) is not None
+    assert pga.central_proj2dp(p2, l2) is not None
+    assert pga.ortho_antiproj2dp(l2, p2) is not None
+    assert pga.central_antiproj2dp(l2, p2) is not None

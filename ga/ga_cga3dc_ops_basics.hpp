@@ -1067,9 +1067,10 @@ constexpr T center_nrm(QuadVec3dc<T> const& Q)
 //
 // The comparison is RELATIVE -- the round part is measured against the
 // object's own magnitude -- so the answer does not depend on the object's
-// weight. The zero element is not an object: it has no round part and is
-// reported flat (and rejected by check_normalization in an extended-test
-// build).
+// weight, nor on its scale: total_sq IS the sum of the squared coefficients
+// (the four parts partition them), so it is the gauge and not a threshold.
+// The zero element is not an object: it has no round part and is reported
+// flat (and rejected by check_nonzero in an extended-test build).
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -1078,7 +1079,7 @@ inline bool is_flat(Vec3dc<T> const& v, value_t rel_tol = eps_congruent)
 {
     T const round_sq = round_bulk_nrm_sq(v) + round_weight_nrm_sq(v);
     T const total_sq = round_sq + flat_bulk_nrm_sq(v) + flat_weight_nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    hd::ga::detail::check_nonzero<T>(total_sq, "conformal object");
     return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
@@ -1088,7 +1089,7 @@ inline bool is_flat(BiVec3dc<T> const& B, value_t rel_tol = eps_congruent)
 {
     T const round_sq = round_bulk_nrm_sq(B) + round_weight_nrm_sq(B);
     T const total_sq = round_sq + flat_bulk_nrm_sq(B) + flat_weight_nrm_sq(B);
-    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    hd::ga::detail::check_nonzero<T>(total_sq, "conformal object");
     return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
@@ -1098,7 +1099,7 @@ inline bool is_flat(TriVec3dc<T> const& t, value_t rel_tol = eps_congruent)
 {
     T const round_sq = round_bulk_nrm_sq(t) + round_weight_nrm_sq(t);
     T const total_sq = round_sq + flat_bulk_nrm_sq(t) + flat_weight_nrm_sq(t);
-    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    hd::ga::detail::check_nonzero<T>(total_sq, "conformal object");
     return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
@@ -1108,7 +1109,7 @@ inline bool is_flat(QuadVec3dc<T> const& Q, value_t rel_tol = eps_congruent)
 {
     T const round_sq = round_bulk_nrm_sq(Q) + round_weight_nrm_sq(Q);
     T const total_sq = round_sq + flat_bulk_nrm_sq(Q) + flat_weight_nrm_sq(Q);
-    hd::ga::detail::check_normalization<T>(total_sq, "conformal object");
+    hd::ga::detail::check_nonzero<T>(total_sq, "conformal object");
     return round_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
@@ -1225,7 +1226,7 @@ template <typename T>
 inline Vec3dc<T> unitize(Vec3dc<T> const& v)
 {
     T const wn = round_weight_nrm(v);
-    hd::ga::detail::check_normalization<T>(wn, "round point (round weight)");
+    hd::ga::detail::check_unitization<T>(wn, "round point (round weight)");
     T const inv = T(1.0) / wn;
     return Vec3dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv, v.u * inv);
 }
@@ -1234,7 +1235,7 @@ template <typename T>
 inline BiVec3dc<T> unitize(BiVec3dc<T> const& B)
 {
     T const wn = round_weight_nrm(B);
-    hd::ga::detail::check_normalization<T>(wn, "dipole (round weight)");
+    hd::ga::detail::check_unitization<T>(wn, "dipole (round weight)");
     T const inv = T(1.0) / wn;
     return BiVec3dc<T>(B.vx * inv, B.vy * inv, B.vz * inv, B.mx * inv, B.my * inv,
                        B.mz * inv, B.px * inv, B.py * inv, B.pz * inv, B.pw * inv);
@@ -1244,7 +1245,7 @@ template <typename T>
 inline TriVec3dc<T> unitize(TriVec3dc<T> const& t)
 {
     T const wn = round_weight_nrm(t);
-    hd::ga::detail::check_normalization<T>(wn, "circle (round weight)");
+    hd::ga::detail::check_unitization<T>(wn, "circle (round weight)");
     T const inv = T(1.0) / wn;
     return TriVec3dc<T>(t.vx * inv, t.vy * inv, t.vz * inv, t.mx * inv, t.my * inv,
                         t.mz * inv, t.px * inv, t.py * inv, t.pz * inv, t.pw * inv);
@@ -1254,7 +1255,7 @@ template <typename T>
 inline QuadVec3dc<T> unitize(QuadVec3dc<T> const& Q)
 {
     T const wn = round_weight_nrm(Q);
-    hd::ga::detail::check_normalization<T>(wn, "sphere (round weight)");
+    hd::ga::detail::check_unitization<T>(wn, "sphere (round weight)");
     T const inv = T(1.0) / wn;
     return QuadVec3dc<T>(Q.x * inv, Q.y * inv, Q.z * inv, Q.w * inv, Q.u * inv);
 }

@@ -101,7 +101,11 @@ inline void check_division_by_zero(U divisor, const char* operation_name = "divi
 #endif
 }
 
-// Standardized error checking for normalization operations
+// An absolute floor, for a DIMENSIONLESS divisor whose natural scale is one: a series
+// coefficient, a dilation factor. Nothing is gained by judging such a quantity against
+// the object it came from -- there is no object, and the number is already a ratio. For
+// anything that scales with its operand use check_invertible / check_nonzero instead, and
+// for the weight divisions check_unitization below.
 template <typename T>
     requires(std::floating_point<T>)
 inline void check_normalization(T magnitude, const char* object_type = "vector")
@@ -119,7 +123,11 @@ inline void check_normalization(T magnitude, const char* object_type = "vector")
 #endif
 }
 
-// Standardized error checking for unitization operations
+// The weight divisions: unitize() and the dehomogenizing accessors, which divide an
+// object by its own weight. The floor is ABSOLUTE on purpose -- it flags a weight that is
+// negligible on the scale the coordinates are expressed in, i.e. an object that is
+// effectively ideal -- and no relative form separates "ideal" from "very far away", since
+// the two differ exactly by that absolute comparison of weight against bulk.
 template <typename T>
     requires(std::floating_point<T>)
 inline void check_unitization(T weight_norm, const char* object_type = "multivector")
@@ -172,7 +180,9 @@ inline void check_invertible(T divisor, T coeff_sq, const char* object_type = "b
 
 // The Euclidean case of the above, and the case of a scalar: the divisor IS the object's
 // own scale, so only a vanishing (or underflowed) one fails. A merely small object is
-// invertible and must stay that way.
+// invertible and must stay that way. The same spelling serves a precondition of the form
+// "the zero element is not an object", where the quantity tested is likewise the object's
+// own gauge and no relative form exists.
 template <typename T>
     requires(std::floating_point<T>)
 inline void check_nonzero(T divisor, const char* object_type = "blade")
@@ -180,7 +190,7 @@ inline void check_nonzero(T divisor, const char* object_type = "blade")
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (!(std::abs(divisor) > T(0.0))) {
         throw std::runtime_error(std::string("GA Error: ") + object_type +
-                                 " is zero, so it has no inverse");
+                                 " is zero -- no division possible");
     }
 #else
     (void)divisor;

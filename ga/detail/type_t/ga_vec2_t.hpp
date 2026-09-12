@@ -93,7 +93,7 @@ struct Vec2_t {
         requires(numeric_type<U>)
     Vec2_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-        detail::check_normalization<U>(std::abs(s), "vector division 2 comp.");
+        detail::check_division_by_zero<T, U>(s, "vector division 2 comp.");
         x /= s;
         y /= s;
         return (*this);
@@ -185,5 +185,25 @@ std::ostream& operator<<(std::ostream& os, Vec2_t<T, Tag> const& v)
     os << "(" << v.x << "," << v.y << ")";
     return os;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// coeff_sq: the sum of the squared coefficients -- a METRIC-FREE gauge of "how big is
+// this object", used to judge degeneracy relative to the object itself (see
+// detail::check_invertible in ga_error_handling.hpp). It is NOT a norm: no metric enters,
+// which is the point -- nrm_sq vanishes on a null blade in a Lorentzian or conformal
+// metric and on an ideal one in a degenerate metric, exactly where a gauge is needed.
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T coeff_sq(Vec2_t<T, Tag> const& v)
+{
+    return v.x * v.x + v.y * v.y;
+}
+
+} // namespace detail
 
 } // namespace hd::ga

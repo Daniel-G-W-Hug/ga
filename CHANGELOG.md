@@ -260,3 +260,54 @@
            the sites there call check_nonzero() instead -- the honest spelling. Two
            helpers replace check_normalization at 42 sites; a gate pins inv()/normalize()
            down to magnitude 1e-12 and the zero blade to a throw
+- 2026/09: the same relative judgement in CGA, which completes it. The 17 inv() sites take
+           the metric square against coeff_sq() raised to the divisor's degree, and with
+           the null-pair metric that is not a formality: nrm_sq vanishes on every embedded
+           point by construction, so the gauge has to be metric-free to exist at all.
+           Three more families followed, each a RATIO of two quadratic forms and therefore
+           independent of the object's weight -- radius_sq() (the antidot square over the
+           round weight), is_flat()/is_round() (whose total_sq IS the sum of the squared
+           coefficients, since the four-part split partitions them, so it is the gauge and
+           not a threshold) and the generator lines of get_rotation() and
+           get_loxodromic(). A sphere whose coefficients were of order 1e-8 has a round
+           weight of order 1e-16 and used to throw out of all of them. The weight
+           divisions -- unitize() and the dehomogenizing position() -- KEEP an absolute
+           floor, because no relative form separates "ideal" from "very far away": the two
+           differ exactly by that absolute comparison of weight against bulk. They now say
+           so by calling the same check_unitization() PGA uses for them, which leaves
+           check_normalization() to the two divisors that are genuinely dimensionless (a
+           series value and a dilation factor, both of natural scale one). Gated per
+           algebra by "a small object is not a degenerate one", at weights down to 1e-12;
+           each conversion was falsified by restoring its absolute form
+- 2026/09: ga_py links the ga library instead of reproducing its include path. The two
+           development safety gates are INTERFACE compile definitions on the ga target, so
+           every consumer gets them by linking it -- but ga_py added the include directory
+           by hand and hard-coded _HD_GA_EXTENDED_TEST_DIV_BY_ZERO, so the extension had
+           the division guard (copied) and not the blade-target guard (added later,
+           never copied): project_onto(point, non-blade) returned a plausible wrong answer
+           through the bindings while throwing in C++. ga_lua and ga_view link the target
+           and always had both. Copying a definition rather than linking the library that
+           owns it opts a target out of every gate added afterwards
+- 2026/09: the generic templates the binding generator cannot type are bound from C++ now,
+           not reimplemented in Python. The projection / antiprojection families (and
+           ega.ortho_proj3d, sta.ortho_proj4ds), dist2dp / dist3dp, try_unitize and
+           is_simple's defaulted tolerance live in the new hand-written
+           ga_py/src/bindings_projections.cpp, one def per meaningful grade pair. The
+           scanner DOES see these functions -- FUNCTION_TEMPLATE is collected beside
+           FUNCTION_DECL -- but they are declared as decltype(auto) f(arg1&&, arg2&&), so
+           the manifest carries no types to map onto a nanobind signature; project_onto is
+           a template too and binds automatically, because it names concrete types. The
+           Python reimplementation they replace had drifted twice, both measured through
+           the bindings: it divided by an IDEAL target's weight (the library divides only
+           above safe_epsilon^2, so the two stood 1e32 apart at weight_nrm_sq = 1e-32),
+           and it had no blade-target guard, returning a plausible wrong answer where the
+           library throws. try_unitize was not bound at all -- its bool* out-parameter has
+           no nanobind mapping -- although the projection documentation tells the reader
+           to call it; in Python it returns (object, unitized), the derived primitives
+           registered first so a point3dp comes back a point3dp. central_antiproj2dp /
+           central_antiproj3dp were never exposed, leaving the four-way family three
+           quarters bound. The bulk/weight contractions and expansions deliberately STAY
+           Python forwarders: each is a one-line composition of bound primitives,
+           identical to its C++ body, and covers every grade pair the composed rwdg / wdg
+           / dual accept -- enumerating pairs would narrow them. Five new gates, each
+           falsified by restoring the behaviour it pins

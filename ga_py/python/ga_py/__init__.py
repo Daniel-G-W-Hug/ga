@@ -10,9 +10,19 @@ A small number of free functions in `ga/` are written as fully-generic C++
 templates (e.g. `template<typename A, typename B> auto f(A&& a, B&& b)`),
 which the binding generator cannot bind by enumerating overloads — there's
 no overload list, just a body that compiles for whatever types it's called
-with. We expose those functions here as Python wrappers that call the
-underlying composition. They contain NO Python math — every call dispatches
-into the bound C++ functions.
+with. The ones below are exposed here as Python wrappers, and each is a
+LITERAL one-line composition of already-bound primitives, identical to the
+C++ body: `l_bulk_contract2dp(a, b)` is `rwdg(bulk_dual(a), b)` in both. They
+contain NO Python math, and because the composition is what dispatches, they
+cover every grade pair the bound `rwdg` / `wdg` / `dual` accept.
+
+The generic templates that are NOT one-line compositions — the projection and
+antiprojection families, `dist*dp`, `try_unitize`, `is_simple`'s defaulted
+tolerance — are bound in C++ instead (`ga_py/src/bindings_projections.cpp`).
+They carry thresholds, a blade-target guard and an `if constexpr` dispatch,
+which a Python wrapper can only reproduce by copying constants; when it did,
+it drifted. Do not move them back here, and do not move these ones there:
+enumerating type pairs in C++ would narrow the coverage they have now.
 """
 import _ga_py
 from _ga_py import ega, pga, cga, sta  # noqa: F401
@@ -88,102 +98,6 @@ pga.r_bulk_expand2dp = _pga2dp_r_bulk_expand2dp
 pga.r_weight_expand2dp = _pga2dp_r_weight_expand2dp
 
 
-# ---------------------------------------------------------------------------
-# PGA 2dp — projection / distance forwarders (also generic C++ templates)
-# Source: ga/ga_pga2dp_ops.hpp
-# ---------------------------------------------------------------------------
-
-# Tolerance for "is the weight squared norm essentially 1?" — matches the
-# rough scale of `eps` used in the C++ unitize-or-not heuristic. Cheap
-# guard; the C++ source uses a comparable epsilon.
-_EPS = 1e-9
-
-
-def _by_weight_sq(p, b):
-    """Divide the target's scale back out, as the C++ projections do.
-
-    The projective expressions are QUADRATIC in the target, so its weight
-    squared has to be removed; the source's scale is kept. The result is NOT
-    unitized -- that is what `try_unitize()` is for, since a projection may
-    legitimately land at infinity (weight 0).
-    """
-    n = float(pga.weight_nrm_sq(b))
-    if n != 0.0 and n != 1.0:
-        p = p * (1.0 / n)
-    return p
-
-
-def _pga2dp_ortho_proj2dp(a, b):
-    """Orthogonal projection of `a` onto the larger-grade `b` (PGA 2dp).
-
-    Equals `rwdg(b, r_weight_expand2dp(a, b))` with the target's weight
-    squared divided out. REQUIRES: gr(a) < gr(b).
-    """
-    return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b)
-
-
-def _pga2dp_central_proj2dp(a, b):
-    """Central projection of `a` onto the larger-grade `b` (PGA 2dp).
-
-    Equals `rwdg(b, r_bulk_expand2dp(a, b))` with the target's weight squared
-    divided out. REQUIRES: gr(a) < gr(b).
-    """
-    return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)
-
-
-def _pga2dp_ortho_antiproj2dp(a, b):
-    """Orthogonal anti-projection (PGA 2dp).
-
-    Equals `wdg(b, r_weight_contract2dp(a, b))` with the target's weight
-    squared divided out.
-    """
-    return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b)
-
-
-# Per-class grade lookup for the 2dp algebra. Mirrors the `gr()` overloads in
-# ga/detail/type_t/ga_type2dp.hpp. Used by dist2dp to dispatch the C++
-# `if constexpr` on grade sum at runtime.
-_GRADE_2DP = {
-    "scalar2dp": 0,
-    "vec2dp": 1, "point2dp": 1, "point2d": 1, "vector2d": 1,
-    "bivec2dp": 2, "line2d": 2,
-    "pscalar2dp": 3,
-}
-
-
-def _grade_2dp(x):
-    name = type(x).__name__
-    g = _GRADE_2DP.get(name)
-    if g is None:
-        raise TypeError(
-            f"dist2dp: cannot determine 2dp grade of {name!r}; "
-            "expected scalar2dp / vec2dp / bivec2dp / pscalar2dp or a derived "
-            "geometric primitive (point*, vector*, line*)"
-        )
-    return g
-
-
-def _pga2dp_dist2dp(a, b):
-    """Euclidean distance between two PGA 2dp objects, returned as a
-    DualNum2dp `(homogeneous_magnitude, weight)`. Source: ga_pga2dp_ops.hpp.
-
-    Mirrors the C++ `if constexpr (gr(a)+gr(b) == 3)` dispatch at runtime via
-    a per-class grade lookup.
-    """
-    if _grade_2dp(a) + _grade_2dp(b) == 3:
-        c0 = float(pga.rwdg(a, b))
-        c1 = float(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-    else:
-        c0 = float(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
-        c1 = float(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-    return pga.dualnum2dp(c0, c1)
-
-
-pga.ortho_proj2dp = _pga2dp_ortho_proj2dp
-pga.central_proj2dp = _pga2dp_central_proj2dp
-pga.ortho_antiproj2dp = _pga2dp_ortho_antiproj2dp
-pga.dist2dp = _pga2dp_dist2dp
-
 
 # ---------------------------------------------------------------------------
 # PGA 3dp — forwarder functions (generic C++ templates)
@@ -244,84 +158,6 @@ pga.r_bulk_expand3dp = _pga3dp_r_bulk_expand3dp
 pga.r_weight_expand3dp = _pga3dp_r_weight_expand3dp
 
 
-# ---------------------------------------------------------------------------
-# PGA 3dp — projection / distance forwarders (also generic C++ templates)
-# Source: ga/ga_pga3dp_ops.hpp
-# ---------------------------------------------------------------------------
-
-def _pga3dp_ortho_proj3dp(a, b):
-    """Orthogonal projection of `a` onto larger-grade `b` (PGA 3dp).
-
-    Equals `rwdg(b, r_weight_expand3dp(a, b))` with the target's weight
-    squared divided out. REQUIRES: gr(a) < gr(b).
-    """
-    return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b)
-
-
-def _pga3dp_central_proj3dp(a, b):
-    """Central projection of `a` onto larger-grade `b` (PGA 3dp).
-
-    Equals `rwdg(b, r_bulk_expand3dp(a, b))` with the target's weight squared
-    divided out. REQUIRES: gr(a) < gr(b).
-    """
-    return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)
-
-
-def _pga3dp_ortho_antiproj3dp(a, b):
-    """Orthogonal anti-projection (PGA 3dp).
-
-    Equals `wdg(b, r_weight_contract3dp(a, b))` with the target's weight
-    squared divided out.
-    """
-    return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b)
-
-
-# Per-class grade lookup for the 3dp algebra. Mirrors `gr()` overloads in
-# ga/detail/type_t/ga_type3dp.hpp. Used by dist3dp to dispatch the C++
-# `if constexpr (gr(a)+gr(b) == 4)` at runtime.
-_GRADE_3DP = {
-    "scalar3dp": 0,
-    "vec3dp": 1, "point3dp": 1, "point3d": 1, "vector3d": 1,
-    "bivec3dp": 2, "line3d": 2,
-    "trivec3dp": 3, "plane3d": 3,
-    "pscalar3dp": 4,
-}
-
-
-def _grade_3dp(x):
-    name = type(x).__name__
-    g = _GRADE_3DP.get(name)
-    if g is None:
-        raise TypeError(
-            f"dist3dp: cannot determine 3dp grade of {name!r}; "
-            "expected scalar3dp / vec3dp / bivec3dp / trivec3dp / pscalar3dp "
-            "or a derived geometric primitive (point*, vector*, line*, plane3d)"
-        )
-    return g
-
-
-def _pga3dp_dist3dp(a, b):
-    """Euclidean distance between two PGA 3dp objects, returned as a
-    DualNum3dp `(homogeneous_magnitude, weight)`. Source: ga_pga3dp_ops.hpp.
-
-    Mirrors the C++ `if constexpr (gr(a)+gr(b) == 4)` dispatch at runtime via
-    a per-class grade lookup. (In 3dp, the meaningful incidence threshold is
-    grade-sum 4 because the pseudoscalar is grade 4, not 3 as in 2dp.)
-    """
-    if _grade_3dp(a) + _grade_3dp(b) == 4:
-        c0 = float(pga.rwdg(a, b))
-        c1 = float(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-    else:
-        c0 = float(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
-        c1 = float(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-    return pga.dualnum3dp(c0, c1)
-
-
-pga.ortho_proj3dp = _pga3dp_ortho_proj3dp
-pga.central_proj3dp = _pga3dp_central_proj3dp
-pga.ortho_antiproj3dp = _pga3dp_ortho_antiproj3dp
-pga.dist3dp = _pga3dp_dist3dp
-
 
 # ---------------------------------------------------------------------------
 # STA4D — expansion forwarders (generic C++ templates)
@@ -338,27 +174,6 @@ def _sta_r_expand4ds(a, b):
     return sta.wdg(a, sta.r_dual(b))
 
 
-def _ega_ortho_proj3d(a, b):
-    """Orthogonal projection of `a` onto the larger-grade `b` (EGA 3d).
-
-    The same construction as PGA's ortho_proj*dp, with the metric dual in
-    place of the weight dual and nrm_sq in place of weight_nrm_sq -- a
-    non-degenerate metric needs no split into bulk and weight.
-    REQUIRES: gr(a) < gr(b).
-    """
-    return ega.rwdg(b, ega.wdg(a, ega.dual(b))) * (1.0 / float(ega.nrm_sq(b)))
-
-
-def _sta_ortho_proj4ds(a, b):
-    """Orthogonal projection of `a` onto the larger-grade `b` (STA4D).
-
-    REQUIRES: gr(a) < gr(b), and a non-null target (nrm_sq(b) != 0).
-    """
-    return sta.rwdg(b, sta.wdg(a, sta.r_dual(b))) * (1.0 / float(sta.nrm_sq(b)))
-
-
-ega.ortho_proj3d = _ega_ortho_proj3d
-sta.ortho_proj4ds = _sta_ortho_proj4ds
 sta.l_expand4ds = _sta_l_expand4ds
 sta.r_expand4ds = _sta_r_expand4ds
 

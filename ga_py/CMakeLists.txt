@@ -78,6 +78,7 @@ nanobind_add_module(_ga_py
     src/module.cpp
     src/bindings_rk4_step.cpp
     src/bindings_mechanics.cpp
+    src/bindings_projections.cpp
     ${GA_PY_GENERATED_SOURCES}
 )
 
@@ -132,14 +133,16 @@ if(WIN32)
     endif()
 endif()
 
-target_include_directories(_ga_py PRIVATE
-    "${GA_PROJECT_ROOT}"           # so #include "ga/ga_ega.hpp" resolves
-)
-
+# Link the INTERFACE library rather than adding its include dir by hand: that is
+# what carries ga's INTERFACE compile definitions -- the development safety gates,
+# which ga/CMakeLists.txt documents as the default for every consumer. Copying a
+# define here instead means the next gate added there silently skips this target,
+# which is how the blade-target check came to be absent from the extension while
+# every other consumer had it.
+target_link_libraries(_ga_py PRIVATE ga)
 
 target_compile_definitions(_ga_py PRIVATE
     FMT_HEADER_ONLY=1              # match the rest of the project
-    _HD_GA_EXTENDED_TEST_DIV_BY_ZERO
 )
 
 # fmt include dir: prefer the imported target if found, otherwise rely on

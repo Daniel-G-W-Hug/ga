@@ -17717,7 +17717,8 @@ template <typename T>
 inline Scalar3dc<T> inv(Scalar3dc<T> s)
 {
     T sq_n = T(s) * T(s);
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "scalar");
+    T const cs = hd::ga::detail::coeff_sq(s); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "scalar");
     return Scalar3dc<T>(T(s) / sq_n);
 }
 
@@ -17728,7 +17729,8 @@ inline Vec3dc<T> inv(Vec3dc<T> const& v)
     // v^(-1) = rev(v)/<v v>_0 = v/dot(v,v); throws for null vectors -- which
     // includes every embedded point and the null basis vectors e4, e5
     T sq_n = T(dot(v, v));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "vector");
+    T const cs = hd::ga::detail::coeff_sq(v); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "vector");
     T inv = T(1.0) / sq_n;
     return Vec3dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv, v.u * inv);
 }
@@ -17742,7 +17744,8 @@ inline BiVec3dc<T> inv(BiVec3dc<T> const& B)
     auto y = B * conj(B) * gr_inv(B) * rev(B);         // even: grades 0, 2, 4
     auto ymap = MVec3dc_E<T>(gr0(y), gr2(y), -gr4(y)); // m14: negate grades 1, 4
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "bivector");
+    T const cs = hd::ga::detail::coeff_sq(B); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "bivector");
     return gr2(conj(B) * gr_inv(B) * rev(B) * ymap) / sq_n;
 }
 
@@ -17755,7 +17758,8 @@ inline TriVec3dc<T> inv(TriVec3dc<T> const& t)
     auto y = t * conj(t) * gr_inv(t) * rev(t);         // even: grades 0, 2, 4
     auto ymap = MVec3dc_E<T>(gr0(y), gr2(y), -gr4(y)); // m14: negate grades 1, 4
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "trivector");
+    T const cs = hd::ga::detail::coeff_sq(t); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "trivector");
     return gr3(conj(t) * gr_inv(t) * rev(t) * ymap) / sq_n;
 }
 
@@ -17768,7 +17772,8 @@ inline QuadVec3dc<T> inv(QuadVec3dc<T> const& Q)
     auto y = Q * conj(Q) * gr_inv(Q) * rev(Q);         // even: grades 0, 2, 4
     auto ymap = MVec3dc_E<T>(gr0(y), gr2(y), -gr4(y)); // m14: negate grades 1, 4
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "quadvector");
+    T const cs = hd::ga::detail::coeff_sq(Q); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "quadvector");
     return gr4(conj(Q) * gr_inv(Q) * rev(Q) * ymap) / sq_n;
 }
 
@@ -17778,8 +17783,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline PScalar3dc<T> inv(PScalar3dc<T> ps)
 {
-    T sq_n = T(ps * ps); // = -ps^2 (signed geometric square)
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "pseudoscalar");
+    T sq_n = T(ps * ps);                       // = -ps^2 (signed geometric square)
+    T const cs = hd::ga::detail::coeff_sq(ps); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "pseudoscalar");
     return PScalar3dc<T>(T(ps) / sq_n);
 }
 
@@ -17792,7 +17798,9 @@ inline MVec3dc_E<T> inv(MVec3dc_E<T> const& E)
     auto y = E * conj(E) * gr_inv(E) * rev(E);         // even: grades 0, 2, 4
     auto ymap = MVec3dc_E<T>(gr0(y), gr2(y), -gr4(y)); // m14: negate grades 1, 4
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "even-grade multivector");
+    T const cs = hd::ga::detail::coeff_sq(E); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs,
+                                        "even-grade multivector");
     return conj(E) * gr_inv(E) * rev(E) * ymap / sq_n;
 }
 
@@ -17805,7 +17813,8 @@ inline MVec3dc_U<T> inv(MVec3dc_U<T> const& U)
     auto y = U * conj(U) * gr_inv(U) * rev(U);         // even: grades 0, 2, 4
     auto ymap = MVec3dc_E<T>(gr0(y), gr2(y), -gr4(y)); // m14: negate grades 1, 4
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "odd-grade multivector");
+    T const cs = hd::ga::detail::coeff_sq(U); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "odd-grade multivector");
     return conj(U) * gr_inv(U) * rev(U) * ymap / sq_n;
 }
 
@@ -17819,7 +17828,8 @@ inline MVec3dc<T> inv(MVec3dc<T> const& M)
     auto y = M * conj(M) * gr_inv(M) * rev(M);
     auto ymap = MVec3dc<T>(gr0(y), -gr1(y), gr2(y), gr3(y), -gr4(y), gr5(y)); // m14 map
     T sq_n = T(gr0(y * ymap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "multivector");
+    T const cs = hd::ga::detail::coeff_sq(M); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "multivector");
     return conj(M) * gr_inv(M) * rev(M) * ymap / sq_n;
 }
 

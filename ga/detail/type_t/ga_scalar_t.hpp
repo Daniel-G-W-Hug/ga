@@ -402,4 +402,24 @@ constexpr T sqrt(Scalar_t<T, Tag> s)
     return std::sqrt(T(s));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// coeff_sq: the sum of the squared coefficients -- a METRIC-FREE gauge of "how big is
+// this object", used to judge degeneracy relative to the object itself (see
+// detail::check_invertible in ga_error_handling.hpp). It is NOT a norm: no metric enters,
+// which is the point -- nrm_sq vanishes on a null blade in a Lorentzian or conformal
+// metric and on an ideal one in a degenerate metric, exactly where a gauge is needed.
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T coeff_sq(Scalar_t<T, Tag> const& v)
+{
+    return T(v) * T(v); // the stored value is private; the conversion operator is the way
+}
+
+} // namespace detail
+
 } // namespace hd::ga

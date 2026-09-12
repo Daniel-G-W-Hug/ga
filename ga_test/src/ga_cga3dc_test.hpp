@@ -330,6 +330,66 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(is_close(rgpr(rinv(M), M), I_e));
     }
 
+    TEST_CASE("cga3dc: a small object is not a degenerate one")
+    {
+        fmt::println("cga3dc: a small object is not a degenerate one");
+
+        // Every guard below used to compare its divisor against an ABSOLUTE epsilon, so
+        // the same geometry expressed in millimetres instead of metres failed: a sphere
+        // whose coefficients are of order 1e-8 has a round weight of order 1e-16, and
+        // every quantity that divides by it threw -- although each is a RATIO of two
+        // quadratic forms and therefore independent of that scale. What makes a conformal
+        // blade degenerate is null-ness (or ideal-ness), not size, so the divisor is
+        // judged against the object's own sum of squared coefficients.
+        double const px = 1.0, py = 2.0, pz = 3.0, r = 2.5;
+        auto const s0 = sphere3dc(px, py, pz, r);
+        auto const c0 = circle3dc(px, py, pz, r, 0.0, 0.0, 1.0);
+        auto const d0 = dipole3dc(px, py, pz, r, 0.0, 0.0, 1.0);
+        auto const l0 = line3dc(px, py, pz, 1.0, 0.0, 0.0);
+        auto const rp0 = round_point3dc(px, py, pz, r);
+        auto const v0 = vec3dc(1.0, 2.0, -1.0, 0.5, 2.0);
+        auto const one_e = mvec3dc_e(scalar3dc(1.0));
+
+        for (double w : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+            INFO("weight = ", w);
+
+            // radius_sq divides the antidot square by the round weight -- both
+            // quadratic in the object, so the radius is the same at any weight
+            CHECK(radius_sq(quadvec3dc(w * s0)) == doctest::Approx(r * r));
+            CHECK(radius_sq(trivec3dc(w * c0)) == doctest::Approx(r * r));
+            CHECK(radius_sq(bivec3dc(w * d0)) == doctest::Approx(r * r));
+            CHECK(radius_sq(vec3dc(w * rp0)) == doctest::Approx(r * r));
+            CHECK(radius(quadvec3dc(w * s0)) == doctest::Approx(r));
+
+            // is_flat measures the round part against the object's own magnitude,
+            // which IS the sum of its squared coefficients -- so it is the gauge
+            CHECK(!is_flat(quadvec3dc(w * s0)));
+            CHECK(is_round(quadvec3dc(w * s0)));
+            CHECK(is_flat(trivec3dc(w * l0)));
+            CHECK(!is_round(trivec3dc(w * l0)));
+
+            // inv() judges the metric square against the coefficients, so a small
+            // blade inverts and a null one -- at any size -- does not
+            CHECK(is_close(vec3dc(w * v0) * inv(vec3dc(w * v0)), one_e));
+            CHECK_THROWS(inv(vec3dc(w * round_point3dc(px, py, pz, 0.0))));
+
+            // the rotation generator is the unit carrier line, so a short axis
+            // direction names the same rotation as a long one
+            auto const R = get_rotation(0.0, 0.0, 0.0, w, 0.0, 0.0, pi / 2.0);
+            CHECK(is_close(
+                mvec3dc(transform(quadvec3dc(s0), R)),
+                mvec3dc(transform(quadvec3dc(s0), get_rotation(0.0, 0.0, 0.0, 1.0, 0.0,
+                                                               0.0, pi / 2.0)))));
+        }
+
+        // a line with no direction at all names no rotation axis
+        CHECK_THROWS(get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, pi / 2.0));
+
+        // and the zero element is not a conformal object: it is neither flat nor round
+        CHECK_THROWS(is_flat(quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0)));
+        CHECK_THROWS(is_round(vec3dc(0.0, 0.0, 0.0, 0.0, 0.0)));
+    }
+
     TEST_CASE("cga3dc: congruence and closeness")
     {
         fmt::println("cga3dc: congruence and closeness");

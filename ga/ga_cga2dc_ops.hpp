@@ -149,7 +149,8 @@ inline BiVec2dc<T> rlog(MVec2dc_E<T> const& M)
                                       ? std::sinh(w) / w
                                       : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
     // singular exactly at the full-turn versors (central part -I): any
-    // generator with rgpr(B,B) = -pi^2 * I exponentiates to -I
+    // generator with rgpr(B,B) = -pi^2 * I exponentiates to -I. sh_ow is a
+    // dimensionless series value of natural scale one, so the floor is absolute
     hd::ga::detail::check_normalization<T>(std::abs(sh_ow),
                                            "regressive logarithm (full-turn versor)");
     return rgpr_central(V, T(1.0) / sh_ow);
@@ -278,6 +279,8 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec2dc_E<T> get_dilation(T mx, T my, T sigma)
 {
+    // sigma is a dimensionless ratio and must be POSITIVE (log(sigma) below), which
+    // the unsigned comparison in check_normalization covers as well
     hd::ga::detail::check_normalization<T>(sigma, "dilation scale factor");
     T const delta = -T(0.5) * std::log(sigma);
     auto const fp = BiVec2dc<T>(T(0.0), T(0.0), T(0.0), -mx, -my, T(-1.0));
@@ -477,7 +480,8 @@ inline T radius_sq(Vec2dc<T> const& v)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "round point (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(v),
+                                        "round point (round weight)");
     return radius_nrm_sq(v) / wn_sq;
 }
 
@@ -489,7 +493,8 @@ inline T radius_sq(BiVec2dc<T> const& B)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "dipole (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(B),
+                                        "dipole (round weight)");
     return radius_nrm_sq(B) / wn_sq;
 }
 
@@ -501,7 +506,8 @@ inline T radius_sq(TriVec2dc<T> const& t)
     if (wn_sq == T(0.0))
         throw std::runtime_error(
             "radius_sq: no round weight (flat, or a degenerate meet) -- no radius");
-    hd::ga::detail::check_normalization<T>(wn_sq, "circle (round weight)");
+    hd::ga::detail::check_invertible<T>(wn_sq, hd::ga::detail::coeff_sq(t),
+                                        "circle (round weight)");
     return radius_nrm_sq(t) / wn_sq;
 }
 
@@ -742,7 +748,7 @@ inline Vec2d<T> position(Vec2dc<T> const& v)
     if (is_flat(v)) throw std::runtime_error("position: the point at infinity has none");
     auto const c = cen(v);
     if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.z), "round object (round weight)");
     return Vec2d<T>(c.x / c.z, c.y / c.z);
 }
 
@@ -753,13 +759,12 @@ template <typename T>
 inline Vec2d<T> position(BiVec2dc<T> const& B)
 {
     if (is_flat(B)) {
-        hd::ga::detail::check_normalization<T>(std::abs(B.mz),
-                                               "flat point (flat weight)");
+        hd::ga::detail::check_unitization<T>(std::abs(B.mz), "flat point (flat weight)");
         return Vec2d<T>(B.mx / B.mz, B.my / B.mz);
     }
     auto const c = cen(B);
     if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.z), "round object (round weight)");
     return Vec2d<T>(c.x / c.z, c.y / c.z);
 }
 
@@ -770,7 +775,7 @@ inline Vec2d<T> position(TriVec2dc<T> const& t)
     if (is_flat(t)) throw std::runtime_error("position: a line has no centre");
     auto const c = cen(t);
     if (c.z == T(0.0)) throw std::runtime_error("position: no round weight -- no centre");
-    hd::ga::detail::check_normalization<T>(std::abs(c.z), "round object (round weight)");
+    hd::ga::detail::check_unitization<T>(std::abs(c.z), "round object (round weight)");
     return Vec2d<T>(c.x / c.z, c.y / c.z);
 }
 

@@ -151,20 +151,35 @@ def test_every_bound_class_has_format(name: str):
 
 
 def test_pga_pyi_contains_runtime_forwarders():
-    """Forwarder post-pass: pure-Python wrappers in __init__.py are
-    appended as module-level decls in pga.pyi so static type checkers
-    don't flag them as missing."""
+    """Forwarder post-pass: the pure-Python wrappers in __init__.py are
+    appended as module-level decls in pga.pyi so static type checkers don't
+    flag them as missing. These are the contractions and expansions -- each a
+    one-line composition of bound primitives, which is why they stay in Python
+    (see the __init__.py docstring); they are emitted as
+    `def NAME(a: Any, b: Any) -> Any: ...`."""
     text = STUBS["pga"].read_text()
-    expected = ("dist2dp", "dist3dp",
-                "ortho_proj2dp", "ortho_proj3dp",
-                "central_proj2dp", "central_proj3dp",
-                "ortho_antiproj2dp", "ortho_antiproj3dp",
-                "l_bulk_contract2dp", "r_bulk_contract2dp",
+    expected = ("l_bulk_contract2dp", "r_bulk_contract2dp",
                 "l_weight_contract3dp", "r_weight_expand3dp")
     for name in expected:
-        # The forwarders are emitted as `def NAME(a: Any, b: Any) -> Any: ...`.
-        assert re.search(rf"^def {name}\(", text, re.MULTILINE), \
+        assert re.search(rf"^def {name}\(a: Any, b: Any\)", text, re.MULTILINE), \
             f"forwarder {name} missing from pga.pyi"
+
+
+def test_pga_pyi_types_the_bound_generic_templates():
+    """The projection / antiprojection families, dist*dp and try_unitize are
+    bound from C++ (ga_py/src/bindings_projections.cpp), not forwarded from
+    Python -- so stubgen types them properly instead of falling back to the
+    post-pass's `Any`. That typed signature is the point of binding them."""
+    text = STUBS["pga"].read_text()
+    for name in ("ortho_proj2dp", "ortho_proj3dp",
+                 "central_proj2dp", "central_proj3dp",
+                 "ortho_antiproj2dp", "ortho_antiproj3dp",
+                 "central_antiproj2dp", "central_antiproj3dp",
+                 "dist2dp", "dist3dp", "try_unitize"):
+        assert re.search(rf"^def {name}\(", text, re.MULTILINE), \
+            f"{name} missing from pga.pyi"
+        assert not re.search(rf"^def {name}\(a: Any, b: Any\)", text, re.MULTILINE), \
+            f"{name} is stubbed as Any -- it should be a typed C++ binding"
 
 
 def test_pga_pyi_imports_Any_for_forwarders():

@@ -223,4 +223,24 @@ std::ostream& operator<<(std::ostream& os, Vec5_t<T, Tag> const& v)
     return os;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// coeff_sq: the sum of the squared coefficients -- a METRIC-FREE gauge of "how big is
+// this object", used to judge degeneracy relative to the object itself (see
+// detail::check_invertible in ga_error_handling.hpp). It is NOT a norm: no metric enters,
+// which is the point -- nrm_sq vanishes on a null blade in a Lorentzian or conformal
+// metric and on an ideal one in a degenerate metric, exactly where a gauge is needed.
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T coeff_sq(Vec5_t<T, Tag> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w + v.u * v.u;
+}
+
+} // namespace detail
+
 } // namespace hd::ga

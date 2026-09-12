@@ -8622,7 +8622,8 @@ template <typename T>
 inline Scalar2dc<T> inv(Scalar2dc<T> s)
 {
     T sq_n = T(s) * T(s);
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "scalar");
+    T const cs = hd::ga::detail::coeff_sq(s); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "scalar");
     return Scalar2dc<T>(T(s) / sq_n);
 }
 
@@ -8633,7 +8634,8 @@ inline Vec2dc<T> inv(Vec2dc<T> const& v)
     // v^(-1) = rev(v)/<v v>_0 = v/dot(v,v); throws for null vectors -- which
     // includes every embedded point and the null basis vectors e3, e4
     T sq_n = T(dot(v, v));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "vector");
+    T const cs = hd::ga::detail::coeff_sq(v); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "vector");
     T inv = T(1.0) / sq_n;
     return Vec2dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
@@ -8647,7 +8649,8 @@ inline BiVec2dc<T> inv(BiVec2dc<T> const& B)
     auto bc = B * conj(B);
     auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
     T sq_n = T(gr0(bc * bcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "bivector");
+    T const cs = hd::ga::detail::coeff_sq(B); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
@@ -8660,7 +8663,8 @@ inline TriVec2dc<T> inv(TriVec2dc<T> const& t)
     auto tc = t * conj(t);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "trivector");
+    T const cs = hd::ga::detail::coeff_sq(t); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
@@ -8670,8 +8674,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline PScalar2dc<T> inv(PScalar2dc<T> ps)
 {
-    T sq_n = T(ps * ps); // = -ps^2 (signed geometric square)
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "pseudoscalar");
+    T sq_n = T(ps * ps);                       // = -ps^2 (signed geometric square)
+    T const cs = hd::ga::detail::coeff_sq(ps); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "pseudoscalar");
     return PScalar2dc<T>(T(ps) / sq_n);
 }
 
@@ -8684,7 +8689,9 @@ inline MVec2dc_E<T> inv(MVec2dc_E<T> const& E)
     auto tc = E * conj(E);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "even-grade multivector");
+    T const cs = hd::ga::detail::coeff_sq(E); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs,
+                                        "even-grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -8697,7 +8704,8 @@ inline MVec2dc_U<T> inv(MVec2dc_U<T> const& U)
     auto tc = U * conj(U);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "odd-grade multivector");
+    T const cs = hd::ga::detail::coeff_sq(U); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "odd-grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 
@@ -8711,7 +8719,8 @@ inline MVec2dc<T> inv(MVec2dc<T> const& M)
     auto tc = M * conj(M);
     auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "multivector");
+    T const cs = hd::ga::detail::coeff_sq(M); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "multivector");
     return conj(M) * tcmap / sq_n;
 }
 

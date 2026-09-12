@@ -2127,7 +2127,14 @@ def is_lightlike(arg0: trivec4ds, arg1: float, /) -> bool: ...
 
 def is_same_transform(arg0: mvec4ds_e, arg1: mvec4ds_e, arg2: float, /) -> bool: ...
 
+@overload
 def is_simple(arg0: bivec4ds, arg1: float, /) -> bool: ...
+
+@overload
+def is_simple(B: bivec4ds) -> bool:
+    """
+    Is this bivector a blade, i.e. does it represent a 2-plane? The Pluecker condition wdg(B, B) == 0, measured relative to the sum of the squared components. Tolerance defaults to eps_congruent.
+    """
 
 @overload
 def is_spacelike(arg0: vec4ds, arg1: float, /) -> bool: ...
@@ -3019,10 +3026,21 @@ y_dir_4ds: vec4ds = ...
 
 z_dir_4ds: vec4ds = ...
 
+@overload
+def ortho_proj4ds(a: vec4ds, b: bivec4ds) -> vec4ds: ...
+
+@overload
+def ortho_proj4ds(a: vec4ds, b: trivec4ds) -> vec4ds: ...
+
+@overload
+def ortho_proj4ds(a: bivec4ds, b: trivec4ds) -> bivec4ds:
+    """
+    Orthogonal projection of a onto the larger-grade b. The target's scale is divided out and the source's is kept, so f(a, k*b) == f(a, b) and f(k*a, b) == k*f(a, b). The result is NOT unitized -- call try_unitize() on it for a canonical representative, since a projection may legitimately land at infinity. REQUIRES gr(a) < gr(b), and a target that is a blade.
+    """
+
 
 # Pure-Python forwarders injected at import time from ga_py/__init__.py
 # (typed loosely — return type depends on the (a, b) combination at the call site)
 
-def ortho_proj4ds(a: Any, b: Any) -> Any: ...
 def l_expand4ds(a: Any, b: Any) -> Any: ...
 def r_expand4ds(a: Any, b: Any) -> Any: ...
