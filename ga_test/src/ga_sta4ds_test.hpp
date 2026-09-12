@@ -2485,8 +2485,10 @@ TEST_SUITE("STA 3D Tests")
 
         auto const big = vec4ds{1.0e6, 2.0e6, 3.0e6, 4.0e6};
         auto const big_1ulp = vec4ds{std::nextafter(big.x, 1e9), big.y, big.z, big.w};
-        CHECK(big != big_1ulp);
+        CHECK(big == big_1ulp); // operator== is relative: five ulps at any magnitude
         CHECK(is_close(big, big_1ulp));
+        CHECK(big != vec4ds{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y,
+                            big.z, big.w});
         CHECK(!is_close(big, vec4ds{big.x * (1.0 + 1e-9), big.y, big.z, big.w}));
 
         // An STA rotor double-covers its transformation just as a Euclidean one does --
@@ -3168,6 +3170,33 @@ TEST_SUITE("STA 3D Tests")
         CHECK(mvec4ds(MVec4ds_ - MVec4ds_U_) == mvec4ds(MVec4ds_) - mvec4ds(MVec4ds_U_));
         CHECK(mvec4ds(MVec4ds_ + MVec4ds_) == mvec4ds(MVec4ds_) + mvec4ds(MVec4ds_));
         CHECK(mvec4ds(MVec4ds_ - MVec4ds_) == mvec4ds(MVec4ds_) - mvec4ds(MVec4ds_));
+    }
+
+    TEST_CASE("sta4ds: the comparison contract")
+    {
+        fmt::println("sta4ds: the comparison contract");
+
+        // operator== is RELATIVE: safe_epsilon measured against the larger operand,
+        // with a floor of 1. eps is ulp(1), so the budget is 5 to 10 ulps of the
+        // operand depending on its position in its binade -- constant in relative terms
+        // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
+        // at magnitude 1 and stricter than the float grid itself above ~1e3.
+        auto const ulp = [](double m) { return std::nextafter(m, 1e30) - m; };
+
+        for (double const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+            auto const u = ulp(m);
+            CHECK(vec4ds{m, m, m, m} == vec4ds{m + u, m, m, m});       // 1 ulp: inside
+            CHECK(vec4ds{m, m, m, m} == vec4ds{m + 4.0 * u, m, m, m}); // 4 ulps: inside
+            CHECK(vec4ds{m, m, m, m} !=
+                  vec4ds{m + 100.0 * u, m, m, m}); // 100 ulps: outside
+        }
+
+        // below unit scale the floor takes over, so the window stays absolute there --
+        // a component that should vanish is compared against the tolerance itself
+        CHECK(vec4ds{1.0e-9, 1.0e-9, 0.0, 0.0} ==
+              vec4ds{1.0e-9 + 5.0e-16, 1.0e-9, 0.0, 0.0});
+        CHECK(vec4ds{1.0e-9, 1.0e-9, 0.0, 0.0} !=
+              vec4ds{1.0e-9 + 1.0e-13, 1.0e-9, 0.0, 0.0});
     }
 
 } // STA 3D Tests

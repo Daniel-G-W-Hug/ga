@@ -1127,9 +1127,48 @@ scalar — scalar multiples, **regardless of sign or magnitude**.
   computed pair.
 - **`is_close(a, b, rel_tol)` is the `k == 1` sibling** (`detail::coeffs_close`): same
   relative-tolerance machinery, but asking for the same *value* rather than the same
-  subspace. Use it wherever operands carry a physical scale — `operator==` compares
-  against an absolute `eps` and cannot resolve anything once coordinates are large (at an
-  earth radius one ulp is already ~5e-10). Provided for the PGA graded types + motors.
+  subspace. Provided for the PGA graded types + motors.
+
+### `operator==`: relative, five to ten ulps, and NOT an equivalence relation
+
+**Every value type compares through ONE rule**, `detail::coeffs_equal` in
+`ga/detail/ga_error_handling.hpp`: componentwise,
+
+```text
+equal  <=>  |a_i - b_i| < eps * max(|a|_inf, |b|_inf, 1)   for every component i
+```
+
+The twelve `operator==` bodies (`Scalar_t`, `Vec2/3/4/5_t`, `BVec6/10_t`,
+`MVec2/4/8/16/32_t`) are one call each, so the rule is stated once and a type definition
+does not change when the rule does. `operator!=` delegates.
+
+Three properties a caller has to know:
+
+- **It is relative, with a floor of 1.** `eps` is `ulp(1)`, so `eps * scale` lies between
+  `ulp(scale)` and `2 * ulp(scale)`: the budget is **5 to 10 ulps of the operand**,
+  constant in relative terms at every magnitude. Below unit scale the floor takes over
+  and the window is the absolute `eps`, which is what it always was.
+- **The scale is taken over the whole object, not per component.** A point at
+  `(1e6, 0)` must not demand that its second component match to `1e-15` absolute: at that
+  magnitude a computed zero carries the rounding of the coordinates it came from.
+- **It is not transitive** (`a == b` and `b == c` does not give `a == c`), so it is not an
+  equivalence relation: never sort, `std::unique`, or key a `std::map` on these types. For
+  an exact comparison, compare components directly.
+
+**This replaced an absolute tolerance (changed 2026-09-12), and the reason is worth
+keeping.** The old rule compared every component against a fixed `5 * machine_eps`. That
+is right near magnitude 1 and quietly wrong above it: the window stayed at `1.11e-15`
+while one ulp grew with the operands, so from about magnitude `1e3` the comparison was
+**stricter than the floating-point grid** and two values as close as doubles can be
+compared unequal. At an earth radius one ulp is `9.3e-10` — nearly a million times the old
+window — which made `operator==` useless exactly where coordinates are large, and was the
+reason `is_close` had to be reached for wherever coordinates carry a physical scale.
+
+The change is a strict loosening above unit scale and identical below it, so of ~76000
+assertions in the suites exactly **four** moved: the four that pinned the old behaviour
+("one ulp apart at 1e6 must compare unequal"), now restated as the new contract. The
+contract itself is gated per algebra (`"<alg>: the comparison contract"`), asserting the
+budget in ulps at magnitudes 1, 1e3, 1e6 and 6.371e6.
 
 **Notes:**
 

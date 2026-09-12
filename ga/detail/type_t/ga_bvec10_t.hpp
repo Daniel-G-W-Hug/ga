@@ -4,6 +4,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <algorithm> // std::max
+#include <array>     // std::array (componentwise comparison)
 #include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // numeric_type<T>
 #include <iostream>  // std::cout, std::ostream
@@ -169,15 +170,12 @@ template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
 bool operator==(BVec10_t<T, Tag> const& lhs, BVec10_t<U, Tag> const& rhs)
 {
-    // componentwise comparison
-    // comparison is not exact, but accepts epsilon deviations
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (
-        std::abs(lhs.vx - rhs.vx) < delta_eps && std::abs(lhs.vy - rhs.vy) < delta_eps &&
-        std::abs(lhs.vz - rhs.vz) < delta_eps && std::abs(lhs.mx - rhs.mx) < delta_eps &&
-        std::abs(lhs.my - rhs.my) < delta_eps && std::abs(lhs.mz - rhs.mz) < delta_eps &&
-        std::abs(lhs.px - rhs.px) < delta_eps && std::abs(lhs.py - rhs.py) < delta_eps &&
-        std::abs(lhs.pz - rhs.pz) < delta_eps && std::abs(lhs.pw - rhs.pw) < delta_eps);
+    // componentwise comparison against the library's one comparison rule
+    // (detail::coeffs_equal, in ga_error_handling.hpp -- see the note there)
+    return detail::coeffs_equal(std::array{lhs.vx, lhs.vy, lhs.vz, lhs.mx, lhs.my, lhs.mz,
+                                           lhs.px, lhs.py, lhs.pz, lhs.pw},
+                                std::array{rhs.vx, rhs.vy, rhs.vz, rhs.mx, rhs.my, rhs.mz,
+                                           rhs.px, rhs.py, rhs.pz, rhs.pw});
 }
 
 // inequality - only allows comparison between same tag types

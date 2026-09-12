@@ -3,6 +3,7 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include <array>    // std::array (componentwise comparison)
 #include <cmath>    // std::abs, std::sqrt
 #include <concepts> // numeric_type<T>
 #include <iostream> // std::ostream
@@ -117,13 +118,9 @@ template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
 bool operator==(MVec2_t<T, Tag> const& lhs, MVec2_t<U, Tag> const& rhs)
 {
-    // componentwise comparison
-    // equality implies same magnitude and direction
-    // comparison is not exact, but accepts epsilon deviations
-    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
-    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps);
+    // componentwise comparison against the library's one comparison rule
+    // (detail::coeffs_equal, in ga_error_handling.hpp -- see the note there)
+    return detail::coeffs_equal(std::array{lhs.c0, lhs.c1}, std::array{rhs.c0, rhs.c1});
 }
 
 // inequality - allows comparison between same tag types

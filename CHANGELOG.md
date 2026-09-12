@@ -171,3 +171,22 @@
            its own force elements without the base knowing about them, and the ga_docu
            documentation now ships as a generated PDF (its LaTeX sources are maintained
            outside this repository)
+- 2026/09: BEHAVIOUR CHANGE -- operator== on every value type is now a RELATIVE
+           comparison: equal when each component differs by less than
+           eps * max(|a|_inf, |b|_inf, 1), i.e. a budget of 5-10 ulps of the operand at
+           any magnitude, with the old absolute window retained below unit scale. The
+           previous absolute tolerance was right near magnitude 1 and stricter than the
+           floating-point grid above ~1e3 -- at an earth radius one ulp (9.3e-10) exceeded
+           the fixed 1.11e-15 window by six orders of magnitude, so values agreeing to
+           every digit a double carries compared unequal and is_close had to be reached
+           for. The rule now lives in ONE place (detail::coeffs_equal), which the twelve
+           operator== bodies call; is_close keeps the larger eps_congruent budget for
+           independently computed operands. Note operator== is deliberately approximate
+           and therefore NOT transitive: it must not be used to sort, to std::unique or
+           to key an associative container. Also in this release: projections,
+           reflections, antiprojections and inversions in PGA divide out the scale of the
+           object projected/reflected on (they were quadratic in it and silently correct
+           only for a unitized target); try_unitize() added for objects that may be
+           ideal; central_antiproj2dp/3dp completes the projection family; and sta4ds
+           nrm() returns a plain scalar like ega's, leaving the strong norm types to PGA
+           where the metric separates bulk from weight

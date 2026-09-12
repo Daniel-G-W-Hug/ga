@@ -3078,8 +3078,11 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("ega2d: is_close and is_same_rotation");
 
         auto const big = vec2d{1.0e6, 2.0e6};
-        CHECK(big != vec2d{std::nextafter(big.x, 1e9), big.y});
+        // operator== is relative: one ulp apart at 1e6 IS equal (5-10 ulps of budget)
+        CHECK(big == vec2d{std::nextafter(big.x, 1e9), big.y});
         CHECK(is_close(big, vec2d{std::nextafter(big.x, 1e9), big.y}));
+        // 100 ulps apart is not -- the tolerance scales, it does not disappear
+        CHECK(big != vec2d{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y});
         CHECK(!is_close(big, vec2d{big.x * (1.0 + 1e-9), big.y}));
 
         // rotors double-cover the rotations here too
@@ -3336,6 +3339,30 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(mvec2d(MVec2d_ - MVec2d_E_) == mvec2d(MVec2d_) - mvec2d(MVec2d_E_));
         CHECK(mvec2d(MVec2d_ + MVec2d_) == mvec2d(MVec2d_) + mvec2d(MVec2d_));
         CHECK(mvec2d(MVec2d_ - MVec2d_) == mvec2d(MVec2d_) - mvec2d(MVec2d_));
+    }
+
+    TEST_CASE("ega2d: the comparison contract")
+    {
+        fmt::println("ega2d: the comparison contract");
+
+        // operator== is RELATIVE: safe_epsilon measured against the larger operand,
+        // with a floor of 1. eps is ulp(1), so the budget is 5 to 10 ulps of the
+        // operand depending on its position in its binade -- constant in relative terms
+        // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
+        // at magnitude 1 and stricter than the float grid itself above ~1e3.
+        auto const ulp = [](double m) { return std::nextafter(m, 1e30) - m; };
+
+        for (double const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+            auto const u = ulp(m);
+            CHECK(vec2d{m, m} == vec2d{m + u, m});         // 1 ulp: inside
+            CHECK(vec2d{m, m} == vec2d{m + 4.0 * u, m});   // 4 ulps: inside
+            CHECK(vec2d{m, m} != vec2d{m + 100.0 * u, m}); // 100 ulps: outside
+        }
+
+        // below unit scale the floor takes over, so the window stays absolute there --
+        // a component that should vanish is compared against the tolerance itself
+        CHECK(vec2d{1.0e-9, 1.0e-9} == vec2d{1.0e-9 + 5.0e-16, 1.0e-9});
+        CHECK(vec2d{1.0e-9, 1.0e-9} != vec2d{1.0e-9 + 1.0e-13, 1.0e-9});
     }
 
 } // EGA 2D Tests

@@ -4,11 +4,13 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <algorithm> // std::max
+#include <array>     // std::array (componentwise comparison)
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
+#include <utility>   // std::index_sequence
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Centralized error handling utilities for GA library
@@ -133,6 +135,64 @@ inline void check_unitization(T weight_norm, const char* object_type = "multivec
     (void)weight_norm;
     (void)object_type;
 #endif
+}
+
+// Componentwise equality of two value types, and the ONE place the comparison rule
+// lives.
+//
+// Every operator== in the library delegates here, so the rule -- the tolerance, whether
+// it is absolute or relative, and what it is measured against -- is stated once instead
+// of once per type. A type definition therefore does not have to change when the rule
+// does.
+//
+// The rule: two objects are equal when every component differs by less than
+//
+//     eps * max(|a|_inf, |b|_inf, 1)
+//
+// i.e. a RELATIVE tolerance of safe_epsilon measured against the larger of the two
+// operands, with a floor of 1 so a component that should vanish is still compared
+// against the tolerance itself rather than against nothing.
+//
+// In ulps: eps is ulp(1), so eps * scale lies between ulp(scale) and 2 * ulp(scale)
+// depending on where scale sits inside its binade. The budget is therefore 5 to 10 ulps
+// of the operand -- constant in relative terms, which is the property that matters, and
+// the reason a measured threshold reads 5.5 at magnitude 1 and 9.8 at 1e3.
+//
+// The scale is taken over the WHOLE object, not per component. A point at (1e6, 0) must
+// not require its second component to match to 1e-15 absolute: at that magnitude a
+// computed zero carries the rounding of the coordinates it came from.
+//
+// This used to be an absolute tolerance, which is right near magnitude 1 and quietly
+// wrong above it: the window stayed at 1.11e-15 while one ulp grew with the operands, so
+// from about magnitude 1e3 the comparison was stricter than the floating-point grid and
+// two values as close as doubles can be compared UNEQUAL. At an earth radius one ulp is
+// ~9.3e-10, nearly a million times the old window. The relative form holds 5-10 ulps at
+// every magnitude, and below 1 it reproduces the old behaviour exactly.
+//
+// is_close() is the same rule with a larger budget (eps_congruent, ~4500 ulps), for
+// operands that were computed independently rather than by the same expression.
+//
+// The comparison is NOT exact and NOT transitive (a == b and b == c does not imply
+// a == c), so it must not be used as an equivalence relation -- no sorting, no
+// std::unique, no associative containers keyed on these types.
+//
+// Written as a fold rather than a loop on purpose: the loop short-circuits and costs a
+// branch per component, while the fold compiles to the same branchless form the
+// hand-written bodies had.
+template <typename T, typename U, std::size_t N>
+constexpr bool coeffs_equal(std::array<T, N> const& a, std::array<U, N> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype scale = ctype(1);
+    for (std::size_t i = 0; i < N; ++i) {
+        scale = std::max({scale, ctype(std::abs(a[i])), ctype(std::abs(b[i]))});
+    }
+    ctype const tol = safe_epsilon<T, U>() * scale;
+    // bitwise fold, not logical: && would short-circuit and put a branch between every
+    // pair of components, where the hand-written bodies compared all of them branchlessly
+    return [&]<std::size_t... I>(std::index_sequence<I...>) {
+        return ((static_cast<unsigned>(std::abs(a[I] - b[I]) < tol) & ...)) != 0u;
+    }(std::make_index_sequence<N>{});
 }
 
 // Does an object carry weight, i.e. is it NOT ideal (at infinity)?

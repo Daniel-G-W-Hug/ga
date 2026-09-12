@@ -3640,13 +3640,22 @@ TEST_SUITE("EGA 3D Tests")
     {
         fmt::println("ega3d: is_close and is_same_rotation");
 
-        // is_close: equality within a RELATIVE tolerance, where operator== cannot help.
-        // At coordinates of order 1e6 one ulp already exceeds the absolute eps that
-        // operator== measures against, so values agreeing to every digit compare unequal.
+        // Both comparisons are relative; they differ in budget. operator== allows five
+        // ulps -- the same computation, minor rounding -- and is_close ~4500, for values
+        // computed independently. At coordinates of order 1e6 one ulp is ~1.2e-10, and
+        // both accept it; an ABSOLUTE tolerance would have rejected it, which is what
+        // this pair of checks exists to pin.
         auto const big = vec3d{1.0e6, 2.0e6, 3.0e6};
         auto const big_1ulp = vec3d{std::nextafter(big.x, 1e9), big.y, big.z};
-        CHECK(big != big_1ulp);
+        CHECK(big == big_1ulp);
         CHECK(is_close(big, big_1ulp));
+
+        // operator== is the tighter of the two: 100 ulps is past its budget, well
+        // inside is_close's
+        auto const big_100ulp =
+            vec3d{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y, big.z};
+        CHECK(big != big_100ulp);
+        CHECK(is_close(big, big_100ulp));
 
         // not merely permissive: a relative 1e-9 is still rejected at the default
         CHECK(!is_close(big, vec3d{big.x * (1.0 + 1e-9), big.y, big.z}));

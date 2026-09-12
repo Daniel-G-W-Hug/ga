@@ -12,6 +12,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
+#include <array>     // std::array (componentwise comparison)
 #include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // std::floating_point etc.
 #include <iostream>  // std::ostream
@@ -59,11 +60,9 @@ class Scalar_t {
         requires(numeric_type<U>)
     bool operator==(U rhs) const
     {
-        // equality implies same magnitude
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta = std::abs(T(value) - U(rhs));
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta < delta_eps);
+        // one comparison rule for the whole library: detail::coeffs_equal
+        // in ga_error_handling.hpp -- see the note there
+        return detail::coeffs_equal(std::array{T(value)}, std::array{U(rhs)});
     }
 
     template <typename U>
@@ -235,11 +234,9 @@ template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
 bool operator==(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
-    // equality implies same magnitude
-    // comparison is not exact, but accepts epsilon deviations
-    auto abs_delta = std::abs(T(lhs) - U(rhs));
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (abs_delta < delta_eps);
+    // one comparison rule for the whole library: detail::coeffs_equal in
+    // ga_error_handling.hpp -- see the note there
+    return detail::coeffs_equal(std::array{T(lhs)}, std::array{U(rhs)});
 }
 
 // inequality - only allows comparison between same tag types

@@ -4,6 +4,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <algorithm> // std::max
+#include <array>     // std::array (componentwise comparison)
 #include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // numeric_type<T>
 #include <iostream>  // std::cout, std::ostream
@@ -307,37 +308,19 @@ template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
 bool operator==(MVec32_t<T, Tag> const& lhs, MVec32_t<U, Tag> const& rhs)
 {
-    // componentwise comparison
-    // comparison is not exact, but accepts epsilon deviations
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (
-        std::abs(lhs.c0 - rhs.c0) < delta_eps && std::abs(lhs.c1 - rhs.c1) < delta_eps &&
-        std::abs(lhs.c2 - rhs.c2) < delta_eps && std::abs(lhs.c3 - rhs.c3) < delta_eps &&
-        std::abs(lhs.c4 - rhs.c4) < delta_eps && std::abs(lhs.c5 - rhs.c5) < delta_eps &&
-        std::abs(lhs.c6 - rhs.c6) < delta_eps && std::abs(lhs.c7 - rhs.c7) < delta_eps &&
-        std::abs(lhs.c8 - rhs.c8) < delta_eps && std::abs(lhs.c9 - rhs.c9) < delta_eps &&
-        std::abs(lhs.c10 - rhs.c10) < delta_eps &&
-        std::abs(lhs.c11 - rhs.c11) < delta_eps &&
-        std::abs(lhs.c12 - rhs.c12) < delta_eps &&
-        std::abs(lhs.c13 - rhs.c13) < delta_eps &&
-        std::abs(lhs.c14 - rhs.c14) < delta_eps &&
-        std::abs(lhs.c15 - rhs.c15) < delta_eps &&
-        std::abs(lhs.c16 - rhs.c16) < delta_eps &&
-        std::abs(lhs.c17 - rhs.c17) < delta_eps &&
-        std::abs(lhs.c18 - rhs.c18) < delta_eps &&
-        std::abs(lhs.c19 - rhs.c19) < delta_eps &&
-        std::abs(lhs.c20 - rhs.c20) < delta_eps &&
-        std::abs(lhs.c21 - rhs.c21) < delta_eps &&
-        std::abs(lhs.c22 - rhs.c22) < delta_eps &&
-        std::abs(lhs.c23 - rhs.c23) < delta_eps &&
-        std::abs(lhs.c24 - rhs.c24) < delta_eps &&
-        std::abs(lhs.c25 - rhs.c25) < delta_eps &&
-        std::abs(lhs.c26 - rhs.c26) < delta_eps &&
-        std::abs(lhs.c27 - rhs.c27) < delta_eps &&
-        std::abs(lhs.c28 - rhs.c28) < delta_eps &&
-        std::abs(lhs.c29 - rhs.c29) < delta_eps &&
-        std::abs(lhs.c30 - rhs.c30) < delta_eps &&
-        std::abs(lhs.c31 - rhs.c31) < delta_eps);
+    // componentwise comparison against the library's one comparison rule
+    // (detail::coeffs_equal, in ga_error_handling.hpp -- see the note there)
+    return detail::coeffs_equal(
+        std::array{lhs.c0,  lhs.c1,  lhs.c2,  lhs.c3,  lhs.c4,  lhs.c5,  lhs.c6,
+                   lhs.c7,  lhs.c8,  lhs.c9,  lhs.c10, lhs.c11, lhs.c12, lhs.c13,
+                   lhs.c14, lhs.c15, lhs.c16, lhs.c17, lhs.c18, lhs.c19, lhs.c20,
+                   lhs.c21, lhs.c22, lhs.c23, lhs.c24, lhs.c25, lhs.c26, lhs.c27,
+                   lhs.c28, lhs.c29, lhs.c30, lhs.c31},
+        std::array{rhs.c0,  rhs.c1,  rhs.c2,  rhs.c3,  rhs.c4,  rhs.c5,  rhs.c6,
+                   rhs.c7,  rhs.c8,  rhs.c9,  rhs.c10, rhs.c11, rhs.c12, rhs.c13,
+                   rhs.c14, rhs.c15, rhs.c16, rhs.c17, rhs.c18, rhs.c19, rhs.c20,
+                   rhs.c21, rhs.c22, rhs.c23, rhs.c24, rhs.c25, rhs.c26, rhs.c27,
+                   rhs.c28, rhs.c29, rhs.c30, rhs.c31});
 }
 
 // inequality - only allows comparison between same tag types

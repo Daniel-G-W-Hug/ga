@@ -4365,16 +4365,17 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         // is_close: relative equality, where operator== cannot resolve anything
         /////////////////////////////////////////////////////////////////////////////////
 
-        // at coordinates of the order of an earth radius one ulp is already ~5e-10 m, so
-        // operator== (absolute eps) rejects values that agree to every digit a double
-        // carries, while is_close accepts them
+        // At the order of an earth radius one ulp is ~9.3e-10 m. Both comparisons are
+        // relative and both accept it -- they differ in budget, 5-10 ulps for operator==
+        // against ~4500 for is_close. This used to be the case where an ABSOLUTE
+        // operator== rejected values agreeing to every digit a double carries.
         auto const big = vec3dp{3783187.073822, 901980.086455, 5038246.874625, 1.0};
         auto const big_1ulp =
             vec3dp{std::nextafter(big.x, 1e9), std::nextafter(big.y, 1e9),
                    std::nextafter(big.z, 1e9), 1.0};
 
-        CHECK(big != big_1ulp);         // operator== says they differ ...
-        CHECK(is_close(big, big_1ulp)); // ... is_close says they agree, correctly
+        CHECK(big == big_1ulp);         // the budget is 5-10 ulps, one ulp is inside
+        CHECK(is_close(big, big_1ulp)); // and comfortably inside the larger one
 
         // and it is not merely permissive: a millimetre apart at that magnitude is a
         // relative 1.6e-10, far above the 1e-12 default, so it is still rejected
