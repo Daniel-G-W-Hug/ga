@@ -5709,21 +5709,29 @@ void register_forwarders(sol::state& lua)
         function pga.r_bulk_expand3dp(a, b)   return pga.wdg(a, pga.r_bulk_dual(b))   end
         function pga.r_weight_expand3dp(a, b) return pga.wdg(a, pga.r_weight_dual(b)) end
 
-        -- "is the weight squared norm essentially 1?" guard (matches ga_py's _EPS)
-        local _EPS = 1e-9
-        local function _unitize_if_needed(p)
-            local n = pga.weight_nrm_sq(p)
-            if n > _EPS and n ~= 1.0 then p = pga.unitize(p) end
+        -- the projection expressions are QUADRATIC in the target, so its scale is
+        -- divided back out -- exactly as the C++ ortho_proj*/central_proj* do. They do
+        -- NOT unitize the result: that is what try_unitize() is for, since a result may
+        -- legitimately be ideal (weight 0).
+        local function _by_weight_sq(p, b)
+            local n = pga.weight_nrm_sq(b)
+            if n ~= 0.0 and n ~= 1.0 then p = p * (1.0 / n) end
             return p
         end
 
         -- projections of the lower-grade a onto the larger-grade b  (gr(a) < gr(b))
-        function pga.ortho_proj2dp(a, b)   return _unitize_if_needed(pga.rwdg(b, pga.r_weight_expand2dp(a, b))) end
-        function pga.central_proj2dp(a, b) return _unitize_if_needed(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)))   end
-        function pga.ortho_antiproj2dp(a, b) return pga.wdg(b, pga.r_weight_contract2dp(a, b)) end
-        function pga.ortho_proj3dp(a, b)   return _unitize_if_needed(pga.rwdg(b, pga.r_weight_expand3dp(a, b))) end
-        function pga.central_proj3dp(a, b) return _unitize_if_needed(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)))   end
-        function pga.ortho_antiproj3dp(a, b) return pga.wdg(b, pga.r_weight_contract3dp(a, b)) end
+        function pga.ortho_proj2dp(a, b)   return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b) end
+        function pga.central_proj2dp(a, b) return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)   end
+        function pga.ortho_antiproj2dp(a, b) return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b) end
+        function pga.ortho_proj3dp(a, b)   return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b) end
+        function pga.central_proj3dp(a, b) return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)   end
+        function pga.ortho_antiproj3dp(a, b) return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b) end
+
+        -- the same operation in EGA, where the metric dual replaces the weight dual and
+        -- nrm_sq the weight norm (sta has no rwdg binding yet, so no ortho_proj4ds here)
+        function ega.ortho_proj3d(a, b)
+            return ega.rwdg(b, ega.wdg(a, ega.dual(b))) * (1.0 / ega.nrm_sq(b))
+        end
 
         -- Euclidean distance -> dualnum(homogeneous_magnitude, weight). The C++
         -- `if constexpr (gr(a)+gr(b) == n)` is dispatched here via gr().

@@ -259,7 +259,9 @@ namespace hd::ga::sta {
 //   - is_simple()                     -> does the bivector lie in a single plane?
 //   - boost_part() / rot_part()       -> invariant (observer-independent) decomposition
 //                                        of a bivector into its two orthogonal planes
-//   - project_onto() / reject_from()  -> projection / rejection (onto vector or bivector)
+//   - ortho_proj4ds()                 -> orthogonal projection onto a higher-grade blade
+//   - project_onto() / reject_from()  -> projection / rejection (onto vector, bivector
+//                                        or hyperplane)
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
 //   - reciprocal_frame()              -> the frame {a^i} with a^i . a_j = delta
 //
@@ -859,6 +861,29 @@ inline BiVec4ds<T> rot_part(BiVec4ds<T> const& B)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// orthogonal projection
+//
+//     ortho_proj4ds(a, b) = rwdg(b, r_expand4ds(a, b)) / nrm_sq(b)
+//
+// (a projected orthogonally onto b: the part of a that lies in b)
+// REQUIRES: gr(a) < gr(b), or it does not compile
+//
+// The same construction as ortho_proj2dp / ortho_proj3dp in PGA, with the metric dual in
+// place of the weight dual and nrm_sq in place of weight_nrm_sq -- a non-degenerate
+// metric needs no split into bulk and weight.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename arg1, typename arg2> decltype(auto) ortho_proj4ds(arg1&& a, arg2&& b)
+{
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected)
+    auto const nsq = nrm_sq(b);
+    detail::check_division_by_zero(nsq, "ortho_proj4ds");
+    return rwdg(b, r_expand4ds(std::forward<arg1>(a), b)) / nsq;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // projections and rejections (geometric-product based, as in ega3d)
 //
 //   project_onto(a, b): component of a parallel to / lying in b
@@ -869,34 +894,47 @@ inline BiVec4ds<T> rot_part(BiVec4ds<T> const& B)
 // Euclidean analog. project_onto + reject_from == a, and project_onto(a,b) lies
 // in b (wdg(project_onto(a,b), b) == 0).
 //
-// WHY THE BODIES BELOW ARE NOT ALL THE SAME SHAPE. The textbook projection is
-// (a contracted into b) * inv(b), but this library's dot and contractions fold in a
-// reversion -- dot(A, B) = <rev(A) B>, which is what makes nrm_sq positive definite --
-// so the SIGN of that expression depends on the grades of BOTH arguments. No single
-// spelling is right for every pair: grade 1 onto a bivector needs (B >> v) * inv(B),
-// while grade 2 onto a trivector needs the target as t / nrm_sq(t) rather than
-// inv(t) = rev(t) / nrm_sq(t). A wrong sign here is nearly invisible -- the result still
-// lies in the target and still survives both scaling contracts.
+// TWO SHAPES, AND NEITHER CARRIES A GRADE-DEPENDENT SIGN. Where the grades differ the
+// projection is the projective expression, rwdg(b, wdg(a, r_dual(b))) over the target's
+// squared norm; where they are equal it is dot(a, b) / nrm_sq(b) * b, since the
+// projection onto a blade of its own grade can only be a multiple of it. The same two
+// expressions are used in every algebra of this library.
 //
-// So each body is fixed by a test rather than by a derivation, and two tests are needed
-// because neither one sees everything (ga_sta4ds_test.hpp, "sta4ds: the projection
-// contract"; both were checked by mutation):
+// The classical (b >> a) * inv(b) is NOT used, because it does carry such a sign: the
+// contractions fold in the reverse of their lower-grade argument -- dot(A, B) =
+// <rev(A) B>, which is what makes nrm_sq positive definite -- and inv(b) carries the
+// second reverse, so the correct classical form is (-1)^(j(j-1)/2) (b >> a) * inv(b) with
+// j = gr(a). Getting that sign wrong is nearly invisible: the negated result still lies
+// in the target, still survives both scaling contracts, and still sums with its rejection
+// to the input. The projective form has no reversion anywhere in it -- wedge, antiwedge
+// and dual carry none -- and where the grades differ it is also the faster one, since the
+// classical product materialises grades that are afterwards discarded.
+//
+// Two gates hold the family together (ga_sta4ds_test.hpp, "sta4ds: the projection
+// contract"; the reach of each was established by mutation):
 //   - a blade lying IN the target comes back unchanged, hence projecting twice changes
-//     nothing. This is the only gate that catches a sign in the GRADE-1 overload.
+//     nothing. This is the only gate that catches a sign in a GRADE-1 overload.
 //   - the grades agree with each other, P(a ^ b) == P(a) ^ P(b) (a projection is an
-//     outermorphism), which makes the two overloads one family instead of two unrelated
-//     formulas. It catches a sign in the GRADE-2 overload but is BLIND to one in the
-//     grade-1 overload, where the flip appears twice on the right-hand side and cancels.
+//     outermorphism). It catches a sign in a GRADE-2 overload but is BLIND to one at
+//     grade 1, where the flip appears twice on the right-hand side and cancels.
+//
+// PRE: the target must be a BLADE. In 4d that is a condition, not a formality: a general
+// bivector is a sum of two blades and spans no plane (B ^ B != 0), and there is then no
+// subspace to project onto. Trivector targets are always simple, so only a bivector
+// target can violate it. The SOURCE is unconstrained -- the expressions are linear in it.
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of a vector v1 onto a vector v2
+// projection of a vector v1 onto a vector v2 (equal grades: a multiple of the target)
+// v_parallel = dot(v1, v2) / nrm_sq(v2) * v2
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v1,
                                                         Vec4ds<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2);
+    ctype const nsq = ctype(nrm_sq(v2));
+    detail::check_division_by_zero(nsq, "project_onto(Vec4ds, Vec4ds)");
+    return Vec4ds<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
 // rejection of a vector v1 from a vector v2
@@ -910,12 +948,14 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v1,
 }
 
 // projection of a vector v onto a bivector B (a 2-plane)
+// v_parallel = rwdg(B, wdg(v, r_dual(B))) / nrm_sq(B)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v,
                                                         BiVec4ds<U> const& B)
 {
-    return gr1((B >> v) * inv(B));
+    using ctype = std::common_type_t<T, U>;
+    return Vec4ds<ctype>(ortho_proj4ds(v, B));
 }
 
 // rejection of a vector v from a bivector B (a 2-plane)
@@ -930,12 +970,14 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
 
 
 // projection of a vector v onto a trivector t (a hyperplane)
+// v_parallel = rwdg(t, wdg(v, r_dual(t))) / nrm_sq(t)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v,
                                                         TriVec4ds<U> const& t)
 {
-    return gr1((t >> v) * inv(t));
+    using ctype = std::common_type_t<T, U>;
+    return Vec4ds<ctype>(ortho_proj4ds(v, t));
 }
 
 // rejection of a vector v from a trivector t (a hyperplane)
@@ -949,22 +991,14 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
 }
 
 // projection of a bivector B (a 2-plane) onto a trivector t (a hyperplane)
-//
-// The target enters as t / nrm_sq(t), not as inv(t) = rev(t) / nrm_sq(t) -- the
-// difference from the grade-1 source above, and the one thing that is easy to get wrong
-// here: the contraction folds in the source's reversion (dot(A, B) = <rev(A) B>), and at
-// grade 2 that is a sign. Written with inv(t) a bivector lying in t comes back negated,
-// which satisfies containment and both scaling contracts and is caught only by
-// idempotence.
+// B_parallel = rwdg(t, wdg(B, r_dual(t))) / nrm_sq(t)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec4ds<std::common_type_t<T, U>> project_onto(BiVec4ds<T> const& B,
                                                           TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const nsq = ctype(nrm_sq(t));
-    detail::check_division_by_zero(nsq, "project_onto(BiVec4ds, TriVec4ds)");
-    return BiVec4ds<ctype>(gr2((t >> B) * t) / nsq);
+    return BiVec4ds<ctype>(ortho_proj4ds(B, t));
 }
 
 // rejection of a bivector B (a 2-plane) from a trivector t (a hyperplane)

@@ -374,14 +374,17 @@ constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 // Vec2d<T> projections, rejections and reflections
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of v1 onto v2
+// projection of v1 onto v2 (equal grades: a multiple of the target)
+// v_parallel = dot(v1, v2) / nrm_sq(v2) * v2
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
                                                        Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2);
+    ctype const nsq = ctype(nrm_sq(v2));
+    detail::check_division_by_zero(nsq, "project_onto(Vec2d, Vec2d)");
+    return Vec2d<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
 // rejection of v1 from v2

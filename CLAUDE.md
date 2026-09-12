@@ -1213,7 +1213,7 @@ test case pinning both contracts, containment, idempotence and the degenerate ta
 
 | case | expression | why this one |
 | ---- | ---------- | ------------ |
-| `gr(a) != gr(b)` | Lengyel's `b ∨ (a ∧ dual(b))` over the target's squared norm — `rwdg(b, wdg(a, dual(b)))`, the **weight** dual + `weight_nrm_sq` in PGA (degenerate metric), the **metric** dual (`r_dual`) + `nrm_sq` in EGA/STA | no reversion in wedge, antiwedge or dual, hence no sign at any grade pair; no inverse, which PGA could not supply; and the faster one — the classical product materialises grades that are then discarded |
+| `gr(a) != gr(b)` | the orthogonal projection, named per algebra and called by `project_onto`: **`ortho_proj2dp` / `ortho_proj3dp`** (PGA), **`ortho_proj3d`** (EGA3D), **`ortho_proj4ds`** (STA) — all one expression, `rwdg(b, expansion(a, b))` over the target's squared norm, with the **weight** dual + `weight_nrm_sq` in PGA (degenerate metric) and the **metric** dual + `nrm_sq` in EGA/STA. No `ortho_proj2d`: in ega2d the only higher-grade target is the pseudoscalar, so the projection is the identity | no reversion in wedge, antiwedge or dual, hence no sign at any grade pair; no inverse, which PGA could not supply; and the faster one — the classical product materialises grades that are then discarded |
 | `gr(a) == gr(b)` | `dot(a, b) / nrm_sq(b) * b` | the projection onto a blade of its own grade can only be a multiple of it, so there is no sign to get wrong either; and a dot, a division and a scaling beat a dual plus two products. Lengyel's form would serve here too, just slower |
 
 **The alternative is the classical `(b >> a) * inv(b)`, and it does — which is why it is

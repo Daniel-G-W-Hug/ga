@@ -827,152 +827,10 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// projections, rejections
-////////////////////////////////////////////////////////////////////////////////
-
-// projection of a vector v1 onto vector v2
-// returns component of v1 parallel to v2
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v1,
-                                                        Vec3dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2); // works directly in representational space
-}
-
-// rejection of vector v1 from a vector v2
-// returns component of v1 perpendicular to v2
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
-                                                       Vec3dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(v1 - project_onto(v1, v2));
-
-    // works, but is more effort compared to solution via projection and vector difference
-    // return Vec3dp<ctype>(gr1(wdg(v1, v2) * inv(v2)));
-}
-
-
-// orthogonal projection of a vector v onto a bivector B (a line)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
-                                                        BiVec3dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return detail::by_weight_sq(Vec3dp<ctype>(rwdg(B, wdg(v, r_weight_dual(B)))),
-                                weight_nrm_sq(B)); // ortho_proj3dp
-}
-
-// rejection of vector v from a bivector B (a line)
-// rejection = v - project_onto(v, B)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
-                                                       BiVec3dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(v - project_onto(v, B));
-}
-
-
-// orthogonal projection of a vector v onto a trivector t (a plane)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
-                                                        TriVec3dp<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return detail::by_weight_sq(Vec3dp<ctype>(rwdg(t, wdg(v, r_weight_dual(t)))),
-                                weight_nrm_sq(t)); // ortho_proj3dp
-}
-
-// rejection of vector v from a trivector t (a plane)
-// rejection = v - project_onto(v, t)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
-                                                       TriVec3dp<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(v - project_onto(v, t));
-}
-
-// orthogonal projection of a line l (a bivector) onto a plane t (a trivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
-                                                          TriVec3dp<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return detail::by_weight_sq(BiVec3dp<ctype>(rwdg(t, wdg(B, r_weight_dual(t)))),
-                                weight_nrm_sq(t)); // ortho_proj3dp
-}
-
-// rejection of a line B (a bivector) from a plane t (a trivector)
-// rejection = B - project_onto(B, t)
-//
-// Where the line pierces the plane, the rejection IS a line, and it is the line through
-// that piercing point perpendicular to the plane: its attitude is the plane's normal,
-// and it meets the plane where B does,
-//
-//     rwdg(reject_from(B, t), t) == rwdg(B, t)
-//
-// because the projection lies in the plane, so rwdg(project_onto(B, t), t) == 0 and the
-// whole meet is carried by the rejection. Equivalently, it is congruent to the line the
-// expansion builds through that point: r_weight_expand3dp(unitize(rwdg(B, t)), t).
-//
-// The degenerate cases follow from the same expression: a line lying IN the plane
-// rejects to zero, a line already perpendicular to it rejects to itself, and a line
-// PARALLEL to the plane has no piercing point -- there the rejection loses its
-// attitude (att == 0) and what is left is an ideal bivector carrying the offset.
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec3dp<std::common_type_t<T, U>> reject_from(BiVec3dp<T> const& B,
-                                                         TriVec3dp<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(B - project_onto(B, t));
-}
-
-// expand to a new line which goes through point p and is perpendicular to the plane
-// => returns a line (aka a bivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
-                                                  Plane3d<U> const& plane)
-{
-    using ctype = std::common_type_t<T, U>;
-    return r_weight_expand3dp(Point3dp<ctype>{point}, plane);
-}
-
-// expand to a new plane with contains the point p and is orthogonal to the line
-// => returns a plane (aka a trivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
-                                                   Line3d<U> const& line)
-{
-    using ctype = std::common_type_t<T, U>;
-    return r_weight_expand3dp(Point3dp<ctype>{point}, line);
-}
-
-// expand to a new plane which contains the line and is perpendicular to the plane
-// => returns a plane (aka a bivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
-                                                   Plane3d<U> const& plane)
-{
-    return r_weight_expand3dp(line, plane);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Projections for 3dp: (HINT: unitize after projection, if not at infinity)
+// Projections for 3dp: the target's scale is divided out, the source's is kept, and
+// the result is left as it is. For a canonical representative call try_unitize()
+// on it: that unitizes where there is weight and returns an ideal result
+// unchanged, which is what a projection may legitimately produce.
 //
 // ortho_proj3dp(a, b)     = rwdg(b, r_weight_expand3dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
@@ -1042,6 +900,154 @@ decltype(auto) central_antiproj3dp(arg1&& a, arg2&& b)
         wdg(std::forward<arg2>(b),
             r_bulk_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b))),
         weight_nrm_sq(b));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// projections, rejections
+////////////////////////////////////////////////////////////////////////////////
+
+// projection of a vector v1 onto vector v2
+// returns component of v1 parallel to v2
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v1,
+                                                        Vec3dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    // equal grades: the projection can only be a multiple of the target, and works
+    // directly in representational space. The bulk norm is what inv() divides by in a
+    // degenerate metric -- written out, so that this expression reads the same in every
+    // algebra
+    ctype const nsq = ctype(bulk_nrm_sq(v2));
+    detail::check_normalization<ctype>(nsq, "vector");
+    return Vec3dp<ctype>(ctype(dot(v1, v2)) / nsq * v2);
+}
+
+// rejection of vector v1 from a vector v2
+// returns component of v1 perpendicular to v2
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
+                                                       Vec3dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v1 - project_onto(v1, v2));
+
+    // works, but is more effort compared to solution via projection and vector difference
+    // return Vec3dp<ctype>(gr1(wdg(v1, v2) * inv(v2)));
+}
+
+
+// orthogonal projection of a vector v onto a bivector B (a line)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
+                                                        BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(ortho_proj3dp(v, B));
+}
+
+// rejection of vector v from a bivector B (a line)
+// rejection = v - project_onto(v, B)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                       BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v - project_onto(v, B));
+}
+
+
+// orthogonal projection of a vector v onto a trivector t (a plane)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
+                                                        TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(ortho_proj3dp(v, t));
+}
+
+// rejection of vector v from a trivector t (a plane)
+// rejection = v - project_onto(v, t)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                       TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v - project_onto(v, t));
+}
+
+// orthogonal projection of a line l (a bivector) onto a plane t (a trivector)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
+                                                          TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(ortho_proj3dp(B, t));
+}
+
+// rejection of a line B (a bivector) from a plane t (a trivector)
+// rejection = B - project_onto(B, t)
+//
+// Where the line pierces the plane, the rejection IS a line, and it is the line through
+// that piercing point perpendicular to the plane: its attitude is the plane's normal,
+// and it meets the plane where B does,
+//
+//     rwdg(reject_from(B, t), t) == rwdg(B, t)
+//
+// because the projection lies in the plane, so rwdg(project_onto(B, t), t) == 0 and the
+// whole meet is carried by the rejection. Equivalently, it is congruent to the line the
+// expansion builds through that point: r_weight_expand3dp(unitize(rwdg(B, t)), t).
+//
+// The degenerate cases follow from the same expression: a line lying IN the plane
+// rejects to zero, a line already perpendicular to it rejects to itself, and a line
+// PARALLEL to the plane has no piercing point -- there the rejection loses its
+// attitude (att == 0) and what is left is an ideal bivector carrying the offset.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> reject_from(BiVec3dp<T> const& B,
+                                                         TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(B - project_onto(B, t));
+}
+
+// expand to a new line which goes through point p and is perpendicular to the plane
+// => returns a line (aka a bivector)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
+                                                  Plane3d<U> const& plane)
+{
+    using ctype = std::common_type_t<T, U>;
+    return r_weight_expand3dp(Point3dp<ctype>{point}, plane);
+}
+
+// expand to a new plane with contains the point p and is orthogonal to the line
+// => returns a plane (aka a trivector)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
+                                                   Line3d<U> const& line)
+{
+    using ctype = std::common_type_t<T, U>;
+    return r_weight_expand3dp(Point3dp<ctype>{point}, line);
+}
+
+// expand to a new plane which contains the line and is perpendicular to the plane
+// => returns a plane (aka a bivector)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
+                                                   Plane3d<U> const& plane)
+{
+    return r_weight_expand3dp(line, plane);
 }
 
 

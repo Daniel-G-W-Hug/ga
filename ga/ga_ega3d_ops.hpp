@@ -71,6 +71,7 @@ namespace hd::ga::ega {
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
 // - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
+// - ortho_proj3d()                 -> orthogonal projection onto a blade of higher grade
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
@@ -654,18 +655,45 @@ constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// orthogonal projection
+//
+//     ortho_proj3d(a, b) = rwdg(b, r_expand(a, b)) / nrm_sq(b)
+//
+// (a projected orthogonally onto b: the part of a that lies in b)
+// REQUIRES: gr(a) < gr(b), or it does not compile
+//
+// The same construction as ortho_proj2dp / ortho_proj3dp in PGA, with the metric dual in
+// place of the weight dual and nrm_sq in place of weight_nrm_sq -- a non-degenerate
+// metric needs no split into bulk and weight. It carries no grade-dependent sign,
+// because none of wedge, antiwedge and dual carries a reversion; the note at the
+// projections in ga_sta4ds_ops.hpp spells that out against the classical alternative.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename arg1, typename arg2> decltype(auto) ortho_proj3d(arg1&& a, arg2&& b)
+{
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected)
+    auto const nsq = nrm_sq(b);
+    detail::check_division_by_zero(nsq, "ortho_proj3d");
+    return rwdg(b, r_expand(std::forward<arg1>(a), b)) / nsq;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Vec3d<T> and BiVec3d<T> projections, rejections and reflections
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of a vector v1 onto vector v2
-// v_parallel = dot(v1, v2)) * inv(v2)
+// projection of a vector v1 onto vector v2 (equal grades: a multiple of the target)
+// v_parallel = dot(v1, v2) / nrm_sq(v2) * v2
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
                                                        Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2);
+    ctype const nsq = ctype(nrm_sq(v2));
+    detail::check_division_by_zero(nsq, "project_onto(Vec3d, Vec3d)");
+    return Vec3d<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
 // rejection of vector v1 from a vector v2
@@ -683,13 +711,18 @@ constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
 }
 
 // projection of a vector v onto a bivector B
-// v_parallel = gr1((B >> v) * inv(B))
+// v_parallel = rwdg(B, wdg(v, dual(B))) / nrm_sq(B)
+//
+// The projective form: no reversion in wedge, antiwedge or dual, hence no grade-dependent
+// sign, and it computes only the grade it returns. See the note at the projections in
+// ga_sta4ds_ops.hpp for the classical alternative and the sign it carries.
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v,
                                                        BiVec3d<U> const& B)
 {
-    return gr1((B >> v) * inv(B));
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(ortho_proj3d(v, B));
 }
 
 // rejection of vector v1 from a bivector v2
@@ -713,12 +746,12 @@ constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
 // vector-onto-vector case: the part of A lying in B can only be a multiple of B. In 3d
 // it is the projection of A's normal onto B's normal.
 //
-// The target enters as B / nrm_sq(B) and NOT as inv(B) = rev(B) / nrm_sq(B), which is
-// the difference from project_onto(Vec3d, Vec3d) and the one thing that is easy to get
-// wrong here: this library's dot folds in the source's reversion, dot(A, B) =
-// <rev(A) B>, and at grade 2 that is a sign. Written with inv(B) the projection of B
-// onto itself comes back as -B, which satisfies containment and both scaling contracts
-// and is caught only by idempotence.
+// The target enters as B / nrm_sq(B) and NOT as inv(B) = rev(B) / nrm_sq(B). Written
+// with inv(B) the projection of B onto itself comes back as -B, because this library's
+// dot folds in the source's reversion, dot(A, B) = <rev(A) B>, and at grade 2 that is a
+// sign; the negated result still satisfies containment and both scaling contracts, so
+// only idempotence catches it. The same spelling serves in a degenerate metric, where
+// inv() of a plane does not exist at all.
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3d<std::common_type_t<T, U>> project_onto(BiVec3d<T> const& A,
