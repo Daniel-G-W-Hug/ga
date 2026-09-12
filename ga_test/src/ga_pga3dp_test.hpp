@@ -5998,6 +5998,7 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(is_close(ortho_proj3dp(P, T3), ortho_proj3dp(P, T)));
             CHECK(is_close(central_proj3dp(P, T3), central_proj3dp(P, T)));
             CHECK(is_close(ortho_antiproj3dp(T, 3.0 * P), ortho_antiproj3dp(T, P)));
+            CHECK(is_close(central_antiproj3dp(T, 3.0 * P), central_antiproj3dp(T, P)));
             CHECK(is_close(reflect_on(P, T3), reflect_on(P, T)));
             CHECK(is_close(reflect_on(L, T3), reflect_on(L, T)));
             CHECK(is_close(reflect_on(T, T3), reflect_on(T, T)));
@@ -6040,6 +6041,36 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(reject_from(P, t_inf) == P);
         }
 #endif
+    }
+
+    TEST_CASE("PGA3dp: antiprojections -- orthogonal and central")
+    {
+        fmt::println("PGA3dp: antiprojections -- orthogonal and central");
+
+        // An antiprojection goes the other way from a projection: it builds a new object
+        // of the HIGHER grade that CONTAINS the target. The two flavours differ in what
+        // they keep -- the orthogonal one the attitude, the central one the direction
+        // seen from the origin -- and they complete the family
+        // orthogonal/central x projection/antiprojection.
+
+        auto const P = vec3dp{2.0, 1.0, 3.0, 1.0};
+        auto const T = wdg(wdg(point3d{-1, -1, 0}, point3d{1, -1, 1}), point3d{-1, 1, 1});
+
+        auto const t_ortho = ortho_antiproj3dp(T, P); // a plane through P
+        auto const t_central = central_antiproj3dp(T, P);
+
+        // both contain the point they were antiprojected onto
+        CHECK(wdg(P, t_ortho) == pscalar3dp{0.0});
+        CHECK(wdg(P, t_central) == pscalar3dp{0.0});
+
+        // the orthogonal one keeps the plane's attitude, i.e. it is parallel to T.
+        // is_congruent, not is_close: an attitude is an IDEAL bivector (weight 0, it
+        // lives on the horizon), so it has no canonical scale and unitize() refuses it
+        CHECK(is_congruent(att(t_ortho), att(T)));
+
+        // and neither depends on how the point it contains happens to be scaled
+        CHECK(is_close(ortho_antiproj3dp(T, 5.0 * P), t_ortho));
+        CHECK(is_close(central_antiproj3dp(T, 5.0 * P), t_central));
     }
 
     TEST_CASE("PGA3dp: the meet of a line with a plane, then the split of a direction")

@@ -32,6 +32,7 @@ namespace hd::ga::pga {
 // - ortho_proj3dp()                      -> orthogonal projection onto object
 // - central_proj3dp()                    -> central projection towards origin onto object
 // - ortho_antiproj3dp()                  -> orthogonal antiprojection onto object
+// - central_antiproj3dp()                -> central antiprojection onto object
 // - reflect_on()                         -> reflections
 // - invert_on()                          -> inversions
 // - sup()                                -> point on line/plane that is nearest to origin
@@ -961,6 +962,12 @@ constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
 // (a projected orthogonally onto b, effectively creating a new a' containing b)
 // REQUIRES: gr(a) > gr(b)
 //
+// central_antiproj3dp(a, b) = wdg(b, r_bulk_contract3dp(a, b) )
+// (a antiprojected centrally towards the origin onto b, effectively creating a new a'
+// containing b -- the antiprojection counterpart of central_proj3dp, completing the
+// four-way family: orthogonal / central x projection / antiprojection)
+// REQUIRES: gr(a) > gr(b)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, arg2&& b)
@@ -997,6 +1004,17 @@ decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
     return detail::by_weight_sq(
         wdg(std::forward<arg2>(b),
             r_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b))),
+        weight_nrm_sq(b));
+}
+
+template <typename arg1, typename arg2>
+decltype(auto) central_antiproj3dp(arg1&& a, arg2&& b)
+{
+    // REQUIRES: gr(a) > gr(b), or does not compile!
+
+    return detail::by_weight_sq(
+        wdg(std::forward<arg2>(b),
+            r_bulk_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b))),
         weight_nrm_sq(b));
 }
 
