@@ -37,6 +37,9 @@ namespace hd::ga::pga {
 // - invert_on()                          -> inversions
 // - sup()                                -> point on line/plane that is nearest to origin
 // - att()                                -> object attitude
+//
+// - to_vec3d(), to_bivec3d()             -> the Euclidean (ega) part of an object
+//   to_scalar3d()
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 //
 // - is_simple()                          -> is a bivector a line? (Pluecker condition)
@@ -1267,6 +1270,77 @@ constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), T(ps));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// to_vec3d / to_bivec3d / to_scalar3d: the Euclidean content of a pga object
+//
+// A pga object is a Euclidean object plus the information of WHERE it is. These hand the
+// Euclidean part back, so a quantity can be computed in ega -- where position is merely
+// the evaluation point -- and bound to its location in pga only where that is what is
+// wanted. The lift in the other direction is a constructor: Vec3dp(v, 1.0) for a point,
+// Vec3dp(v, 0.0) for a direction, BiVec3dp(dir, mom) for a line.
+//
+// WHICH PART comes back is decided by the RETURN TYPE, because every grade has at most
+// one part of each Euclidean type:
+//
+//     to_vec3d(Vec3dp)        position of a point, or direction of an ideal vector
+//     to_vec3d(BiVec3dp)      direction of a line          (its weight part)
+//     to_bivec3d(BiVec3dp)    moment of a line             (its bulk part)
+//     to_vec3d(TriVec3dp)     normal of a plane            (its weight part)
+//     to_scalar3d(TriVec3dp)  offset of a plane            (its bulk part)
+//
+// The plane's two parts satisfy dot(normal, p) + offset == 0 for every point p on it, so
+// the offset is the negated signed distance times the normal's length: the plane z == 3
+// is TriVec3dp(0, 0, 1, -3). Neither part is normalized here -- bulk_normalize() the
+// plane first if a unit normal is wanted.
+//
+// to_vec3d(Vec3dp) is the only one that has to ask about the weight, and it does so the
+// way try_unitize() does: an object that carries weight is a POINT, so its position is
+// the bulk divided by the weight; an ideal one is a DIRECTION, which is the bulk itself.
+// The test is detail::has_weight on the squared weight, shared with try_unitize() and
+// detail::by_weight_sq, so the three never disagree about which objects carry weight.
+// A caller who already knows which kind it holds loses nothing: the branch is one
+// comparison, and for an ideal object there is no division to skip.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> to_vec3d(Vec3dp<T> const& v)
+{
+    if (detail::has_weight(v.w * v.w)) {
+        T const inv = T(1.0) / v.w; // a point: its Euclidean position
+        return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+    }
+    return Vec3d<T>(v.x, v.y, v.z); // an ideal vector: its direction
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec3d<T> to_vec3d(BiVec3dp<T> const& l)
+{
+    return Vec3d<T>(l.vx, l.vy, l.vz);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3d<T> to_bivec3d(BiVec3dp<T> const& l)
+{
+    return BiVec3d<T>(l.mx, l.my, l.mz);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec3d<T> to_vec3d(TriVec3dp<T> const& p)
+{
+    return Vec3d<T>(p.x, p.y, p.z);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar3d<T> to_scalar3d(TriVec3dp<T> const& p)
+{
+    return Scalar3d<T>(p.w);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 3dp euclidean distance

@@ -1,14 +1,19 @@
 -- test_forwarders.lua - the Lua-prelude forwarders (register_forwarders)
 --
--- These 26 functions are defined in Lua, not C++, so nothing type-checks them at
--- build time: a wrong name inside one is a runtime nil call in that function only.
--- No other input script calls them, which is how all 26 came to be broken at once
--- when free functions moved into per-algebra tables (the bodies still called the
--- old global names) while the eight other scripts stayed green.
+-- The 18 functions still defined in the prelude are Lua, not C++, so nothing
+-- type-checks them at build time: a wrong name inside one is a runtime nil call in that
+-- function only. No other input script calls them, which is how all of them came to be
+-- broken at once when free functions moved into per-algebra tables (the bodies still
+-- called the old global names) while the eight other scripts stayed green.
 --
 -- So this script CALLS every one of them. It checks results where a closed form is
 -- obvious and otherwise just pins that the call returns a value of the right type;
 -- the point is coverage of the call path.
+--
+-- The projections and the distances USED to be prelude functions too and are bound from
+-- C++ now. They are still called here, because this script is where the call paths are
+-- collected -- and the move immediately found a defect the untyped prelude had hidden:
+-- the antiprojections were called with their arguments the wrong way round (see below).
 
 print("=======================================================")
 print("Testing the Lua-prelude forwarders (register_forwarders)")
@@ -57,25 +62,31 @@ check("l_weight_expand3dp", pga.l_weight_expand3dp(p3, l3))
 check("r_bulk_expand3dp", pga.r_bulk_expand3dp(p3, l3))
 check("r_weight_expand3dp", pga.r_weight_expand3dp(p3, l3))
 
--- projections ----------------------------------------------------------------
-print("\n3. projections (the _unitize_if_needed path):")
-print("---------------------------------------------")
+-- projections (bound from C++; the target's scale is divided out) --------------
+print("\n3. projections and antiprojections:")
+print("-----------------------------------")
 
+-- a projection takes gr(a) < gr(b) and an ANTIprojection gr(a) > gr(b). These used to
+-- read (p2, l2) in both cases: the prelude was untyped, so the antiprojection computed
+-- a meaningless expression and the check saw only that a userdata came back. The C++
+-- binding is typed and rejects it, which is how the swap was found.
 check("ortho_proj2dp", pga.ortho_proj2dp(p2, l2))
 check("central_proj2dp", pga.central_proj2dp(p2, l2))
-check("ortho_antiproj2dp", pga.ortho_antiproj2dp(p2, l2))
+check("ortho_antiproj2dp", pga.ortho_antiproj2dp(l2, p2))
+check("central_antiproj2dp", pga.central_antiproj2dp(l2, p2))
 check("ortho_proj3dp", pga.ortho_proj3dp(p3, l3))
 check("central_proj3dp", pga.central_proj3dp(p3, l3))
-check("ortho_antiproj3dp", pga.ortho_antiproj3dp(p3, l3))
+check("ortho_antiproj3dp", pga.ortho_antiproj3dp(l3, p3))
+check("central_antiproj3dp", pga.central_antiproj3dp(l3, p3))
 
 -- the orthogonal projection of (1,2) onto the x-axis is (1,0): a closed form
 local proj = pga.unitize(pga.ortho_proj2dp(p2, l2))
 print(string.format("  projection of (1,2) onto the x-axis = (%g, %g)", proj.x, proj.y))
 assert(approx(proj.x, 1.0) and approx(proj.y, 0.0))
 
--- distances (both gr(a)+gr(b) branches) --------------------------------------
-print("\n4. distances (exercises pga.gr and both branches):")
-print("--------------------------------------------------")
+-- distances (both gr(a)+gr(b) branches; bound from C++) ----------------------
+print("\n4. distances (both if-constexpr branches):")
+print("------------------------------------------")
 
 -- point-to-point: gr 1 + 1 = 2, so the "else" branch (bulk_nrm of the attitude)
 local d2_pp = pga.dist2dp(point2dp.new(0.0, 0.0, 1.0), point2dp.new(3.0, 4.0, 1.0))

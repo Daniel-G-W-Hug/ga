@@ -4372,6 +4372,46 @@ TEST_SUITE("PGA 2DP Tests")
     // not reach the result)
     ////////////////////////////////////////////////////////////////////////////////
 
+    TEST_CASE("pga2dp: the Euclidean content of an object")
+    {
+        fmt::println("pga2dp: the Euclidean content of an object");
+
+        auto const v = vec2d{1.0, 2.0};
+
+        SUBCASE("a point round trips through its position, at any representative")
+        {
+            CHECK(to_vec2d(vec2dp(v.x, v.y, 1.0)) == v);
+            CHECK(to_vec2d(vec2dp(7.0, 14.0, 7.0)) == v);
+            CHECK(to_vec2d(vec2dp(-0.5, -1.0, -0.5)) == v);
+        }
+
+        SUBCASE("an ideal vector round trips through its direction, undivided")
+        {
+            CHECK(to_vec2d(vec2dp(v.x, v.y, 0.0)) == v);
+            CHECK(to_vec2d(vec2dp(7.0 * v.x, 7.0 * v.y, 0.0)) == vec2d(7.0 * v));
+        }
+
+        SUBCASE("a line round trips through its direction and its moment")
+        {
+            // the line through (2, 0) along (0, 1)
+            auto const l = bivec2dp(line2d(point2d{2.0, 0.0}, vec2d{0.0, 1.0}));
+            CHECK(to_vec2d(l) == vec2d{0.0, 1.0});
+            CHECK(value_t(to_pscalar2d(l)) == doctest::Approx(2.0));
+            // in 2d the moment is the pseudoscalar p ^ dir, and it is the bulk part
+            CHECK(value_t(to_pscalar2d(l)) ==
+                  doctest::Approx(value_t(to_pscalar2d(bivec2dp(bulk(l))))));
+            CHECK(to_vec2d(l) == to_vec2d(bivec2dp(weight(l))));
+        }
+
+        SUBCASE("a small object is not an ideal one")
+        {
+            for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+                INFO("scale = ", s);
+                CHECK(to_vec2d(vec2dp(s * v.x, s * v.y, s)) == v);
+            }
+        }
+    }
+
     TEST_CASE("PGA2dp: projections do not depend on the target's scale")
     {
         fmt::println("PGA2dp: projections do not depend on the target's scale");

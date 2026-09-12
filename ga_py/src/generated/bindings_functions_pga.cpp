@@ -942,6 +942,14 @@ void register_functions_pga(nb::module_& m)
     m.def("sup", [](bivec2dp const& a0) { return sup(a0); });
     m.def("sup", [](bivec3dp const& a0) { return sup(a0); });
     m.def("sup", [](trivec3dp const& a0) { return sup(a0); });
+    m.def("to_bivec3d", [](bivec3dp const& a0) { return to_bivec3d(a0); });
+    m.def("to_pscalar2d", [](bivec2dp const& a0) { return to_pscalar2d(a0); });
+    m.def("to_scalar3d", [](trivec3dp const& a0) { return to_scalar3d(a0); });
+    m.def("to_vec2d", [](vec2dp const& a0) { return to_vec2d(a0); });
+    m.def("to_vec2d", [](bivec2dp const& a0) { return to_vec2d(a0); });
+    m.def("to_vec3d", [](vec3dp const& a0) { return to_vec3d(a0); });
+    m.def("to_vec3d", [](bivec3dp const& a0) { return to_vec3d(a0); });
+    m.def("to_vec3d", [](trivec3dp const& a0) { return to_vec3d(a0); });
     m.def("twdg1", [](pscalar2dp const& a0, vec2dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec2dp const& a0, pscalar2dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](bivec2dp const& a0, bivec2dp const& a1) { return twdg1(a0, a1); });

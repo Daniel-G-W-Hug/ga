@@ -458,3 +458,52 @@ print("-----------------------------")
 
 print("pga.to_val(scalar3dp) =", pga.to_val(scalar3dp.new(42)))
 print("pga.to_val(pscalar3dp) =", pga.to_val(pscalar3dp.new(7)))
+
+-- The Euclidean (ega) content of a pga object: the return trip of the lift. WHICH part
+-- comes back is decided by the return type, and to_vec3d(vec3dp) asks about the weight
+-- the way try_unitize does -- a point gives its position, an ideal vector its direction.
+print("\n25. Testing to_vec3d / to_bivec3d / to_scalar3d:")
+print("-----------------------------------------------")
+
+print("pga.to_vec3d(point w=2)   =", pga.to_vec3d(vec3dp.new(2, 4, 6, 2)))
+print("pga.to_vec3d(ideal vec)   =", pga.to_vec3d(vec3dp.new(1, 2, 3, 0)))
+local line_ec = bivec3dp.new(0, 0, 1, 2, 0, 0)
+print("pga.to_vec3d(line)        =", pga.to_vec3d(line_ec))   -- its direction
+print("pga.to_bivec3d(line)      =", pga.to_bivec3d(line_ec)) -- its moment
+local plane_ec = trivec3dp.new(0, 0, 1, -3)                   -- the plane z = 3
+print("pga.to_vec3d(plane)       =", pga.to_vec3d(plane_ec))  -- its normal
+print("pga.to_scalar3d(plane)    =", pga.to_scalar3d(plane_ec)) -- its offset
+
+-- The projection family is bound from C++ (it used to be reimplemented in the Lua
+-- prelude, which had drifted on both counts checked here).
+print("\n26. Testing the projection family, bound from C++:")
+print("-------------------------------------------------")
+
+local O_pf = vec3dp.new(0, 0, 0, 1)
+local P_pf = vec3dp.new(1, 2, 3, 1)
+local L_pf = pga.wdg(O_pf, vec3dp.new(1, 1, 0, 1))
+local T_pf = pga.wdg(L_pf, vec3dp.new(0, 0, 1, 1))
+print("pga.ortho_proj3dp(P, L)   =", pga.ortho_proj3dp(P_pf, L_pf))
+print("pga.ortho_proj3dp(P, T)   =", pga.ortho_proj3dp(P_pf, T_pf))
+print("pga.central_proj3dp(P, T) =", pga.central_proj3dp(P_pf, T_pf))
+print("pga.ortho_antiproj3dp     =", pga.ortho_antiproj3dp(T_pf, P_pf))
+print("pga.central_antiproj3dp   =", pga.central_antiproj3dp(L_pf, P_pf))
+print("pga.dist3dp(P, plane z=2) =", pga.dist3dp(P_pf, trivec3dp.new(0, 0, 1, -2)))
+
+-- an IDEAL target keeps its weight: the library divides only above safe_epsilon^2
+local T_ideal = trivec3dp.new(0, 0, 1e-16, 3)
+print("ideal target, ortho_proj  =", pga.ortho_proj3dp(P_pf, T_ideal))
+print("ideal target, project_onto=", pga.project_onto(P_pf, T_ideal))
+
+-- a NON-BLADE target represents no subspace, so it throws instead of answering
+local NB_pf = pga.wdg(O_pf, vec3dp.new(1, 0, 0, 1))
+    + pga.wdg(vec3dp.new(0, 1, 0, 1), vec3dp.new(0, 0, 1, 1))
+print("is_simple(non-blade)      =", pga.is_simple(NB_pf))
+local ok_pf = pcall(function() return pga.ortho_proj3dp(P_pf, NB_pf) end)
+print("projecting onto it throws =", not ok_pf)
+
+-- try_unitize returns (object, unitized): an ideal object comes back unchanged
+local u_pf, f_pf = pga.try_unitize(vec3dp.new(2, 4, 6, 2))
+print("pga.try_unitize(point)    =", u_pf, f_pf)
+local i_pf, g_pf = pga.try_unitize(vec3dp.new(2, 4, 6, 0))
+print("pga.try_unitize(ideal)    =", i_pf, g_pf)

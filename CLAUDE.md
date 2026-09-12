@@ -346,7 +346,7 @@ function; it is the authoritative per-file index. The split:
 | ---- | ----------------------------------- |
 | `ga_<alg>_ops_basics.hpp` | involutions (`gr_inv`, `rev`, `rrev`, `conj`); complements (`l_cmpl`/`r_cmpl`, `cmpl`); duals (`*_bulk_dual`, `*_weight_dual`); `bulk`/`weight`; norms (`bulk_nrm{,_sq}`, `weight_nrm{,_sq}`, `geom_nrm{,_sq}`); `bulk_normalize`, `unitize`; **CGA only:** the four-part round/flat split (`round_bulk`/`round_weight`/`flat_bulk`/`flat_weight` + their norms), `center_nrm{,_sq}`, `cconj`, and **`is_flat`/`is_round`** — which of the two object kinds a grade carries (a bivector is a dipole OR a flat point, a trivector a circle OR a line, a quadvector a sphere OR a plane; flat = carries the point at infinity, tested on the split so it needs no product) |
 | `ga_<alg>_ops_products.hpp` | `dot`/`rdot`; `wdg`/`join`, `rwdg`/`meet`; contractions (`<<`, `>>`, `*_bulk/weight_contract`); expansions (`*_bulk/weight_expand`); `cmt`/`rcmt`; `operator*`(=`gpr`)/`rgpr`; `inv`/`rinv` |
-| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr`, EGA/STA only) and **`rexp`/`rlog`/`rsqrt`** (w.r.t. `rgpr`, PGA/CGA — the r-prefix marks the regressive product; the unprefixed names stay reserved there); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA) |
+| `ga_<alg>_ops.hpp` | higher-level ops built on basics+products: `angle`; **`exp`/`log`/`sqrt`** (w.r.t. `gpr`, EGA/STA only) and **`rexp`/`rlog`/`rsqrt`** (w.r.t. `rgpr`, PGA/CGA — the r-prefix marks the regressive product; the unprefixed names stay reserved there); `get_motor*`; `move{2,3}dp`/`rotate`; projections/rejections, `reflect_on`/`invert_on`, `expand`, `att`, `dist*`, `is_congruent`/`is_close`; the versor-equality test, named per algebra's sandwich verb: `is_same_rotation` (EGA), `is_same_motion` (PGA), `is_same_transform` (STA); **PGA only: `to_vec{2,3}d` / `to_bivec3d` / `to_scalar3d` / `to_pscalar2d`** -- the Euclidean (ega) content of a pga object, the return trip of the lift (see the EGA/PGA bridge below) |
 | `ga_<alg>_ops_mechanics.hpp` (PGA2DP/3DP only) | rigid-body dynamics: `Inertia{2,3}dp`, `pose`/`motor` converters (`motor_from_pose3dp`, `pose3dp_from_motor`), moving-frame kinematics, `static_/kinematic_/dynamic_system{2,3}dp`, force elements (`grounded_spring`), **`moment_about(R, F)`** (the torque of a force line about a point, `bulk(F) - r ^ att(F)`, same expression in 2D and 3D), **`jacobian_columns` / `jacobian`** (a frame's space or body Jacobian: the world joint screws as twists, or flat row-major), **`screw_axis`** (Chasles' axis, full angle and distance of a motor or twist; `screw_axis{2,3}dp`), **`total_mass` / `centre_of_mass` / `centre_of_mass_velocity` / `centre_of_mass_acceleration` / `gravity_wrench`** (the centre of mass as the unitized projective point sum `Σ mᵢ Cᵢ` — its weight IS the total mass, no division; gravity as ONE wrench, the sum of force lines, whose moment about the centre of mass vanishes; the velocity and acceleration are the SAME mass weighting applied to the bodies' own, so all three agree by construction — `total_mass() * a_C` is the net external force, the centroidal statement a walking controller commands), `set_joint` / `set_joint_rate` / `dof_joints`, **`mass_bias()`** (the `{M, RHS}` of the joint-space equation of motion `M q̈ = RHS + τ − Gᵀλ` in ONE assembly pass, the registered actuator torques EXCLUDED — the read-off a torque-computing feedback law consumes without seeing its own output; unlike `mass_matrix()` it retains driven-joint moving-base inertia), and the `extra_wrenches()` subclass hook for application-specific wrenches |
 | `ga_<alg>_ops_constraints.hpp` (PGA2DP/3DP only) | the opt-in `closed_loop_system{2,3}dp` KKT layer: loop closures of three kinds — `coincidence` (a pin / ball joint), `distance` (a rod), `frame` (a weld) — each contributing its constraint-subspace rows, switchable at run time (`set_loop_active`, contact state; `set_loop_anchors` moves a contact to a new touchdown point) with the row count `constraint_rows()` following; **`impact(e)`** / `activate_loop_with_impact(c, e)` — the impulsive velocity jump a newly active constraint demands (Featherstone §11.7: `M Δq̇ = −Gᵀ Λ`, `G q̇⁺ = −e G q̇⁻`, the same bordered `kkt_solve` at velocity level), returning the impulses `Λ` in the `λ` convention; **`sync_accelerations()`** (the CONSTRAINED analogue of the base class's: it writes the KKT accelerations into the per-frame relative accel twists so `point_acceleration` / `centre_of_mass_acceleration` report the actual constrained dynamics instead of the velocity-product bias left after `step()` — the base version runs the FREE forward dynamics, a different problem with a different answer for a mechanism standing on closed contacts); **`constraint_jacobian()`** (the active `G`, `m × n` row-major over `dof_coords()` — with `mass_bias()` the whole constrained equation of motion read off for an external law; `constraint_row_offset(c)` the row mapping of one constraint's `λ` block); `assemble()` tolerates a sub-millimetre least-squares STALL (a rank-deficient or slightly inconsistent closure leaves residual outside `G`'s row space — the singular configuration's answer, returned, not thrown; a large floor still throws) |
 | `ga_<alg>_ops_contact.hpp` (PGA2DP/3DP, 2026-08-27) | **unilateral ground contact** as EVENTS on the closed-loop layer: `ground_contact{2,3}dp` — the ground is a LINE in 2D / a PLANE in 3D (`ground_line(P0, P1)` / `ground_plane(P0, P1, P2)`, a slope as natural as a floor), the signed height the incidence `wdg(P, ground)` (sign fixed by the construction), the landing point `project_onto`; `add(spec)` registers a `point` (pin) or `flat` (weld) contact (`unilateral` by default; `false` = a bilateral pin that may pull — a clamped foot, or a held-torso statics whose pins pull by construction — landed and released by hand only), `step(dt)` locates each touchdown by bisection on a copied system (exact in time, not one step late), engages it with the impact map and releases a contact whose normal reaction turns to a pull beyond `release_threshold` (0.5 N; Selig's `λ_y → 0`) AND that would SEPARATE — a trial step on a copy with the constraint removed must move the point away from the ground, else it is a RESTING contact and stays (the pure rule released a landed foot and re-landed it every millisecond); EVERY point that can reach the ground is registered as a contact (feet, knees, torso corners), so a falling mechanism lands on whatever touches first instead of sinking; `set_unilateral(idx, on)` switches a pin between unilateral and bilateral at run time (a foot about to be lifted by its muscles); `set_kind` switches pin ↔ flat foot at run time (the ankle moment, the centre of pressure `cop`, `tipping`); Identical code in both dimensions: a `point` contact is 2 / 3 rows, a `flat` one 3 / 6, the 3D centre of pressure a 2-vector in the foot's axes against a foot rectangle. `spec`/`event` are nested in the class so the binding generator leaves them with it (meaningless without the unbound stateful class); **`reaction_wrench()`** (the net ground reaction as ONE bivector -- the active contacts' force lines `wdg(P_i, f_i)` plus each flat foot's ankle couple, the force as its weight and the moment as its bulk) and **`zmp()`** (the zero-moment point, `rwdg(reaction_wrench(), ground())` -- the SAME one-line meet in both dimensions, exact on a slope: in 2D a wrench IS its line of action, and in 3D, where two feet pushing and rubbing sum to a SCREW with no line of action at all, the meet still lands on the ZMP because `rwdg(couple along n, ground()) == 0` annihilates exactly the normal torque the definition permits to survive -- a tangential couple does not; Tedrake's `sum(p_i N_i)/sum(N_i)` is its flat, frictionless special case); only `contact_kind{2,3}dp` is bound; `pin_loop` / `weld_loop` name the loop constraints behind a contact (with `constraint_row_offset`, an external law addresses a foot's `λ` block) |
@@ -355,6 +355,49 @@ function; it is the authoritative per-file index. The split:
 So e.g. `exp`/`log` (and `rexp`/`rlog`) live in `ga_<alg>_ops.hpp` (not basics/products); the pose↔motor and
 `rcmt`-velocity-field helpers used together with them are in `ops_mechanics.hpp` (PGA) and
 `ops_products.hpp` (`rcmt`). EGA/STA have no `mechanics`/`constraints` headers.
+
+#### Moving between EGA and PGA: the lift is a ctor, the return trip is `to_*`
+
+A quantity belongs in EGA when its position is merely where it is evaluated (a field
+value, an energy density) and in PGA when its position is part of what it is (a force on
+its line of action, a pose) — ga_docu §7 states the doctrine. Both directions are one
+call:
+
+| direction | how |
+| --------- | --- |
+| EGA → PGA, a **point** | `Vec3dp(v, 1.0)`, or `Point3dp(v)` |
+| EGA → PGA, a **direction** | `Vec3dp(v, 0.0)` — an ideal vector, so `wdg(P, f)` is the wrench of a force `f` at `P` |
+| EGA → PGA, a **line** | `BiVec3dp(dir, mom)` — an ega vector and an ega BIVECTOR, in that order |
+| PGA → EGA | `to_vec3d` / `to_bivec3d` / `to_scalar3d` (2dp: `to_vec2d` / `to_pscalar2d`) |
+
+**Which part a `to_*` returns is decided by the RETURN TYPE**, because every grade has
+at most one part of each Euclidean type: `to_vec3d(BiVec3dp)` is a line's direction and
+`to_bivec3d(BiVec3dp)` its moment; `to_vec3d(TriVec3dp)` a plane's normal and
+`to_scalar3d(TriVec3dp)` its offset (with `dot(normal, p) + offset == 0` on the plane, so
+`z == 3` is `TriVec3dp(0, 0, 1, -3)`). Nothing is normalized — `bulk_normalize` first for
+a unit normal.
+
+**`to_vec3d(Vec3dp)` asks about the weight, the way `try_unitize` does**: an object that
+carries weight is a POINT, so its position is the bulk divided by the weight; an ideal one
+is a DIRECTION, which is the bulk itself. The test is `detail::has_weight` on the squared
+weight, shared with `try_unitize` and `detail::by_weight_sq`, so none of the three
+disagrees about which objects carry weight — and the result agrees with `unitize()` bit
+for bit. The
+hand-written `vec3d(P.x / P.w, …)` it replaces differs by up to 4 ulp (three divisions
+versus a reciprocal and three multiplications) and returns `Vec3d(inf, inf, inf)` for an
+ideal point.
+
+**`BiVec3dp`'s two-vector ctor is tag-constrained, and that is the point.** It takes
+`(Vec3d, BiVec3d)` — a direction and a moment. It used to accept any two `Vec3_t`, so
+`line3d(A, B)` with two POINTS compiled and silently meant "direction = A, moment = B":
+measured on `line3d(point3d{0,0,1}, point3d{1,0,1})` it yields `Line3d(0,0,1,1,0,1)`, for
+which **`is_simple` is false** — not a line at all, because a line's direction and moment
+must be perpendicular. The join of two points is `join(A, B)`.
+
+**`Vector3d` / `Point3d` are NOT lifts** — they are 3-component `Vec3d`s with an
+*implied* `w`, so they do not work as PGA operands everywhere: `wdg(point3d, point3d)`
+compiles but
+`wdg(point3dp, vector3d)` does not. Wrap with `vec3dp(V, 0.0)` when mixing.
 
 #### Constants, user types, utilities, the solver (the non-`ops` headers)
 

@@ -4781,22 +4781,31 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("Extended metric diagonal matches dot products (including null e4)");
     }
 
-    TEST_CASE("G<3,0,1>: bivec3dp with vec3d lv, lm")
+    TEST_CASE("G<3,0,1>: bivec3dp from a direction and a moment")
     {
-        fmt::println("G<3,0,1>: bivec3dp with vec3d lv, lm");
+        fmt::println("G<3,0,1>: bivec3dp from a direction and a moment");
 
-        auto lv_in = vec3d{1, 1, 1};
-        auto lm_in = vec3d{-1, 2, -1};
+        // the two halves of a line are a DIRECTION (an ega vector) and a MOMENT (an ega
+        // bivector), and the ctor's argument types say which is which. It used to accept
+        // any two Vec3_t, so bivec3dp(pointA, pointB) compiled and meant
+        // "direction = A, moment = B" -- a bivector that is not a line at all. Two points
+        // are joined with join(), which is what the second half of this case checks.
+        auto const dir_in = vec3d{1, 1, 1};
+        auto const mom_in = bivec3d{-1, 2, -1};
 
-        auto l = bivec3dp(lv_in, lm_in); // ctor bivev3dp from two vec3d
+        auto const l = bivec3dp(dir_in, mom_in);
 
-        // get vector component as vec3d
-        auto lv = l.lv();
-        auto lm = l.lm();
-        auto lm_as_bivec = hd::ga::ega::cmpl(lm);
+        // read the halves back; lm() returns the moment as a vec3d (handy for the
+        // perpendicularity check), cmpl() turns it back into the bivector it is
+        auto const lv = l.lv();
+        auto const lm = l.lm();
+        auto const lm_as_bivec = hd::ga::ega::cmpl(lm);
 
-        CHECK(lv_in == lv);
-        CHECK(lm_in == lm);
+        CHECK(dir_in == lv);
+        CHECK(mom_in == lm_as_bivec);
+        // a line needs its direction and moment perpendicular, which these are
+        CHECK(std::abs(value_t(hd::ga::ega::dot(lv, lm))) < eps);
+        CHECK(is_simple(l));
 
         fmt::println("l           = {}", l);
         fmt::println("lv          = {}", lv);
@@ -4804,6 +4813,100 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("lm as bivec = {}", lm_as_bivec);
         fmt::println("dot(lv,lm)  = {}", hd::ga::ega::dot(lv, lm));
         fmt::println("");
+
+        // the same two points through the ctor's old (direction, moment) reading would
+        // NOT be a line -- join() is the operation that makes one
+        auto const A = point3d{0.0, 0.0, 1.0};
+        auto const B = point3d{1.0, 0.0, 1.0};
+        auto const L = bivec3dp(join(A, B));
+        CHECK(is_simple(L));
+        CHECK(!is_simple(
+            bivec3dp(vec3d{0, 0, 1}, bivec3d{1, 0, 1}))); // what it used to give
+    }
+
+    TEST_CASE("pga3dp: the Euclidean content of an object")
+    {
+        fmt::println("pga3dp: the Euclidean content of an object");
+
+        // These are the return trip of the lift. Going in is a ctor -- Vec3dp(v, 1) for a
+        // point, Vec3dp(v, 0) for a direction, BiVec3dp(dir, mom) for a line -- and
+        // coming back the RETURN TYPE says which part is wanted, because each grade has
+        // at most one part of each Euclidean type.
+        auto const v = vec3d{1.0, 2.0, 3.0};
+
+        SUBCASE("a point round trips through its position")
+        {
+            CHECK(to_vec3d(vec3dp(v, 1.0)) == v);
+            // and the position does not depend on the representative: a point scaled by
+            // any non-zero factor is the same point
+            CHECK(to_vec3d(vec3dp(7.0 * vec3dp(v, 1.0))) == v);
+            CHECK(to_vec3d(vec3dp(-0.5 * vec3dp(v, 1.0))) == v);
+            // which is what makes it agree with unitize()
+            auto const u = unitize(vec3dp(3.0 * vec3dp(v, 1.0)));
+            CHECK(to_vec3d(vec3dp(3.0 * vec3dp(v, 1.0))) == vec3d(u.x, u.y, u.z));
+        }
+
+        SUBCASE("an ideal vector round trips through its direction")
+        {
+            // no division here -- an ideal vector has no weight to divide out, and its
+            // magnitude is part of what it is (a force, a velocity)
+            CHECK(to_vec3d(vec3dp(v, 0.0)) == v);
+            CHECK(to_vec3d(vec3dp(7.0 * vec3dp(v, 0.0))) == vec3d(7.0 * v));
+        }
+
+        SUBCASE("a line round trips through its direction and its moment")
+        {
+            auto const dir = vec3d{0.0, 0.0, 1.0};
+            auto const mom = bivec3d{2.0, 0.0, 0.0};
+            auto const l = bivec3dp(dir, mom);
+            CHECK(to_vec3d(l) == dir);
+            CHECK(to_bivec3d(l) == mom);
+            // the direction is the attitude, and the moment is the bulk
+            CHECK(to_vec3d(l) == vec3d(att(l).x, att(l).y, att(l).z));
+            CHECK(to_bivec3d(l) == to_bivec3d(bivec3dp(bulk(l))));
+            CHECK(to_vec3d(l) == to_vec3d(bivec3dp(weight(l))));
+        }
+
+        SUBCASE("a plane round trips through its normal and its offset")
+        {
+            // the plane z == 3, built from three of its points
+            auto const T =
+                trivec3dp(join(join(point3d{0.0, 0.0, 3.0}, point3d{1.0, 0.0, 3.0}),
+                               point3d{0.0, 1.0, 3.0}));
+            CHECK(to_vec3d(T) == vec3d{0.0, 0.0, 1.0});
+            CHECK(value_t(to_scalar3d(T)) == doctest::Approx(-3.0));
+            // dot(normal, p) + offset == 0 for every point on the plane
+            for (auto const& p : {vec3d{0.0, 0.0, 3.0}, vec3d{5.0, -2.0, 3.0}}) {
+                CHECK(std::abs(value_t(hd::ga::ega::dot(to_vec3d(T), p)) +
+                               value_t(to_scalar3d(T))) < eps);
+            }
+        }
+
+        SUBCASE("the weight test is the one try_unitize uses")
+        {
+            // an ideal object is not "a point with a tiny weight": both agree on where
+            // the boundary is, so a direction never comes back divided
+            bool unitized = false;
+            auto const ideal = vec3dp(v, 0.0);
+            try_unitize(ideal, &unitized);
+            CHECK(!unitized);
+            CHECK(to_vec3d(ideal) == v); // the bulk, undivided
+
+            auto const pt = vec3dp(v, 2.0);
+            try_unitize(pt, &unitized);
+            CHECK(unitized);
+            CHECK(to_vec3d(pt) == vec3d(0.5 * v)); // divided
+        }
+
+        SUBCASE("a small object is not an ideal one")
+        {
+            // the same scale-independence the degeneracy guards have: a point expressed
+            // in millimetres is still a point
+            for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+                INFO("scale = ", s);
+                CHECK(to_vec3d(vec3dp(vec3d(s * v), s)) == v);
+            }
+        }
     }
 
     TEST_CASE("G<3,0,1>: exponential function")

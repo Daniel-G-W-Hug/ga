@@ -35,6 +35,8 @@ namespace hd::ga::pga {
 // - invert_on()                         -> inversions
 // - sup()                               -> point on line that is nearest to origin
 // - att()                               -> object attitude
+//
+// - to_vec2d(), to_pscalar2d()          -> the Euclidean (ega) part of an object
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
 //
 // - is_congruent()                      -> Same up to a scalar factor (is same subspace)
@@ -698,6 +700,50 @@ constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
     return BiVec2dp<T>(T(0.0), T(0.0), T(ps));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// to_vec2d / to_pscalar2d: the Euclidean content of a pga object
+//
+// The 2dp counterpart of the 3dp family; the reasoning is stated there. WHICH part comes
+// back is decided by the RETURN TYPE, since every grade has at most one part of each
+// Euclidean type:
+//
+//     to_vec2d(Vec2dp)        position of a point, or direction of an ideal vector
+//     to_vec2d(BiVec2dp)      direction of a line      (its weight part)
+//     to_pscalar2d(BiVec2dp)  moment of a line         (its bulk part)
+//
+// In 2d the bivector IS the pseudoscalar, so a line's moment about the origin is a
+// PScalar2d rather than a bivector: for the line through p with direction d it is the
+// area p ^ d, which is why the line through (2, 0) along (0, 1) is BiVec2dp(0, 1, 2).
+// Neither part is normalized here.
+//
+// to_vec2d(Vec2dp) asks about the weight the way try_unitize() does -- see the 3dp block.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2d<T> to_vec2d(Vec2dp<T> const& v)
+{
+    if (detail::has_weight(v.z * v.z)) {
+        T const inv = T(1.0) / v.z; // a point: its Euclidean position
+        return Vec2d<T>(v.x * inv, v.y * inv);
+    }
+    return Vec2d<T>(v.x, v.y); // an ideal vector: its direction
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2d<T> to_vec2d(BiVec2dp<T> const& l)
+{
+    return Vec2d<T>(l.x, l.y);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> to_pscalar2d(BiVec2dp<T> const& l)
+{
+    return PScalar2d<T>(l.z);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp euclidean distance

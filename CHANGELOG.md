@@ -311,3 +311,53 @@
            identical to its C++ body, and covers every grade pair the composed rwdg / wdg
            / dual accept -- enumerating pairs would narrow them. Five new gates, each
            falsified by restoring the behaviour it pins
+- 2026/09: the Euclidean content of a pga object, as nine functions. pga lifts an ega
+           quantity by a constructor -- Vec3dp(v, 1) for a point, Vec3dp(v, 0) for a
+           direction, BiVec3dp(dir, mom) for a line -- but nothing took the return trip:
+           no function in the pga surface returned an ega type, so a consumer computing in
+           ega, binding the result to a location in pga and needing it back in ega again
+           wrote the components out by hand. to_vec{2,3}d, to_bivec3d, to_scalar3d and
+           to_pscalar2d close it, and WHICH part comes back is decided by the RETURN TYPE,
+           since every grade has at most one part of each Euclidean type: a line's
+           to_vec3d is its direction and its to_bivec3d its moment, a plane's to_vec3d its
+           normal and its to_scalar3d its offset (dot(normal, p) + offset == 0 on the
+           plane, so z == 3 is TriVec3dp(0, 0, 1, -3)). Nothing is normalized.
+           to_vec3d(Vec3dp) is the one that has to ask about the weight, and it asks the
+           way try_unitize does: an object carrying weight is a POINT, so its position is
+           the bulk over the weight, and an ideal one is a DIRECTION, which is the bulk.
+           The test is detail::has_weight on the squared weight, shared with try_unitize
+           and detail::by_weight_sq, so the three never disagree -- and the result matches
+           unitize() bit for bit. The hand-written vec3d(P.x / P.w, ...) it replaces
+           differs by up to 4 ulp (three divisions against a reciprocal and three
+           multiplications) and yields Vec3d(inf, inf, inf) for an ideal point. Bound in
+           both wrappers: ga_py by a plain regeneration (the signatures are concrete, so
+           the generator takes them), ga_lua by hand beside att() and sup()
+- 2026/09: BiVec3dp's two-vector ctor is TAG-CONSTRAINED. It takes (Vec3d, BiVec3d) -- a
+           direction and a moment -- where it used to accept any two Vec3_t through a
+           same-tag and a different-tag overload, so line3d(A, B) with two POINTS compiled
+           and silently meant "direction = A, moment = B". Measured on
+           line3d(point3d{0,0,1}, point3d{1,0,1}): it yields Line3d(0,0,1,1,0,1), for
+           which is_simple is FALSE -- not a line at all, since a line's direction and
+           moment must be perpendicular, and a projection onto it now throws under the
+           blade guard. The join of two points is join(A, B). Exactly one site in the tree
+           used the unconstrained form, the library's own test of that ctor
+- 2026/09: ga_lua sheds the same projection reimplementation ga_py did. The Lua prelude
+           defined ortho_proj*/central_proj*/ortho_antiproj* and dist{2,3}dp itself, with
+           the identical drift: `if n ~= 0.0 and n ~= 1.0` divided by an IDEAL target's
+           weight where the library divides only above safe_epsilon^2, and there was no
+           blade-target check, so projecting onto a non-blade answered instead of
+           throwing.
+           Both are gone -- the families are bound from C++ by one lambda per meaningful
+           grade pair -- and verified against the C++ values: the ideal target now yields
+           Vec3dp(1e-32, 2e-32, -3e-16, 1e-32) in Lua as in C++, and the non-blade target
+           raises the library's own message. central_antiproj2dp / central_antiproj3dp had
+           no binding at all (three quarters of the four-way family), and try_unitize had
+           none either -- in Lua it returns (object, unitized), the language's own idiom
+           for a result plus a status. Moving them found a defect the untyped prelude had
+           hidden: test_forwarders.lua called BOTH antiprojections with their arguments
+           the wrong way round (gr(a) < gr(b), which is a projection's precondition), and
+           the prelude computed a meaningless expression that the script accepted because
+           it only checked that a userdata came back. The typed binding rejects it. What
+           stays in the prelude is the other kind: the 16 bulk/weight contractions and
+           expansions plus the two sta expansions, each a one-line composition of bound
+           primitives that cannot drift and covers every grade pair it accepts

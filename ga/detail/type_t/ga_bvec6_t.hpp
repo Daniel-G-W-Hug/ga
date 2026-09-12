@@ -38,20 +38,22 @@ struct BVec6_t {
     {
     }
 
-    // assign the vector parts separately to the bivector
-    // (both vectors must have the same tag to ensure type safety)
-    template <typename VecTag>
-    constexpr BVec6_t(Vec3_t<T, VecTag> const& lv, Vec3_t<T, VecTag> const& lm) :
-        vx(lv.x), vy(lv.y), vz(lv.z), mx(lm.x), my(lm.y), mz(lm.z)
-    {
-    }
-
-    // assign the vector parts from two Vec3_t with different tags
-    // (for special cases where semantically different types are combined,
-    //  e.g., Line3d: direction vector + moment bivector)
-    template <typename Vec1Tag, typename Vec2Tag>
-    constexpr BVec6_t(Vec3_t<T, Vec1Tag> const& lv, Vec3_t<T, Vec2Tag> const& lm) :
-        vx(lv.x), vy(lv.y), vz(lv.z), mx(lm.x), my(lm.y), mz(lm.z)
+    // assign the two 3-component halves separately: a DIRECTION (an ega vector) and a
+    // MOMENT (an ega bivector). For a pga line the halves are exactly that pair, and the
+    // types say which is which -- the direction cannot be passed where the moment goes.
+    //
+    // THE TAGS ARE THE POINT (2026-09-12). This used to accept any two Vec3_t, through a
+    // same-tag and a different-tag overload, so `line3d(A, B)` with two POINTS compiled
+    // and silently meant "direction = A, moment = B". Measured on
+    // line3d(point3d{0,0,1}, point3d{1,0,1}): it yields Line3d(0,0,1,1,0,1), for which
+    // is_simple() is FALSE -- the result is not a line at all, because the direction and
+    // the moment of a line must be perpendicular. The join of two points is join(A, B);
+    // this ctor is for a direction and a moment that already satisfy the constraint.
+    template <typename U, typename V>
+        requires(numeric_type<U> && numeric_type<V>)
+    constexpr BVec6_t(Vec3_t<U, vec3d_tag> const& dir,
+                      Vec3_t<V, bivec3d_tag> const& mom) :
+        vx(dir.x), vy(dir.y), vz(dir.z), mx(mom.x), my(mom.y), mz(mom.z)
     {
     }
 

@@ -3207,6 +3207,152 @@ void register_functions(sol::state& lua)
                                 sol::resolve<vec3dp(bivec3dp const&)>(sup),
                                 sol::resolve<vec3dp(trivec3dp const&)>(sup)));
 
+    // the Euclidean (ega) content of a pga object -- the return trip of the lift, which
+    // is a ctor (vec3dp(v, 1) for a point, vec3dp(v, 0) for a direction). WHICH part
+    // comes back is decided by the RETURN TYPE, so each name needs no argument beyond
+    // the object: a line's to_vec3d is its direction and its to_bivec3d its moment; a
+    // plane's to_vec3d its normal and its to_scalar3d its offset. to_vec3d(vec3dp) asks
+    // about the weight the way try_unitize does -- a point gives its position, an ideal
+    // vector its direction.
+    pga.set_function("to_vec2d",
+                     sol::overload(sol::resolve<vec2d(vec2dp const&)>(to_vec2d),
+                                   sol::resolve<vec2d(bivec2dp const&)>(to_vec2d)));
+    pga.set_function("to_pscalar2d",
+                     sol::resolve<pscalar2d(bivec2dp const&)>(to_pscalar2d));
+    pga.set_function("to_vec3d",
+                     sol::overload(sol::resolve<vec3d(vec3dp const&)>(to_vec3d),
+                                   sol::resolve<vec3d(bivec3dp const&)>(to_vec3d),
+                                   sol::resolve<vec3d(trivec3dp const&)>(to_vec3d)));
+    pga.set_function("to_bivec3d", sol::resolve<bivec3d(bivec3dp const&)>(to_bivec3d));
+    pga.set_function("to_scalar3d",
+                     sol::resolve<scalar3d(trivec3dp const&)>(to_scalar3d));
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // projections, antiprojections and distances
+    //
+    // These are declared in the library as fully generic forwarding templates
+    // (decltype(auto) f(arg1&&, arg2&&)), so sol::resolve has no overload to pick and
+    // each instantiation is named by a lambda instead -- one per meaningful grade pair,
+    // with gr(a) < gr(b) for a projection and gr(a) > gr(b) for an antiprojection.
+    //
+    // They used to be reimplemented in the Lua prelude below, and that reimplementation
+    // had drifted: it divided by an IDEAL target's weight, where the library divides only
+    // above safe_epsilon^2 (detail::by_weight_sq), and it carried no blade-target check,
+    // so a projection onto a non-blade returned a plausible wrong answer instead of
+    // throwing. Binding the library function makes both impossible.
+    ////////////////////////////////////////////////////////////////////////////////
+
+    pga.set_function("ortho_proj2dp",
+                     sol::overload([](vec2dp const& a, bivec2dp const& b) {
+                         return ortho_proj2dp(a, b);
+                     }));
+    pga.set_function("central_proj2dp",
+                     sol::overload([](vec2dp const& a, bivec2dp const& b) {
+                         return central_proj2dp(a, b);
+                     }));
+    pga.set_function("ortho_antiproj2dp",
+                     sol::overload([](bivec2dp const& a, vec2dp const& b) {
+                         return ortho_antiproj2dp(a, b);
+                     }));
+    pga.set_function("central_antiproj2dp",
+                     sol::overload([](bivec2dp const& a, vec2dp const& b) {
+                         return central_antiproj2dp(a, b);
+                     }));
+
+    pga.set_function(
+        "ortho_proj3dp",
+        sol::overload(
+            [](vec3dp const& a, bivec3dp const& b) { return ortho_proj3dp(a, b); },
+            [](vec3dp const& a, trivec3dp const& b) { return ortho_proj3dp(a, b); },
+            [](bivec3dp const& a, trivec3dp const& b) { return ortho_proj3dp(a, b); }));
+    pga.set_function(
+        "central_proj3dp",
+        sol::overload(
+            [](vec3dp const& a, bivec3dp const& b) { return central_proj3dp(a, b); },
+            [](vec3dp const& a, trivec3dp const& b) { return central_proj3dp(a, b); },
+            [](bivec3dp const& a, trivec3dp const& b) { return central_proj3dp(a, b); }));
+    pga.set_function(
+        "ortho_antiproj3dp",
+        sol::overload(
+            [](bivec3dp const& a, vec3dp const& b) { return ortho_antiproj3dp(a, b); },
+            [](trivec3dp const& a, vec3dp const& b) { return ortho_antiproj3dp(a, b); },
+            [](trivec3dp const& a, bivec3dp const& b) {
+                return ortho_antiproj3dp(a, b);
+            }));
+    pga.set_function(
+        "central_antiproj3dp",
+        sol::overload(
+            [](bivec3dp const& a, vec3dp const& b) { return central_antiproj3dp(a, b); },
+            [](trivec3dp const& a, vec3dp const& b) { return central_antiproj3dp(a, b); },
+            [](trivec3dp const& a, bivec3dp const& b) {
+                return central_antiproj3dp(a, b);
+            }));
+
+    // the same operation in ega3d (one higher-grade target below the pseudoscalar) and
+    // in sta4ds; the metric dual replaces the weight dual there
+    ega.set_function("ortho_proj3d", sol::overload([](vec3d const& a, bivec3d const& b) {
+                         return hd::ga::ega::ortho_proj3d(a, b);
+                     }));
+    sta.set_function("ortho_proj4ds", sol::overload(
+                                          [](vec4ds const& a, bivec4ds const& b) {
+                                              return hd::ga::sta::ortho_proj4ds(a, b);
+                                          },
+                                          [](vec4ds const& a, trivec4ds const& b) {
+                                              return hd::ga::sta::ortho_proj4ds(a, b);
+                                          },
+                                          [](bivec4ds const& a, trivec4ds const& b) {
+                                              return hd::ga::sta::ortho_proj4ds(a, b);
+                                          }));
+
+    // the euclidean distance as a homogeneous magnitude. The library dispatches on the
+    // grade sum with if constexpr; the pairs whose sum exceeds the pseudoscalar (line to
+    // line in 2dp, line to plane and plane to plane in 3dp) have no expression there and
+    // so no binding here either
+    pga.set_function(
+        "dist2dp",
+        sol::overload([](vec2dp const& a, vec2dp const& b) { return dist2dp(a, b); },
+                      [](vec2dp const& a, bivec2dp const& b) { return dist2dp(a, b); },
+                      [](bivec2dp const& a, vec2dp const& b) { return dist2dp(a, b); }));
+    pga.set_function(
+        "dist3dp",
+        sol::overload([](vec3dp const& a, vec3dp const& b) { return dist3dp(a, b); },
+                      [](vec3dp const& a, bivec3dp const& b) { return dist3dp(a, b); },
+                      [](vec3dp const& a, trivec3dp const& b) { return dist3dp(a, b); },
+                      [](bivec3dp const& a, vec3dp const& b) { return dist3dp(a, b); },
+                      [](bivec3dp const& a, bivec3dp const& b) { return dist3dp(a, b); },
+                      [](trivec3dp const& a, vec3dp const& b) { return dist3dp(a, b); }));
+
+    // try_unitize reports whether it divided through a trailing bool* out-parameter,
+    // which has no place in a Lua signature; here it returns the pair (object, unitized),
+    // Lua's own idiom for a result plus a status. The projections' documentation points
+    // at it: a result may legitimately be ideal, and unitize() would refuse that.
+    pga.set_function("try_unitize", sol::overload(
+                                        [](vec2dp const& v) {
+                                            bool u = false;
+                                            auto const r = try_unitize(v, &u);
+                                            return std::make_tuple(r, u);
+                                        },
+                                        [](bivec2dp const& B) {
+                                            bool u = false;
+                                            auto const r = try_unitize(B, &u);
+                                            return std::make_tuple(r, u);
+                                        },
+                                        [](vec3dp const& v) {
+                                            bool u = false;
+                                            auto const r = try_unitize(v, &u);
+                                            return std::make_tuple(r, u);
+                                        },
+                                        [](bivec3dp const& B) {
+                                            bool u = false;
+                                            auto const r = try_unitize(B, &u);
+                                            return std::make_tuple(r, u);
+                                        },
+                                        [](trivec3dp const& t) {
+                                            bool u = false;
+                                            auto const r = try_unitize(t, &u);
+                                            return std::make_tuple(r, u);
+                                        }));
+
     ////////////////////////////////////////////////////////////////////////////////
     // angles and rotations
     ////////////////////////////////////////////////////////////////////////////////
@@ -5743,67 +5889,15 @@ void register_forwarders(sol::state& lua)
         function pga.r_bulk_expand3dp(a, b)   return pga.wdg(a, pga.r_bulk_dual(b))   end
         function pga.r_weight_expand3dp(a, b) return pga.wdg(a, pga.r_weight_dual(b)) end
 
-        -- the projection expressions are QUADRATIC in the target, so its scale is
-        -- divided back out -- exactly as the C++ ortho_proj*/central_proj* do. They do
-        -- NOT unitize the result: that is what try_unitize() is for, since a result may
-        -- legitimately be ideal (weight 0).
-        local function _by_weight_sq(p, b)
-            local n = pga.weight_nrm_sq(b)
-            if n ~= 0.0 and n ~= 1.0 then p = p * (1.0 / n) end
-            return p
-        end
-
-        -- projections of the lower-grade a onto the larger-grade b  (gr(a) < gr(b))
-        function pga.ortho_proj2dp(a, b)
-            return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b)
-        end
-        function pga.central_proj2dp(a, b)
-            return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)
-        end
-        function pga.ortho_antiproj2dp(a, b)
-            return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b)
-        end
-        function pga.ortho_proj3dp(a, b)
-            return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b)
-        end
-        function pga.central_proj3dp(a, b)
-            return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)
-        end
-        function pga.ortho_antiproj3dp(a, b)
-            return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b)
-        end
-
-        -- the same operation in EGA and STA, where the metric dual replaces the weight
-        -- dual and nrm_sq the weight norm
-        function ega.ortho_proj3d(a, b)
-            return ega.rwdg(b, ega.wdg(a, ega.dual(b))) * (1.0 / ega.nrm_sq(b))
-        end
-        function sta.ortho_proj4ds(a, b)
-            return sta.rwdg(b, sta.wdg(a, sta.r_dual(b))) * (1.0 / sta.nrm_sq(b))
-        end
-
-        -- Euclidean distance -> dualnum(homogeneous_magnitude, weight). The C++
-        -- `if constexpr (gr(a)+gr(b) == n)` is dispatched here via gr().
-        function pga.dist2dp(a, b)
-            local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-            local c0
-            if pga.gr(a) + pga.gr(b) == 3 then
-                c0 = pga.to_val(pga.rwdg(a, b))
-            else
-                c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
-            end
-            return dualnum2dp.new(c0, c1)
-        end
-        function pga.dist3dp(a, b)
-            local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
-            local c0
-            if pga.gr(a) + pga.gr(b) == 4 then
-                c0 = pga.to_val(pga.rwdg(a, b))
-            else
-                c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
-            end
-            return dualnum3dp.new(c0, c1)
-        end
+        -- NOTE what is NOT here any more: the projection / antiprojection families
+        -- and dist2dp / dist3dp used to be reimplemented in this prelude. They are
+        -- bound from C++ now (see "projections, antiprojections and distances"
+        -- above), because their bodies carry a threshold, a blade-target guard and
+        -- an if-constexpr dispatch that a prelude can only reproduce by copying
+        -- constants -- and when it did, it drifted. What stays here is the other
+        -- kind: each function below is a one-line composition of already-bound
+        -- primitives, identical to its C++ body, so it cannot drift, and it covers
+        -- every grade pair the composed rwdg / wdg / dual accept.
 
         -- STA4D expansions (generic C++ templates, mirroring ga_py's forwarders):
         --   l_expand4ds(a,b) = wdg(l_dual(a), b) ;  r_expand4ds(a,b) = wdg(a, r_dual(b))

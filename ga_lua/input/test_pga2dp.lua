@@ -399,3 +399,29 @@ print("-----------------------------")
 
 print("pga.to_val(scalar2dp) =", pga.to_val(scalar2dp.new(42)))
 print("pga.to_val(pscalar2dp) =", pga.to_val(pscalar2dp.new(7)))
+
+-- The Euclidean (ega) content of a pga object: the return trip of the lift. In 2d a
+-- line's moment is the pseudoscalar rather than a bivector.
+print("\n24. Testing to_vec2d / to_pscalar2d:")
+print("------------------------------------")
+
+print("pga.to_vec2d(point w=2)   =", pga.to_vec2d(vec2dp.new(4, 6, 2)))
+print("pga.to_vec2d(ideal vec)   =", pga.to_vec2d(vec2dp.new(1, 2, 0)))
+local line_ec = bivec2dp.new(0, 1, 2)
+print("pga.to_vec2d(line)        =", pga.to_vec2d(line_ec))     -- its direction
+print("pga.to_pscalar2d(line)    =", pga.to_pscalar2d(line_ec)) -- its moment
+
+-- The projection family is bound from C++; central_antiproj2dp had no binding at all
+-- while the other three were prelude reimplementations.
+print("\n25. Testing the projection family, bound from C++:")
+print("-------------------------------------------------")
+
+local p_pf = vec2dp.new(2, 1, 1)
+local l_pf = pga.wdg(vec2dp.new(0, 0, 1), vec2dp.new(1, 1, 1))
+print("pga.ortho_proj2dp(p, l)   =", pga.ortho_proj2dp(p_pf, l_pf))
+print("pga.central_proj2dp(p, l) =", pga.central_proj2dp(p_pf, l_pf))
+print("pga.ortho_antiproj2dp     =", pga.ortho_antiproj2dp(l_pf, p_pf))
+print("pga.central_antiproj2dp   =", pga.central_antiproj2dp(l_pf, p_pf))
+print("pga.dist2dp(p, l)         =", pga.dist2dp(p_pf, l_pf))
+local u_pf, f_pf = pga.try_unitize(vec2dp.new(4, 6, 2))
+print("pga.try_unitize(point)    =", u_pf, f_pf)
