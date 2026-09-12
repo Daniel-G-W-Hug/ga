@@ -238,6 +238,20 @@ paragraphs, bullet items, blockquotes, and lead-in sentences before code blocks.
 - **URLs and reference-style link targets** — let them overrun rather than break the link.
 - **Headings** — keep on one line even if a long heading exceeds 90.
 
+**Column 90 means 90 CHARACTERS, and `awk length` counts BYTES (2026-09-13).** This prose
+uses em dashes and `—` is three bytes in UTF-8, so `awk 'length>90'` reports a compliant
+line as 92 and a checking pass then "fixes" lines that were fine. Check with Python:
+
+```bash
+python3 -c "
+for i, l in enumerate(open('FILE', encoding='utf-8'), 1):
+    if len(l.rstrip()) > 90: print(i, len(l.rstrip()))"
+```
+
+To see only what a change introduced, subtract the lines already over the limit at `HEAD`
+(`git show HEAD:FILE`) — most long-lived files here have a few, and re-wrapping those is
+churn, not a fix.
+
 ### C++ Formatting (clang-format — MANDATORY before writing/committing)
 
 **Run clang-format on every C++ file you generate or edit, before considering the change
@@ -692,6 +706,22 @@ cmake --build . --target ga_lua --config Debug
 - Additional compiler definitions start with `_HD_GA_` in order to be consistent
   with already existing definitions
 - Use the existing cmake infrastructure as much as possible to test changes
+
+**LINK the `ga` target; never copy one of its compile definitions (2026-09-12).** The
+development safety gates (`_HD_GA_EXTENDED_TEST_DIV_BY_ZERO`,
+`_HD_GA_EXTENDED_TEST_BLADE_TARGET`) are INTERFACE definitions on the `ga` INTERFACE
+library, so `target_link_libraries(<target> PRIVATE ga)` is what delivers them — with the
+include path and anything added later. A target that instead adds
+`${GA_PROJECT_ROOT}` to its include path by hand and hard-codes one `-D` gets exactly the
+gates that existed the day someone typed them. That is how the Python extension came to
+have the division guard (copied) and not the blade-target guard (added later, never
+copied): `project_onto(point, non_blade)` returned a plausible wrong answer through the
+bindings while throwing in C++, for months. `ga_lua` and `ga_view` link the target and
+always had both. The check is one line per target:
+
+```bash
+ninja -t commands <target> | grep -m1 -- "-c " | tr ' ' '\n' | grep HD_GA
+```
 
 ## GA Product Expression Generator (ga_prdxpr/)
 
