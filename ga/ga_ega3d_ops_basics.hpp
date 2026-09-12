@@ -436,7 +436,7 @@ template <typename T>
 inline Scalar3d<T> normalize(Scalar3d<T> s)
 {
     T m = nrm(s);
-    hd::ga::detail::check_normalization<T>(m, "scalar (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "scalar (3d)");
     T inv = T(1.0) / m;
     return Scalar3d<T>(inv * T(s));
 }
@@ -446,7 +446,7 @@ template <typename T>
 inline Vec3d<T> normalize(Vec3d<T> const& v)
 {
     T m = nrm(v);
-    hd::ga::detail::check_normalization<T>(m, "vector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "vector (3d)");
     T inv = T(1.0) / m;
     return inv * v;
 }
@@ -456,7 +456,7 @@ template <typename T>
 inline BiVec3d<T> normalize(BiVec3d<T> const& B)
 {
     T m = nrm(B);
-    hd::ga::detail::check_normalization<T>(m, "bivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "bivector (3d)");
     T inv = T(1.0) / m;
     return inv * B;
 }
@@ -466,7 +466,7 @@ template <typename T>
 inline PScalar3d<T> normalize(PScalar3d<T> ps)
 {
     T m = nrm(ps);
-    hd::ga::detail::check_normalization<T>(m, "pseudoscalar (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "pseudoscalar (3d)");
     T inv = T(1.0) / m;
     return PScalar3d<T>(inv * T(ps));
 }
@@ -476,7 +476,7 @@ template <typename T>
 inline MVec3d_E<T> normalize(MVec3d_E<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_normalization<T>(m, "even-grade multivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "even-grade multivector (3d)");
     T inv = T(1.0) / m;
     return inv * M;
 }
@@ -486,7 +486,7 @@ template <typename T>
 inline MVec3d_U<T> normalize(MVec3d_U<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_normalization<T>(m, "odd-grade multivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "odd-grade multivector (3d)");
     T inv = T(1.0) / m;
     return inv * M;
 }
@@ -496,7 +496,7 @@ template <typename T>
 inline MVec3d<T> normalize(MVec3d<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_normalization<T>(m, "multivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "multivector (3d)");
     T inv = T(1.0) / m;
     return inv * M;
 }

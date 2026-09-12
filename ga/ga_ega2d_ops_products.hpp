@@ -1762,7 +1762,7 @@ template <typename T>
 inline Scalar2d<T> inv(Scalar2d<T> s)
 {
     T sq_n = nrm_sq(s);
-    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
+    hd::ga::detail::check_nonzero<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar2d<T>(rev(s) * inv);
@@ -1773,7 +1773,7 @@ template <typename T>
 inline Vec2d<T> inv(Vec2d<T> const& v)
 {
     T sq_n = nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n;
     return Vec2d<T>(rev(v) * inv);
 }
@@ -1783,7 +1783,7 @@ template <typename T>
 inline PScalar2d<T> inv(PScalar2d<T> ps)
 {
     T sq_n = nrm_sq(ps);
-    hd::ga::detail::check_normalization<T>(sq_n, "pseudoscalar");
+    hd::ga::detail::check_nonzero<T>(sq_n, "pseudoscalar");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
 
     return PScalar2d<T>(rev(ps) * inv);
@@ -1796,7 +1796,7 @@ template <typename T>
 inline MVec2d_E<T> inv(MVec2d_E<T> const& E)
 {
     T sq_n = nrm_sq(E);
-    hd::ga::detail::check_normalization<T>(sq_n, "even-grade multivector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "even-grade multivector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return MVec2d_E<T>(rev(E) * inv);
 }
@@ -1809,7 +1809,7 @@ template <typename T>
 inline MVec2d<T> inv(MVec2d<T> const& M)
 {
     T m_conjm = T(gr0(M * conj(M)));
-    hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
+    hd::ga::detail::check_nonzero<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return MVec2d<T>(conj(M) * inv);
 }

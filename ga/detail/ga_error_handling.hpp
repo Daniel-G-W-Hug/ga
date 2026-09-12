@@ -137,6 +137,57 @@ inline void check_unitization(T weight_norm, const char* object_type = "multivec
 #endif
 }
 
+// Standardized invertibility checks.
+//
+// WHY THESE ARE NOT ONE ABSOLUTE EPSILON. What makes a blade non-invertible is that it is
+// DEGENERATE -- null in a Lorentzian metric, ideal in a degenerate one -- and that is a
+// property of its direction, not of its size. An absolute bound on the divisor confuses
+// the two: inv() of a vector of magnitude 1e-9 used to throw although its inverse (7e6)
+// is perfectly representable, so the same geometry expressed in millimetres instead of
+// metres failed, while a genuinely null blade at a large scale sailed through.
+//
+// So the divisor is judged against the SUM OF THE SQUARED COEFFICIENTS of the object it
+// came from, which makes the test exactly scale-invariant -- both quantities are
+// quadratic in the object. Where the metric is Euclidean the two are the SAME quantity,
+// the ratio is 1 by construction, and the question collapses to "is the object zero":
+// that is what check_nonzero below is for, and it is the honest spelling there.
+template <typename T>
+    requires(std::floating_point<T>)
+inline void check_invertible(T divisor, T coeff_sq, const char* object_type = "blade")
+{
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    // the negation also rejects NaN, which a plain <= would let through
+    if (!(std::abs(divisor) > safe_epsilon<T>() * coeff_sq)) {
+        throw std::runtime_error(std::string("GA Error: ") + object_type +
+                                 " is degenerate (metric " + std::to_string(divisor) +
+                                 " negligible against its own scale " +
+                                 std::to_string(coeff_sq) + "), so it has no inverse");
+    }
+#else
+    (void)divisor;
+    (void)coeff_sq;
+    (void)object_type;
+#endif
+}
+
+// The Euclidean case of the above, and the case of a scalar: the divisor IS the object's
+// own scale, so only a vanishing (or underflowed) one fails. A merely small object is
+// invertible and must stay that way.
+template <typename T>
+    requires(std::floating_point<T>)
+inline void check_nonzero(T divisor, const char* object_type = "blade")
+{
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (!(std::abs(divisor) > T(0.0))) {
+        throw std::runtime_error(std::string("GA Error: ") + object_type +
+                                 " is zero, so it has no inverse");
+    }
+#else
+    (void)divisor;
+    (void)object_type;
+#endif
+}
+
 // Standardized precondition check: the target of a projection or a reflection must be a
 // BLADE, i.e. it must represent a subspace at all.
 //

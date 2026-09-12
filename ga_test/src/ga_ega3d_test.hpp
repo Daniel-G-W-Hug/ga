@@ -4705,6 +4705,33 @@ TEST_SUITE("EGA 3D Tests")
     // projection / reflection contract, including the bivector-onto-bivector pair
     ////////////////////////////////////////////////////////////////////////////////
 
+    TEST_CASE("ega3d: inverting a small object is not inverting a degenerate one")
+    {
+        fmt::println("ega3d: inverting a small object is not inverting a degenerate one");
+
+        // The guard used to compare the divisor against an ABSOLUTE epsilon, so a vector
+        // of magnitude 1e-9 was rejected although its inverse (7e7) is perfectly
+        // representable: the same geometry in millimetres instead of metres failed. What
+        // makes a blade non-invertible is degeneracy, not size, and in a Euclidean metric
+        // the squared norm IS the sum of the squared coefficients -- so the only blade
+        // without an inverse is the zero one.
+        for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-9, 1.0e-12}) {
+            auto const v = vec3d{1.0 * s, 2.0 * s, 3.0 * s};
+            auto const B = bivec3d{1.0 * s, 2.0 * s, 3.0 * s};
+            INFO("scale = ", s);
+            CHECK(std::abs(value_t(gr0(v * inv(v))) - 1.0) < eps); // v * inv(v) == 1
+            CHECK(is_close(gr2(v * inv(v)), bivec3d{}));           // and nothing else
+            CHECK(std::abs(value_t(gr0(B * inv(B))) - 1.0) < eps);
+            CHECK(is_close(normalize(v) * (1.0 / nrm(normalize(v))), normalize(v)));
+        }
+
+        // the zero blade has no inverse, at any type
+        CHECK_THROWS(inv(vec3d{0.0, 0.0, 0.0}));
+        CHECK_THROWS(inv(bivec3d{0.0, 0.0, 0.0}));
+        CHECK_THROWS(inv(scalar3d{0.0}));
+        CHECK_THROWS(normalize(vec3d{0.0, 0.0, 0.0}));
+    }
+
     TEST_CASE("ega3d: the projection contract")
     {
         fmt::println("ega3d: the projection contract");

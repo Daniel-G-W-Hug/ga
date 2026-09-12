@@ -3756,7 +3756,7 @@ template <typename T>
 inline Scalar3d<T> inv(Scalar3d<T> s)
 {
     T sq_n = nrm_sq(s);
-    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
+    hd::ga::detail::check_nonzero<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar3d<T>(rev(s) * inv);
@@ -3767,7 +3767,7 @@ template <typename T>
 inline Vec3d<T> inv(Vec3d<T> const& v)
 {
     T sq_n = nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n;
     return Vec3d<T>(rev(v) * inv);
 }
@@ -3778,7 +3778,7 @@ template <typename T>
 inline BiVec3d<T> inv(BiVec3d<T> const& B)
 {
     T sq_n = nrm_sq(B);
-    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "bivector");
     T inv = T(1.0) / sq_n;
     return BiVec3d<T>(rev(B) * inv); // minus sign due to reversion
 }
@@ -3788,7 +3788,7 @@ template <typename T>
 inline PScalar3d<T> inv(PScalar3d<T> ps)
 {
     T sq_n = nrm_sq(ps);
-    hd::ga::detail::check_normalization<T>(sq_n, "pseudoscalar");
+    hd::ga::detail::check_nonzero<T>(sq_n, "pseudoscalar");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
 
     return PScalar3d<T>(rev(ps) * inv); // minus sign due to reversion
@@ -3800,7 +3800,7 @@ template <typename T>
 inline MVec3d_E<T> inv(MVec3d_E<T> const& E)
 {
     T sq_n = nrm_sq(E);
-    hd::ga::detail::check_normalization<T>(sq_n, "even-grade-multivector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "even-grade-multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_E<T>(rev(E) * inv);
 }
@@ -3811,7 +3811,7 @@ template <typename T>
 inline MVec3d_U<T> inv(MVec3d_U<T> const& U)
 {
     T sq_n = nrm_sq(U);
-    hd::ga::detail::check_normalization<T>(sq_n, "odd-grade multivector");
+    hd::ga::detail::check_nonzero<T>(sq_n, "odd-grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_U<T>(rev(U) * inv);
 }
@@ -3824,7 +3824,7 @@ template <typename T>
 inline MVec3d<T> inv(MVec3d<T> const& M)
 {
     T m_conjm = T(gr0(M * conj(M) * gr_inv(M) * rev(M)));
-    hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
+    hd::ga::detail::check_nonzero<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec3d<T>(conj(M) * gr_inv(M) * rev(M) * inv);
 }

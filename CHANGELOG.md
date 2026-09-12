@@ -246,3 +246,17 @@
            angle() / rapidity() improve with them: a near-null plane now takes the branch
            whose limit is exp(B) = 1 + B, and near-null arguments are rejected instead of
            returning an ill-conditioned number
+- 2026/09: inv() and normalize() judge degeneracy RELATIVELY (EGA, PGA, STA; CGA still to
+           follow). The guard compared the divisor against an absolute 5*machine_eps, so
+           inv() of a vector of magnitude 1e-9 threw although its inverse (7e7) is
+           perfectly representable -- the same geometry in millimetres instead of metres
+           failed, while a genuinely degenerate blade at a large scale passed. What makes
+           a blade non-invertible is degeneracy, not size, so the divisor is now judged
+           against the sum of the squared coefficients of the object it came from, raised
+           to the divisor's own degree (the multivector inverses divide by a
+           Hitzer-Sangwine determinant, which is quartic). In PGA that sum is
+           bulk_nrm_sq + weight_nrm_sq, in STA the new coeff_sq(); in a EUCLIDEAN metric
+           the divisor IS that sum, so the question collapses to "is the object zero" and
+           the sites there call check_nonzero() instead -- the honest spelling. Two
+           helpers replace check_normalization at 42 sites; a gate pins inv()/normalize()
+           down to magnitude 1e-12 and the zero blade to a throw

@@ -60,6 +60,14 @@ void register_functions_sta(nb::module_& m)
     m.def("cmt", [](vec4ds const& a0, scalar4ds const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](scalar4ds const& a0, vec4ds const& a1) { return cmt(a0, a1); });
     m.def("cmt", [](scalar4ds const& a0, scalar4ds const& a1) { return cmt(a0, a1); });
+    m.def("coeff_sq", [](scalar4ds const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](vec4ds const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](bivec4ds const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](trivec4ds const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](pscalar4ds const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](mvec4ds_e const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](mvec4ds_u const& a0) { return coeff_sq(a0); });
+    m.def("coeff_sq", [](mvec4ds const& a0) { return coeff_sq(a0); });
     m.def("conj", [](scalar4ds const& a0) { return conj(a0); });
     m.def("conj", [](vec4ds const& a0) { return conj(a0); });
     m.def("conj", [](bivec4ds const& a0) { return conj(a0); });
@@ -362,12 +370,6 @@ void register_functions_sta(nb::module_& m)
     m.def("space_split",
           [](vec4ds const& a0, vec4ds const& a1) { return space_split(a0, a1); });
     m.def("sqrt", [](mvec4ds_e const& a0) { return sqrt(a0); });
-    m.def("sta4ds_causal_scale",
-          [](vec4ds const& a0) { return sta4ds_causal_scale(a0); });
-    m.def("sta4ds_causal_scale",
-          [](bivec4ds const& a0) { return sta4ds_causal_scale(a0); });
-    m.def("sta4ds_causal_scale",
-          [](trivec4ds const& a0) { return sta4ds_causal_scale(a0); });
     m.def("time_split",
           [](vec4ds const& a0, vec4ds const& a1) { return time_split(a0, a1); });
     m.def("transform",

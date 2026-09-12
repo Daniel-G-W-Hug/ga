@@ -6728,8 +6728,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline Scalar4ds<T> inv(Scalar4ds<T> s)
 {
-    T sq_n = nrm_sq(s); // STA metric is non-degenerate: use the full metric norm
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "scalar");
+    T sq_n = nrm_sq(s);       // STA metric is non-degenerate: use the full metric norm
+    T const cs = coeff_sq(s); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar4ds<T>(rev(s) * inv);
@@ -6743,7 +6744,8 @@ inline Vec4ds<T> inv(Vec4ds<T> const& v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     // (STA metric is non-degenerate: use the full metric norm nrm_sq)
     T sq_n = nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "vector");
+    T const cs = coeff_sq(v); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec4ds<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
@@ -6757,7 +6759,8 @@ inline BiVec4ds<T> inv(BiVec4ds<T> const& B)
     auto bc = B * conj(B);
     auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
     T sq_n = T(gr0(bc * bcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "bivector");
+    T const cs = coeff_sq(B); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
@@ -6770,7 +6773,8 @@ inline TriVec4ds<T> inv(TriVec4ds<T> const& t)
     auto tc = t * conj(t);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "trivector");
+    T const cs = coeff_sq(t); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
@@ -6780,8 +6784,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline PScalar4ds<T> inv(PScalar4ds<T> ps)
 {
-    T sq_n = nrm_sq(ps); // STA metric is non-degenerate: nrm_sq(ps) = -ps^2 != 0
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "pseudoscalar");
+    T sq_n = nrm_sq(ps);       // STA metric is non-degenerate: nrm_sq(ps) = -ps^2 != 0
+    T const cs = coeff_sq(ps); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs, "pseudoscalar");
     T inv = T(1.0) / sq_n;
 
     return PScalar4ds<T>(rev(ps) * inv);
@@ -6796,7 +6801,9 @@ inline MVec4ds_E<T> inv(MVec4ds_E<T> const& E)
     auto tc = E * conj(E);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "even-grade multivector");
+    T const cs = coeff_sq(E); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs,
+                                        "even-grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -6809,7 +6816,8 @@ inline MVec4ds_U<T> inv(MVec4ds_U<T> const& U)
     auto tc = U * conj(U);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "odd-grade multivector");
+    T const cs = coeff_sq(U); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "odd-grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 
@@ -6823,7 +6831,8 @@ inline MVec4ds<T> inv(MVec4ds<T> const& M)
     auto tc = M * conj(M);
     auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "multivector");
+    T const cs = coeff_sq(M); // metric-free scale
+    hd::ga::detail::check_invertible<T>(std::abs(sq_n), cs * cs, "multivector");
     return conj(M) * tcmap / sq_n;
 }
 

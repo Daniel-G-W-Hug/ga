@@ -390,7 +390,7 @@ template <typename T>
 inline Scalar2d<T> normalize(Scalar2d<T> s)
 {
     T m = nrm(s);
-    hd::ga::detail::check_normalization<T>(m, "scalar (2d)");
+    hd::ga::detail::check_nonzero<T>(m, "scalar (2d)");
     T inv = T(1.0) / m;
     return Scalar2d<T>(inv * T(s));
 }
@@ -400,7 +400,7 @@ template <typename T>
 inline Vec2d<T> normalize(Vec2d<T> const& v)
 {
     T m = nrm(v);
-    hd::ga::detail::check_normalization<T>(m, "vector (2d)");
+    hd::ga::detail::check_nonzero<T>(m, "vector (2d)");
     T inv = T(1.0) / m;
     return inv * v;
 }
@@ -410,7 +410,7 @@ template <typename T>
 inline PScalar2d<T> normalize(PScalar2d<T> ps)
 {
     T m = nrm(ps);
-    hd::ga::detail::check_normalization<T>(m, "pseudoscalar (2d)");
+    hd::ga::detail::check_nonzero<T>(m, "pseudoscalar (2d)");
     T inv = T(1.0) / m;
     return PScalar2d<T>(inv * T(ps));
 }
@@ -420,7 +420,7 @@ template <typename T>
 inline MVec2d_E<T> normalize(MVec2d_E<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_normalization<T>(m, "even-grade multivector (2d)");
+    hd::ga::detail::check_nonzero<T>(m, "even-grade multivector (2d)");
     T inv = T(1.0) / m;
     return inv * M;
 }
@@ -430,7 +430,7 @@ template <typename T>
 inline MVec2d<T> normalize(MVec2d<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_normalization<T>(m, "multivector (2d)");
+    hd::ga::detail::check_nonzero<T>(m, "multivector (2d)");
     T inv = T(1.0) / m;
     return inv * M;
 }

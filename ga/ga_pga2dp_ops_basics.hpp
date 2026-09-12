@@ -850,7 +850,8 @@ template <typename T>
 inline Scalar2dp<T> bulk_normalize(Scalar2dp<T> s)
 {
     T m = to_val(bulk_nrm(s));
-    hd::ga::detail::check_normalization<T>(m, "scalar (2dp)");
+    hd::ga::detail::check_invertible<T>(m * m, bulk_nrm_sq(s) + weight_nrm_sq(s),
+                                        "scalar (2dp)");
     T scale = T(1.0) / m;
     return Scalar2dp<T>(scale * T(s));
 }
@@ -860,7 +861,8 @@ template <typename T>
 inline Vec2dp<T> bulk_normalize(Vec2dp<T> const& v)
 {
     T n = to_val(bulk_nrm(v));
-    hd::ga::detail::check_normalization<T>(std::abs(n), "vector (2dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(v) + weight_nrm_sq(v),
+                                        "vector (2dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * v;
 }
@@ -870,7 +872,8 @@ template <typename T>
 inline BiVec2dp<T> bulk_normalize(BiVec2dp<T> const& B)
 {
     T n = to_val(bulk_nrm(B));
-    hd::ga::detail::check_normalization<T>(n, "bivector (2dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(B) + weight_nrm_sq(B),
+                                        "bivector (2dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * B;
 }
@@ -880,7 +883,8 @@ template <typename T>
 inline MVec2dp_E<T> bulk_normalize(MVec2dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "even-grade multivector (2dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "even-grade multivector (2dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
@@ -890,7 +894,8 @@ template <typename T>
 inline MVec2dp_U<T> bulk_normalize(MVec2dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (2dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "odd-grade multivector (2dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
@@ -900,7 +905,8 @@ template <typename T>
 inline MVec2dp<T> bulk_normalize(MVec2dp<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "multivector (2dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "multivector (2dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }

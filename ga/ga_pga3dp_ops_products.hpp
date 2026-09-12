@@ -6855,7 +6855,8 @@ template <typename T>
 inline Scalar3dp<T> inv(Scalar3dp<T> s)
 {
     T sq_n = bulk_nrm_sq(s);
-    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
+    T const cs = bulk_nrm_sq(s) + weight_nrm_sq(s); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar3dp<T>(rev(s) * inv);
@@ -6868,7 +6869,8 @@ inline Vec3dp<T> inv(Vec3dp<T> const& v)
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     T sq_n = bulk_nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    T const cs = bulk_nrm_sq(v) + weight_nrm_sq(v); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs, "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
@@ -6886,7 +6888,8 @@ inline BiVec3dp<T> inv(BiVec3dp<T> const& B)
     // fmt::println("bcmap={}", bcmap);
     // fmt::println("bc*bcmap={}", bc * bcmap);
     T sq_n = T(gr0(bc * bcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
+    T const cs = bulk_nrm_sq(B) + weight_nrm_sq(B); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs * cs, "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
@@ -6903,7 +6906,8 @@ inline TriVec3dp<T> inv(TriVec3dp<T> const& t)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "trivector");
+    T const cs = bulk_nrm_sq(t) + weight_nrm_sq(t); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs * cs, "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
@@ -6922,7 +6926,8 @@ inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "even-grade multivector");
+    T const cs = bulk_nrm_sq(E) + weight_nrm_sq(E); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs * cs, "even-grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -6939,7 +6944,8 @@ inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "odd-grade multivector");
+    T const cs = bulk_nrm_sq(U) + weight_nrm_sq(U); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs * cs, "odd-grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 
@@ -6957,7 +6963,8 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "multivector");
+    T const cs = bulk_nrm_sq(M) + weight_nrm_sq(M); // coefficient scale
+    hd::ga::detail::check_invertible<T>(sq_n, cs * cs, "multivector");
     return conj(M) * tcmap / sq_n;
 }
 

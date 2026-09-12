@@ -520,7 +520,8 @@ constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
     // is what inv() divides by in a degenerate metric -- written out, so that this
     // expression reads the same in every algebra
     ctype const nsq = ctype(bulk_nrm_sq(v2));
-    detail::check_normalization<ctype>(nsq, "vector");
+    detail::check_invertible<ctype>(
+        nsq, ctype(bulk_nrm_sq(v2)) + ctype(weight_nrm_sq(v2)), "vector");
     return Vec2dp<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 

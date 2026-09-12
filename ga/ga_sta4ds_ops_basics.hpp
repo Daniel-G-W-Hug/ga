@@ -704,16 +704,26 @@ constexpr T nrm_sq(MVec4ds<T> const& M)
 //
 // The three predicates stay mutually exclusive and exhaustive: timelike above +tol*scale,
 // spacelike below -tol*scale, lightlike in between.
+// coeff_sq(x): the sum of the squared coefficients -- a METRIC-FREE gauge for "how big is
+// this object", which the Minkowski nrm_sq cannot provide (it vanishes on null blades).
+// Used by the causal predicates below and by the invertibility checks in inv().
 template <typename T>
     requires(numeric_type<T>)
-constexpr T sta4ds_causal_scale(Vec4ds<T> const& v)
+constexpr T coeff_sq(Scalar4ds<T> s)
+{
+    return T(s) * T(s);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T coeff_sq(Vec4ds<T> const& v)
 {
     return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T sta4ds_causal_scale(BiVec4ds<T> const& B)
+constexpr T coeff_sq(BiVec4ds<T> const& B)
 {
     return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my +
            B.mz * B.mz;
@@ -721,9 +731,42 @@ constexpr T sta4ds_causal_scale(BiVec4ds<T> const& B)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T sta4ds_causal_scale(TriVec4ds<T> const& t)
+constexpr T coeff_sq(TriVec4ds<T> const& t)
 {
     return t.x * t.x + t.y * t.y + t.z * t.z + t.w * t.w;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T coeff_sq(PScalar4ds<T> ps)
+{
+    return T(ps) * T(ps);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T coeff_sq(MVec4ds_E<T> const& M)
+{
+    return M.c0 * M.c0 + M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c4 * M.c4 +
+           M.c5 * M.c5 + M.c6 * M.c6 + M.c7 * M.c7;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T coeff_sq(MVec4ds_U<T> const& M)
+{
+    return M.c0 * M.c0 + M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c4 * M.c4 +
+           M.c5 * M.c5 + M.c6 * M.c6 + M.c7 * M.c7;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T coeff_sq(MVec4ds<T> const& M)
+{
+    return M.c0 * M.c0 + M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c4 * M.c4 +
+           M.c5 * M.c5 + M.c6 * M.c6 + M.c7 * M.c7 + M.c8 * M.c8 + M.c9 * M.c9 +
+           M.c10 * M.c10 + M.c11 * M.c11 + M.c12 * M.c12 + M.c13 * M.c13 + M.c14 * M.c14 +
+           M.c15 * M.c15;
 }
 
 // is_timelike(u): B^2 = gr0(u*u) > 0
@@ -731,21 +774,21 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(v) > rel_tol * sta4ds_causal_scale(v);
+    return detail::sta4ds_geom_sq(v) > rel_tol * coeff_sq(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(B) > rel_tol * sta4ds_causal_scale(B);
+    return detail::sta4ds_geom_sq(B) > rel_tol * coeff_sq(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(t) > rel_tol * sta4ds_causal_scale(t);
+    return detail::sta4ds_geom_sq(t) > rel_tol * coeff_sq(t);
 }
 
 // is_spacelike(u): B^2 = gr0(u*u) < 0
@@ -753,21 +796,21 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(v) < -rel_tol * sta4ds_causal_scale(v);
+    return detail::sta4ds_geom_sq(v) < -rel_tol * coeff_sq(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(B) < -rel_tol * sta4ds_causal_scale(B);
+    return detail::sta4ds_geom_sq(B) < -rel_tol * coeff_sq(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(t) < -rel_tol * sta4ds_causal_scale(t);
+    return detail::sta4ds_geom_sq(t) < -rel_tol * coeff_sq(t);
 }
 
 // is_lightlike(u): B^2 = gr0(u*u) == 0 (null)
@@ -775,21 +818,21 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return std::abs(detail::sta4ds_geom_sq(v)) <= rel_tol * sta4ds_causal_scale(v);
+    return std::abs(detail::sta4ds_geom_sq(v)) <= rel_tol * coeff_sq(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return std::abs(detail::sta4ds_geom_sq(B)) <= rel_tol * sta4ds_causal_scale(B);
+    return std::abs(detail::sta4ds_geom_sq(B)) <= rel_tol * coeff_sq(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return std::abs(detail::sta4ds_geom_sq(t)) <= rel_tol * sta4ds_causal_scale(t);
+    return std::abs(detail::sta4ds_geom_sq(t)) <= rel_tol * coeff_sq(t);
 }
 
 
@@ -874,7 +917,7 @@ template <typename T>
 inline Scalar4ds<T> normalize(Scalar4ds<T> s)
 {
     T m = nrm(s);
-    hd::ga::detail::check_normalization<T>(m, "scalar (4ds)");
+    hd::ga::detail::check_invertible<T>(m * m, coeff_sq(s), "scalar (4ds)");
     T scale = T(1.0) / m;
     return Scalar4ds<T>(scale * T(s));
 }
@@ -888,7 +931,7 @@ inline Vec4ds<T> normalize(Vec4ds<T> const& v)
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = nrm(v);
-    hd::ga::detail::check_normalization<T>(n, "vector (4ds)");
+    hd::ga::detail::check_invertible<T>(n * n, coeff_sq(v), "vector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * v;
 }
@@ -902,7 +945,7 @@ inline BiVec4ds<T> normalize(BiVec4ds<T> const& B)
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = nrm(B);
-    hd::ga::detail::check_normalization<T>(n, "bivector (4ds)");
+    hd::ga::detail::check_invertible<T>(n * n, coeff_sq(B), "bivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * B;
 }
@@ -916,7 +959,7 @@ inline TriVec4ds<T> normalize(TriVec4ds<T> const& t)
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = nrm(t);
-    hd::ga::detail::check_normalization<T>(n, "trivector (4ds)");
+    hd::ga::detail::check_invertible<T>(n * n, coeff_sq(t), "trivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * t;
 }

@@ -1071,7 +1071,8 @@ template <typename T>
 inline Scalar3dp<T> bulk_normalize(Scalar3dp<T> s)
 {
     T m = to_val(bulk_nrm(s));
-    hd::ga::detail::check_normalization<T>(m, "scalar (3dp)");
+    hd::ga::detail::check_invertible<T>(m * m, bulk_nrm_sq(s) + weight_nrm_sq(s),
+                                        "scalar (3dp)");
     T scale = T(1.0) / m;
     return Scalar3dp<T>(scale * T(s));
 }
@@ -1081,7 +1082,8 @@ template <typename T>
 inline Vec3dp<T> bulk_normalize(Vec3dp<T> const& v)
 {
     T n = to_val(bulk_nrm(v));
-    hd::ga::detail::check_normalization<T>(std::abs(n), "vector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(v) + weight_nrm_sq(v),
+                                        "vector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * v;
 }
@@ -1091,7 +1093,8 @@ template <typename T>
 inline BiVec3dp<T> bulk_normalize(BiVec3dp<T> const& B)
 {
     T n = to_val(bulk_nrm(B));
-    hd::ga::detail::check_normalization<T>(n, "bivector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(B) + weight_nrm_sq(B),
+                                        "bivector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * B;
 }
@@ -1101,7 +1104,8 @@ template <typename T>
 inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
 {
     T n = to_val(bulk_nrm(t));
-    hd::ga::detail::check_normalization<T>(n, "trivector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(t) + weight_nrm_sq(t),
+                                        "trivector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * t;
 }
@@ -1111,7 +1115,8 @@ template <typename T>
 inline MVec3dp_E<T> bulk_normalize(MVec3dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "even-grade multivector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "even-grade multivector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
@@ -1121,7 +1126,8 @@ template <typename T>
 inline MVec3dp_U<T> bulk_normalize(MVec3dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "odd-grade multivector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
@@ -1131,7 +1137,8 @@ template <typename T>
 inline MVec3dp<T> bulk_normalize(MVec3dp<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "multivector (3dp)");
+    hd::ga::detail::check_invertible<T>(n * n, bulk_nrm_sq(M) + weight_nrm_sq(M),
+                                        "multivector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
