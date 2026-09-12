@@ -97,7 +97,7 @@ cd ga                                  # project root — keep this as cwd
 
 # 2) Create the wrapper venv and install runtime + test dependencies
 #    (run from the project root)
-python3 -m venv ga_py/.venv
+python3 -m venv ga_py/.venv          # but see the caveat below the block
 ga_py/.venv/bin/pip install nanobind pytest hypothesis numpy
 
 # 3) Configure and build with the Python wrapper enabled
@@ -107,6 +107,16 @@ ga_py/.venv/bin/pip install nanobind pytest hypothesis numpy
 cmake -S . -B build -D_GA_BUILD_PYTHON=ON
 cmake --build build
 ```
+
+> **Create the venv from a plain system interpreter, never from an active venv.**
+> `python3` resolves through `PATH`, so with a venv active the new venv is built from THAT
+> one, and its `pyvenv.cfg` `home =` ends up pointing into a versioned interpreter
+> directory — on macOS/Homebrew `.../Cellar/python@3.14/<patch>/...`, which the next
+> `brew upgrade` deletes, leaving `.venv/bin/python3.14` dangling and every command in it
+> reporting `bad interpreter`, which reads as a shell fault rather than a stale venv. Pass
+> the unversioned path explicitly (`/opt/homebrew/opt/python@3.14/bin/python3.14` on
+> Homebrew) and check with `grep '^home' ga_py/.venv/pyvenv.cfg` — anything under
+> `Cellar/` will break.
 
 `ga_py/CMakeLists.txt` automatically picks up `ga_py/.venv/bin/python` and uses its
 `nanobind` — no need to set `Python_EXECUTABLE` or `CMAKE_PREFIX_PATH`.

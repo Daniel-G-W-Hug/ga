@@ -1020,6 +1020,30 @@ plus the top-level `hd::ga` free functions.
 **Two venvs — never conflate:** `ga_bindgen/.venv` (scan/emit, needs `libclang`) vs
 `ga_py/.venv` (build + tests, needs `pytest hypothesis numpy nanobind`).
 
+**CREATE A VENV FROM THE UNVERSIONED INTERPRETER PATH, NOT FROM A BARE `python3`
+(2026-09-12).** On macOS/Homebrew, `/opt/homebrew/bin/python3.14` points into the
+*versioned* Cellar (`.../Cellar/python@3.14/3.14.7/...`), and so does `sys.base_prefix`
+when the invoking interpreter is ITSELF a venv. Whatever path `venv` records lands in
+`pyvenv.cfg`'s `home =` and in the `bin/python3.X` symlink — so a venv created that way
+dies at the next patch bump, with its interpreter symlink pointing at a Cellar directory
+Homebrew has deleted. The failure reads as a shell bug rather than a stale venv:
+
+```text
+zsh: .../.venv/bin/py.test: bad interpreter: .../.venv/bin/python3.14: no such file or directory
+```
+
+Two compounding causes, and the second is the one that surprises you: the `bin/` symlink
+is versioned while `/opt/homebrew/opt/python@3.14/bin/python3.14` is the stable one
+Homebrew repoints on upgrade; and **a bare `python3` resolves through `PATH`, which may be
+an ACTIVE VENV** — creating a venv from another venv resolves `home` to the Cellar path
+even when that parent venv's own `home` is the durable one. `pyvenv.cfg` records the
+creating `command` verbatim, so which interpreter built a venv is always recoverable.
+
+```bash
+/opt/homebrew/opt/python@3.14/bin/python3.14 -m venv <path>/.venv    # NOT `python3.14`
+grep '^home' <path>/.venv/pyvenv.cfg    # anything under Cellar/ will break on an upgrade
+```
+
 **Regeneration chain** (after changing the C++ API; steps 2 and 5 need CMake configured
 with `-D_GA_BUILD_PYTHON=ON`):
 

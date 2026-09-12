@@ -60,6 +60,16 @@ python3 -m venv ga_bindgen/.venv
 ga_bindgen/.venv/bin/pip install libclang
 ```
 
+> **Create it from a plain system interpreter, never from an active venv.** `python3`
+> resolves through `PATH`, so with a venv active the new venv is built from THAT one, and
+> its `pyvenv.cfg` `home =` ends up pointing into a versioned interpreter directory — on
+> macOS/Homebrew `.../Cellar/python@3.14/<patch>/...`, which the next `brew upgrade`
+> deletes, leaving `.venv/bin/python3.14` dangling and every command in it reporting `bad
+> interpreter`. Pass the unversioned path explicitly
+> (`/opt/homebrew/opt/python@3.14/bin/python3.14` on Homebrew) and check with
+> `grep '^home' <path>/.venv/pyvenv.cfg`.
+
+
 **Windows** (Developer Command Prompt or PowerShell) — cwd: project root:
 
 ```bat
