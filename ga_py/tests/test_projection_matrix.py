@@ -147,3 +147,40 @@ def test_pga3dp_line_rejected_from_plane():
     # the target's scale stays out, the source's does not
     assert pga.is_close(pga.reject_from(L, 3.0 * T), rej, tol)
     assert pga.is_close(pga.reject_from(2.0 * L, T), 2.0 * rej, tol)
+
+
+# --------------------------------------------------------------------------- #
+# the ortho_proj shims must compute what the C++ project_onto computes
+# --------------------------------------------------------------------------- #
+
+def test_ortho_proj_shims_agree_with_project_onto():
+    """ga_py implements ortho_proj* in Python, so it can drift from the library.
+
+    It did: the shims used to unitize the result and never divided the target's
+    scale out, which is the behaviour the C++ side gave up when try_unitize()
+    was introduced. These pin them to project_onto, which delegates to the same
+    operation in C++.
+    """
+    T = pga.wdg(pga.wdg(pga.vec3dp(-1, -1, 0, 1), pga.vec3dp(1, -1, 1, 1)),
+                pga.vec3dp(-1, 1, 1, 1))
+    P = pga.vec3dp(2, 1, 3, 1)
+    L = pga.wdg(pga.vec3dp(-1, 0.5, -1.5, 1), pga.vec3dp(1, 0.5, 2.5, 1))
+    assert pga.ortho_proj3dp(P, T) == pga.project_onto(P, T)
+    assert pga.ortho_proj3dp(L, T) == pga.project_onto(L, T)
+
+    l2 = pga.wdg(pga.vec2dp(0.3, -0.7, 1), pga.vec2dp(1.5, 0.9, 1))
+    p2 = pga.vec2dp(2.0, 1.0, 1.0)
+    assert pga.ortho_proj2dp(p2, l2) == pga.project_onto(p2, l2)
+
+    v, B = ega.vec3d(1, 2, 3), ega.bivec3d(0.5, -1.0, 2.0)
+    assert ega.ortho_proj3d(v, B) == ega.project_onto(v, B)
+
+    w, t = sta.vec4ds(1, 2, 3, 4), sta.trivec4ds(1, 2, 0, 3)
+    W = sta.bivec4ds(1, 0, 2, 0, 3, 1)
+    assert sta.ortho_proj4ds(w, t) == sta.project_onto(w, t)
+    assert sta.ortho_proj4ds(W, t) == sta.project_onto(W, t)
+
+    # the target's scale must not reach the result, and the source's must survive
+    assert pga.ortho_proj3dp(P, 3.0 * T) == pga.ortho_proj3dp(P, T)
+    assert ega.ortho_proj3d(v, 3.0 * B) == ega.ortho_proj3d(v, B)
+    assert sta.ortho_proj4ds(w, 3.0 * t) == sta.ortho_proj4ds(w, t)

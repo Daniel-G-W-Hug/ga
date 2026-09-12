@@ -5755,10 +5755,13 @@ void register_forwarders(sol::state& lua)
             return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b)
         end
 
-        -- the same operation in EGA, where the metric dual replaces the weight dual and
-        -- nrm_sq the weight norm (sta has no rwdg binding yet, so no ortho_proj4ds here)
+        -- the same operation in EGA and STA, where the metric dual replaces the weight
+        -- dual and nrm_sq the weight norm
         function ega.ortho_proj3d(a, b)
             return ega.rwdg(b, ega.wdg(a, ega.dual(b))) * (1.0 / ega.nrm_sq(b))
+        end
+        function sta.ortho_proj4ds(a, b)
+            return sta.rwdg(b, sta.wdg(a, sta.r_dual(b))) * (1.0 / sta.nrm_sq(b))
         end
 
         -- Euclidean distance -> dualnum(homogeneous_magnitude, weight). The C++

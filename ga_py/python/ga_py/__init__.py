@@ -99,38 +99,45 @@ pga.r_weight_expand2dp = _pga2dp_r_weight_expand2dp
 _EPS = 1e-9
 
 
+def _by_weight_sq(p, b):
+    """Divide the target's scale back out, as the C++ projections do.
+
+    The projective expressions are QUADRATIC in the target, so its weight
+    squared has to be removed; the source's scale is kept. The result is NOT
+    unitized -- that is what `try_unitize()` is for, since a projection may
+    legitimately land at infinity (weight 0).
+    """
+    n = float(pga.weight_nrm_sq(b))
+    if n != 0.0 and n != 1.0:
+        p = p * (1.0 / n)
+    return p
+
+
 def _pga2dp_ortho_proj2dp(a, b):
     """Orthogonal projection of `a` onto the larger-grade `b` (PGA 2dp).
 
-    Equals `unitize(rwdg(b, r_weight_expand2dp(a, b)))` when not at horizon.
-    REQUIRES: gr(a) < gr(b).
+    Equals `rwdg(b, r_weight_expand2dp(a, b))` with the target's weight
+    squared divided out. REQUIRES: gr(a) < gr(b).
     """
-    p = pga.rwdg(b, pga.r_weight_expand2dp(a, b))
-    nrm_sq = float(pga.weight_nrm_sq(p))
-    if nrm_sq > _EPS and nrm_sq != 1.0:
-        p = pga.unitize(p)
-    return p
+    return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b)
 
 
 def _pga2dp_central_proj2dp(a, b):
     """Central projection of `a` onto the larger-grade `b` (PGA 2dp).
 
-    Equals `unitize(rwdg(b, r_bulk_expand2dp(a, b)))` when not at horizon.
-    REQUIRES: gr(a) < gr(b).
+    Equals `rwdg(b, r_bulk_expand2dp(a, b))` with the target's weight squared
+    divided out. REQUIRES: gr(a) < gr(b).
     """
-    p = pga.rwdg(b, pga.r_bulk_expand2dp(a, b))
-    nrm_sq = float(pga.weight_nrm_sq(p))
-    if nrm_sq > _EPS and nrm_sq != 1.0:
-        p = pga.unitize(p)
-    return p
+    return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)
 
 
 def _pga2dp_ortho_antiproj2dp(a, b):
     """Orthogonal anti-projection (PGA 2dp).
 
-    Equals `wdg(b, r_weight_contract2dp(a, b))`.
+    Equals `wdg(b, r_weight_contract2dp(a, b))` with the target's weight
+    squared divided out.
     """
-    return pga.wdg(b, pga.r_weight_contract2dp(a, b))
+    return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b)
 
 
 # Per-class grade lookup for the 2dp algebra. Mirrors the `gr()` overloads in
@@ -245,35 +252,28 @@ pga.r_weight_expand3dp = _pga3dp_r_weight_expand3dp
 def _pga3dp_ortho_proj3dp(a, b):
     """Orthogonal projection of `a` onto larger-grade `b` (PGA 3dp).
 
-    Equals `unitize(rwdg(b, r_weight_expand3dp(a, b)))` when not at horizon.
-    REQUIRES: gr(a) < gr(b).
+    Equals `rwdg(b, r_weight_expand3dp(a, b))` with the target's weight
+    squared divided out. REQUIRES: gr(a) < gr(b).
     """
-    p = pga.rwdg(b, pga.r_weight_expand3dp(a, b))
-    nrm_sq = float(pga.weight_nrm_sq(p))
-    if nrm_sq > _EPS and nrm_sq != 1.0:
-        p = pga.unitize(p)
-    return p
+    return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b)
 
 
 def _pga3dp_central_proj3dp(a, b):
     """Central projection of `a` onto larger-grade `b` (PGA 3dp).
 
-    Equals `unitize(rwdg(b, r_bulk_expand3dp(a, b)))` when not at horizon.
-    REQUIRES: gr(a) < gr(b).
+    Equals `rwdg(b, r_bulk_expand3dp(a, b))` with the target's weight squared
+    divided out. REQUIRES: gr(a) < gr(b).
     """
-    p = pga.rwdg(b, pga.r_bulk_expand3dp(a, b))
-    nrm_sq = float(pga.weight_nrm_sq(p))
-    if nrm_sq > _EPS and nrm_sq != 1.0:
-        p = pga.unitize(p)
-    return p
+    return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)
 
 
 def _pga3dp_ortho_antiproj3dp(a, b):
     """Orthogonal anti-projection (PGA 3dp).
 
-    Equals `wdg(b, r_weight_contract3dp(a, b))`.
+    Equals `wdg(b, r_weight_contract3dp(a, b))` with the target's weight
+    squared divided out.
     """
-    return pga.wdg(b, pga.r_weight_contract3dp(a, b))
+    return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b)
 
 
 # Per-class grade lookup for the 3dp algebra. Mirrors `gr()` overloads in
@@ -338,6 +338,27 @@ def _sta_r_expand4ds(a, b):
     return sta.wdg(a, sta.r_dual(b))
 
 
+def _ega_ortho_proj3d(a, b):
+    """Orthogonal projection of `a` onto the larger-grade `b` (EGA 3d).
+
+    The same construction as PGA's ortho_proj*dp, with the metric dual in
+    place of the weight dual and nrm_sq in place of weight_nrm_sq -- a
+    non-degenerate metric needs no split into bulk and weight.
+    REQUIRES: gr(a) < gr(b).
+    """
+    return ega.rwdg(b, ega.wdg(a, ega.dual(b))) * (1.0 / float(ega.nrm_sq(b)))
+
+
+def _sta_ortho_proj4ds(a, b):
+    """Orthogonal projection of `a` onto the larger-grade `b` (STA4D).
+
+    REQUIRES: gr(a) < gr(b), and a non-null target (nrm_sq(b) != 0).
+    """
+    return sta.rwdg(b, sta.wdg(a, sta.r_dual(b))) * (1.0 / float(sta.nrm_sq(b)))
+
+
+ega.ortho_proj3d = _ega_ortho_proj3d
+sta.ortho_proj4ds = _sta_ortho_proj4ds
 sta.l_expand4ds = _sta_l_expand4ds
 sta.r_expand4ds = _sta_r_expand4ds
 
