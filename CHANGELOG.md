@@ -202,3 +202,18 @@
            the difference; and rejection = source - projection stays a BLADE only when the
            target is a hyperplane, which is why no bivector-onto-bivector pair exists in a
            4d algebra (the remainder there is non-simple, so it is no 2-plane at all)
+- 2026/09: projections are computed from ONE named operation per algebra, and carry no
+           grade-dependent sign anywhere. Where the grades differ it is the orthogonal
+           projection rwdg(b, expansion(a,b)) over the target's squared norm --
+           ortho_proj2dp/3dp (PGA, weight dual + weight_nrm_sq) and the new
+           ortho_proj3d (EGA3D) / ortho_proj4ds (STA), with the metric dual + nrm_sq;
+           where the grades are equal it is dot(a,b)/nrm_sq(b)*b, the only form a
+           projection onto a blade of its own grade can take. project_onto delegates
+           instead of repeating the expression, in PGA too. The classical
+           (b >> a) * inv(b) is gone: its contraction and its inverse each fold in a
+           reversion, so an even-grade source needed a (-1)^(j(j-1)/2) that nothing but
+           idempotence could catch. Where the grades differ the new form is also faster
+           (sta4ds vec->bivec 8.40 -> 2.07 ns, vec->trivec 5.03 -> 1.67 ns), because the
+           classical product materialised grades that were then discarded. The ga_lua
+           prelude, which still emulated the pre-try_unitize semantics, now matches the
+           library
