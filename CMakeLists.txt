@@ -85,6 +85,13 @@ else()
   add_compile_options(-Wall -Wextra -Wshadow -pedantic -Werror)
 endif()
 
+### Projection normalization (_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+# is OFF by default: projections, reflections and inversions divide out the scale of the
+# object projected/reflected on, so they are correct for a target of any scale. A consumer
+# whose targets are always unitized can drop that step for its own targets with
+#     target_compile_definitions(<target> PRIVATE _HD_GA_FAST_PROJECTION_ON_UNITIZED)
+# documented in ga/CMakeLists.txt beside the definition, and in BUILD_USAGE.md.
+
 ### Extended checking of divisions / normalizations (_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 # is ON by default for every target that links `ga`, as an INTERFACE usage requirement
 # of the library target, and switched off per consumer target with

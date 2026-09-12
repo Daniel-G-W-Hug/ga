@@ -1256,6 +1256,100 @@ inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// conditional unitization:
+// unitize an object that carries weight, return an ideal object unchanged
+////////////////////////////////////////////////////////////////////////////////
+
+// unitize() ASSERTS that its argument has a weight: it divides by the weight norm and
+// throws under _HD_GA_EXTENDED_TEST_DIV_BY_ZERO when that norm is too small. That
+// assertion is worth keeping, so this is a separate function rather than a softer
+// unitize(): it is for the callers to whom an ideal object (a point, line or plane at
+// infinity) is a legitimate input which simply has no canonical representative -- the
+// meet of two parallel lines, the projection of a direction, a load-free reaction.
+//
+// postcondition: weight_nrm(result) == 1, or the object is returned untouched because
+//                it carries no weight
+//
+// unitized_out reports which of the two happened; pass nullptr (or omit it) when the
+// answer is not needed -- the test itself costs nothing, reading it is the caller's
+// choice, following the same convention as the solvers' rank_out.
+//
+// "Has weight" is decided exactly as unitize() decides it -- weight_nrm > safe_epsilon
+// -- written on the square so no square root is needed (weight_nrm > e <=> wsq > e*e).
+// The two therefore never disagree: this function never hands unitize() an argument
+// that unitize() would refuse.
+//
+// The wsq == 1 comparison is a fast path only. weight_nrm_sq returns a plain scalar, so
+// it is an exact comparison: an object that is unit only to within rounding takes the
+// division anyway, which changes nothing because it divides by 1 +/- an ulp.
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3dp<T> try_unitize(Vec3dp<T> const& v, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(v));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(v);
+    return v;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec3dp<T> try_unitize(BiVec3dp<T> const& B, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(B));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(B);
+    return B;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec3dp<T> try_unitize(TriVec3dp<T> const& t, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(t));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(t);
+    return t;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Point3dp<T> try_unitize(Point3dp<T> const& p, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(p));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(p);
+    return p;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Line3d<T> try_unitize(Line3d<T> const& l, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(l));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(l);
+    return l;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Plane3d<T> try_unitize(Plane3d<T> const& p, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(p));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(p);
+    return p;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // r_bulk_dual(A) = r_cmpl(bulk(A)) = r_cmpl( metric * A )
 //
 // -> right complement operation applied to the bulk

@@ -87,6 +87,30 @@ is little to unblock. A larger application loop of the same shape corroborates b
 (1.6-1.95x under Clang, 1.11x under MSVC). So: measure on YOUR compiler before deciding,
 and expect GCC/Clang targets to behave like the first row.
 
+### The projection normalization: correct by default, fast as a per-target opt-in
+
+Projections, reflections, antiprojections and inversions in `pga2dp` / `pga3dp` are
+**quadratic in the object projected onto**: the weight dual is linear in it and the meet
+brings it in a second time. The library divides that scale back out, so
+
+- scaling a plane by 3 leaves the projection onto it unchanged, and
+- `project_onto(v, t) + reject_from(v, t) == v` holds for a target of any scale.
+
+Without it, a caller who passes a plane straight out of a wedge gets an answer scaled by
+its weight squared -- silently, and correct only when the target happens to be unitized.
+
+The step costs one `weight_nrm_sq`, a compare and a division. Where a consumer knows its
+targets are already unitized, drop it for that consumer's targets only:
+
+```cmake
+target_compile_definitions(my_fast_target PRIVATE _HD_GA_FAST_PROJECTION_ON_UNITIZED)
+```
+
+It is deliberately not a cache option: correct is the default, fast is a decision. As with
+the division guard, the choice is per translation unit and therefore per target -- two
+translation units built with different settings would define the same inline function
+differently, which is an ODR violation.
+
 ## Dependencies
 
 Only **fmt** is needed to use the library (header-only; FetchContent fallback if it is not

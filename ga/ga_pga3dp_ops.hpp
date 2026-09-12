@@ -8,6 +8,9 @@
 #include "ga_usr_consts.hpp"
 
 
+#include "ga_pga_ops_common.hpp" // detail::by_weight_sq
+
+
 namespace hd::ga::pga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -859,7 +862,8 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(rwdg(B, wdg(v, r_weight_dual(B)))); // ortho_proj3dp
+    return detail::by_weight_sq(Vec3dp<ctype>(rwdg(B, wdg(v, r_weight_dual(B)))),
+                                weight_nrm_sq(B)); // ortho_proj3dp
 }
 
 // rejection of vector v from a bivector B (a line)
@@ -881,7 +885,8 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(rwdg(t, wdg(v, r_weight_dual(t)))); // ortho_proj3dp
+    return detail::by_weight_sq(Vec3dp<ctype>(rwdg(t, wdg(v, r_weight_dual(t)))),
+                                weight_nrm_sq(t)); // ortho_proj3dp
 }
 
 // rejection of vector v from a trivector t (a plane)
@@ -902,7 +907,8 @@ constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
                                                           TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(rwdg(t, wdg(B, r_weight_dual(t)))); // ortho_proj3dp
+    return detail::by_weight_sq(BiVec3dp<ctype>(rwdg(t, wdg(B, r_weight_dual(t)))),
+                                weight_nrm_sq(t)); // ortho_proj3dp
 }
 
 // expand to a new line which goes through point p and is perpendicular to the plane
@@ -965,13 +971,10 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, a
     auto p = rwdg(std::forward<arg2>(b),
                   r_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected). Call try_unitize() on the result if a canonical
+    // representative is wanted.
+    return detail::by_weight_sq(p, weight_nrm_sq(b));
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a, arg2&& b)
@@ -982,20 +985,19 @@ template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a,
     auto p = rwdg(std::forward<arg2>(b),
                   r_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected). Call try_unitize() on the result if a canonical
+    // representative is wanted.
+    return detail::by_weight_sq(p, weight_nrm_sq(b));
 }
 
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 {
-    return wdg(std::forward<arg2>(b),
-               r_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    return detail::by_weight_sq(
+        wdg(std::forward<arg2>(b),
+            r_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b))),
+        weight_nrm_sq(b));
 }
 
 
@@ -1004,36 +1006,39 @@ decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary trivector, i.e. a plane t
-// pre-condition: t must be unitized
+// the target's scale is divided out, so t need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(gr1(rgpr(rgpr(t, v), rrev(t))));
+    return detail::by_weight_sq(Vec3dp<ctype>(gr1(rgpr(rgpr(t, v), rrev(t)))),
+                                weight_nrm_sq(t));
 }
 
 // reflect a bivector B (a line) in an arbitrary trivector t
-// pre-condition: t must be unitized
+// the target's scale is divided out, so t need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), rrev(t))));
+    return detail::by_weight_sq(BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), rrev(t)))),
+                                weight_nrm_sq(t));
 }
 
 // reflect a trivector t1 (a plane) in an arbitrary trivector t2 (a unitized plane)
-// pre-condition: t2 must be unitized
+// the target's scale is divided out, so t2 need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
                                                          TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), rrev(t2))));
+    return detail::by_weight_sq(TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), rrev(t2)))),
+                                weight_nrm_sq(t2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1043,36 +1048,39 @@ constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
 ////////////////////////////////////////////////////////////////////////////////
 
 // (point-)reflect a point q in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so p need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> invert_on(Vec3dp<T> const& q,
                                                      Vec3dp<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-gr1(rgpr(rgpr(p, q), rrev(p))));
+    return detail::by_weight_sq(Vec3dp<ctype>(-gr1(rgpr(rgpr(p, q), rrev(p)))),
+                                weight_nrm_sq(p));
 }
 
 // (point-)reflect a line l in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so p need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3dp<std::common_type_t<T, U>> invert_on(BiVec3dp<T> const& l,
                                                        Vec3dp<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(p, l), rrev(p))));
+    return detail::by_weight_sq(BiVec3dp<ctype>(-gr2(rgpr(rgpr(p, l), rrev(p)))),
+                                weight_nrm_sq(p));
 }
 
 // (point-)reflect a plane t in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so p need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr TriVec3dp<std::common_type_t<T, U>> invert_on(TriVec3dp<T> const& t,
                                                         Vec3dp<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(p, t), rrev(p))));
+    return detail::by_weight_sq(TriVec3dp<ctype>(-gr3(rgpr(rgpr(p, t), rrev(p)))),
+                                weight_nrm_sq(p));
 }
 
 

@@ -100,6 +100,7 @@ set(HEADERS
     #
     ga_pga2dp_ops_basics.hpp
     ga_pga2dp_ops_products.hpp
+    ga_pga_ops_common.hpp
     ga_pga2dp_ops.hpp
     ga_pga2dp_ops_mechanics.hpp
     ga_pga2dp_ops_constraints.hpp
@@ -175,6 +176,29 @@ define_property(TARGET PROPERTY GA_DIVISION_GUARD_OFF
     FULL_DOCS "Set through ga_division_guard(<target> OFF); see ga/CMakeLists.txt.")
 target_compile_definitions(${LIB_NAME} INTERFACE
     $<$<NOT:$<BOOL:$<TARGET_PROPERTY:GA_DIVISION_GUARD_OFF>>>:_HD_GA_EXTENDED_TEST_DIV_BY_ZERO>)
+
+# THE PROJECTION NORMALIZATION: ON BY DEFAULT, OFF PER TARGET WHERE TARGETS ARE UNIT.
+#
+# The projective projection, reflection, antiprojection and inversion expressions are
+# QUADRATIC in the object projected onto (or reflected/inverted on): the weight dual is
+# linear in it and the meet brings it in a second time. The library divides that scale
+# back out, so scaling a plane by 3 leaves the projection onto it unchanged and the
+# projection plus the rejection add back up to what went in. Without it, a caller who
+# passes a plane straight out of a wedge gets an answer scaled by its weight squared --
+# silently, and correctly only when the target happens to be unitized.
+#
+# The cost is one weight_nrm_sq, a compare and a division. Where a consumer knows its
+# targets are already unitized, the whole step can be dropped for that consumer's
+# targets:
+#
+#     target_compile_definitions(<your target> PRIVATE _HD_GA_FAST_PROJECTION_ON_UNITIZED)
+#
+# It is DELIBERATELY not a cache option and not on by default: correct is the default,
+# fast is a decision. And like the division guard, the choice is per TRANSLATION UNIT
+# (the library is header-only), hence per target and never per file -- two translation
+# units compiled with different settings would define the same inline function
+# differently, an ODR violation the linker resolves silently in favour of whichever it
+# sees first.
 
 # ga_division_guard(<target> ON|OFF): keep (default) or drop the guard for one target.
 function(ga_division_guard target state)

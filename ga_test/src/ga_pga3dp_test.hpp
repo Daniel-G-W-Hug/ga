@@ -5958,6 +5958,188 @@ TEST_SUITE("PGA 3DP Tests")
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // projection / reflection contract (the scale of the object projected ONTO must
+    // not reach the result) and try_unitize
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("PGA3dp: projections do not depend on the target's scale")
+    {
+        fmt::println("PGA3dp: projections do not depend on the target's scale");
+
+        // The expressions are quadratic in the target: the weight dual is linear in it
+        // and the meet brings it in a second time. Without dividing that scale back out,
+        // a plane scaled by 3 scaled the projection onto it by 9 -- silently, and the
+        // rejection (v - projection) then mixed two different scalings and was simply
+        // wrong. These checks fail the moment the division is removed again.
+
+        auto const P = vec3dp{2.0, 1.0, 3.0, 1.0};                            // a point
+        auto const L = wdg(point3d{0.3, -0.7, 0.2}, point3d{1.5, 0.9, -0.4}); // a line
+        auto const T =
+            wdg(wdg(point3d{-1, -1, 0}, point3d{1, -1, 1}), point3d{-1, 1, 1}); // a plane
+        auto const L3 = 3.0 * L; // the SAME line, three times the representation
+        auto const T3 = 3.0 * T; // the SAME plane
+
+        // none of these is unitized -- that is the whole point
+        CHECK(weight_nrm_sq(L) != 1.0);
+        CHECK(weight_nrm_sq(T) != 1.0);
+
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        MESSAGE("skipped: _HD_GA_FAST_PROJECTION_ON_UNITIZED promises unitized targets, "
+                "so target-scale invariance is outside the contract in this build");
+#else
+        SUBCASE("target scale does not reach the result")
+        {
+            CHECK(is_close(project_onto(P, L3), project_onto(P, L)));
+            CHECK(is_close(project_onto(P, T3), project_onto(P, T)));
+            CHECK(is_close(project_onto(L, T3), project_onto(L, T)));
+            CHECK(is_close(reject_from(P, L3), reject_from(P, L)));
+            CHECK(is_close(reject_from(P, T3), reject_from(P, T)));
+            CHECK(is_close(ortho_proj3dp(P, T3), ortho_proj3dp(P, T)));
+            CHECK(is_close(central_proj3dp(P, T3), central_proj3dp(P, T)));
+            CHECK(is_close(ortho_antiproj3dp(T, 3.0 * P), ortho_antiproj3dp(T, P)));
+            CHECK(is_close(reflect_on(P, T3), reflect_on(P, T)));
+            CHECK(is_close(reflect_on(L, T3), reflect_on(L, T)));
+            CHECK(is_close(reflect_on(T, T3), reflect_on(T, T)));
+            CHECK(is_close(invert_on(P, 3.0 * P), invert_on(P, P)));
+            CHECK(is_close(invert_on(L, 3.0 * P), invert_on(L, P)));
+            CHECK(is_close(invert_on(T, 3.0 * P), invert_on(T, P)));
+        }
+
+        SUBCASE("a projection is linear in what is projected")
+        {
+            // the source's scale IS meaningful and must survive: a weighted point stays
+            // weighted, and the weight of a projected line is its foreshortening
+            CHECK(project_onto(2.0 * P, T) == 2.0 * project_onto(P, T));
+            CHECK(project_onto(2.0 * L, T) == 2.0 * project_onto(L, T));
+            CHECK(reflect_on(2.0 * P, T) == 2.0 * reflect_on(P, T));
+        }
+
+        SUBCASE("projection and rejection split the input, and do it correctly")
+        {
+            // v + w == input is TRUE BY CONSTRUCTION (reject_from is defined as the
+            // difference), so it is not the test -- these two are:
+            auto const par = project_onto(P, T);
+            auto const rej = reject_from(P, T);
+            CHECK(wdg(par, T) == pscalar3dp{0.0});           // the part IN the plane
+            CHECK(wdg(rej, r_weight_dual(T)) == bivec3dp{}); // the part ALONG the normal
+        }
+
+        SUBCASE("projecting twice changes nothing")
+        {
+            CHECK(project_onto(project_onto(P, T), T) == project_onto(P, T));
+            CHECK(project_onto(project_onto(P, L), L) == project_onto(P, L));
+            CHECK(project_onto(project_onto(L, T), T) == project_onto(L, T));
+        }
+
+        SUBCASE("an ideal target has no scale to remove and must not divide by zero")
+        {
+            auto const t_inf = trivec3dp{0.0, 0.0, 0.0, 1.0}; // the plane at infinity
+            CHECK(weight_nrm_sq(t_inf) == 0.0);
+            CHECK(project_onto(P, t_inf) == vec3dp{}); // the degenerate answer
+            CHECK(reject_from(P, t_inf) == P);
+        }
+#endif
+    }
+
+    TEST_CASE("PGA3dp: the meet of a line with a plane, then the split of a direction")
+    {
+        fmt::println("PGA3dp: the meet of a line with a plane, then the split of a "
+                     "direction");
+
+        // Three points make a plane, two make a line, and the meet is where they
+        // cross. Every number below is pinned, and none of them survives if the scale of
+        // the object projected ONTO is allowed to reach the result -- which is what this
+        // case exists to catch.
+
+        auto const P1 = point3d{-1.0, -1.0, 0.0};
+        auto const P2 = point3d{1.0, -1.0, 1.0};
+        auto const P3 = point3d{-1.0, 1.0, 1.0};
+        auto const Q1 = point3d{-1.0, 0.5, -1.5};
+        auto const Q2 = point3d{1.0, 0.5, 2.5};
+
+        auto const p = wdg(wdg(P1, P2), P3); // the plane, NOT unitized
+        auto const l = wdg(Q1, Q2);          // the line
+
+        CHECK(p == trivec3dp{-2.0, -2.0, 4.0, -4.0});
+        CHECK(l == bivec3dp{2.0, 0.0, 4.0, 2.0, 1.0, -1.0});
+
+        auto const X = rwdg(l, p); // the meet: a point, weight -12
+        CHECK(X == vec3dp{-6.0, -6.0, -18.0, -12.0});
+        CHECK(try_unitize(X) == vec3dp{0.5, 0.5, 1.5, 1.0});
+
+        // the step from the crossing point up to Q2, split against the plane
+        auto const v = vec3dp{Q2, 1.0} - try_unitize(X);
+        CHECK(v == vec3dp{0.5, 0.0, 1.0, 0.0});
+
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        MESSAGE("skipped: the split is pinned against a NON-unitized plane, which this "
+                "build's caller promise excludes");
+#else
+        auto const v_par = project_onto(v, p);
+        auto const v_perp = reject_from(v, p);
+        CHECK(v_par == vec3dp{0.75, 0.25, 0.5, 0.0});
+        CHECK(v_perp == vec3dp{-0.25, -0.25, 0.5, 0.0});
+        CHECK(v_par + v_perp == v);
+
+        // the same answers from the same plane written three times as large
+        auto const p3 = 3.0 * p;
+        CHECK(project_onto(v, p3) == v_par);
+        CHECK(reject_from(v, p3) == v_perp);
+
+        // the weight of a projected UNIT line is the foreshortening: cos of the angle
+        // between the line and the plane. Unitizing the result would throw that away.
+        auto const lu = unitize(wdg(point3d{0.3, -0.7, 0.2}, point3d{1.5, 0.9, -0.4}));
+        auto const dir = vec3d{lu.vx, lu.vy, lu.vz};
+        auto const n = vec3d{p.x, p.y, p.z};
+        auto const sin_a = std::abs(value_t(ega::dot(dir, n))) /
+                           (value_t(ega::nrm(dir)) * value_t(ega::nrm(n)));
+        CHECK(std::abs(value_t(weight_nrm(project_onto(lu, p))) -
+                       std::sqrt(1.0 - sin_a * sin_a)) < eps);
+#endif
+    }
+
+    TEST_CASE("PGA3dp: try_unitize -- a canonical representative where one exists")
+    {
+        fmt::println(
+            "PGA3dp: try_unitize -- a canonical representative where one exists");
+
+        // unitize() asserts that its argument HAS a weight; try_unitize() is for the
+        // callers to whom an ideal object is a legitimate answer rather than an error:
+        // the meet of two parallel lines, a projected direction, a load-free reaction.
+
+        bool unitized = false;
+
+        auto const P = vec3dp{2.0, 4.0, 6.0, 2.0}; // a point of weight 2
+        CHECK(try_unitize(P, &unitized) == vec3dp{1.0, 2.0, 3.0, 1.0});
+        CHECK(unitized == true);
+
+        auto const D = vec3dp{0.5, 0.0, 1.0, 0.0}; // a direction: weight 0
+        CHECK(try_unitize(D, &unitized) == D);     // returned untouched
+        CHECK(unitized == false);
+
+        // the out-parameter is optional -- the common call does not ask
+        CHECK(try_unitize(D) == D);
+
+        // a line and a plane come back with unit weight
+        auto const L = wdg(point3d{0.3, -0.7, 0.2}, point3d{1.5, 0.9, -0.4});
+        auto const T = wdg(wdg(point3d{-1, -1, 0}, point3d{1, -1, 1}), point3d{-1, 1, 1});
+        CHECK(std::abs(value_t(weight_nrm(try_unitize(L))) - 1.0) < eps);
+        CHECK(std::abs(value_t(weight_nrm(try_unitize(T))) - 1.0) < eps);
+
+        // where it earns its keep: two parallel planes meet in a line at infinity, which
+        // has no canonical representative -- unitize() would throw, try_unitize() does
+        // not
+        auto const T_par = trivec3dp{T.x, T.y, T.z, T.w - 5.0}; // parallel, shifted
+        auto const l_inf = rwdg(T, T_par);
+        CHECK(weight_nrm_sq(l_inf) == 0.0);
+        CHECK(try_unitize(l_inf, &unitized) == l_inf);
+        CHECK(unitized == false);
+
+        // the named types keep their own type through the call
+        CHECK(try_unitize(point3dp{3.0, 6.0, 9.0, 3.0}) == point3dp{1.0, 2.0, 3.0, 1.0});
+    }
+
 } // PGA 3DP Tests
 
 // | ⟑ | U+27D1 | (direct Unicode) | Geometric product |

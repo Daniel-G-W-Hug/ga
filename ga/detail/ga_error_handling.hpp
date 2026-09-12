@@ -135,4 +135,26 @@ inline void check_unitization(T weight_norm, const char* object_type = "multivec
 #endif
 }
 
+// Does an object carry weight, i.e. is it NOT ideal (at infinity)?
+//
+// The question comes up in three places -- unitize()'s precondition (above), the
+// conditional try_unitize(), and the projection normalization that divides a target's
+// scale back out -- so it is answered once, here, and they cannot drift apart.
+//
+// The argument is the SQUARED weight norm (weight_nrm_sq), never the norm: unitize()
+// divides by the norm and refuses below safe_epsilon, and the identical test on the
+// square needs no square root,
+//
+//     weight_nrm > e   <=>   weight_nrm_sq > e * e
+//
+// A threshold placed on the square itself (wsq > e) would be seven orders of magnitude
+// looser and would treat merely small objects as ideal.
+template <typename T>
+    requires(std::floating_point<T>)
+constexpr bool has_weight(T weight_norm_sq) noexcept
+{
+    T const e = safe_epsilon<T>();
+    return weight_norm_sq > e * e;
+}
+
 } // namespace hd::ga::detail

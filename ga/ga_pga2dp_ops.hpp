@@ -8,6 +8,9 @@
 #include "ga_usr_consts.hpp"
 
 
+#include "ga_pga_ops_common.hpp" // detail::by_weight_sq
+
+
 namespace hd::ga::pga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +464,8 @@ constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
                                                         BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(rwdg(B, wdg(v, weight_dual(B)))); // ortho_proj
+    return detail::by_weight_sq(Vec2dp<ctype>(rwdg(B, wdg(v, weight_dual(B)))),
+                                weight_nrm_sq(B)); // ortho_proj
 }
 
 // rejection of vector v from a bivector B (a line)
@@ -510,13 +514,10 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj2dp(arg1&& a, a
     auto p = rwdg(std::forward<arg2>(b),
                   r_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected). Call try_unitize() on the result if a canonical
+    // representative is wanted.
+    return detail::by_weight_sq(p, weight_nrm_sq(b));
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a, arg2&& b)
@@ -527,20 +528,19 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
     auto p = rwdg(std::forward<arg2>(b),
                   r_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    // the expression is quadratic in b: remove b's scale, keep a's (a projection is
+    // linear in what is projected). Call try_unitize() on the result if a canonical
+    // representative is wanted.
+    return detail::by_weight_sq(p, weight_nrm_sq(b));
 }
 
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 {
-    return wdg(std::forward<arg2>(b),
-               r_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    return detail::by_weight_sq(
+        wdg(std::forward<arg2>(b),
+            r_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b))),
+        weight_nrm_sq(b));
 }
 
 
@@ -553,25 +553,27 @@ decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary bivector, i.e. a line
-// pre-condition: B must be unitized, or the object will be scaled as well!
+// the target's scale is divided out, so B need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), rrev(B))));
+    return detail::by_weight_sq(Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), rrev(B)))),
+                                weight_nrm_sq(B));
 }
 
 // reflect a bivector UB in an arbitrary bivector B (both modelling lines)
-// pre-condition: B must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so B need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
                                                         BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), rrev(B))));
+    return detail::by_weight_sq(BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), rrev(B)))),
+                                weight_nrm_sq(B));
 }
 
 
@@ -582,25 +584,27 @@ constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
 ////////////////////////////////////////////////////////////////////////////////
 
 // (point-)reflect a point q in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so p need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
                                                      Vec2dp<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(gr1(rgpr(rgpr(p, q), rrev(p))));
+    return detail::by_weight_sq(Vec2dp<ctype>(gr1(rgpr(rgpr(p, q), rrev(p)))),
+                                weight_nrm_sq(p));
 }
 
 // (point-)reflect a line l in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// the target's scale is divided out, so p need not be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
                                                        Vec2dp<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(gr2(rgpr(rgpr(p, l), rrev(p))));
+    return detail::by_weight_sq(BiVec2dp<ctype>(gr2(rgpr(rgpr(p, l), rrev(p)))),
+                                weight_nrm_sq(p));
 }
 
 

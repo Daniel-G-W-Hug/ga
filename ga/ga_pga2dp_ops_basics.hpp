@@ -1004,6 +1004,78 @@ inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// conditional unitization:
+// unitize an object that carries weight, return an ideal object unchanged
+////////////////////////////////////////////////////////////////////////////////
+
+// unitize() ASSERTS that its argument has a weight: it divides by the weight norm and
+// throws under _HD_GA_EXTENDED_TEST_DIV_BY_ZERO when that norm is too small. That
+// assertion is worth keeping, so this is a separate function rather than a softer
+// unitize(): it is for the callers to whom an ideal object (a point, line or plane at
+// infinity) is a legitimate input which simply has no canonical representative -- the
+// meet of two parallel lines, the projection of a direction, a load-free reaction.
+//
+// postcondition: weight_nrm(result) == 1, or the object is returned untouched because
+//                it carries no weight
+//
+// unitized_out reports which of the two happened; pass nullptr (or omit it) when the
+// answer is not needed -- the test itself costs nothing, reading it is the caller's
+// choice, following the same convention as the solvers' rank_out.
+//
+// "Has weight" is decided exactly as unitize() decides it -- weight_nrm > safe_epsilon
+// -- written on the square so no square root is needed (weight_nrm > e <=> wsq > e*e).
+// The two therefore never disagree: this function never hands unitize() an argument
+// that unitize() would refuse.
+//
+// The wsq == 1 comparison is a fast path only. weight_nrm_sq returns a plain scalar, so
+// it is an exact comparison: an object that is unit only to within rounding takes the
+// division anyway, which changes nothing because it divides by 1 +/- an ulp.
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2dp<T> try_unitize(Vec2dp<T> const& v, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(v));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(v);
+    return v;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec2dp<T> try_unitize(BiVec2dp<T> const& B, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(B));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(B);
+    return B;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Point2dp<T> try_unitize(Point2dp<T> const& p, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(p));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(p);
+    return p;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Line2d<T> try_unitize(Line2d<T> const& l, bool* unitized_out = nullptr)
+{
+    T const wsq = T(weight_nrm_sq(l));
+    bool const weighted = hd::ga::detail::has_weight(wsq);
+    if (unitized_out) *unitized_out = weighted;
+    if (weighted && (wsq != T(1.0))) return unitize(l);
+    return l;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // bulk_dual(A) = cmpl(bulk(A)) = cmpl( metric * A )
 //
 // -> complement operation applied to the bulk
