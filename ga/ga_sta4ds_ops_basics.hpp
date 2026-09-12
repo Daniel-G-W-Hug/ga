@@ -694,70 +694,102 @@ constexpr T nrm_sq(MVec4ds<T> const& M)
 // (grade n) are excluded by design; mixed-grade multivectors are omitted too.
 ////////////////////////////////////////////////////////////////////////////////
 
+// THE THRESHOLD IS RELATIVE, and it has to be. B^2 grows with the components SQUARED, so
+// "B^2 == 0" as an exact test answers false for every null blade that was computed rather
+// than typed: a null vector boosted by any amount comes back with B^2 ~ -9e-16 at unit
+// scale and ~ -4e-6 at 1e6, and the strict > / < of the other two predicates then
+// classify it by the SIGN OF THE ROUNDING NOISE. Dividing by the sum of the squared
+// components makes the trichotomy exactly scale-invariant -- both quantities are
+// quadratic -- and it is the same gauge is_simple() uses, for the same reason.
+//
+// The three predicates stay mutually exclusive and exhaustive: timelike above +tol*scale,
+// spacelike below -tol*scale, lightlike in between.
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_causal_scale(Vec4ds<T> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_causal_scale(BiVec4ds<T> const& B)
+{
+    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my +
+           B.mz * B.mz;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_causal_scale(TriVec4ds<T> const& t)
+{
+    return t.x * t.x + t.y * t.y + t.z * t.z + t.w * t.w;
+}
+
 // is_timelike(u): B^2 = gr0(u*u) > 0
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_timelike(Vec4ds<T> const& v)
+constexpr bool is_timelike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(v) > T(0.0);
+    return detail::sta4ds_geom_sq(v) > rel_tol * sta4ds_causal_scale(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_timelike(BiVec4ds<T> const& B)
+constexpr bool is_timelike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(B) > T(0.0);
+    return detail::sta4ds_geom_sq(B) > rel_tol * sta4ds_causal_scale(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_timelike(TriVec4ds<T> const& t)
+constexpr bool is_timelike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(t) > T(0.0);
+    return detail::sta4ds_geom_sq(t) > rel_tol * sta4ds_causal_scale(t);
 }
 
 // is_spacelike(u): B^2 = gr0(u*u) < 0
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_spacelike(Vec4ds<T> const& v)
+constexpr bool is_spacelike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(v) < T(0.0);
+    return detail::sta4ds_geom_sq(v) < -rel_tol * sta4ds_causal_scale(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_spacelike(BiVec4ds<T> const& B)
+constexpr bool is_spacelike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(B) < T(0.0);
+    return detail::sta4ds_geom_sq(B) < -rel_tol * sta4ds_causal_scale(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_spacelike(TriVec4ds<T> const& t)
+constexpr bool is_spacelike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(t) < T(0.0);
+    return detail::sta4ds_geom_sq(t) < -rel_tol * sta4ds_causal_scale(t);
 }
 
 // is_lightlike(u): B^2 = gr0(u*u) == 0 (null)
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_lightlike(Vec4ds<T> const& v)
+constexpr bool is_lightlike(Vec4ds<T> const& v, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(v) == T(0.0);
+    return std::abs(detail::sta4ds_geom_sq(v)) <= rel_tol * sta4ds_causal_scale(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_lightlike(BiVec4ds<T> const& B)
+constexpr bool is_lightlike(BiVec4ds<T> const& B, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(B) == T(0.0);
+    return std::abs(detail::sta4ds_geom_sq(B)) <= rel_tol * sta4ds_causal_scale(B);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr bool is_lightlike(TriVec4ds<T> const& t)
+constexpr bool is_lightlike(TriVec4ds<T> const& t, T rel_tol = T(eps_congruent))
 {
-    return detail::sta4ds_geom_sq(t) == T(0.0);
+    return std::abs(detail::sta4ds_geom_sq(t)) <= rel_tol * sta4ds_causal_scale(t);
 }
 
 

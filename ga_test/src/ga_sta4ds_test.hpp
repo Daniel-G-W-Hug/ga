@@ -275,6 +275,53 @@ TEST_SUITE("STA 3D Tests")
     // causal character, nrm and normalization of blades
     ////////////////////////////////////////////////////////////////////////////////
 
+    TEST_CASE("G<1,3,0>: causal character survives a transform")
+    {
+        fmt::println("G<1,3,0>: causal character survives a transform");
+
+        // A boost maps the light cone onto itself, so a null vector stays null. B^2 is
+        // quadratic in the components, so testing it against an absolute epsilon (or, as
+        // before, against exact zero) answers false for every null blade that was
+        // COMPUTED rather than typed -- and since is_timelike/is_spacelike use strict
+        // comparisons, such a vector is then classified by the sign of the rounding.
+
+        auto const n = vec4ds{1.0, 0.0, 0.0, 1.0}; // exactly null
+        CHECK(is_lightlike(n));
+        CHECK(!is_timelike(n));
+        CHECK(!is_spacelike(n));
+
+        auto const B = bivec4ds(wdg(g1_4ds, g4_4ds)); // the boost plane
+        for (double phi : {0.1, 0.5, 1.0, 2.0}) {
+            auto const nb = vec4ds(transform(n, get_boost(B, phi)));
+            INFO("phi = ", phi, "  B^2 = ", value_t(hd::ga::detail::sta4ds_geom_sq(nb)));
+            CHECK(is_lightlike(nb));
+            CHECK(!is_timelike(nb));
+            CHECK(!is_spacelike(nb));
+            // normalize() returns a null blade unchanged; without the relative test it
+            // would divide by nrm = sqrt(|B^2|) ~ 1e-8 and amplify the rounding by 1e8
+            CHECK(normalize(nb) == nb);
+        }
+
+        // and at a physical scale, where the residue is far above any absolute epsilon
+        for (double s : {1.0e3, 1.0e6, 6.371e6}) {
+            auto const ns = vec4ds{1.0 * s, 0.0, 0.0, 1.0 * s};
+            auto const nb = vec4ds(transform(ns, get_boost(B, 0.5)));
+            INFO("scale = ", s, "  B^2 = ", value_t(hd::ga::detail::sta4ds_geom_sq(nb)));
+            CHECK(is_lightlike(nb));
+            CHECK(normalize(nb) == nb);
+        }
+
+        // a genuinely timelike and a genuinely spacelike vector are unaffected
+        CHECK(is_timelike(g4_4ds));
+        CHECK(is_spacelike(g1_4ds));
+        CHECK(!is_lightlike(g4_4ds));
+        CHECK(!is_lightlike(g1_4ds));
+        for (double s : {1.0e3, 1.0e6}) {
+            CHECK(is_timelike(vec4ds{0.0, 0.0, 0.0, s}));
+            CHECK(is_spacelike(vec4ds{s, 0.0, 0.0, 0.0}));
+        }
+    }
+
     TEST_CASE("G<1,3,0>: causal character, nrm and normalization of blades")
     {
         fmt::println("G<1,3,0>: causal character, nrm and normalization of blades");

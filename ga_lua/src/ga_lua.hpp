@@ -4494,20 +4494,38 @@ void register_functions(sol::state& lua)
         "get_boost",
         sol::overload(sol::resolve<mvec4ds_e(bivec4ds const&, value_t)>(get_boost)));
 
-    sta.set_function("is_lightlike",
-                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_lightlike),
-                                   sol::resolve<bool(bivec4ds const&)>(is_lightlike),
-                                   sol::resolve<bool(trivec4ds const&)>(is_lightlike)));
+    // the causal predicates take their tolerance explicitly as a second argument, like
+    // is_congruent; the one-argument form keeps the default (eps_congruent)
+    sta.set_function(
+        "is_lightlike",
+        sol::overload([](vec4ds const& v) { return is_lightlike(v); },
+                      [](bivec4ds const& B) { return is_lightlike(B); },
+                      [](trivec4ds const& t) { return is_lightlike(t); },
+                      sol::resolve<bool(vec4ds const&, value_t)>(is_lightlike),
+                      sol::resolve<bool(bivec4ds const&, value_t)>(is_lightlike),
+                      sol::resolve<bool(trivec4ds const&, value_t)>(is_lightlike)));
 
-    sta.set_function("is_spacelike",
-                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_spacelike),
-                                   sol::resolve<bool(bivec4ds const&)>(is_spacelike),
-                                   sol::resolve<bool(trivec4ds const&)>(is_spacelike)));
+    // the causal predicates take their tolerance explicitly as a second argument, like
+    // is_congruent; the one-argument form keeps the default (eps_congruent)
+    sta.set_function(
+        "is_spacelike",
+        sol::overload([](vec4ds const& v) { return is_spacelike(v); },
+                      [](bivec4ds const& B) { return is_spacelike(B); },
+                      [](trivec4ds const& t) { return is_spacelike(t); },
+                      sol::resolve<bool(vec4ds const&, value_t)>(is_spacelike),
+                      sol::resolve<bool(bivec4ds const&, value_t)>(is_spacelike),
+                      sol::resolve<bool(trivec4ds const&, value_t)>(is_spacelike)));
 
-    sta.set_function("is_timelike",
-                     sol::overload(sol::resolve<bool(vec4ds const&)>(is_timelike),
-                                   sol::resolve<bool(bivec4ds const&)>(is_timelike),
-                                   sol::resolve<bool(trivec4ds const&)>(is_timelike)));
+    // the causal predicates take their tolerance explicitly as a second argument, like
+    // is_congruent; the one-argument form keeps the default (eps_congruent)
+    sta.set_function(
+        "is_timelike",
+        sol::overload([](vec4ds const& v) { return is_timelike(v); },
+                      [](bivec4ds const& B) { return is_timelike(B); },
+                      [](trivec4ds const& t) { return is_timelike(t); },
+                      sol::resolve<bool(vec4ds const&, value_t)>(is_timelike),
+                      sol::resolve<bool(bivec4ds const&, value_t)>(is_timelike),
+                      sol::resolve<bool(trivec4ds const&, value_t)>(is_timelike)));
 
     sta.set_function("l_undual",
                      sol::overload(sol::resolve<pscalar4ds(scalar4ds)>(l_undual),

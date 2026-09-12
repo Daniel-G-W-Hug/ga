@@ -1,7 +1,7 @@
 """Euclidean geometric algebra (2D, 3D)"""
 
 from collections.abc import Sequence
-from typing import Annotated, overload
+from typing import Annotated, Any, overload
 
 import numpy
 from numpy.typing import NDArray
@@ -3487,3 +3487,9 @@ yz_3d: bivec3d = ...
 z_dir_3d: vec3d = ...
 
 zx_3d: bivec3d = ...
+
+
+# Pure-Python forwarders injected at import time from ga_py/__init__.py
+# (typed loosely — return type depends on the (a, b) combination at the call site)
+
+def ortho_proj3d(a: Any, b: Any) -> Any: ...

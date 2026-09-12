@@ -135,19 +135,27 @@ void register_functions_sta(nb::module_& m)
     m.def("is_congruent", [](pscalar4ds const& a0, pscalar4ds const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
-    m.def("is_lightlike", [](vec4ds const& a0) { return is_lightlike(a0); });
-    m.def("is_lightlike", [](bivec4ds const& a0) { return is_lightlike(a0); });
-    m.def("is_lightlike", [](trivec4ds const& a0) { return is_lightlike(a0); });
+    m.def("is_lightlike",
+          [](vec4ds const& a0, double a1) { return is_lightlike(a0, a1); });
+    m.def("is_lightlike",
+          [](bivec4ds const& a0, double a1) { return is_lightlike(a0, a1); });
+    m.def("is_lightlike",
+          [](trivec4ds const& a0, double a1) { return is_lightlike(a0, a1); });
     m.def("is_same_transform", [](mvec4ds_e const& a0, mvec4ds_e const& a1, double a2) {
         return is_same_transform(a0, a1, a2);
     });
     m.def("is_simple", [](bivec4ds const& a0, double a1) { return is_simple(a0, a1); });
-    m.def("is_spacelike", [](vec4ds const& a0) { return is_spacelike(a0); });
-    m.def("is_spacelike", [](bivec4ds const& a0) { return is_spacelike(a0); });
-    m.def("is_spacelike", [](trivec4ds const& a0) { return is_spacelike(a0); });
-    m.def("is_timelike", [](vec4ds const& a0) { return is_timelike(a0); });
-    m.def("is_timelike", [](bivec4ds const& a0) { return is_timelike(a0); });
-    m.def("is_timelike", [](trivec4ds const& a0) { return is_timelike(a0); });
+    m.def("is_spacelike",
+          [](vec4ds const& a0, double a1) { return is_spacelike(a0, a1); });
+    m.def("is_spacelike",
+          [](bivec4ds const& a0, double a1) { return is_spacelike(a0, a1); });
+    m.def("is_spacelike",
+          [](trivec4ds const& a0, double a1) { return is_spacelike(a0, a1); });
+    m.def("is_timelike", [](vec4ds const& a0, double a1) { return is_timelike(a0, a1); });
+    m.def("is_timelike",
+          [](bivec4ds const& a0, double a1) { return is_timelike(a0, a1); });
+    m.def("is_timelike",
+          [](trivec4ds const& a0, double a1) { return is_timelike(a0, a1); });
     m.def("l_cmpl", [](scalar4ds const& a0) { return l_cmpl(a0); });
     m.def("l_cmpl", [](vec4ds const& a0) { return l_cmpl(a0); });
     m.def("l_cmpl", [](bivec4ds const& a0) { return l_cmpl(a0); });
@@ -354,6 +362,12 @@ void register_functions_sta(nb::module_& m)
     m.def("space_split",
           [](vec4ds const& a0, vec4ds const& a1) { return space_split(a0, a1); });
     m.def("sqrt", [](mvec4ds_e const& a0) { return sqrt(a0); });
+    m.def("sta4ds_causal_scale",
+          [](vec4ds const& a0) { return sta4ds_causal_scale(a0); });
+    m.def("sta4ds_causal_scale",
+          [](bivec4ds const& a0) { return sta4ds_causal_scale(a0); });
+    m.def("sta4ds_causal_scale",
+          [](trivec4ds const& a0) { return sta4ds_causal_scale(a0); });
     m.def("time_split",
           [](vec4ds const& a0, vec4ds const& a1) { return time_split(a0, a1); });
     m.def("transform",

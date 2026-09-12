@@ -233,3 +233,16 @@
            the types that can fail are tested. It immediately found two places in this
            repository's own tests that projected onto a non-blade, one of them l1 + l2 --
            the sum of two lines, which in 4d is not a line
+- 2026/09: the STA causal predicates are RELATIVE too. is_lightlike() tested B^2 == 0
+           EXACTLY, so a null vector that was computed rather than typed was never null:
+           boosting one leaves B^2 ~ -9e-16 at unit scale and ~ -4e-6 at 1e6, and since
+           is_timelike/is_spacelike used strict comparisons, such a vector was classified
+           by the SIGN OF THE ROUNDING. normalize() then divided it by nrm ~ 1e-8 instead
+           of returning it unchanged, amplifying that rounding by eight orders of
+           magnitude. The three now share one threshold relative to the sum of the squared
+           components (the same gauge is_simple uses, and exactly scale-invariant since
+           both quantities are quadratic), stay mutually exclusive and exhaustive, and
+           take the tolerance as a parameter defaulting to eps_congruent. log() and
+           angle() / rapidity() improve with them: a near-null plane now takes the branch
+           whose limit is exp(B) = 1 + B, and near-null arguments are rejected instead of
+           returning an ill-conditioned number
