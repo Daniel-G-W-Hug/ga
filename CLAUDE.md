@@ -1194,6 +1194,103 @@ budget in ulps at magnitudes 1, 1e3, 1e6 and 6.371e6.
   EGA/STA forms compare where the basis directions land; the PGA form also compares the
   origin's image, since a motion translates.
 
+## Projections and rejections: the contract, the sign trap, and when a rejection is a blade
+
+**The contract (one sentence): the scale of the object projected ONTO is divided out, the
+scale of what is projected is kept.** So `f(a, λb) == f(a, b)` and `f(μa, b) == μ f(a, b)`
+for every projection, rejection, reflection, antiprojection and inversion. The projective
+expression is QUADRATIC in the target — the dual is linear in it and the meet brings it in
+a second time — so the division is written out: by `nrm_sq(b)` in EGA/STA, and in PGA by
+`detail::by_weight_sq(result, weight_nrm_sq(target))`, which
+`_HD_GA_FAST_PROJECTION_ON_UNITIZED` removes per translation unit when a consumer knows
+its targets are unit (see `ga/CMakeLists.txt`). Without it a plane straight out of a wedge
+scales the projection onto it by its weight squared, silently. Every algebra has a
+`"<alg>: the projection contract"` / `"projections do not depend on the target's scale"`
+test case pinning both contracts, containment, idempotence and the degenerate target.
+
+**TWO expressions, the same two in EVERY algebra, and no grade-dependent signs anywhere
+(decided 2026-09-12).**
+
+| case | expression | why this one |
+| ---- | ---------- | ------------ |
+| `gr(a) != gr(b)` | Lengyel's `b ∨ (a ∧ dual(b))` over the target's squared norm — `rwdg(b, wdg(a, dual(b)))`, the **weight** dual + `weight_nrm_sq` in PGA (degenerate metric), the **metric** dual (`r_dual`) + `nrm_sq` in EGA/STA | no reversion in wedge, antiwedge or dual, hence no sign at any grade pair; no inverse, which PGA could not supply; and the faster one — the classical product materialises grades that are then discarded |
+| `gr(a) == gr(b)` | `dot(a, b) / nrm_sq(b) * b` | the projection onto a blade of its own grade can only be a multiple of it, so there is no sign to get wrong either; and a dot, a division and a scaling beat a dual plus two products. Lengyel's form would serve here too, just slower |
+
+**The alternative is the classical `(b >> a) * inv(b)`, and it does — which is why it is
+not used.** Both of its operations carry a reversion: the contractions take `rev(a)` and
+not `a` (the convention that makes `dot(A,A)` positive definite), and `inv(b) =
+rev(b)/nrm_sq(b)`. On a blade the reversion is a scalar, so the correct classical form is
+
+```text
+P_b(a) = (-1)^(j(j-1)/2) * (b >> a) * inv(b)        j = gr(a)
+```
+
+`+1` up to grade one, `−1` at grades two and three, `+1` again at four. **A sign like that
+is the thing that gets written wrong**, because nothing obvious catches it: the negated
+result still lies in `b`, still satisfies both scaling contracts, and still sums with its
+rejection to `a`. Only **idempotence** separates them — without the sign, projecting `b`
+onto itself returns `rev(b)`. Both forms were verified against each other over every
+`(j,k)` pair in ega3d and sta4ds (~370 random blade pairs per cell, agreement to
+`6.6e-14`, against an outermorphism reference `P(a∧b) = P(a)∧P(b)` that uses neither
+formula), and the sign was shown necessary by forcing it to `+1`, which fails in exactly
+the `−1` cells.
+
+**The projective form is also the faster one wherever the grades differ**, because the
+classical expression materialises grades that are then discarded (`(t >> v) * inv(t)`
+builds grades 1 and 3 to keep grade 1). Measured, `-O3`, separate binaries per
+formulation, all result components consumed:
+
+| case | classical | projective |
+| ---- | --------- | ---------- |
+| sta4ds vec → bivec | 8.40 ns | **2.07 ns** |
+| sta4ds vec → trivec | 5.03 ns | **1.60 ns** |
+| ega3d vec → bivec | 1.21–1.54 ns | 1.15–1.36 ns |
+| sta4ds bivec → trivec | 1.83 ns | 1.87 ns |
+| ega3d bivec → bivec (equal grades) | **0.76–0.80 ns** | 0.85–0.98 ns |
+
+The last row is why the equal-grade case keeps its own direct expression: `dot * inv` is
+three multiplies and a reciprocal, and dual + wedge + antiwedge cannot beat it — and there
+is no sign to avoid there anyway.
+
+**A target that is not a BLADE is outside the contract, and only 4d and up can produce
+one.** `bivec4ds{1,0.5,2,0.25,3,1}` has `wdg(B,B) = 7.5`, so it spans no 2-plane: the two
+formulations then return different answers and the classical one is not even idempotent —
+neither is a projection, because there is nothing to project onto. In 3d, and for any
+hyperplane target, simplicity is automatic and the question cannot arise, which is why
+every overload the library provides is unaffected. The SOURCE is free: both expressions
+are linear in it, so a non-simple grade-`j` source projects as the sum of its blade parts
+and carries the same sign (measured: `P(W1) + P(W2) == P(W)`).
+
+**When `rejection = source - projection` is still a geometric object.** For a vector the
+difference is exact and orthogonal, because the space splits in two. At grade ≥ 2 it
+splits in THREE — `Λ²V = Λ²B ⊕ (B ∧ B⊥) ⊕ Λ²B⊥` — and the projection catches only the
+first summand, so the remainder sweeps up the mixed part as well. Whether that remainder
+is a blade depends on ONE thing: **is the target a hyperplane?** If the complement is
+1-dimensional, `Λ²B⊥ = 0`, only two summands survive, and every element of `B ∧ n` is
+simple. Measured over 2000 random cases each (`wdg(B, B) == 0` is simplicity in 4d):
+
+| case | complement | rejection simple? |
+| --- | --- | --- |
+| pga3dp line → plane | 1D | always (`4e-16`) |
+| sta4ds 2-plane → hyperplane | 1D | always (`7e-15`) |
+| ega3d bivector → bivector | 1D (and every 3d bivector is simple) | always |
+| sta4ds bivector → bivector | 2D | **never** (2000 of 2000 non-simple) |
+
+That last row is why the grade matrix has no bivector-onto-bivector pair in a 4d algebra,
+and it is a semantics decision rather than a missing cell: the alternative definition
+(project onto the complement) loses the mixed part, so `proj + rej != A` there — for
+`A = g13` with target `g12`, BOTH projections are zero while `A` is not. Filling those
+cells needs a decision about what "rejection" should mean, like `reflect_on` with a line
+target in PGA (a half-turn, not a mirror).
+
+**What a projective rejection IS, concretely (pga3dp, line from plane):** the line through
+the point where the original line pierces the plane, perpendicular to the plane —
+`rwdg(reject_from(B, t), t) == rwdg(B, t)` because the projection lies in the plane and
+contributes nothing to the meet, and `is_congruent(rej, r_weight_expand3dp(unitize(rwdg(B,
+t)), t))`. A line IN the plane rejects to zero, one already perpendicular to itself, and a
+line PARALLEL to it has no piercing point — there the rejection loses its attitude and
+what is left is an ideal bivector carrying the offset.
+
 ## Inverses: `inv()` (geometric) vs `rinv()` (regressive)
 
 Two distinct multiplicative inverses live in `*_ops_products.hpp`:
