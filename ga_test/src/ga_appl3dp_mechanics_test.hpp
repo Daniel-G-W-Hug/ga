@@ -4663,8 +4663,8 @@ TEST_SUITE("PGA3DP: coordinate transformation")
         auto const ua = normalize(ecef3(A));
         auto const ub = normalize(ecef3(B));
 
-        auto const Bpl = wdg(ua, ub);                      // the plane, as a bivector
-        auto const Bhat = Bpl * (1.0 / value_t(nrm(Bpl))); // its unit bivector
+        auto const Bpl = wdg(ua, ub);             // the plane, as a bivector
+        auto const Bhat = Bpl * (1.0 / nrm(Bpl)); // its unit bivector
         value_t const theta = angle(ua, ub);
 
         auto prev = ell_project(ua, el);
@@ -4673,7 +4673,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             value_t const t = theta * value_t(i) / value_t(n_seg);
             auto const d = rotate(ua, exp(-Bhat * (0.5 * t))); // the rotor sweep
             auto const P = ell_project(d, el);
-            L += value_t(nrm(P - prev));
+            L += nrm(P - prev);
             prev = P;
         }
         return L;
@@ -4696,7 +4696,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
 
         for (size_t rk = 1; rk <= 4; ++rk) {
             auto const g = ell_G(u_mem[0], el);
-            value_t const ng = value_t(nrm(g));
+            value_t const ng = nrm(g);
             rhs_mem[0] = u_mem[1];
             rhs_mem[1] = g * (-value_t(dot(u_mem[1], ell_G(u_mem[1], el))) / (ng * ng));
             rk4_step(u, uh, rhs, ds, rk);
@@ -4741,7 +4741,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             cl_min = std::min(cl_min, cl);
             cl_max = std::max(cl_max, cl);
 
-            value_t const d = value_t(nrm(P - B));
+            value_t const d = nrm(P - B);
             if (d < best.miss) {
                 best = geodesic_shot{s, 0.0, d, P, T, 0.0};
             }
@@ -4809,7 +4809,7 @@ TEST_SUITE("PGA3DP: coordinate transformation")
             auto const ua = normalize(A);
             auto const ub = normalize(Bm);
             auto const Bpl = wdg(ua, ub);
-            auto const Bhat = Bpl * (1.0 / value_t(nrm(Bpl)));
+            auto const Bhat = Bpl * (1.0 / nrm(Bpl));
             value_t const theta = angle(ua, ub);
 
             // at t = theta the rotor has carried the start direction onto the end one

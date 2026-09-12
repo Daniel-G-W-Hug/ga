@@ -145,7 +145,7 @@ template <typename F>
 inline auto nabla(F&& f, Vec4ds<value_t> const& x, fd_scheme const& sc,
                   value_t h = value_t(0.0))
 {
-    if (h <= value_t(0.0)) h = fd_step(sc, value_t(nrm(x)));
+    if (h <= value_t(0.0)) h = fd_step(sc, nrm(x));
 
     MVec4ds<value_t> acc{};
     for (int mu = 0; mu < 4; ++mu) {
@@ -224,7 +224,7 @@ template <typename F>
 inline auto dalembertian(F&& f, Vec4ds<value_t> const& x, fd_scheme const& sc,
                          value_t h = value_t(0.0))
 {
-    if (h <= value_t(0.0)) h = fd_step(sc, value_t(nrm(x)));
+    if (h <= value_t(0.0)) h = fd_step(sc, nrm(x));
 
     MVec4ds<value_t> acc{};
     for (int mu = 0; mu < 4; ++mu) {

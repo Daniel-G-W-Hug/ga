@@ -925,6 +925,32 @@ void register_functions_cga(nb::module_& m)
     m.def("rrev", [](mvec3dc const& a0) { return rrev(a0); });
     m.def("rsqrt", [](mvec2dc_e const& a0) { return rsqrt(a0); });
     m.def("rsqrt", [](mvec3dc_u const& a0) { return rsqrt(a0); });
+    m.def("rtwdg1",
+          [](trivec2dc const& a0, trivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec2dc const& a0, bivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec2dc const& a0, trivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](trivec2dc const& a0, vec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](vec2dc const& a0, trivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec2dc const& a0, scalar2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](scalar2dc const& a0, trivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec2dc const& a0, bivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](bivec2dc const& a0, vec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](vec2dc const& a0, bivec2dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec3dc const& a0, trivec3dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](trivec3dc const& a0, bivec3dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec3dc const& a0, trivec3dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](trivec3dc const& a0, vec3dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1", [](vec3dc const& a0, trivec3dc const& a1) { return rtwdg1(a0, a1); });
+    m.def("rtwdg1",
+          [](bivec3dc const& a0, bivec3dc const& a1) { return rtwdg1(a0, a1); });
     m.def("rwdg", [](mvec2dc const& a0, mvec2dc const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](mvec2dc const& a0, mvec2dc_e const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](mvec2dc_e const& a0, mvec2dc const& a1) { return rwdg(a0, a1); });
@@ -1093,6 +1119,26 @@ void register_functions_cga(nb::module_& m)
           [](trivec3dc const& a0, mvec3dc_u const& a1) { return transform(a0, a1); });
     m.def("transform",
           [](quadvec3dc const& a0, mvec3dc_u const& a1) { return transform(a0, a1); });
+    m.def("twdg1", [](pscalar2dc const& a0, vec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec2dc const& a0, pscalar2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](trivec2dc const& a0, vec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec2dc const& a0, trivec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](trivec2dc const& a0, bivec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec2dc const& a0, trivec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec2dc const& a0, bivec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec2dc const& a0, vec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec2dc const& a0, bivec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec2dc const& a0, vec2dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](pscalar3dc const& a0, vec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec3dc const& a0, pscalar3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](trivec3dc const& a0, vec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec3dc const& a0, trivec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](trivec3dc const& a0, bivec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec3dc const& a0, trivec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec3dc const& a0, bivec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](bivec3dc const& a0, vec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec3dc const& a0, bivec3dc const& a1) { return twdg1(a0, a1); });
+    m.def("twdg1", [](vec3dc const& a0, vec3dc const& a1) { return twdg1(a0, a1); });
     m.def("two_link_ik2dc",
           [](double a0, double a1, double a2, double a3, double a4, double a5) {
               return two_link_ik2dc(a0, a1, a2, a3, a4, a5);

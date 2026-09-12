@@ -331,18 +331,18 @@ TEST_SUITE("STA 3D Tests")
         trivec4ds t{1.0, 2.0, 3.0, 4.0};
         pscalar4ds ps{11.0};
 
-        CHECK(value_t(nrm(s)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(s)))));
-        CHECK(value_t(nrm(v)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(v)))));
-        CHECK(value_t(nrm(B)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(B)))));
-        CHECK(value_t(nrm(t)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(t)))));
-        CHECK(value_t(nrm(ps)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(ps)))));
+        CHECK(nrm(s) == doctest::Approx(std::sqrt(std::abs(nrm_sq(s)))));
+        CHECK(nrm(v) == doctest::Approx(std::sqrt(std::abs(nrm_sq(v)))));
+        CHECK(nrm(B) == doctest::Approx(std::sqrt(std::abs(nrm_sq(B)))));
+        CHECK(nrm(t) == doctest::Approx(std::sqrt(std::abs(nrm_sq(t)))));
+        CHECK(nrm(ps) == doctest::Approx(std::sqrt(std::abs(nrm_sq(ps)))));
         // scalar / pseudoscalar magnitude is just |coeff|
-        CHECK(value_t(nrm(s)) == doctest::Approx(3.0));
-        CHECK(value_t(nrm(ps)) == doctest::Approx(11.0));
+        CHECK(nrm(s) == doctest::Approx(3.0));
+        CHECK(nrm(ps) == doctest::Approx(11.0));
         // null blades have zero magnitude
-        CHECK(value_t(nrm(vl)) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(Bl)) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(tl)) == doctest::Approx(0.0));
+        CHECK(nrm(vl) == doctest::Approx(0.0));
+        CHECK(nrm(Bl) == doctest::Approx(0.0));
+        CHECK(nrm(tl) == doctest::Approx(0.0));
 
         // ---- normalize(): scales to nrm_sq == sign(nrm_sq) == +/-1, lightlike unchanged
         // direction is preserved (scale = 1/nrm > 0, never flips sign). The resulting
@@ -406,19 +406,19 @@ TEST_SUITE("STA 3D Tests")
 
         // vector  (v * inv(v) -> even-grade multivector)
         CHECK(value_t(gr0(v1 * inv(v1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr2(v1 * inv(v1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(v1 * inv(v1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(v1 * inv(v1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(v1 * inv(v1))) == doctest::Approx(0.0));
+        CHECK(nrm(inv(v1) - rev(v1) / nrm_sq(v1)) == doctest::Approx(0.0));
 
         // bivector
         CHECK(value_t(gr0(b1 * inv(b1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr2(b1 * inv(b1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(b1 * inv(b1)))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(b1 * inv(b1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(b1 * inv(b1))) == doctest::Approx(0.0));
 
         // trivector
         CHECK(value_t(gr0(t1 * inv(t1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr2(t1 * inv(t1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(t1 * inv(t1)))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(t1 * inv(t1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(t1 * inv(t1))) == doctest::Approx(0.0));
 
         // pseudoscalar (invertible: non-degenerate metric, I_4ds^2 = -1)
         CHECK(value_t(ps1 * inv(ps1)) == doctest::Approx(1.0));
@@ -426,20 +426,20 @@ TEST_SUITE("STA 3D Tests")
 
         // even-grade multivector
         CHECK(value_t(gr0(mve1 * inv(mve1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr2(mve1 * inv(mve1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(mve1 * inv(mve1)))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(mve1 * inv(mve1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(mve1 * inv(mve1))) == doctest::Approx(0.0));
 
         // odd-grade multivector (u * inv(u) -> even-grade multivector)
         CHECK(value_t(gr0(mvu1 * inv(mvu1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr2(mvu1 * inv(mvu1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(mvu1 * inv(mvu1)))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(mvu1 * inv(mvu1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(mvu1 * inv(mvu1))) == doctest::Approx(0.0));
 
         // full multivector (left and right inverse coincide)
         CHECK(value_t(gr0(mv1 * inv(mv1))) == doctest::Approx(1.0));
-        CHECK(value_t(nrm(gr1(mv1 * inv(mv1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr2(mv1 * inv(mv1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr3(mv1 * inv(mv1)))) == doctest::Approx(0.0));
-        CHECK(value_t(nrm(gr4(mv1 * inv(mv1)))) == doctest::Approx(0.0));
+        CHECK(nrm(gr1(mv1 * inv(mv1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr2(mv1 * inv(mv1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr3(mv1 * inv(mv1))) == doctest::Approx(0.0));
+        CHECK(nrm(gr4(mv1 * inv(mv1))) == doctest::Approx(0.0));
         CHECK(value_t(gr0(inv(mv1) * mv1)) == doctest::Approx(1.0)); // left inverse
     }
 
@@ -626,10 +626,10 @@ TEST_SUITE("STA 3D Tests")
             auto const B = a * g12_4ds;
             auto const R = exp(B);
             auto const B_back = log(R);
-            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0)); // recovers generator
+            CHECK(nrm(B_back - B) == doctest::Approx(0.0)); // recovers generator
             auto const R_back = exp(B_back);
             CHECK(value_t(gr0(R_back)) == doctest::Approx(value_t(gr0(R))));
-            CHECK(value_t(nrm(gr2(R_back) - gr2(R))) == doctest::Approx(0.0));
+            CHECK(nrm(gr2(R_back) - gr2(R)) == doctest::Approx(0.0));
         }
 
         // b) boosts: timelike plane g14 (B^2 > 0), rapidity a
@@ -637,18 +637,18 @@ TEST_SUITE("STA 3D Tests")
             auto const B = a * g14_4ds;
             auto const R = exp(B);
             auto const B_back = log(R);
-            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0));
+            CHECK(nrm(B_back - B) == doctest::Approx(0.0));
             auto const R_back = exp(B_back);
             CHECK(value_t(gr0(R_back)) == doctest::Approx(value_t(gr0(R))));
-            CHECK(value_t(nrm(gr2(R_back) - gr2(R))) == doctest::Approx(0.0));
+            CHECK(nrm(gr2(R_back) - gr2(R)) == doctest::Approx(0.0));
         }
 
         // c) a tilted (multi-component) spatial plane, and the identity rotor
         {
             auto const B = 0.9 * normalize(bivec4ds{0.0, 0.0, 0.0, 1.0, -2.0, 2.0});
-            CHECK(value_t(nrm(log(exp(B)) - B)) == doctest::Approx(0.0));
+            CHECK(nrm(log(exp(B)) - B) == doctest::Approx(0.0));
             auto const I = exp(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}); // identity rotor
-            CHECK(value_t(nrm(log(I))) == doctest::Approx(0.0)); // -> zero generator
+            CHECK(nrm(log(I)) == doctest::Approx(0.0)); // -> zero generator
         }
 
         fmt::println("log: rotation via atan2, boost via acosh; exp(log(R)) == R");
@@ -824,7 +824,7 @@ TEST_SUITE("STA 3D Tests")
         // the rest 4-velocity g4 has time component gamma = cosh(phi) in u's frame
         CHECK(value_t(time_split(g4_4ds, u)) == doctest::Approx(std::cosh(phi)));
         // and is seen to move at speed beta = |relative vector| / time = tanh(phi)
-        CHECK(value_t(nrm(space_split(g4_4ds, u))) / value_t(time_split(g4_4ds, u)) ==
+        CHECK(nrm(space_split(g4_4ds, u)) / value_t(time_split(g4_4ds, u)) ==
               doctest::Approx(std::tanh(phi)));
 
         fmt::println("spacetime split: g4-frame reconstruct; moving observer -> "
@@ -1370,7 +1370,7 @@ TEST_SUITE("STA 3D Tests")
 
             // log is the inverse of exp (both directions)
             auto const B_back = log(R);
-            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0));
+            CHECK(nrm(B_back - B) == doctest::Approx(0.0));
             CHECK(rotor_diff(exp(B_back), R) == doctest::Approx(0.0));
 
             // sqrt: defining property and unit-rotor / geometric meaning
@@ -1387,7 +1387,7 @@ TEST_SUITE("STA 3D Tests")
         {
             bivec4ds const B = 0.8 * g14_4ds + (pi / 2.0) * g23_4ds;
             auto const R = exp(B);
-            CHECK(value_t(nrm(log(R) - B)) == doctest::Approx(0.0));
+            CHECK(nrm(log(R) - B) == doctest::Approx(0.0));
             CHECK(rotor_diff(sqrt(R) * sqrt(R), R) == doctest::Approx(0.0));
         }
 
@@ -1395,7 +1395,7 @@ TEST_SUITE("STA 3D Tests")
         {
             bivec4ds const B = 1.3 * g14_4ds + 1.1 * g31_4ds;
             auto const R = exp(B);
-            CHECK(value_t(nrm(log(R) - B)) == doctest::Approx(0.0));
+            CHECK(nrm(log(R) - B) == doctest::Approx(0.0));
             CHECK(rotor_diff(sqrt(R) * sqrt(R), R) == doctest::Approx(0.0));
             CHECK(value_t(gr0(rev(sqrt(R)) * sqrt(R))) == doctest::Approx(1.0));
         }
@@ -1415,7 +1415,7 @@ TEST_SUITE("STA 3D Tests")
                 auto const R = exp(B);
                 worst_series = std::max(worst_series, rotor_diff(R, exp_series(B, 30)));
                 auto const Bb = log(R);
-                worst_logexp = std::max(worst_logexp, value_t(nrm(Bb - B)));
+                worst_logexp = std::max(worst_logexp, nrm(Bb - B));
                 worst_explog = std::max(worst_explog, rotor_diff(exp(Bb), R));
                 auto const sR = sqrt(R);
                 worst_sqrt = std::max(worst_sqrt, rotor_diff(sR * sR, R));
@@ -2704,8 +2704,8 @@ TEST_SUITE("STA 3D Tests")
             return E0 * std::cos(ph) * g14_4ds + E0 * std::cos(ph) * g12_4ds;
         };
         auto Nb = nabla(Bad, x0, 1.0e-5);
-        CHECK(std::abs(value_t(nrm(Nb))) < 1.0e-12); // the norm sees nothing
-        CHECK(!is_zero(Nb, 1.0e-3));                 // the components do
+        CHECK(std::abs(nrm(Nb)) < 1.0e-12); // the norm sees nothing
+        CHECK(!is_zero(Nb, 1.0e-3));        // the components do
 
         // the d'Alembertian carries the signature: box = d_t^2 - d_x^2 - d_y^2 - d_z^2,
         // so box(t^2 + 2x^2) = 2 - 4 = -2

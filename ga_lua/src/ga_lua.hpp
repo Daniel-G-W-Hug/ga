@@ -1476,14 +1476,14 @@ void register_functions(sol::state& lua)
                                 sol::resolve<value_t(mvec3d const&)>(nrm)));
     sta.set_function("nrm", sol::overload(
                                 // sta
-                                sol::resolve<scalar4ds(scalar4ds)>(nrm),
-                                sol::resolve<scalar4ds(vec4ds const&)>(nrm),
-                                sol::resolve<scalar4ds(bivec4ds const&)>(nrm),
-                                sol::resolve<scalar4ds(trivec4ds const&)>(nrm),
-                                sol::resolve<scalar4ds(pscalar4ds)>(nrm),
-                                sol::resolve<scalar4ds(mvec4ds_e const&)>(nrm),
-                                sol::resolve<scalar4ds(mvec4ds_u const&)>(nrm),
-                                sol::resolve<scalar4ds(mvec4ds const&)>(nrm)));
+                                sol::resolve<value_t(scalar4ds)>(nrm),
+                                sol::resolve<value_t(vec4ds const&)>(nrm),
+                                sol::resolve<value_t(bivec4ds const&)>(nrm),
+                                sol::resolve<value_t(trivec4ds const&)>(nrm),
+                                sol::resolve<value_t(pscalar4ds)>(nrm),
+                                sol::resolve<value_t(mvec4ds_e const&)>(nrm),
+                                sol::resolve<value_t(mvec4ds_u const&)>(nrm),
+                                sol::resolve<value_t(mvec4ds const&)>(nrm)));
 
     pga.set_function("bulk_nrm_sq",
                      sol::overload(

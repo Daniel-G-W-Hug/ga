@@ -405,14 +405,14 @@ TEST_SUITE("EGA 2D Tests")
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(abs(value_t(nrm(s1 * inv(s1))) - 1) < eps);
+        CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
         CHECK(abs(value_t(inv(s1) - rev(s1) / nrm_sq(s1))) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(abs(value_t(nrm(gr0(v1 * inv(v1)))) - 1) < eps);
-        CHECK(abs(value_t(nrm(gr2(v1 * inv(v1)))) - 0) < eps);
-        CHECK(abs(value_t(nrm(inv(v1) - rev(v1) / nrm_sq(v1)))) < eps);
+        CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
 
         // check inverses - pseudoscalar
         // fmt::println("ps1 * inv(ps1) = {}", ps1 * inv(ps1)); // s

@@ -4029,7 +4029,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(nrm(dual(wdg(a, b)) - cross_ref(a, b)) < eps);
         CHECK(dual(wdg(e1_3d, e2_3d)) == e3_3d);
         // the magnitude |a x b| = AB sin(theta) is the AREA -- no dual involved
-        CHECK(nrm(cross(a, b)) == doctest::Approx(value_t(nrm(wdg(a, b)))));
+        CHECK(nrm(cross(a, b)) == doctest::Approx(nrm(wdg(a, b))));
 
         // (1.15)/(1.16): the scalar triple product is the trivector, cyclic by the
         // antisymmetry of wdg rather than by a rule to remember
@@ -4146,7 +4146,7 @@ TEST_SUITE("EGA 3D Tests")
         // the consequence for THIS layer is a live trap and is pinned here: a field's
         // singular sources are invisible to the pointwise operator, so a numerical Gauss
         // law must be evaluated as a FLUX, never as a volume integral of nabla_dot.
-        auto E = [](vec3d const& r) { return r / std::pow(value_t(nrm(r)), 3.0); };
+        auto E = [](vec3d const& r) { return r / std::pow(nrm(r), 3.0); };
 
         // (a) the pointwise divergence, summed over a ball that CONTAINS the source
         value_t const R = 1.0;
@@ -4158,7 +4158,7 @@ TEST_SUITE("EGA 3D Tests")
                 for (int k = 0; k < N; ++k) {
                     vec3d const c{-R + (i + 0.5) * hc, -R + (j + 0.5) * hc,
                                   -R + (k + 0.5) * hc};
-                    if (value_t(nrm(c)) > R) continue;
+                    if (nrm(c) > R) continue;
                     vol_sum += value_t(nabla_dot(E, c, 1.0e-4)) * hc * hc * hc;
                 }
             }

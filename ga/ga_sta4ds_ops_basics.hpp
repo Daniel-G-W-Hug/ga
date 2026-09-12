@@ -776,58 +776,58 @@ constexpr bool is_lightlike(TriVec4ds<T> const& t)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(Scalar4ds<T> s)
+constexpr T nrm(Scalar4ds<T> s)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(s))));
+    return std::sqrt(std::abs(nrm_sq(s)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(Vec4ds<T> const& v)
+constexpr T nrm(Vec4ds<T> const& v)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(v))));
+    return std::sqrt(std::abs(nrm_sq(v)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(BiVec4ds<T> const& B)
+constexpr T nrm(BiVec4ds<T> const& B)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(B))));
+    return std::sqrt(std::abs(nrm_sq(B)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(TriVec4ds<T> const& t)
+constexpr T nrm(TriVec4ds<T> const& t)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(t))));
+    return std::sqrt(std::abs(nrm_sq(t)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(PScalar4ds<T> ps)
+constexpr T nrm(PScalar4ds<T> ps)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(ps))));
+    return std::sqrt(std::abs(nrm_sq(ps)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(MVec4ds_E<T> const& M)
+constexpr T nrm(MVec4ds_E<T> const& M)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
+    return std::sqrt(std::abs(nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(MVec4ds_U<T> const& M)
+constexpr T nrm(MVec4ds_U<T> const& M)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
+    return std::sqrt(std::abs(nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(MVec4ds<T> const& M)
+constexpr T nrm(MVec4ds<T> const& M)
 {
-    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
+    return std::sqrt(std::abs(nrm_sq(M)));
 }
 
 
@@ -841,7 +841,7 @@ template <typename T>
     requires(numeric_type<T>)
 inline Scalar4ds<T> normalize(Scalar4ds<T> s)
 {
-    T m = to_val(nrm(s));
+    T m = nrm(s);
     hd::ga::detail::check_normalization<T>(m, "scalar (4ds)");
     T scale = T(1.0) / m;
     return Scalar4ds<T>(scale * T(s));
@@ -855,7 +855,7 @@ inline Vec4ds<T> normalize(Vec4ds<T> const& v)
     if (is_lightlike(v)) return v;
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
-    T n = to_val(nrm(v));
+    T n = nrm(v);
     hd::ga::detail::check_normalization<T>(n, "vector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * v;
@@ -869,7 +869,7 @@ inline BiVec4ds<T> normalize(BiVec4ds<T> const& B)
     if (is_lightlike(B)) return B;
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
-    T n = to_val(nrm(B));
+    T n = nrm(B);
     hd::ga::detail::check_normalization<T>(n, "bivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * B;
@@ -883,7 +883,7 @@ inline TriVec4ds<T> normalize(TriVec4ds<T> const& t)
     if (is_lightlike(t)) return t;
     // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
-    T n = to_val(nrm(t));
+    T n = nrm(t);
     hd::ga::detail::check_normalization<T>(n, "trivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * t;
