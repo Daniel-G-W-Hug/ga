@@ -5698,10 +5698,18 @@ void register_forwarders(sol::state& lua)
         function pga.r_weight_expand2dp(a, b) return pga.wdg(a, pga.weight_dual(b)) end
 
         -- PGA 3dp bulk/weight contractions (left/right complement variants)
-        function pga.l_bulk_contract3dp(a, b)   return pga.rwdg(pga.l_bulk_dual(a), b)   end
-        function pga.l_weight_contract3dp(a, b) return pga.rwdg(pga.l_weight_dual(a), b) end
-        function pga.r_bulk_contract3dp(a, b)   return pga.rwdg(a, pga.r_bulk_dual(b))   end
-        function pga.r_weight_contract3dp(a, b) return pga.rwdg(a, pga.r_weight_dual(b)) end
+        function pga.l_bulk_contract3dp(a, b)
+            return pga.rwdg(pga.l_bulk_dual(a), b)
+        end
+        function pga.l_weight_contract3dp(a, b)
+            return pga.rwdg(pga.l_weight_dual(a), b)
+        end
+        function pga.r_bulk_contract3dp(a, b)
+            return pga.rwdg(a, pga.r_bulk_dual(b))
+        end
+        function pga.r_weight_contract3dp(a, b)
+            return pga.rwdg(a, pga.r_weight_dual(b))
+        end
 
         -- PGA 3dp bulk/weight expansions
         function pga.l_bulk_expand3dp(a, b)   return pga.wdg(pga.l_bulk_dual(a), b)   end
@@ -5720,12 +5728,24 @@ void register_forwarders(sol::state& lua)
         end
 
         -- projections of the lower-grade a onto the larger-grade b  (gr(a) < gr(b))
-        function pga.ortho_proj2dp(a, b)   return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b) end
-        function pga.central_proj2dp(a, b) return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)   end
-        function pga.ortho_antiproj2dp(a, b) return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b) end
-        function pga.ortho_proj3dp(a, b)   return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b) end
-        function pga.central_proj3dp(a, b) return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)   end
-        function pga.ortho_antiproj3dp(a, b) return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b) end
+        function pga.ortho_proj2dp(a, b)
+            return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand2dp(a, b)), b)
+        end
+        function pga.central_proj2dp(a, b)
+            return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand2dp(a, b)), b)
+        end
+        function pga.ortho_antiproj2dp(a, b)
+            return _by_weight_sq(pga.wdg(b, pga.r_weight_contract2dp(a, b)), b)
+        end
+        function pga.ortho_proj3dp(a, b)
+            return _by_weight_sq(pga.rwdg(b, pga.r_weight_expand3dp(a, b)), b)
+        end
+        function pga.central_proj3dp(a, b)
+            return _by_weight_sq(pga.rwdg(b, pga.r_bulk_expand3dp(a, b)), b)
+        end
+        function pga.ortho_antiproj3dp(a, b)
+            return _by_weight_sq(pga.wdg(b, pga.r_weight_contract3dp(a, b)), b)
+        end
 
         -- the same operation in EGA, where the metric dual replaces the weight dual and
         -- nrm_sq the weight norm (sta has no rwdg binding yet, so no ortho_proj4ds here)
@@ -5738,15 +5758,21 @@ void register_forwarders(sol::state& lua)
         function pga.dist2dp(a, b)
             local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
             local c0
-            if pga.gr(a) + pga.gr(b) == 3 then c0 = pga.to_val(pga.rwdg(a, b))
-            else                               c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b)))) end
+            if pga.gr(a) + pga.gr(b) == 3 then
+                c0 = pga.to_val(pga.rwdg(a, b))
+            else
+                c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
+            end
             return dualnum2dp.new(c0, c1)
         end
         function pga.dist3dp(a, b)
             local c1 = pga.to_val(pga.weight_nrm(pga.wdg(a, pga.att(b))))
             local c0
-            if pga.gr(a) + pga.gr(b) == 4 then c0 = pga.to_val(pga.rwdg(a, b))
-            else                               c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b)))) end
+            if pga.gr(a) + pga.gr(b) == 4 then
+                c0 = pga.to_val(pga.rwdg(a, b))
+            else
+                c0 = pga.to_val(pga.bulk_nrm(pga.att(pga.wdg(a, b))))
+            end
             return dualnum3dp.new(c0, c1)
         end
 
