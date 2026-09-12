@@ -1252,14 +1252,26 @@ The last row is why the equal-grade case keeps its own direct expression: `dot *
 three multiplies and a reciprocal, and dual + wedge + antiwedge cannot beat it — and there
 is no sign to avoid there anyway.
 
-**A target that is not a BLADE is outside the contract, and only 4d and up can produce
-one.** `bivec4ds{1,0.5,2,0.25,3,1}` has `wdg(B,B) = 7.5`, so it spans no 2-plane: the two
-formulations then return different answers and the classical one is not even idempotent —
-neither is a projection, because there is nothing to project onto. In 3d, and for any
-hyperplane target, simplicity is automatic and the question cannot arise, which is why
-every overload the library provides is unaffected. The SOURCE is free: both expressions
-are linear in it, so a non-simple grade-`j` source projects as the sum of its blade parts
-and carries the same sign (measured: `P(W1) + P(W2) == P(W)`).
+**A target that is not a BLADE is outside the contract, and the library now SAYS so.**
+`bivec4ds{1,0.5,2,0.25,3,1}` has `wdg(B,B) = 7.5`, so it spans no 2-plane and the result
+is not even idempotent — there is nothing to project onto. `is_simple()` answers the
+question (pga3dp and sta4ds; it is the Plücker condition), and the projections and
+reflections that can be given such a target check it and **throw** under
+`_HD_GA_EXTENDED_TEST_BLADE_TARGET`, on by default and droppable per target with
+`ga_blade_guard(<target> OFF)`. Only 4d and up at grade 2 can violate it: in 3d, and for a
+vector or hyperplane target in any dimension, simplicity is automatic and nothing is
+checked. The hook is `if constexpr (requires { is_simple(b); })`, so exactly the types
+that can fail are tested and adding `is_simple` for a new type extends the guard by
+itself.
+
+**It found two cases in this repository's own tests**, which is the argument for having
+it: one deliberately built non-blade, and `l1 + l2` — the sum of two lines, which in 4d is
+not a line (`wdg(l3,l3) == 2`). Both called `sup()`, i.e. projected the origin onto a
+subspace that does not exist.
+
+The SOURCE is free: both expressions are linear in it, so a non-simple grade-`j` source
+projects as the sum of its blade parts and carries the same sign (measured:
+`P(W1) + P(W2) == P(W)`).
 
 **When `rejection = source - projection` is still a geometric object.** For a vector the
 difference is exact and orthogonal, because the space splits in two. At grade ≥ 2 it

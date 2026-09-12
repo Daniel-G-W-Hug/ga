@@ -111,6 +111,28 @@ the division guard, the choice is per translation unit and therefore per target 
 translation units built with different settings would define the same inline function
 differently, which is an ODR violation.
 
+### The blade-target guard (`_HD_GA_EXTENDED_TEST_BLADE_TARGET`, on by default)
+
+A projection or a reflection needs its target to be a **blade** -- an object that
+represents a subspace at all. Only 4d and up can violate that, and only at grade 2: a
+general bivector there is a sum of two blades with `wdg(B, B) != 0`, spans no plane, and
+the expressions then return something that is no projection (it is not even idempotent).
+In 3d, and for a vector or a hyperplane target in any dimension, simplicity is automatic
+and nothing is checked.
+
+With the guard on, the affected overloads test the target with `is_simple()` and **throw**
+on a non-blade, so the mistake fails where it is made instead of returning a plausible
+wrong answer. Two of this repository's own tests turned out to do exactly that -- one on a
+deliberately constructed non-blade, one on `l1 + l2`, the sum of two lines, which in 4d is
+not a line again.
+
+It has its own switch because it costs more than the division guard: a wedge square per
+call. To drop it for one target:
+
+```cmake
+ga_blade_guard(my_fast_target OFF)
+```
+
 ## Dependencies
 
 Only **fmt** is needed to use the library (header-only; FetchContent fallback if it is not

@@ -828,6 +828,31 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// is a bivector a LINE?
+////////////////////////////////////////////////////////////////////////////////
+
+// A bivector represents a line only if it is simple, i.e. B ^ B == 0 -- the Plücker
+// condition. In 3d every bivector is simple and the question does not arise, but pga3dp
+// is 4d: a general bivector there is a sum of two blades and represents no line at all.
+// One out of a wedge of two points always passes; one that was integrated, interpolated
+// or read from data need not.
+//
+// The test is RELATIVE, and has to be: B ^ B grows with the components SQUARED, so an
+// absolute bound answers false for a genuine line as soon as the coordinates carry a
+// scale. Dividing by the sum of the squared components makes it exactly scale-invariant
+// -- both are quadratic in B -- and keeps it defined in this degenerate metric, where
+// weight_nrm_sq vanishes for an ideal line and bulk_nrm_sq for a line through the origin.
+template <typename T>
+    requires(numeric_type<T>)
+inline bool is_simple(BiVec3dp<T> const& B, T rel_tol = T(eps_congruent))
+{
+    T const scale =
+        B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my + B.mz * B.mz;
+    return std::abs(T(wdg(B, B))) <= rel_tol * scale;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Projections for 3dp: the target's scale is divided out, the source's is kept, and
 // the result is left as it is. For a canonical representative call try_unitize()
 // on it: that unitizes where there is weight and returns an ideal result
@@ -857,6 +882,11 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 
 template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, arg2&& b)
 {
+    // the target must be a BLADE: only a bivector in a 4d algebra can fail that, and
+    // is_simple() exists for exactly those types, so the requires-test selects them
+    if constexpr (requires { is_simple(b); }) {
+        detail::check_simple_target(is_simple(b), "ortho_proj3dp");
+    }
     // REQUIRES: gr(a) < gr(b), or does not compile!
 
     // project the smaller grade object onto to larger grade object
@@ -871,6 +901,11 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, a
 
 template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a, arg2&& b)
 {
+    // the target must be a BLADE: only a bivector in a 4d algebra can fail that, and
+    // is_simple() exists for exactly those types, so the requires-test selects them
+    if constexpr (requires { is_simple(b); }) {
+        detail::check_simple_target(is_simple(b), "central_proj3dp");
+    }
     // REQUIRES: gr(a) < gr(b), or does not compile!
 
     // project the smaller grade object onto to larger grade object
@@ -1246,30 +1281,6 @@ constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
     else {
         return DualNum3dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// is a bivector a LINE?
-////////////////////////////////////////////////////////////////////////////////
-
-// A bivector represents a line only if it is simple, i.e. B ^ B == 0 -- the Plücker
-// condition. In 3d every bivector is simple and the question does not arise, but pga3dp
-// is 4d: a general bivector there is a sum of two blades and represents no line at all.
-// One out of a wedge of two points always passes; one that was integrated, interpolated
-// or read from data need not.
-//
-// The test is RELATIVE, and has to be: B ^ B grows with the components SQUARED, so an
-// absolute bound answers false for a genuine line as soon as the coordinates carry a
-// scale. Dividing by the sum of the squared components makes it exactly scale-invariant
-// -- both are quadratic in B -- and keeps it defined in this degenerate metric, where
-// weight_nrm_sq vanishes for an ideal line and bulk_nrm_sq for a line through the origin.
-template <typename T>
-    requires(numeric_type<T>)
-inline bool is_simple(BiVec3dp<T> const& B, T rel_tol = T(eps_congruent))
-{
-    T const scale =
-        B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my + B.mz * B.mz;
-    return std::abs(T(wdg(B, B))) <= rel_tol * scale;
 }
 
 

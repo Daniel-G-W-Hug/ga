@@ -1162,10 +1162,24 @@ TEST_SUITE("PGA 3DP Tests")
                      att(l1), sup(l1));
         fmt::println("l2  = {: 5.3f}, att(l2) = {: 5.3f}, sup(l2) = {: 5.3f}", l2,
                      att(l2), sup(l2));
-        fmt::println("l3  = {: 5.3f}, att(l3) = {: 5.3f}, sup(l3) = {: 5.3f}", l3,
-                     att(l3), sup(l3));
-        fmt::println("l4  = {: 5.3f}, att(l4) = {: 5.3f}, sup(l4) = {: 5.3f}", l4,
-                     att(l4), sup(l4));
+        // l3 is the SUM of two lines, and in 4d that is not a line again: wdg(l3,l3) is
+        // 2, not 0. sup() would project the origin onto a subspace that does not exist
+        CHECK(!is_simple(l3));
+        fmt::println(
+            "l3  = {: 5.3f}, att(l3) = {: 5.3f}, sup(l3) -> rejected: not a line", l3,
+            att(l3));
+#if defined(_HD_GA_EXTENDED_TEST_BLADE_TARGET)
+        CHECK_THROWS(sup(l3));
+#endif
+        // l4 is NOT a line: sup() projects the origin onto it, and there is no subspace
+        // to project onto, so the blade guard rejects it (its attitude still prints)
+        CHECK(!is_simple(l4));
+        fmt::println(
+            "l4  = {: 5.3f}, att(l4) = {: 5.3f}, sup(l4) -> rejected: not a line", l4,
+            att(l4));
+#if defined(_HD_GA_EXTENDED_TEST_BLADE_TARGET)
+        CHECK_THROWS(sup(l4));
+#endif
         fmt::println("");
         fmt::println("vp1 = {: 5.3f}", vp1);
         fmt::println("vp2 = {: 5.3f}", vp2);

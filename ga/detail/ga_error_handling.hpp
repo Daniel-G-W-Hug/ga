@@ -137,6 +137,37 @@ inline void check_unitization(T weight_norm, const char* object_type = "multivec
 #endif
 }
 
+// Standardized precondition check: the target of a projection or a reflection must be a
+// BLADE, i.e. it must represent a subspace at all.
+//
+// Only 4d and up can violate this, and only at grade 2: a general bivector there is a sum
+// of two blades and spans no plane (B ^ B != 0), so there is nothing to project onto and
+// the expressions return an answer that is no projection -- not even idempotent. In 3d,
+// and for a vector or a hyperplane target in any dimension, simplicity is automatic.
+//
+// The caller passes the ANSWER rather than the object: is_simple() lives in the algebra
+// namespaces (hd::ga::pga, hd::ga::sta) while this helper lives in hd::ga::detail, and a
+// call written here would bind to whichever algebra parsed first -- the same two-phase
+// lookup trap that by_weight_sq() avoids the same way.
+//
+// Gated by its own switch so a consumer can keep the division guard while dropping this
+// one (see ga/CMakeLists.txt): the check costs a wedge square, which the division guard
+// does not.
+inline void check_simple_target(bool target_is_simple, const char* operation_name)
+{
+#if defined(_HD_GA_EXTENDED_TEST_BLADE_TARGET)
+    if (!target_is_simple) {
+        throw std::runtime_error(
+            std::string("GA Error: ") + operation_name +
+            ": the target is not a blade (B ^ B != 0), so it represents no subspace");
+    }
+#else
+    // Suppress unused parameter warnings when the check is disabled
+    (void)target_is_simple;
+    (void)operation_name;
+#endif
+}
+
 // Componentwise equality of two value types, and the ONE place the comparison rule
 // lives.
 //

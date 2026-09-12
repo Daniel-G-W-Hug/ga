@@ -217,3 +217,19 @@
            classical product materialised grades that were then discarded. The ga_lua
            prelude, which still emulated the pre-try_unitize semantics, now matches the
            library
+- 2026/09: is_simple() is RELATIVE, and guards the projections. It compared |B ^ B|
+           against an absolute 5*machine_eps, a quantity that grows with the components
+           squared, so it answered FALSE for genuine 2-blades from unit scale upward (its
+           tests used basis blades, where the cancellation is bit-exact, and never saw
+           it). It now divides by the sum of the squared components, which is exactly
+           scale-invariant and stays defined where nrm_sq cannot serve as a gauge -- a
+           Lorentzian metric has null blades, a degenerate one ideal lines.
+           is_simple(BiVec3dp) is new (the Pluecker condition: is this bivector a line at
+           all?). Both take the tolerance as a parameter defaulting to eps_congruent.
+           Projections and reflections that can be given a bivector target in a 4d algebra
+           now CHECK it and throw on a non-blade under _HD_GA_EXTENDED_TEST_BLADE_TARGET
+           (on by default, droppable per target via ga_blade_guard(<target> OFF)); the
+           check selects itself with if constexpr (requires { is_simple(b); }), so exactly
+           the types that can fail are tested. It immediately found two places in this
+           repository's own tests that projected onto a non-blade, one of them l1 + l2 --
+           the sum of two lines, which in 4d is not a line

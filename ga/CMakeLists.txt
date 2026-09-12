@@ -200,6 +200,41 @@ target_compile_definitions(${LIB_NAME} INTERFACE
 # differently, an ODR violation the linker resolves silently in favour of whichever it
 # sees first.
 
+# THE BLADE-TARGET GUARD: ON BY DEFAULT, OFF PER TARGET WHERE SPEED IS THE GOAL.
+#
+# A projection or a reflection needs its target to be a BLADE -- an object that represents
+# a subspace. Only 4d and up can violate that, and only at grade 2: a general bivector
+# there is a sum of two blades with B ^ B != 0, spans no plane, and the expressions then
+# return something that is no projection (it is not even idempotent). In 3d, and for a
+# vector or a hyperplane target in any dimension, simplicity is automatic and nothing is
+# checked.
+#
+# With _HD_GA_EXTENDED_TEST_BLADE_TARGET defined, the affected overloads test the target
+# with is_simple() and THROW on a non-blade, so the mistake fails where it is made instead
+# of returning a plausible wrong answer. Like the division guard this is a development
+# safety gate and the default for every consumer, and like it the choice is per
+# TRANSLATION UNIT, hence per target.
+#
+# It has its own switch because it costs more than the division guard: a wedge square per
+# call, on the handful of overloads that can be given a bivector target in a 4d algebra.
+#
+# TO DROP IT: ga_blade_guard(<your target> OFF)
+define_property(TARGET PROPERTY GA_BLADE_GUARD_OFF
+    BRIEF_DOCS "TRUE removes the ga blade-target check from this target's TUs"
+    FULL_DOCS "Set through ga_blade_guard(<target> OFF); see ga/CMakeLists.txt.")
+target_compile_definitions(${LIB_NAME} INTERFACE
+    $<$<NOT:$<BOOL:$<TARGET_PROPERTY:GA_BLADE_GUARD_OFF>>>:
+        _HD_GA_EXTENDED_TEST_BLADE_TARGET>)
+
+# ga_blade_guard(<target> ON|OFF): keep (default) or drop the blade-target check.
+function(ga_blade_guard target state)
+    if(state)
+        set_property(TARGET ${target} PROPERTY GA_BLADE_GUARD_OFF FALSE)
+    else()
+        set_property(TARGET ${target} PROPERTY GA_BLADE_GUARD_OFF TRUE)
+    endif()
+endfunction()
+
 # ga_division_guard(<target> ON|OFF): keep (default) or drop the guard for one target.
 function(ga_division_guard target state)
     if(state)

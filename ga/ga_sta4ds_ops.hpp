@@ -890,6 +890,11 @@ inline BiVec4ds<T> rot_part(BiVec4ds<T> const& B)
 
 template <typename arg1, typename arg2> decltype(auto) ortho_proj4ds(arg1&& a, arg2&& b)
 {
+    // the target must be a BLADE: only a bivector in a 4d algebra can fail that, and
+    // is_simple() exists for exactly those types, so the requires-test selects them
+    if constexpr (requires { is_simple(b); }) {
+        detail::check_simple_target(is_simple(b), "ortho_proj4ds");
+    }
     // the expression is quadratic in b: remove b's scale, keep a's (a projection is
     // linear in what is projected)
     auto const nsq = nrm_sq(b);
@@ -1083,6 +1088,8 @@ constexpr Vec4ds<std::common_type_t<T, U>> reflect_on(Vec4ds<T> const& v,
                                                       BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
+    // a reflection needs a subspace to reflect in: in 4d a bivector is one only if simple
+    detail::check_simple_target(is_simple(B), "reflect_on(Vec4ds, BiVec4ds)");
     return Vec4ds<ctype>(gr1(-B * v * inv(B)));
 }
 
@@ -1094,6 +1101,8 @@ constexpr BiVec4ds<std::common_type_t<T, U>> reflect_on(BiVec4ds<T> const& UB,
                                                         BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
+    // a reflection needs a subspace to reflect in: in 4d a bivector is one only if simple
+    detail::check_simple_target(is_simple(B), "reflect_on(BiVec4ds, BiVec4ds)");
     return BiVec4ds<ctype>(gr2(B * UB * inv(B)));
 }
 
