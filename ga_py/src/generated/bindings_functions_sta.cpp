@@ -197,6 +197,10 @@ void register_functions_sta(nb::module_& m)
           [](vec4ds const& a0, vec4ds const& a1) { return project_onto(a0, a1); });
     m.def("project_onto",
           [](vec4ds const& a0, bivec4ds const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](vec4ds const& a0, trivec4ds const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](bivec4ds const& a0, trivec4ds const& a1) { return project_onto(a0, a1); });
     m.def("r_cmpl", [](scalar4ds const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](vec4ds const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](bivec4ds const& a0) { return r_cmpl(a0); });
@@ -241,6 +245,10 @@ void register_functions_sta(nb::module_& m)
           [](vec4ds const& a0, vec4ds const& a1) { return reject_from(a0, a1); });
     m.def("reject_from",
           [](vec4ds const& a0, bivec4ds const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](vec4ds const& a0, trivec4ds const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](bivec4ds const& a0, trivec4ds const& a1) { return reject_from(a0, a1); });
     m.def("rel_bivec_split",
           [](bivec4ds const& a0, vec4ds const& a1) { return rel_bivec_split(a0, a1); });
     m.def("rel_vec_split",

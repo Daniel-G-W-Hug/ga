@@ -4701,4 +4701,96 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(mvec3d(MVec3d_ - MVec3d_) == mvec3d(MVec3d_) - mvec3d(MVec3d_));
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // projection / reflection contract, including the bivector-onto-bivector pair
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("ega3d: the projection contract")
+    {
+        fmt::println("ega3d: the projection contract");
+
+        auto const v = vec3d{1.0, 2.0, 3.0};
+        auto const u = vec3d{2.0, -1.0, 0.5};
+        auto const B = bivec3d{0.0, 0.0, 2.0}; // the e12 plane, not unit
+        auto const A = bivec3d{1.0, 2.0, 3.0}; // a general plane
+
+        SUBCASE("target scale does not reach the result")
+        {
+            CHECK(is_close(project_onto(v, vec3d(0.5 * u)), project_onto(v, u)));
+            CHECK(is_close(project_onto(v, bivec3d(7.0 * B)), project_onto(v, B)));
+            CHECK(is_close(project_onto(A, bivec3d(3.0 * B)), project_onto(A, B)));
+            CHECK(is_close(reject_from(v, bivec3d(3.0 * B)), reject_from(v, B)));
+            CHECK(is_close(reject_from(A, bivec3d(3.0 * B)), reject_from(A, B)));
+            CHECK(is_close(reflect_on(v, bivec3d(3.0 * B)), reflect_on(v, B)));
+            CHECK(is_close(reflect_on(A, bivec3d(3.0 * B)), reflect_on(A, B)));
+        }
+
+        SUBCASE("a projection is linear in what is projected")
+        {
+            CHECK(project_onto(vec3d(3.0 * v), B) == 3.0 * project_onto(v, B));
+            CHECK(project_onto(bivec3d(3.0 * A), B) == 3.0 * project_onto(A, B));
+            CHECK(reject_from(bivec3d(3.0 * A), B) == 3.0 * reject_from(A, B));
+        }
+
+        SUBCASE("projecting twice changes nothing -- the sign gate")
+        {
+            // This is the check that distinguishes the right formula from the one that
+            // differs by the source's reversion sign: with inv(B) in place of
+            // B / nrm_sq(B), project_onto(A, B) returns -A_parallel, which still lies in
+            // B and still satisfies both scaling contracts above. Only idempotence sees
+            // it -- and projecting a target onto itself is the shortest statement of it.
+            CHECK(project_onto(B, B) == B);
+            CHECK(project_onto(project_onto(A, B), B) == project_onto(A, B));
+            CHECK(project_onto(project_onto(v, B), B) == project_onto(v, B));
+            CHECK(project_onto(project_onto(v, u), u) == project_onto(v, u));
+        }
+
+        SUBCASE("the grade-1 and grade-2 overloads are ONE family")
+        {
+            // a projection distributes over the wedge (it is an outermorphism), which is
+            // what ties the vector and bivector overloads together -- their bodies are
+            // not the same shape, so a sign or scale error in either shows up here
+            auto const a = vec3d{1.0, 2.0, 3.0};
+            auto const b = vec3d{-1.0, 0.5, 2.0};
+            CHECK(is_close(bivec3d(wdg(project_onto(a, B), project_onto(b, B))),
+                           project_onto(bivec3d(wdg(a, b)), B)));
+            auto const B2 = bivec3d{1.0, -2.0, 0.5};
+            CHECK(is_close(bivec3d(wdg(project_onto(a, B2), project_onto(b, B2))),
+                           project_onto(bivec3d(wdg(a, b)), B2)));
+        }
+
+        SUBCASE("the bivector split is orthogonal and complete")
+        {
+            auto const par = project_onto(A, B);
+            auto const rej = reject_from(A, B);
+            CHECK(par + rej == A);               // by construction, stated for clarity
+            CHECK(dot(rej, B) == scalar3d{0.0}); // the part NOT in B
+            CHECK(is_congruent(par, B));         // the part in B is a multiple of it
+            // in 3d a bivector is its normal: the same answer as projecting the normals
+            CHECK(is_close(bivec3d(cmpl(project_onto(vec3d(cmpl(A)), vec3d(cmpl(B))))),
+                           par));
+            // and it is a plane again -- every bivector in 3d is simple, so this cannot
+            // fail here; in 4d the same subtraction does NOT stay a blade, which is why
+            // no bivector-onto-bivector pair exists there
+            CHECK(nrm_sq(rej) >= 0.0);
+        }
+
+        SUBCASE("a reflection is an involution and keeps the norm")
+        {
+            CHECK(is_close(reflect_on(reflect_on(v, B), B), v));
+            CHECK(is_close(reflect_on(reflect_on(A, B), B), A));
+            // nrm() returns a plain scalar here, so == on it would be the EXACT float
+            // comparison; a sandwich preserves the norm up to its own roundings
+            CHECK(std::abs(nrm(reflect_on(v, B)) - nrm(v)) < eps * nrm(v));
+            CHECK(std::abs(nrm(reflect_on(A, B)) - nrm(A)) < eps * nrm(A));
+        }
+
+        SUBCASE("a degenerate target is reported, not silently absorbed")
+        {
+            CHECK_THROWS(project_onto(v, vec3d{0.0, 0.0, 0.0}));
+            CHECK_THROWS(project_onto(v, bivec3d{0.0, 0.0, 0.0}));
+            CHECK_THROWS(project_onto(A, bivec3d{0.0, 0.0, 0.0}));
+        }
+    }
+
 } // EGA 3D Tests

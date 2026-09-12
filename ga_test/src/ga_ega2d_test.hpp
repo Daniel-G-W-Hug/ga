@@ -3365,4 +3365,65 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(vec2d{1.0e-9, 1.0e-9} != vec2d{1.0e-9 + 1.0e-13, 1.0e-9});
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // projection / reflection contract
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("ega2d: the projection contract")
+    {
+        fmt::println("ega2d: the projection contract");
+
+        // In a non-degenerate metric the target's scale is removed by inv(), so these
+        // properties hold for free -- which is the reason there was nothing to fix here.
+        // They are pinned anyway: the gate is what keeps a future rewrite honest, and
+        // the idempotence check is the one that sees a reversion sign slip through.
+
+        auto const u = vec2d{3.0, 1.0};
+        auto const v = vec2d{-1.0, 2.0};
+
+        SUBCASE("target scale does not reach the result")
+        {
+            CHECK(is_close(project_onto(v, vec2d(0.5 * u)), project_onto(v, u)));
+            CHECK(is_close(project_onto(v, vec2d(7.0 * u)), project_onto(v, u)));
+            CHECK(is_close(reject_from(v, vec2d(3.0 * u)), reject_from(v, u)));
+            CHECK(is_close(reflect_on(v, vec2d(3.0 * u)), reflect_on(v, u)));
+            CHECK(is_close(reflect_on_vec(v, vec2d(3.0 * u)), reflect_on_vec(v, u)));
+        }
+
+        SUBCASE("a projection is linear in what is projected")
+        {
+            CHECK(project_onto(vec2d(3.0 * v), u) == 3.0 * project_onto(v, u));
+            CHECK(reject_from(vec2d(3.0 * v), u) == 3.0 * reject_from(v, u));
+        }
+
+        SUBCASE("the split is orthogonal, and projecting twice changes nothing")
+        {
+            auto const par = project_onto(v, u);
+            auto const rej = reject_from(v, u);
+            CHECK(wdg(par, u) == pscalar2d{0.0}); // parallel to the target
+            CHECK(dot(rej, u) == scalar2d{0.0});  // perpendicular to it
+            CHECK(project_onto(par, u) == par);
+            CHECK(reject_from(rej, u) == rej);
+        }
+
+        SUBCASE("a reflection is an involution and keeps the norm")
+        {
+            CHECK(is_close(reflect_on(reflect_on(v, u), u), v));
+            CHECK(is_close(reflect_on_vec(reflect_on_vec(v, u), u), v));
+            // nrm() returns a plain scalar here, so == on it is the EXACT float
+            // comparison -- a reflection is a sandwich by an invertible versor, which
+            // preserves the norm up to its own roundings, not bit for bit
+            CHECK(std::abs(nrm(reflect_on(v, u)) - nrm(v)) < eps * nrm(v));
+            CHECK(std::abs(nrm(reflect_on_vec(v, u)) - nrm(v)) < eps * nrm(v));
+        }
+
+        SUBCASE("a degenerate target is reported, not silently absorbed")
+        {
+            // unlike the projective algebras there is no weight to test here: the target
+            // enters through inv(), so a zero target is a division by zero and the
+            // library's division guard is what answers
+            CHECK_THROWS(project_onto(v, vec2d{0.0, 0.0}));
+        }
+    }
+
 } // EGA 2D Tests

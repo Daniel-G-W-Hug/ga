@@ -6040,6 +6040,61 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(project_onto(P, t_inf) == vec3dp{}); // the degenerate answer
             CHECK(reject_from(P, t_inf) == P);
         }
+
+        SUBCASE("where a line rejected from a plane is, and which way it points")
+        {
+            // reject_from(line, plane) is the difference of the line and its shadow, and
+            // that difference is a LINE again -- a perpendicular to the plane through the
+            // point where the original line pierces it. Both halves of that sentence are
+            // checked here, against the library's own constructions rather than against
+            // coordinates: the meet for the point, the weight expansion for the
+            // perpendicular.
+
+            auto const par = project_onto(L, T);
+            auto const rej = reject_from(L, T);
+
+            // it is still a line: a bivector is one only if it is simple
+            CHECK(wdg(rej, rej) == pscalar3dp{0.0});
+            CHECK(weight_nrm(rej) > 0.1); // and a proper one, not an ideal bivector
+
+            // it passes through the piercing point, and it does so for a structural
+            // reason: the projection lies IN the plane, so it contributes nothing to the
+            // meet and the whole of it is carried by the rejection.
+            //
+            // Those next two lines state the geometry but are WEAK as tests, and the
+            // distinction is worth keeping: any projection of the form rwdg(T, ...) is
+            // contained in T, so the first holds for a wrong dual as much as for the
+            // right one, and the second then follows from it by linearity. Both survived
+            // two mutations that the congruence below caught. They are kept as the
+            // readable statement of where the rejection sits; the line after them is the
+            // one with teeth.
+            CHECK(rwdg(par, T) == vec3dp{});
+            CHECK(rwdg(rej, T) == rwdg(L, T));
+
+            // it is perpendicular to the plane: the same line the expansion builds
+            // through that point
+            auto const X = unitize(rwdg(L, T));
+            CHECK(is_congruent(rej, bivec3dp(r_weight_expand3dp(vec3dp(X), T))));
+            CHECK(wdg(rej, r_weight_dual(T)) == trivec3dp{});
+
+            // a line lying in the plane rejects to zero, one already perpendicular to it
+            // rejects to itself
+            auto const L_in = wdg(point3d{-1, -1, 0}, point3d{1, -1, 1}); // two of T's
+            CHECK(project_onto(L_in, T) == L_in);
+            CHECK(reject_from(L_in, T) == bivec3dp{});
+            auto const L_perp = r_weight_expand3dp(vec3dp(X), T);
+            CHECK(project_onto(bivec3dp(L_perp), T) == bivec3dp{});
+            CHECK(reject_from(bivec3dp(L_perp), T) == bivec3dp(L_perp));
+
+            // a line PARALLEL to the plane has no piercing point, and the rejection
+            // degenerates with it: what is left keeps the offset but loses the attitude
+            auto const d = att(L_in);                  // a direction IN T
+            auto const Q = vec3dp{0.0, 0.0, 5.0, 1.0}; // a point off the plane
+            auto const L_par = wdg(Q, vec3dp(Q + d));
+            CHECK(weight_nrm(rwdg(L_par, T)) == 0.0); // the meet is an ideal point
+            CHECK(att(reject_from(L_par, T)) == vec3dp{});
+            CHECK(reject_from(L_par, T) != bivec3dp{}); // but the offset survives
+        }
 #endif
     }
 
@@ -6069,8 +6124,13 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(is_congruent(att(t_ortho), att(T)));
 
         // and neither depends on how the point it contains happens to be scaled
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        MESSAGE("skipped: _HD_GA_FAST_PROJECTION_ON_UNITIZED promises unitized targets, "
+                "so target-scale invariance is outside the contract in this build");
+#else
         CHECK(is_close(ortho_antiproj3dp(T, 5.0 * P), t_ortho));
         CHECK(is_close(central_antiproj3dp(T, 5.0 * P), t_central));
+#endif
     }
 
     TEST_CASE("PGA3dp: the meet of a line with a plane, then the split of a direction")

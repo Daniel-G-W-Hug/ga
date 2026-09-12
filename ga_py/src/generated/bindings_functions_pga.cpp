@@ -625,6 +625,8 @@ void register_functions_pga(nb::module_& m)
           [](vec3dp const& a0, bivec3dp const& a1) { return reject_from(a0, a1); });
     m.def("reject_from",
           [](vec3dp const& a0, trivec3dp const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](bivec3dp const& a0, trivec3dp const& a1) { return reject_from(a0, a1); });
     m.def("rev", [](scalar2dp const& a0) { return rev(a0); });
     m.def("rev", [](vec2dp const& a0) { return rev(a0); });
     m.def("rev", [](bivec2dp const& a0) { return rev(a0); });

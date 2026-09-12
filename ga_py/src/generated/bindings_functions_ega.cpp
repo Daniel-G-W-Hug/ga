@@ -272,6 +272,8 @@ void register_functions_ega(nb::module_& m)
           [](vec3d const& a0, vec3d const& a1) { return project_onto(a0, a1); });
     m.def("project_onto",
           [](vec3d const& a0, bivec3d const& a1) { return project_onto(a0, a1); });
+    m.def("project_onto",
+          [](bivec3d const& a0, bivec3d const& a1) { return project_onto(a0, a1); });
     m.def("r_cmpl", [](scalar2d const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](vec2d const& a0) { return r_cmpl(a0); });
     m.def("r_cmpl", [](pscalar2d const& a0) { return r_cmpl(a0); });
@@ -307,6 +309,8 @@ void register_functions_ega(nb::module_& m)
           [](vec3d const& a0, vec3d const& a1) { return reject_from(a0, a1); });
     m.def("reject_from",
           [](vec3d const& a0, bivec3d const& a1) { return reject_from(a0, a1); });
+    m.def("reject_from",
+          [](bivec3d const& a0, bivec3d const& a1) { return reject_from(a0, a1); });
     m.def("rev", [](scalar2d const& a0) { return rev(a0); });
     m.def("rev", [](vec2d const& a0) { return rev(a0); });
     m.def("rev", [](pscalar2d const& a0) { return rev(a0); });

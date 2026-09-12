@@ -912,6 +912,32 @@ constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
                                 weight_nrm_sq(t)); // ortho_proj3dp
 }
 
+// rejection of a line B (a bivector) from a plane t (a trivector)
+// rejection = B - project_onto(B, t)
+//
+// Where the line pierces the plane, the rejection IS a line, and it is the line through
+// that piercing point perpendicular to the plane: its attitude is the plane's normal,
+// and it meets the plane where B does,
+//
+//     rwdg(reject_from(B, t), t) == rwdg(B, t)
+//
+// because the projection lies in the plane, so rwdg(project_onto(B, t), t) == 0 and the
+// whole meet is carried by the rejection. Equivalently, it is congruent to the line the
+// expansion builds through that point: r_weight_expand3dp(unitize(rwdg(B, t)), t).
+//
+// The degenerate cases follow from the same expression: a line lying IN the plane
+// rejects to zero, a line already perpendicular to it rejects to itself, and a line
+// PARALLEL to the plane has no piercing point -- there the rejection loses its
+// attitude (att == 0) and what is left is an ideal bivector carrying the offset.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> reject_from(BiVec3dp<T> const& B,
+                                                         TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(B - project_onto(B, t));
+}
+
 // expand to a new line which goes through point p and is perpendicular to the plane
 // => returns a line (aka a bivector)
 template <typename T, typename U>
@@ -1112,6 +1138,12 @@ Vec3dp<T> sup(BiVec3dp<T> const& B)
 {
     // REQUIRES: a line (BiVec3dp) as argument
 
+    // NOTE: sup() is ortho_proj*(origin, target), so it INHERITS that function's
+    // contract -- including the one the opt-out changes: under
+    // _HD_GA_FAST_PROJECTION_ON_UNITIZED the target's weight is not divided out, so the
+    // argument must be unitized by the caller or the result comes back scaled by its
+    // weight squared. In the default build any scale works.
+
     // project origin onto line
     return ortho_proj3dp(O_3dp, B);
 }
@@ -1122,7 +1154,13 @@ Vec3dp<T> sup(TriVec3dp<T> const& t)
 {
     // REQUIRES: a plane (TriVec3dp) as argument
 
-    // project origin onto line
+    // NOTE: sup() is ortho_proj*(origin, target), so it INHERITS that function's
+    // contract -- including the one the opt-out changes: under
+    // _HD_GA_FAST_PROJECTION_ON_UNITIZED the target's weight is not divided out, so the
+    // argument must be unitized by the caller or the result comes back scaled by its
+    // weight squared. In the default build any scale works.
+
+    // project origin onto plane
     return ortho_proj3dp(O_3dp, t);
 }
 

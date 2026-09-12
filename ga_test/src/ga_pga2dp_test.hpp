@@ -3740,7 +3740,14 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_2dp, f),
                      bulk(wdg(P - O_2dp, f)));
         fmt::println("");
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        // sup() is ortho_proj2dp(origin, line), so in this build it inherits that
+        // function's "the target is unitized" precondition -- F is a force line straight
+        // out of a wedge, weight 0.75, so the caller has to unitize it here
+        CHECK(sup(bivec2dp(unitize(F))) == vec2dp{2.25, 0, 1});
+#else
         CHECK(sup(F) == vec2dp{2.25, 0, 1});
+#endif
         CHECK(wdg(P, f) == wdg(O_2dp, f) + wdg(P - O_2dp, f));
 
         auto R1 = vec2dp{1.5, 2, 1};
@@ -4358,6 +4365,85 @@ TEST_SUITE("PGA 2DP Tests")
             CHECK(mvec2dp(gr0(D), vec2dp{}, bivec2dp{}, gr3(D)) ==
                   mvec2dp(pscalar2dp_) - mvec2dp(scalar2dp_));
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // projection / reflection contract (the scale of the object projected ONTO must
+    // not reach the result)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("PGA2dp: projections do not depend on the target's scale")
+    {
+        fmt::println("PGA2dp: projections do not depend on the target's scale");
+
+        // The 2dp counterpart of the pga3dp case. These expressions are quadratic in the
+        // target -- the weight dual is linear in it and the meet brings it in a second
+        // time -- so without dividing that scale back out, a line scaled by 3 scales the
+        // projection onto it by 9, silently, and the rejection mixes two scalings. The
+        // checks fail the moment the division is removed again.
+
+        auto const P = vec2dp{2.0, 1.0, 1.0};                      // a point
+        auto const L = wdg(point2d{0.3, -0.7}, point2d{1.5, 0.9}); // a line
+        auto const L3 = 3.0 * L;                                   // the SAME line
+        auto const Q = vec2dp{-0.4, 1.2, 1.0};                     // a second point
+
+        CHECK(weight_nrm_sq(L) != 1.0); // not unitized -- that is the whole point
+
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        MESSAGE("skipped: _HD_GA_FAST_PROJECTION_ON_UNITIZED promises unitized targets, "
+                "so target-scale invariance is outside the contract in this build");
+#else
+        SUBCASE("target scale does not reach the result")
+        {
+            CHECK(is_close(project_onto(P, L3), project_onto(P, L)));
+            CHECK(is_close(reject_from(P, L3), reject_from(P, L)));
+            CHECK(is_close(ortho_proj2dp(P, L3), ortho_proj2dp(P, L)));
+            CHECK(is_close(central_proj2dp(P, L3), central_proj2dp(P, L)));
+            CHECK(is_close(ortho_antiproj2dp(L, 3.0 * P), ortho_antiproj2dp(L, P)));
+            CHECK(is_close(central_antiproj2dp(L, 3.0 * P), central_antiproj2dp(L, P)));
+            CHECK(is_close(reflect_on(P, L3), reflect_on(P, L)));
+            CHECK(is_close(reflect_on(L, L3), reflect_on(L, L)));
+            CHECK(is_close(invert_on(P, 3.0 * Q), invert_on(P, Q)));
+            CHECK(is_close(invert_on(L, 3.0 * Q), invert_on(L, Q)));
+        }
+
+        SUBCASE("a projection is linear in what is projected")
+        {
+            CHECK(project_onto(2.0 * P, L) == 2.0 * project_onto(P, L));
+            CHECK(reject_from(2.0 * P, L) == 2.0 * reject_from(P, L));
+            CHECK(reflect_on(2.0 * P, L) == 2.0 * reflect_on(P, L));
+        }
+
+        SUBCASE("projection and rejection split the input, and do it correctly")
+        {
+            // the sum is true by construction, so these two are the test: the projection
+            // lies ON the line, the rejection runs along its normal
+            auto const par = project_onto(P, L);
+            auto const rej = reject_from(P, L);
+            CHECK(wdg(par, L) == pscalar2dp{0.0});
+            CHECK(wdg(rej, weight_dual(L)) == bivec2dp{});
+        }
+
+        SUBCASE("projecting twice changes nothing")
+        {
+            CHECK(project_onto(project_onto(P, L), L) == project_onto(P, L));
+            CHECK(project_onto(project_onto(P, Q), Q) == project_onto(P, Q));
+        }
+
+        SUBCASE("reflecting twice is the identity, on a target of any scale")
+        {
+            CHECK(is_close(reflect_on(reflect_on(P, L3), L3), P));
+            CHECK(is_close(invert_on(invert_on(P, 3.0 * Q), 3.0 * Q), P));
+        }
+
+        SUBCASE("an ideal target has no scale to remove and must not divide by zero")
+        {
+            auto const l_inf = bivec2dp{0.0, 0.0, 1.0}; // the line at infinity
+            CHECK(weight_nrm_sq(l_inf) == 0.0);
+            CHECK(project_onto(P, l_inf) == vec2dp{}); // the degenerate answer
+            CHECK(reject_from(P, l_inf) == P);
+        }
+#endif
     }
 
 } // PGA 2DP Tests

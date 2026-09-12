@@ -220,7 +220,14 @@ TEST_SUITE("PGA2DP: application tests")
         CHECK(gr2(f * inv(f)) == bivec2dp{});
 
         CHECK(f == F);
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        // the right-hand side is scale-invariant in L, sup() in this build is not (it is
+        // ortho_proj2dp(origin, L) and inherits its "the target is unitized"
+        // precondition), so the line is unitized here
+        CHECK(sup(bivec2dp(unitize(L))) == gr1(L * inv(att(L))));
+#else
         CHECK(sup(L) == gr1(L * inv(att(L))));
+#endif
         CHECK(pscalar2dp{0.0} == gr3(L * inv(att(L))));
 
         fmt::println("");

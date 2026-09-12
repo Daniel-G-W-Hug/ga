@@ -3199,4 +3199,125 @@ TEST_SUITE("STA 3D Tests")
               vec4ds{1.0e-9 + 1.0e-13, 1.0e-9, 0.0, 0.0});
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // projection / reflection contract, including the two hyperplane pairs
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("sta4ds: the projection contract")
+    {
+        fmt::println("sta4ds: the projection contract");
+
+        auto const v = vec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const u = vec4ds{0.0, 0.0, 0.0, 2.0}; // timelike, not unit
+        auto const B = bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 2.0};
+        auto const t = trivec4ds{1.0, 2.0, 0.0, 3.0}; // a hyperplane, nrm_sq == -4
+        auto const W = bivec4ds{1.0, 0.0, 2.0, 0.0, 3.0, 1.0};
+
+        CHECK(nrm_sq(t) != 0.0); // non-null: the documented precondition
+
+        SUBCASE("target scale does not reach the result")
+        {
+            CHECK(is_close(project_onto(v, vec4ds(3.0 * u)), project_onto(v, u)));
+            CHECK(is_close(project_onto(v, bivec4ds(3.0 * B)), project_onto(v, B)));
+            CHECK(is_close(project_onto(v, trivec4ds(3.0 * t)), project_onto(v, t)));
+            CHECK(is_close(project_onto(W, trivec4ds(3.0 * t)), project_onto(W, t)));
+            CHECK(is_close(reject_from(v, trivec4ds(3.0 * t)), reject_from(v, t)));
+            CHECK(is_close(reject_from(W, trivec4ds(3.0 * t)), reject_from(W, t)));
+            CHECK(is_close(reflect_on(v, trivec4ds(3.0 * t)), reflect_on(v, t)));
+        }
+
+        SUBCASE("a projection is linear in what is projected")
+        {
+            CHECK(project_onto(vec4ds(3.0 * v), t) == 3.0 * project_onto(v, t));
+            CHECK(project_onto(bivec4ds(3.0 * W), t) == 3.0 * project_onto(W, t));
+            CHECK(reject_from(bivec4ds(3.0 * W), t) == 3.0 * reject_from(W, t));
+        }
+
+        SUBCASE("projecting twice changes nothing -- the sign gate")
+        {
+            // the grade-2 source is where the contraction's folded-in reversion shows:
+            // written with inv(t) instead of t / nrm_sq(t) the projection comes back
+            // negated, which still lies in t and still passes every scaling check above
+            // the shortest statement of it: a blade lying IN the target must come back
+            // unchanged. B is the spatial 2-plane g12, t_sp the spatial hyperplane g123
+            auto const t_sp = trivec4ds{0.0, 0.0, 0.0, 1.0};
+            CHECK(wdg(B, t_sp) == scalar4ds{0.0}); // B lies in it
+            CHECK(project_onto(B, t_sp) == B);
+            CHECK(reject_from(B, t_sp) == bivec4ds{});
+            CHECK(project_onto(project_onto(W, t), t) == project_onto(W, t));
+            CHECK(project_onto(project_onto(v, t), t) == project_onto(v, t));
+            CHECK(project_onto(project_onto(v, B), B) == project_onto(v, B));
+
+            // the same statement for the grade-1 overload: a vector lying in the
+            // hyperplane must come back unchanged, and one along its normal must vanish
+            auto const g1 = vec4ds{1.0, 0.0, 0.0, 0.0};
+            CHECK(wdg(g1, t_sp) == pscalar4ds{0.0});
+            CHECK(project_onto(g1, t_sp) == g1);
+            CHECK(reject_from(g1, t_sp) == vec4ds{});
+            auto const g4 = vec4ds{0.0, 0.0, 0.0, 1.0}; // the normal of t_sp
+            CHECK(project_onto(g4, t_sp) == vec4ds{});
+            CHECK(reject_from(g4, t_sp) == g4);
+        }
+
+        SUBCASE("the grade-1 and grade-2 overloads are ONE family")
+        {
+            // A projection is an outermorphism: it distributes over the wedge. This is
+            // what ties the two hyperplane overloads together -- their bodies are not the
+            // same shape (see the comment at the projections in ga_sta4ds_ops.hpp), so it
+            // is not a tautology, and a sign or scale error in the GRADE-2 overload shows
+            // up here while it passes containment and both scaling contracts.
+            //
+            // It is BLIND to a sign error in the grade-1 overload: that flip appears
+            // twice on the right-hand side and cancels. Verified by mutating each of the
+            // two in turn -- the subcase above, where a blade lying in the target must
+            // come back unchanged, is what covers grade 1.
+            auto const a = vec4ds{1.0, 2.0, 3.0, 4.0};
+            auto const b = vec4ds{-1.0, 0.5, 2.0, 1.0};
+            CHECK(is_close(bivec4ds(wdg(project_onto(a, t), project_onto(b, t))),
+                           project_onto(bivec4ds(wdg(a, b)), t)));
+            // and on a second, unrelated hyperplane
+            auto const t2 = trivec4ds{-0.5, 1.0, 2.0, 0.25};
+            CHECK(is_close(bivec4ds(wdg(project_onto(a, t2), project_onto(b, t2))),
+                           project_onto(bivec4ds(wdg(a, b)), t2)));
+        }
+
+        SUBCASE("the split is orthogonal, and the rejection stays a blade")
+        {
+            auto const pv = project_onto(v, t);
+            auto const rv = reject_from(v, t);
+            CHECK(pv + rv == v);
+            CHECK(wdg(pv, t) == pscalar4ds{0.0}); // the part IN the hyperplane
+            auto const pW = project_onto(W, t);
+            auto const rW = reject_from(W, t);
+            CHECK(wdg(pW, t) == scalar4ds{0.0});
+            // the target is a HYPERPLANE, so the leftover lands in t ^ n and is simple --
+            // a 2-plane again. A bivector target would leave a non-simple remainder,
+            // which is why no bivector-onto-bivector pair is provided.
+            CHECK(wdg(rW, rW) == pscalar4ds{0.0});
+            CHECK(wdg(pW, pW) == pscalar4ds{0.0});
+        }
+
+        SUBCASE("a reflection is an involution and keeps the norm")
+        {
+            CHECK(is_close(reflect_on(reflect_on(v, t), t), v));
+            CHECK(std::abs(nrm_sq(reflect_on(v, t)) - nrm_sq(v)) <
+                  eps * std::abs(nrm_sq(v)));
+        }
+
+        SUBCASE("a lightlike target has no inverse and is reported, not absorbed")
+        {
+            // the one degenerate case that is specific to the Lorentzian metric: a null
+            // blade has nrm_sq == 0, so inv() divides by zero and the guard answers. The
+            // projective algebras' ideal target is the analogue with a documented value.
+            auto const n = vec4ds{1.0, 0.0, 0.0, 1.0}; // lightlike: nrm_sq == 0
+            CHECK(nrm_sq(n) == 0.0);
+            CHECK(is_lightlike(n));
+            CHECK_THROWS(project_onto(v, n));
+            auto const t_null = trivec4ds{1.0, 0.0, 0.0, 1.0};
+            CHECK(nrm_sq(t_null) == 0.0);
+            CHECK_THROWS(project_onto(v, t_null));
+            CHECK_THROWS(project_onto(W, t_null));
+        }
+    }
+
 } // STA 3D Tests

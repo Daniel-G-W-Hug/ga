@@ -162,7 +162,14 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_3dp, f),
                      bulk(wdg(P - O_3dp, f)));
         fmt::println("");
+#if defined(_HD_GA_FAST_PROJECTION_ON_UNITIZED)
+        // sup() is ortho_proj3dp(origin, line), so in this build it inherits that
+        // function's "the target is unitized" precondition -- F is a force line straight
+        // out of a wedge, so the caller has to unitize it here
+        CHECK(sup(bivec3dp(unitize(F))) == vec3dp{2.25, 0, 0, 1});
+#else
         CHECK(sup(F) == vec3dp{2.25, 0, 0, 1});
+#endif
         CHECK(wdg(P, f) == wdg(O_3dp, f) + wdg(P - O_3dp, f));
 
         auto R1 = vec3dp{1.5, 2, 0, 1};

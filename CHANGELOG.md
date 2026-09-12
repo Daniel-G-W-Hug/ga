@@ -190,3 +190,15 @@
            ideal; central_antiproj2dp/3dp completes the projection family; and sta4ds
            nrm() returns a plain scalar like ega's, leaving the strong norm types to PGA
            where the metric separates bulk from weight
+- 2026/09: the projection/rejection grade matrix completed, and its gates written:
+           new overloads reject_from(BiVec3dp, TriVec3dp) (pga3dp), project_onto and
+           reject_from for Vec4ds and BiVec4ds onto TriVec4ds (sta4ds), and
+           project_onto/reject_from(BiVec3d, BiVec3d) (ega3d). Every algebra now has a
+           projection-contract test case pinning both scaling contracts, containment,
+           idempotence and the degenerate target. Two lessons are recorded at the
+           functions: the sign of the textbook (A contracted into B) * inv(B) depends on
+           BOTH grades here, because dot folds in the source's reversion -- an even-grade
+           source needs the target as B / nrm_sq(B), not inv(B), and only idempotence sees
+           the difference; and rejection = source - projection stays a BLADE only when the
+           target is a hyperplane, which is why no bivector-onto-bivector pair exists in a
+           4d algebra (the remainder there is non-simple, so it is no 2-plane at all)

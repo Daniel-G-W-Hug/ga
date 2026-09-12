@@ -636,6 +636,12 @@ Vec2dp<T> sup(BiVec2dp<T> const& B)
 {
     // REQUIRES: a line (BiVec2dp) as argument
 
+    // NOTE: sup() is ortho_proj*(origin, target), so it INHERITS that function's
+    // contract -- including the one the opt-out changes: under
+    // _HD_GA_FAST_PROJECTION_ON_UNITIZED the target's weight is not divided out, so the
+    // argument must be unitized by the caller or the result comes back scaled by its
+    // weight squared. In the default build any scale works.
+
     // project origin onto line
     return ortho_proj2dp(O_2dp, B);
 }

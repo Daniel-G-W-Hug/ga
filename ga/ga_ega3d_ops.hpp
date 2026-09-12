@@ -706,6 +706,41 @@ constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
     // return gr1(wdg(v, B) * inv(B));
 }
 
+// projection of a bivector A onto a bivector B (both modelling planes)
+// A_parallel = dot(A, B) / nrm_sq(B) * B
+//
+// Equal grades, so the general blade formula collapses onto the same shape as the
+// vector-onto-vector case: the part of A lying in B can only be a multiple of B. In 3d
+// it is the projection of A's normal onto B's normal.
+//
+// The target enters as B / nrm_sq(B) and NOT as inv(B) = rev(B) / nrm_sq(B), which is
+// the difference from project_onto(Vec3d, Vec3d) and the one thing that is easy to get
+// wrong here: this library's dot folds in the source's reversion, dot(A, B) =
+// <rev(A) B>, and at grade 2 that is a sign. Written with inv(B) the projection of B
+// onto itself comes back as -B, which satisfies containment and both scaling contracts
+// and is caught only by idempotence.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> project_onto(BiVec3d<T> const& A,
+                                                         BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const nsq = ctype(nrm_sq(B));
+    detail::check_division_by_zero(nsq, "project_onto(BiVec3d, BiVec3d)");
+    return BiVec3d<ctype>(ctype(dot(A, B)) / nsq * B);
+}
+
+// rejection of a bivector A from a bivector B (both modelling planes)
+// A_perp = A - project_onto(A, B)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> reject_from(BiVec3d<T> const& A,
+                                                        BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(A - project_onto(A, B));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // reflections
 ////////////////////////////////////////////////////////////////////////////////

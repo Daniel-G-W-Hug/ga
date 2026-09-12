@@ -3508,7 +3508,8 @@ void register_functions(sol::state& lua)
             // EGA projection functions
             sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto),
             sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto)));
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto),
+            sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(project_onto)));
     pga.set_function(
         "project_onto",
         sol::overload(
@@ -3526,14 +3527,18 @@ void register_functions(sol::state& lua)
         sol::overload(
             // sta
             sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(project_onto),
-            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(project_onto)));
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(project_onto),
+            sol::resolve<vec4ds(vec4ds const&, trivec4ds const&)>(project_onto),
+            sol::resolve<bivec4ds(bivec4ds const&, trivec4ds const&)>(project_onto)));
 
-    ega.set_function("reject_from",
-                     sol::overload(
-                         // EGA rejection functions
-                         sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from),
-                         sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from),
-                         sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
+    ega.set_function(
+        "reject_from",
+        sol::overload(
+            // EGA rejection functions
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from),
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from),
+            sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reject_from)));
     pga.set_function(
         "reject_from",
         sol::overload(
@@ -3543,13 +3548,16 @@ void register_functions(sol::state& lua)
             // PGA 3DP rejection functions
             sol::resolve<vec3dp(vec3dp const&, vec3dp const&)>(reject_from),
             sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(reject_from),
-            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(reject_from)));
+            sol::resolve<vec3dp(vec3dp const&, trivec3dp const&)>(reject_from),
+            sol::resolve<bivec3dp(bivec3dp const&, trivec3dp const&)>(reject_from)));
     sta.set_function(
         "reject_from",
         sol::overload(
             // sta
             sol::resolve<vec4ds(vec4ds const&, vec4ds const&)>(reject_from),
-            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(reject_from)));
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(reject_from),
+            sol::resolve<vec4ds(vec4ds const&, trivec4ds const&)>(reject_from),
+            sol::resolve<bivec4ds(bivec4ds const&, trivec4ds const&)>(reject_from)));
 
     ega.set_function(
         "reflect_on",

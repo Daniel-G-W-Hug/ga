@@ -118,7 +118,12 @@ TEST_SUITE("PGA3DP: application tests")
         CHECK(bulk_nrm(rcmt(omega_rot_2dp, X2_2dp)) == omeg2dp * bulk_nrm(X2_2dp));
         CHECK(bulk_nrm(rcmt(omega_rot_2dp, X3_2dp)) == omeg2dp * bulk_nrm(X3_2dp));
 
-        auto L = wdg(O_3dp, omeg3dp); // rotational axis
+        // the rotational axis, UNITIZED: the identity below reads the perpendicular
+        // distance off a projection onto it, and the axis' own magnitude (omega) is
+        // supplied separately as bulk_nrm(omeg3dp). Unitizing keeps the line's scale out
+        // of the projection in any build -- with _HD_GA_FAST_PROJECTION_ON_UNITIZED the
+        // library does not divide it out, and a raw wdg(O_3dp, omeg3dp) has weight omega
+        auto L = bivec3dp(unitize(wdg(O_3dp, omeg3dp)));
         CHECK(bulk_nrm(rcmt(omega_rot_3dp, X1_3dp)) ==
               bulk_nrm(omeg3dp) * bulk_nrm(ortho_proj3dp(X1_3dp, L) - X1_3dp));
         CHECK(bulk_nrm(rcmt(omega_rot_3dp, X2_3dp)) ==

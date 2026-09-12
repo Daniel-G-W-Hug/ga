@@ -868,6 +868,25 @@ inline BiVec4ds<T> rot_part(BiVec4ds<T> const& B)
 // (lightlike) blade is undefined here (inv() divides by nrm_sq) -- there is no
 // Euclidean analog. project_onto + reject_from == a, and project_onto(a,b) lies
 // in b (wdg(project_onto(a,b), b) == 0).
+//
+// WHY THE BODIES BELOW ARE NOT ALL THE SAME SHAPE. The textbook projection is
+// (a contracted into b) * inv(b), but this library's dot and contractions fold in a
+// reversion -- dot(A, B) = <rev(A) B>, which is what makes nrm_sq positive definite --
+// so the SIGN of that expression depends on the grades of BOTH arguments. No single
+// spelling is right for every pair: grade 1 onto a bivector needs (B >> v) * inv(B),
+// while grade 2 onto a trivector needs the target as t / nrm_sq(t) rather than
+// inv(t) = rev(t) / nrm_sq(t). A wrong sign here is nearly invisible -- the result still
+// lies in the target and still survives both scaling contracts.
+//
+// So each body is fixed by a test rather than by a derivation, and two tests are needed
+// because neither one sees everything (ga_sta4ds_test.hpp, "sta4ds: the projection
+// contract"; both were checked by mutation):
+//   - a blade lying IN the target comes back unchanged, hence projecting twice changes
+//     nothing. This is the only gate that catches a sign in the GRADE-1 overload.
+//   - the grades agree with each other, P(a ^ b) == P(a) ^ P(b) (a projection is an
+//     outermorphism), which makes the two overloads one family instead of two unrelated
+//     formulas. It catches a sign in the GRADE-2 overload but is BLIND to one in the
+//     grade-1 overload, where the flip appears twice on the right-hand side and cancels.
 ////////////////////////////////////////////////////////////////////////////////
 
 // projection of a vector v1 onto a vector v2
@@ -907,6 +926,55 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
 {
     using ctype = std::common_type_t<T, U>;
     return Vec4ds<ctype>(v - project_onto(v, B));
+}
+
+
+// projection of a vector v onto a trivector t (a hyperplane)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v,
+                                                        TriVec4ds<U> const& t)
+{
+    return gr1((t >> v) * inv(t));
+}
+
+// rejection of a vector v from a trivector t (a hyperplane)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
+                                                       TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec4ds<ctype>(v - project_onto(v, t));
+}
+
+// projection of a bivector B (a 2-plane) onto a trivector t (a hyperplane)
+//
+// The target enters as t / nrm_sq(t), not as inv(t) = rev(t) / nrm_sq(t) -- the
+// difference from the grade-1 source above, and the one thing that is easy to get wrong
+// here: the contraction folds in the source's reversion (dot(A, B) = <rev(A) B>), and at
+// grade 2 that is a sign. Written with inv(t) a bivector lying in t comes back negated,
+// which satisfies containment and both scaling contracts and is caught only by
+// idempotence.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> project_onto(BiVec4ds<T> const& B,
+                                                          TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const nsq = ctype(nrm_sq(t));
+    detail::check_division_by_zero(nsq, "project_onto(BiVec4ds, TriVec4ds)");
+    return BiVec4ds<ctype>(gr2((t >> B) * t) / nsq);
+}
+
+// rejection of a bivector B (a 2-plane) from a trivector t (a hyperplane)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> reject_from(BiVec4ds<T> const& B,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec4ds<ctype>(B - project_onto(B, t));
 }
 
 
