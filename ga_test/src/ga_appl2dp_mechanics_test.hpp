@@ -5111,6 +5111,120 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: dynamic_system2dp - total momentum")
+    {
+        fmt::println("pga2dp: total_momentum -- linear part, angular part, impulse");
+        // A hub (free body) moving and turning, carrying a link swinging relative to it.
+        // The momentum of the whole mechanism is ONE bivector; each of its readings is
+        // checked against a reference that does not use it:
+        //
+        //     linear part             = total_mass() * centre_of_mass_velocity()
+        //     moment about the CoM    = sum_i J_i w_i + m_i (c_i - C) x v_i
+        //     P(T) - P(0)             = integral of gravity_wrench() dt
+        //
+        // with each w_i read from two point velocities of its body, not from a twist.
+        // Under gravity alone the centre of mass moves on a parabola, so the gravity
+        // wrench is linear in time and the trapezoid rule integrates it exactly.
+        value_t const m_h = 4.0, w_h = 0.2, h_h = 0.3;
+        value_t const m_l = 2.0, w_l = 0.5, h_l = 0.05;
+        auto build = [&] {
+            dynamic_system2dp s;
+            s.add_frame(static_frame2dp("W"));
+            s.add_body(static_frame2dp("hub", vec2dp{1.0, 2.0, 1.0}, 0.0),
+                       make_plate_body(m_h, w_h, h_h),
+                       kin_state2dp{.vel = vec2dp{0.3, -0.2, 0.0}, .omega = 0.7});
+            s.add_revolute_body(static_frame2dp("link", vec2dp{0.5, 0.0, 1.0}, 0.0),
+                                make_plate_body(m_l, w_l, h_l), vec2dp{-0.25, 0.0, 1.0},
+                                0.0, 1.5, s.index_of("hub"));
+            return s;
+        };
+        auto nrm3 = [](bivec2dp const& b) {
+            return std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
+        };
+        dynamic_system2dp sys = build();
+        size_t const hub = sys.index_of("hub"), link = sys.index_of("link");
+        bivec2dp const P = sys.total_momentum();
+        value_t const M = sys.total_mass();
+        vec2dp const vC = sys.centre_of_mass_velocity();
+        CHECK(P.x == doctest::Approx(M * vC.x).epsilon(1e-12));
+        CHECK(P.y == doctest::Approx(M * vC.y).epsilon(1e-12));
+
+        vec2dp const C = sys.centre_of_mass();
+        auto body_L = [&](size_t i, value_t m, value_t J) {
+            vec2dp const c = unitize(move2dp(O_2dp, sys.get_pos_trafo(i, 0)));
+            vec2dp const v = sys.point_velocity(c, i);
+            // a rigid body: v(c + e1) - v(c) = w (-0, 1), so w is the y-difference
+            value_t const w = sys.point_velocity(vec2dp{c.x + 1.0, c.y, 1.0}, i).y - v.y;
+            return J * w + m * ((c.x - C.x) * v.y - (c.y - C.y) * v.x);
+        };
+        value_t const L_ref = body_L(hub, m_h, m_h * (w_h * w_h + h_h * h_h) / 12.0) +
+                              body_L(link, m_l, m_l * (w_l * w_l + h_l * h_l) / 12.0);
+        CHECK(moment_about(C, P).z == doctest::Approx(L_ref).epsilon(1e-12));
+        // falsified: a partial sum misses what the joint exchanges -- the hub alone
+        bivec2dp const Ph = sys.momentum_world(hub);
+        CHECK(std::abs(Ph.x - M * vC.x) > 0.1);
+
+        { // the impulse of the only external wrench is the change of momentum
+            dynamic_system2dp s = build();
+            value_t const dt = 1.0e-3;
+            int const n = 1000;
+            bivec2dp const P0 = s.total_momentum(), Ph0 = s.momentum_world(hub);
+            bivec2dp J = (0.5 * dt) * s.gravity_wrench();
+            for (int k = 1; k <= n; ++k) {
+                s.step(dt);
+                J = J + ((k == n) ? 0.5 * dt : dt) * s.gravity_wrench();
+            }
+            value_t const rel = nrm3(s.total_momentum() - P0 - J) / nrm3(J);
+            value_t const rel_h = nrm3(s.momentum_world(hub) - Ph0 - J) / nrm3(J);
+            fmt::println("  |dP - impulse| / |impulse| = {:.2e} (the hub alone: {:.2e})",
+                         rel, rel_h);
+            CHECK(rel < 1e-9);
+            CHECK(rel_h > 1e-2);
+        }
+
+        { // ... and the joints cannot change it: a torque and a spring-damper at the link
+          // act equally and oppositely on hub and link. Same mechanism inside the
+          // closed-loop layer, its only constraint switched off. The spring makes the
+          // motion fast, so the residual is the integrator's: it must fall at fourth
+          // order under dt-halving, not merely be small.
+            auto residual = [&](value_t dt) {
+                closed_loop_system2dp cl;
+                auto& s = cl.system();
+                s.add_frame(static_frame2dp("W"));
+                s.add_body(static_frame2dp("hub", vec2dp{1.0, 2.0, 1.0}, 0.0),
+                           make_plate_body(m_h, w_h, h_h),
+                           kin_state2dp{.vel = vec2dp{0.3, -0.2, 0.0}, .omega = 0.7});
+                s.add_revolute_body(static_frame2dp("link", vec2dp{0.5, 0.0, 1.0}, 0.0),
+                                    make_plate_body(m_l, w_l, h_l),
+                                    vec2dp{-0.25, 0.0, 1.0}, 0.0, 1.5, s.index_of("hub"));
+                size_t const lk = s.index_of("link");
+                s.set_joint_spring_damper(lk, 30.0, 2.0, 0.4);
+                s.set_joint_torque(lk, [](value_t) { return value_t(5.0); });
+                size_t const c = cl.add_loop_constraint(loop_constraint2dp{
+                    lk, vec2dp{0.25, 0.0, 1.0}, s.index_of("W"), vec2dp{0.0, 0.0, 1.0},
+                    constraint2dp::coincidence});
+                cl.set_loop_active(c, false);
+                int const n = int(std::round(1.0 / dt));
+                bivec2dp const P0 = s.total_momentum();
+                bivec2dp J = (0.5 * dt) * s.gravity_wrench();
+                for (int k = 1; k <= n; ++k) {
+                    cl.step(dt);
+                    J = J + ((k == n) ? 0.5 * dt : dt) * s.gravity_wrench();
+                }
+                return nrm3(s.total_momentum() - P0 - J) / nrm3(J);
+            };
+            value_t const r1 = residual(2.0e-3), r2 = residual(1.0e-3);
+            fmt::println("  with a joint torque and a spring, in the closed-loop layer: "
+                         "|dP - impulse| / |impulse| = {:.2e} -> {:.2e}, ratio {:.1f}",
+                         r1, r2, r1 / r2);
+            CHECK(r2 < 1e-7);
+            CHECK(r1 / r2 > 12.0);
+        }
+        fmt::println("  M v_C = ({:.4f}, {:.4f}), L_C = {:.6f} kg m^2/s", M * vC.x,
+                     M * vC.y, L_ref);
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: closed_loop_system2dp - the impact map (W2)")
     {
         fmt::println("pga2dp: closed_loop_system2dp - the impact map (W2)");

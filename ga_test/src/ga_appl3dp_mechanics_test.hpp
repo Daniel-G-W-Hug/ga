@@ -2229,6 +2229,97 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: dynamic_system3dp - total momentum")
+    {
+        fmt::println("pga3dp: total_momentum -- linear part, angular part, impulse");
+        // The 2D case in space: a tumbling hub (free body) carrying a swinging link. The
+        // momentum of the whole mechanism is ONE bivector, and each reading is checked
+        // against a reference that does not use it:
+        //
+        //     linear part             = total_mass() * centre_of_mass_velocity()
+        //     moment about the CoM    = sum_i I_i w_i + m_i (c_i - C) x v_i
+        //     P(T) - P(0)             = integral of gravity_wrench() dt
+        //
+        // with each w_i read from three point velocities of its body and I_i the
+        // cuboid's principal moments (both frames are unrotated at t = 0).
+        value_t const m_h = 4.0, m_l = 2.0;
+        vec3dp const I_h{m_h * (0.3 * 0.3 + 0.25 * 0.25) / 12.0,
+                         m_h * (0.2 * 0.2 + 0.25 * 0.25) / 12.0,
+                         m_h * (0.2 * 0.2 + 0.3 * 0.3) / 12.0, 0.0};
+        vec3dp const I_l{m_l * (0.05 * 0.05 + 0.05 * 0.05) / 12.0,
+                         m_l * (0.5 * 0.5 + 0.05 * 0.05) / 12.0,
+                         m_l * (0.5 * 0.5 + 0.05 * 0.05) / 12.0, 0.0};
+        auto build = [&] {
+            dynamic_system3dp s;
+            s.add_frame(static_frame3dp("W"));
+            s.add_body(static_frame3dp("hub", vec3dp{1.0, 2.0, 3.0, 1.0}),
+                       make_cuboid_body(m_h, 0.2, 0.3, 0.25),
+                       kin_state3dp{.vel = vec3dp{0.3, -0.2, 0.1, 0.0},
+                                    .omega = vec3dp{0.2, 0.7, -0.4, 0.0}});
+            s.add_revolute_body(static_frame3dp("link", vec3dp{0.5, 0.0, 0.0, 1.0}),
+                                make_cuboid_body(m_l, 0.5, 0.05, 0.05),
+                                vec3dp{-0.25, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                                0.0, 1.5, s.index_of("hub"));
+            return s;
+        };
+        auto nrm6 = [](bivec3dp const& b) {
+            return std::sqrt(b.vx * b.vx + b.vy * b.vy + b.vz * b.vz + b.mx * b.mx +
+                             b.my * b.my + b.mz * b.mz);
+        };
+        dynamic_system3dp sys = build();
+        size_t const hub = sys.index_of("hub"), link = sys.index_of("link");
+        bivec3dp const P = sys.total_momentum();
+        value_t const M = sys.total_mass();
+        vec3dp const vC = sys.centre_of_mass_velocity();
+        CHECK(P.vx == doctest::Approx(M * vC.x).epsilon(1e-12));
+        CHECK(P.vy == doctest::Approx(M * vC.y).epsilon(1e-12));
+        CHECK(P.vz == doctest::Approx(M * vC.z).epsilon(1e-12));
+
+        vec3dp const C = sys.centre_of_mass();
+        auto body_L = [&](size_t i, value_t m, vec3dp const& I) {
+            vec3dp const c = unitize(move3dp(O_3dp, sys.get_pos_trafo(i, 0)));
+            vec3dp const v = sys.point_velocity(c, i);
+            // a rigid body: v(c + u) - v(c) = w x u, so e1 gives (0, wz, -wy) and e2
+            // gives (-wz, 0, wx)
+            vec3dp const d1 = sys.point_velocity(vec3dp{c.x + 1.0, c.y, c.z, 1.0}, i) - v;
+            vec3dp const d2 = sys.point_velocity(vec3dp{c.x, c.y + 1.0, c.z, 1.0}, i) - v;
+            vec3dp const w{d2.z, -d1.z, d1.y, 0.0};
+            vec3dp const r{c.x - C.x, c.y - C.y, c.z - C.z, 0.0};
+            return vec3dp{I.x * w.x + m * (r.y * v.z - r.z * v.y),
+                          I.y * w.y + m * (r.z * v.x - r.x * v.z),
+                          I.z * w.z + m * (r.x * v.y - r.y * v.x), 0.0};
+        };
+        vec3dp const L_ref = body_L(hub, m_h, I_h) + body_L(link, m_l, I_l);
+        bivec3dp const L = moment_about(C, P);
+        CHECK(L.mx == doctest::Approx(L_ref.x).epsilon(1e-12));
+        CHECK(L.my == doctest::Approx(L_ref.y).epsilon(1e-12));
+        CHECK(L.mz == doctest::Approx(L_ref.z).epsilon(1e-12));
+        // falsified: a partial sum misses what the joint exchanges -- the hub alone
+        bivec3dp const Ph = sys.momentum_world(hub);
+        CHECK(std::abs(Ph.vx - M * vC.x) > 0.1);
+
+        { // the impulse of the only external wrench is the change of momentum
+            dynamic_system3dp s = build();
+            value_t const dt = 1.0e-3;
+            int const n = 1000;
+            bivec3dp const P0 = s.total_momentum(), Ph0 = s.momentum_world(hub);
+            bivec3dp J = (0.5 * dt) * s.gravity_wrench();
+            for (int k = 1; k <= n; ++k) {
+                s.step(dt);
+                J = J + ((k == n) ? 0.5 * dt : dt) * s.gravity_wrench();
+            }
+            value_t const rel = nrm6(s.total_momentum() - P0 - J) / nrm6(J);
+            value_t const rel_h = nrm6(s.momentum_world(hub) - Ph0 - J) / nrm6(J);
+            fmt::println("  |dP - impulse| / |impulse| = {:.2e} (the hub alone: {:.2e})",
+                         rel, rel_h);
+            CHECK(rel < 1e-9);
+            CHECK(rel_h > 1e-2);
+        }
+        fmt::println("  M v_C = ({:.4f}, {:.4f}, {:.4f}), L_C = ({:.6f}, {:.6f}, {:.6f})",
+                     M * vC.x, M * vC.y, M * vC.z, L_ref.x, L_ref.y, L_ref.z);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: closed_loop_system3dp - the impact map (W2)")
     {
         fmt::println("pga3dp: closed_loop_system3dp - the impact map (W2)");

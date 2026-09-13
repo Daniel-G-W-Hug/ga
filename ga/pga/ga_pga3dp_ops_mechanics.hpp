@@ -63,6 +63,7 @@
 //   centre_of_mass_acceleration()
 // - gravity_wrench()    -> gravity as ONE wrench
 // - kinetic_energy(), potential_energy(), total_energy(), momentum_world()
+// - total_momentum()    -> the whole mechanism's momentum as ONE bivector
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
 //
@@ -1789,6 +1790,22 @@ class dynamic_system3dp : public kinematic_system3dp {
             W = W + wdg(c, body[i].mass * grav);
         }
         return W;
+    }
+
+    // The momentum of the whole mechanism as ONE bivector, the sum of the bodies'
+    // momentum_world(). Its weight is the linear momentum, total_mass() times
+    // centre_of_mass_velocity(); its moment about a point R, moment_about(R, P), is the
+    // angular momentum about R. Newton-Euler for the whole mechanism is one equation,
+    // dP/dt = the sum of the external wrenches (gravity_wrench() plus reactions and
+    // applied wrenches), so in free flight the moment about the centre of mass is
+    // conserved whatever the joints do. A sum over some of the bodies is not: it misses
+    // the momentum the joints exchange with the rest.
+    bivec3dp total_momentum()
+    {
+        bivec3dp P{};
+        for (size_t i = 1; i < size(); ++i)
+            if (body[i].mass > 0.0) P = P + momentum_world(i);
+        return P;
     }
 
     value_t kinetic_energy()
