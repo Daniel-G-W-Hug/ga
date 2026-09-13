@@ -2551,6 +2551,75 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: ground_contact3dp - the reaction wrench and the ZMP as a meet")
+    {
+        fmt::println("pga3dp: ground_contact3dp - reaction_wrench() and zmp()");
+
+        // A slab (free body) on four point contacts at its bottom corners, loaded by its
+        // weight and by a vertical force line off its centre. The ZMP must lie on the
+        // floor, carry no moment, and equal the lever-rule point of weight and load.
+        // Then the two couples that separate the 3D definition from the planar one. A
+        // couple about the ground NORMAL is carried by the contacts' tangential forces:
+        // it leaves the ZMP where it was and is the one moment that survives there. A
+        // TANGENTIAL couple moves the ZMP, by the couple over the normal load.
+        value_t const m = 4.0, g = 9.81, a = 1.0, b = 0.6, h = 0.1, F = 30.0;
+        vec3dp const PF{0.45, -0.1, 0.3, 1.0}; // a point on the load's line
+        vec3dp const cm0{0.2, 0.1, 0.5 * h, 1.0};
+        auto const floor = ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{0.0, 1.0, 0.0, 1.0});
+        value_t const N = m * g + F;
+        auto slab = [&](bivec3dp const& couple, bivec3dp& W_out) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, -g, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("slab", cm0), make_cuboid_body(m, a, b, h));
+            size_t const s = cl.index_of("slab");
+            cl.system().set_applied_wrench(
+                s, [=](value_t) { return wdg(PF, vec3dp{0.0, 0.0, -F, 0.0}) + couple; });
+            ground_contact3dp gc(cl, floor);
+            for (value_t const sx : {-0.5, 0.5})
+                for (value_t const sy : {-0.5, 0.5})
+                    gc.engage(gc.add({s, vec3dp{sx * a, sy * b, -0.5 * h, 1.0}}));
+            gc.read_reactions();
+            W_out = gc.reaction_wrench();
+            return gc.zmp();
+        };
+        auto tangential = [](bivec3dp const& M) { return std::hypot(M.mx, M.my); };
+
+        bivec3dp W0{}, Wn{}, Wt{};
+        vec3dp const Z0 = slab(bivec3dp{}, W0);
+        vec3dp const Zref{(m * g * cm0.x + F * PF.x) / N, (m * g * cm0.y + F * PF.y) / N,
+                          0.0, 1.0};
+        CHECK(Z0.w == doctest::Approx(1.0).epsilon(1e-12));
+        CHECK(std::abs(value_t(wdg(Z0, floor))) < 1e-12); // on the floor
+        CHECK(att(W0).z == doctest::Approx(N).epsilon(1e-9));
+        bivec3dp const M0 = moment_about(Z0, W0);
+        CHECK(std::sqrt(M0.mx * M0.mx + M0.my * M0.my + M0.mz * M0.mz) < 1e-9);
+        CHECK(Z0.x == doctest::Approx(Zref.x).epsilon(1e-9)); // the lever rule
+        CHECK(Z0.y == doctest::Approx(Zref.y).epsilon(1e-9));
+
+        value_t const Mc = 5.0;
+        vec3dp const Zn = slab(bivec3dp{0.0, 0.0, 0.0, 0.0, 0.0, Mc}, Wn); // about n
+        bivec3dp const Mn = moment_about(Zn, Wn);
+        CHECK(Zn.x == doctest::Approx(Z0.x).epsilon(1e-9)); // the ZMP does not move
+        CHECK(Zn.y == doctest::Approx(Z0.y).epsilon(1e-9));
+        CHECK(tangential(Mn) < 1e-9);                                // tangential: none
+        CHECK(std::abs(Mn.mz) == doctest::Approx(Mc).epsilon(1e-9)); // normal: survives
+
+        vec3dp const Zt = slab(bivec3dp{0.0, 0.0, 0.0, Mc, 0.0, 0.0}, Wt); // tangential
+        CHECK(tangential(moment_about(Zt, Wt)) < 1e-9);
+        CHECK(std::hypot(Zt.x - Z0.x, Zt.y - Z0.y) ==
+              doctest::Approx(Mc / N).epsilon(1e-9));
+        fmt::println(
+            "  ZMP ({:.6f}, {:.6f}) vs lever rule ({:.6f}, {:.6f}); normal couple: "
+            "moved {:.1e}, surviving moment {:.6f} N m; tangential couple: moved "
+            "{:.6f} m (couple / load {:.6f})",
+            Z0.x, Z0.y, Zref.x, Zref.y, std::hypot(Zn.x - Z0.x, Zn.y - Z0.y),
+            std::abs(Mn.mz), std::hypot(Zt.x - Z0.x, Zt.y - Z0.y), Mc / N);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga3dp: floating base - a space station: momentum and energy");

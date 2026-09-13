@@ -5538,6 +5538,96 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: ground_contact2dp - the reaction wrench and the ZMP as a meet")
+    {
+        fmt::println("pga2dp: ground_contact2dp - reaction_wrench() and zmp()");
+
+        // A plate (free body) standing on two point contacts at its bottom corners,
+        // loaded by its weight and by a vertical force line off its centre. At rest the
+        // ground reaction balances both, so its line of action crosses the ground at the
+        // load-weighted mean of the two force lines -- the lever rule, a reference that
+        // uses no meet. The ZMP must lie on the ground, carry no moment, equal the lever
+        // rule and, on level ground, the textbook centre of pressure sum(p N)/sum(N).
+        // On a slope the same expression needs no change: the reaction is the weight
+        // line through the centre of mass, and the ZMP is where it meets the slope.
+        value_t const m = 4.0, g = 9.81, w = 1.0, h = 0.1, F = 30.0, xF = 0.45;
+        auto const plate = make_plate_body(m, w, h);
+        // the plate with its bottom midpoint at B, turned by alpha
+        auto stand = [&](value_t alpha, vec2dp const& B) {
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, -g, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            vec2dp const c{B.x - 0.5 * h * std::sin(alpha),
+                           B.y + 0.5 * h * std::cos(alpha), 1.0};
+            cl.add_body(static_frame2dp("plate", c, alpha), plate);
+            return cl;
+        };
+        vec2dp const corner_l{-0.5 * w, -0.5 * h, 1.0}, corner_r{0.5 * w, -0.5 * h, 1.0};
+
+        { // level ground, an off-centre load
+            closed_loop_system2dp cl = stand(0.0, vec2dp{0.2, 0.0, 1.0});
+            ground_contact2dp gc(cl, ground_contact2dp::ground_line(
+                                         vec2dp{0.0, 0.0, 1.0}, vec2dp{1.0, 0.0, 1.0}));
+            size_t const pl = cl.index_of("plate");
+            cl.system().set_applied_wrench(pl, [&](value_t) {
+                return wdg(vec2dp{xF, 0.3, 1.0}, vec2dp{0.0, -F, 0.0});
+            });
+            size_t const c1 = gc.add({pl, corner_l});
+            size_t const c2 = gc.add({pl, corner_r});
+            gc.engage(c1);
+            gc.engage(c2);
+            gc.read_reactions();
+
+            bivec2dp const W = gc.reaction_wrench();
+            vec2dp const Z = gc.zmp();
+            value_t const N = m * g + F;
+            value_t const x_lever = (m * g * 0.2 + F * xF) / N;
+            CHECK(Z.z == doctest::Approx(1.0).epsilon(1e-12));
+            CHECK(std::abs(value_t(wdg(Z, gc.ground()))) < 1e-12); // on the ground
+            CHECK(att(W).y == doctest::Approx(N).epsilon(1e-9));   // the resultant
+            CHECK(std::abs(moment_about(Z, W).z) < 1e-9);          // no moment at Z
+            CHECK(Z.x == doctest::Approx(x_lever).epsilon(1e-9));  // the lever rule
+            value_t const x_cop = (gc.contact_point(c1).x * gc.normal_force(c1) +
+                                   gc.contact_point(c2).x * gc.normal_force(c2)) /
+                                  (gc.normal_force(c1) + gc.normal_force(c2));
+            CHECK(Z.x == doctest::Approx(x_cop).epsilon(1e-9)); // the textbook CoP
+            // falsified: 5 cm along the ground the moment is the load times 5 cm
+            value_t const m_off = moment_about(vec2dp{Z.x + 0.05, Z.y, 1.0}, W).z;
+            CHECK(std::abs(m_off) == doctest::Approx(0.05 * N).epsilon(1e-9));
+            fmt::println("  level: ZMP x = {:.9f}, lever rule {:.9f}, CoP {:.9f}; "
+                         "|moment| 5 cm away = {:.4f} N m",
+                         Z.x, x_lever, x_cop, std::abs(m_off));
+        }
+
+        { // a slope rising at alpha, no load: the ZMP is the point of the slope below C
+            value_t const alpha = 0.2;
+            vec2dp const B{0.3 * std::cos(alpha), 0.3 * std::sin(alpha), 1.0};
+            closed_loop_system2dp cl = stand(alpha, B);
+            ground_contact2dp gc(cl, ground_contact2dp::ground_line(
+                                         vec2dp{0.0, 0.0, 1.0},
+                                         vec2dp{std::cos(alpha), std::sin(alpha), 1.0}));
+            size_t const pl = cl.index_of("plate");
+            size_t const c1 = gc.add({pl, corner_l});
+            size_t const c2 = gc.add({pl, corner_r});
+            CHECK(std::abs(gc.contact_height(c1)) < 1e-12); // both corners on the slope
+            CHECK(std::abs(gc.contact_height(c2)) < 1e-12);
+            gc.engage(c1);
+            gc.engage(c2);
+            gc.read_reactions();
+
+            bivec2dp const W = gc.reaction_wrench();
+            vec2dp const Z = gc.zmp();
+            vec2dp const C = cl.system().centre_of_mass();
+            CHECK(std::abs(value_t(wdg(Z, gc.ground()))) < 1e-12);
+            CHECK(std::abs(moment_about(Z, W).z) < 1e-9);
+            CHECK(Z.x == doctest::Approx(C.x).epsilon(1e-9)); // below the centre of mass
+            CHECK(Z.y == doctest::Approx(C.x * std::tan(alpha)).epsilon(1e-9));
+            fmt::println("  slope: ZMP ({:.9f}, {:.9f}), below C at x = {:.9f}", Z.x, Z.y,
+                         C.x);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga2dp: floating base - a planar space station: momentum + energy");
