@@ -3,6 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include <array>  // std::array (the per-algebra metric tables)
+#include <mdspan> // std::mdspan, std::extents (the metric views)
+
 #include "ga_value_t.hpp" // defines value_t either as float oder double
 
 #include "detail/type_t/ga_type2d.hpp"
@@ -23,8 +26,6 @@
 #include "detail/type_t/ga_mvec3dc.hpp" // MVec3dc<T> and subtypes
 
 #include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
-
-#include <mdspan>
 
 // provide constants for ega and pga in their respective namespaces
 

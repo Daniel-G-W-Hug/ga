@@ -3,6 +3,7 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include <algorithm> // std::max
 #include <cctype>    // std::isspace, std::toupper
 #include <cmath>     // std::sin, std::cos, std::sqrt, std::atan2, std::abs
 #include <cstdio>    // std::snprintf (deg2dms)

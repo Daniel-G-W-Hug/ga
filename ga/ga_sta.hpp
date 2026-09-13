@@ -29,9 +29,9 @@
 #include "ga_usr_types.hpp"     // consistent user types
 #include "ga_usr_utilities.hpp" // helper functions
 
-// STA-specific operations are in namespace hd::ga::pga
-#include "ga_sta4ds_ops.hpp"
-#include "ga_sta4ds_ops_calculus.hpp" // sta4ds field operators // include all STA operations for 4ds
+// STA-specific operations are in namespace hd::ga::sta
+#include "ga_sta4ds_ops.hpp"          // sta4ds operations (basics and products)
+#include "ga_sta4ds_ops_calculus.hpp" // sta4ds field operators
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

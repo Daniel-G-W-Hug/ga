@@ -11,8 +11,8 @@
 #include "detail/type_t/ga_mvec2dp.hpp" // 2dp types for PGA
 #include "detail/type_t/ga_mvec3dp.hpp" // 3dp types for PGA
 
-#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2dp
-#include "detail/type_t/ga_type3dp.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
+#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2d
+#include "detail/type_t/ga_type3dp.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
 
 #include "detail/type_t/ga_mvec4ds.hpp" // 4ds types for STA
 

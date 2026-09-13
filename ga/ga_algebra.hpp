@@ -9,12 +9,12 @@
 namespace hd::ga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// create an algebra agebra<P,N,Z> = G(P,N,Z) with:
+// create an algebra<P,N,Z> = G(P,N,Z) with:
 //      P generators for numbers that square to +1
 //      N generators for numbers that square to -1
 //      Z generators for numbers that square to  0
 //
-// provides infomation on the dimension and basis vectors of the used algebra
+// provides information on the dimension and basis vectors of the used algebra
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
@@ -32,8 +32,8 @@ struct algebra {
         return 1 << (dim_space()); // the number of basis components == 2^dim_space
     };
 
-    constexpr static std::array<const uint8_t, dim_space() + 1> num_components_grade =
-        []() -> std::array<const uint8_t, dim_space() + 1> {
+    constexpr static std::array<uint8_t const, dim_space() + 1> num_components_grade =
+        []() -> std::array<uint8_t const, dim_space() + 1> {
         if constexpr (dim_space() == 2) {
             return {1, 2, 1};
         }
@@ -48,8 +48,8 @@ struct algebra {
         }
     }();
 
-    constexpr static std::array<const char[7], num_components()> basis_name =
-        []() -> std::array<const char[7], num_components()> {
+    constexpr static std::array<char const[7], num_components()> basis_name =
+        []() -> std::array<char const[7], num_components()> {
         //
         // this defines the basis components of the multivectors:
         //
