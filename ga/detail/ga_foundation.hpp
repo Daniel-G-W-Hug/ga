@@ -12,7 +12,6 @@
 #include <algorithm> // std::max, sorting, algorithms
 #include <cmath>     // mathematical functions
 #include <concepts>  // C++20 concepts for type constraints
-#include <iostream>  // I/O operations
 #include <limits>    // std::numeric_limits
 #include <numbers>   // std::numbers::pi, etc.
 #include <stdexcept> // std::runtime_error
