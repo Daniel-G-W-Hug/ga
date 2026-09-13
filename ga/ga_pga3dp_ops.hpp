@@ -8,9 +8,6 @@
 #include "ga_usr_consts.hpp"
 
 
-#include "ga_pga_ops_common.hpp" // detail::by_weight_sq
-
-
 namespace hd::ga::pga {
 
 /////////////////////////////////////////////////////////////////////////////////////////

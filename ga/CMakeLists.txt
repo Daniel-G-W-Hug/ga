@@ -95,7 +95,6 @@ set(HEADERS
     #
     ga_pga2dp_ops_basics.hpp
     ga_pga2dp_ops_products.hpp
-    ga_pga_ops_common.hpp
     ga_pga2dp_ops.hpp
     ga_pga2dp_ops_mechanics.hpp
     ga_pga2dp_ops_constraints.hpp
