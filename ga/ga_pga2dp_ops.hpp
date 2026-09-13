@@ -17,13 +17,15 @@ namespace hd::ga::pga {
 // provides functionality that is based on pga2dp ops basics and products:
 //
 // - angle()                             -> angle operations
-// - rexp()                               -> exponential (w.r.t. rgpr)
-// - rlog()                               -> logarithm (w.r.t. rgpr, inverse of rexp)
-// - rsqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
+// - rexp()                              -> exponential (w.r.t. rgpr)
+// - rlog()                              -> logarithm (w.r.t. rgpr, inverse of rexp)
+// - rsqrt(M)                            -> sqrt of a motor (w.r.t. rgpr)
+//
 // - get_motor()                         -> provide a motor from (point, phi), or (delta),
 // - get_motor_from_lines()              -> provide a motor from (from two lines moved
 //                                                                into each other)
 // - move2dp(), move2dp_opt()            -> move object with motor
+//
 // - project_onto(), reject_from()       -> simple projection and rejection
 // - expand()                            -> expansion: new line through point
 //                                                     perpendicular to line
@@ -43,7 +45,6 @@ namespace hd::ga::pga {
 // - is_close()                          -> Same value within a RELATIVE tolerance
 // - is_same_motion()                    -> Do two motors describe the same rigid
 //                                          motion? (motors double-cover them)
-//
 /////////////////////////////////////////////////////////////////////////////////////////
 
 

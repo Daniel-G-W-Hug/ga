@@ -5,6 +5,9 @@
 
 #include "fmt/format.h"
 
+// Pull in the geodesics functionality
+#include "../../ga_usr_geodesics.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Formatters for the geodetic types (ga_usr_geodesics.hpp), which includes this
 // header itself -- the types must be complete before the specializations below.

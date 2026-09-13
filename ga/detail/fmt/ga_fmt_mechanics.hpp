@@ -16,9 +16,170 @@
 #include "../../ga_pga2dp_ops_constraints.hpp"
 #include "../../ga_pga3dp_ops_constraints.hpp"
 
+// Pull in the unilateral contact layers for the contact_kind{2,3}dp formatters below
+// (same reasoning as the closed-loop layers above).
+#include "../../ga_pga2dp_ops_contact.hpp"
+#include "../../ga_pga3dp_ops_contact.hpp"
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for PGA mechanics types (Inertia matrices)
 /////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+// the scoped enums of the mechanics / constraints / contact layers
+//
+// One switch per enum, in hd::ga::detail so the binding generator does not scan
+// it. No default label: adding an enumerator makes the compiler report the
+// unhandled case instead of silently printing the trailing "?".
+//
+// The formatters below inherit fmt::formatter<fmt::string_view>, so width, fill
+// and alignment work on a joint kind as they do on any string, while a numeric
+// spec is rejected by fmt's own parser. The composite formatters (joint_state,
+// loop_constraint) print their kind member with a plain "{}".
+////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga::detail {
+
+inline char const* enum_name(hd::ga::pga::joint2dp t)
+{
+    using hd::ga::pga::joint2dp;
+    switch (t) {
+        case joint2dp::free:
+            return "free";
+        case joint2dp::revolute:
+            return "revolute";
+        case joint2dp::prismatic:
+            return "prismatic";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::joint3dp t)
+{
+    using hd::ga::pga::joint3dp;
+    switch (t) {
+        case joint3dp::free:
+            return "free";
+        case joint3dp::revolute:
+            return "revolute";
+        case joint3dp::prismatic:
+            return "prismatic";
+        case joint3dp::helical:
+            return "helical";
+        case joint3dp::cylindrical:
+            return "cylindrical";
+        case joint3dp::spherical:
+            return "spherical";
+        case joint3dp::planar:
+            return "planar";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::constraint2dp t)
+{
+    using hd::ga::pga::constraint2dp;
+    switch (t) {
+        case constraint2dp::coincidence:
+            return "coincidence";
+        case constraint2dp::distance:
+            return "distance";
+        case constraint2dp::frame:
+            return "frame";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::constraint3dp t)
+{
+    using hd::ga::pga::constraint3dp;
+    switch (t) {
+        case constraint3dp::coincidence:
+            return "coincidence";
+        case constraint3dp::distance:
+            return "distance";
+        case constraint3dp::frame:
+            return "frame";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::contact_kind2dp t)
+{
+    using hd::ga::pga::contact_kind2dp;
+    switch (t) {
+        case contact_kind2dp::point:
+            return "point";
+        case contact_kind2dp::flat:
+            return "flat";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::contact_kind3dp t)
+{
+    using hd::ga::pga::contact_kind3dp;
+    switch (t) {
+        case contact_kind3dp::point:
+            return "point";
+        case contact_kind3dp::flat:
+            return "flat";
+    }
+    return "?";
+}
+
+inline char const* enum_name(hd::ga::pga::integrator_kind t)
+{
+    using hd::ga::pga::integrator_kind;
+    switch (t) {
+        case integrator_kind::rk4:
+            return "rk4";
+        case integrator_kind::abm2:
+            return "abm2";
+    }
+    return "?";
+}
+
+// shared body of the enum formatters below: print the enumerator's name, with the
+// string formatter's own spec handling
+template <typename E> struct enum_formatter : fmt::formatter<fmt::string_view> {
+
+    template <typename FormatContext> auto format(E e, FormatContext& ctx) const
+    {
+        return fmt::formatter<fmt::string_view>::format(enum_name(e), ctx);
+    }
+};
+
+} // namespace hd::ga::detail
+
+template <>
+struct fmt::formatter<hd::ga::pga::joint2dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::joint2dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::joint3dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::joint3dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::constraint2dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::constraint2dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::constraint3dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::constraint3dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::contact_kind2dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::contact_kind2dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::contact_kind3dp>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::contact_kind3dp> {};
+
+template <>
+struct fmt::formatter<hd::ga::pga::integrator_kind>
+    : hd::ga::detail::enum_formatter<hd::ga::pga::integrator_kind> {};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -150,6 +311,88 @@ template <> struct fmt::formatter<hd::ga::pga::static_system2dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// static_frame3dp - a coordinate frame posed relative to its parent
+//
+// Same spec-forwarding pattern as static_frame2dp: both sub-objects are vec3dp
+// here (origin point and axis*angle rotation), so the captured spec goes to two
+// vec3dp formatters instead of a vec2dp and a value_t.
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::static_frame3dp> {
+
+    // the raw nested spec captured between ':' and '}', e.g. ".3f"
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it; // fmt expects the iterator left at the closing '}'
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::static_frame3dp const& frame, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out =
+            fmt::format_to(ctx.out(), "static_frame3dp(name = '{}'", frame.get_name());
+        out = fmt::format_to(out, ", origin = ");
+        out = fmt::format_to(out, fmt::runtime(child), frame.get_pose().origin);
+        out = fmt::format_to(out, ", rot = ");
+        out = fmt::format_to(out, fmt::runtime(child), frame.get_pose().rot);
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// static_system3dp - a tree of static_frame3dp frames
+//
+// Same spec-forwarding pattern as static_system2dp, one level up: capture the
+// nested spec once and forward it to each static_frame3dp's own formatter,
+// which in turn cascades it down to vec3dp.
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::static_system3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::static_system3dp const& sys, FormatContext& ctx) const
+    {
+        // forward the captured spec to each static_frame3dp's own formatter
+        auto const child = fmt::format("{{:{}}}", spec_); // -> "{:<spec>}"
+
+        auto out = fmt::format_to(ctx.out(), "static_system3dp(");
+        if (sys.empty()) return fmt::format_to(out, ")");
+
+        out = fmt::format_to(out, "\n");
+        for (size_t idx = 0; idx < sys.size(); ++idx) {
+            // show the parent index (root prints its own index, a self-loop)
+            out = fmt::format_to(out, "    rf[{}] (parent {}) = ", idx, sys.parent(idx));
+            out = fmt::format_to(out, fmt::runtime(child), sys.frame(idx));
+            out = fmt::format_to(out, "\n");
+        }
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // pose2dp - a frame's pose vs. its parent (origin point + orientation angle)
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -224,20 +467,6 @@ template <> struct fmt::formatter<hd::ga::pga::kin_state2dp> {
 // parent (joint kind + screw generator + rest motor + generalised coord/rate)
 ////////////////////////////////////////////////////////////////////////////////
 
-inline char const* joint2dp_name(hd::ga::pga::joint2dp t)
-{
-    using hd::ga::pga::joint2dp;
-    switch (t) {
-        case joint2dp::free:
-            return "free";
-        case joint2dp::revolute:
-            return "revolute";
-        case joint2dp::prismatic:
-            return "prismatic";
-    }
-    return "?";
-}
-
 template <> struct fmt::formatter<hd::ga::pga::joint_state2dp> {
 
     fmt::string_view spec_{};
@@ -258,8 +487,7 @@ template <> struct fmt::formatter<hd::ga::pga::joint_state2dp> {
         using hd::ga::detail::suppress_negative_zero;
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        auto out =
-            fmt::format_to(ctx.out(), "joint_state2dp(type = {}", joint2dp_name(j.type));
+        auto out = fmt::format_to(ctx.out(), "joint_state2dp(type = {}", j.type);
         out = fmt::format_to(out, ", screw_b = ");
         out = fmt::format_to(out, fmt::runtime(child), j.screw_b);
         out = fmt::format_to(out, ", rest = ");
@@ -332,32 +560,77 @@ template <> struct fmt::formatter<hd::ga::pga::kinematic_system2dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// kinematic_system3dp - a frame tree plus per-frame momentary kinematic state
+//
+// Prints each frame's pose (inherited static_frame3dp) and its parent, then the
+// stored RELATIVE velocity twist decoded back to (omega, v) -- the configured
+// kinematic state of the system. The twist packs the angular velocity into the
+// weight slots and the linear one into the bulk (kinematic_system3dp::to_twist),
+// so the decode is omega = (vx,vy,vz), v = (mx,my,mz) -- no sign juggling, unlike
+// the planar vec2dp(-vy, vx, w).
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::kinematic_system3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::kinematic_system3dp const& sys, FormatContext& ctx) const
+    {
+        using hd::ga::detail::suppress_negative_zero;
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "kinematic_system3dp(");
+        if (sys.empty()) return fmt::format_to(out, ")");
+
+        // print one (x, y, z) triple through the captured spec
+        auto const triple = [&](auto o, auto x, auto y, auto z) {
+            o = fmt::format_to(o, "(");
+            o = fmt::format_to(o, fmt::runtime(child), suppress_negative_zero(x));
+            o = fmt::format_to(o, ", ");
+            o = fmt::format_to(o, fmt::runtime(child), suppress_negative_zero(y));
+            o = fmt::format_to(o, ", ");
+            o = fmt::format_to(o, fmt::runtime(child), suppress_negative_zero(z));
+            return fmt::format_to(o, ")");
+        };
+
+        out = fmt::format_to(out, "\n");
+        for (size_t idx = 0; idx < sys.size(); ++idx) {
+            out = fmt::format_to(out, "    rf[{}] (parent {}) = ", idx, sys.parent(idx));
+            out = fmt::format_to(out, fmt::runtime(child), sys.frame(idx));
+
+            auto const tw = sys.relative_twist(idx);
+            auto const aw = sys.relative_accel_twist(idx);
+            out = fmt::format_to(out, "  | rel omega = ");
+            out = triple(out, tw.vx, tw.vy, tw.vz);
+            out = fmt::format_to(out, ", v = ");
+            out = triple(out, tw.mx, tw.my, tw.mz);
+            out = fmt::format_to(out, "; alpha = ");
+            out = triple(out, aw.vx, aw.vy, aw.vz);
+            out = fmt::format_to(out, ", a = ");
+            out = triple(out, aw.mx, aw.my, aw.mz);
+            out = fmt::format_to(out, "\n");
+        }
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // joint3dp / joint_state3dp - the reduced-coordinate joint of a body vs. its
 // parent in 3D (joint kind + screw-axis line + rest motor + generalised
 // coord/rate)
 ////////////////////////////////////////////////////////////////////////////////
-
-inline char const* joint3dp_name(hd::ga::pga::joint3dp t)
-{
-    using hd::ga::pga::joint3dp;
-    switch (t) {
-        case joint3dp::free:
-            return "free";
-        case joint3dp::revolute:
-            return "revolute";
-        case joint3dp::prismatic:
-            return "prismatic";
-        case joint3dp::helical:
-            return "helical";
-        case joint3dp::cylindrical:
-            return "cylindrical";
-        case joint3dp::spherical:
-            return "spherical";
-        case joint3dp::planar:
-            return "planar";
-    }
-    return "?";
-}
 
 template <> struct fmt::formatter<hd::ga::pga::joint_state3dp> {
 
@@ -379,8 +652,7 @@ template <> struct fmt::formatter<hd::ga::pga::joint_state3dp> {
         using hd::ga::detail::suppress_negative_zero;
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        auto out =
-            fmt::format_to(ctx.out(), "joint_state3dp(type = {}", joint3dp_name(j.type));
+        auto out = fmt::format_to(ctx.out(), "joint_state3dp(type = {}", j.type);
         out = fmt::format_to(out, ", screw_b = ");
         out = fmt::format_to(out, fmt::runtime(child), j.screw_b);
         out = fmt::format_to(out, ", rest = ");
@@ -518,19 +790,6 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint2dp> {
     {
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        char const* type_str = "?";
-        switch (c.type) {
-            case hd::ga::pga::constraint2dp::coincidence:
-                type_str = "coincidence";
-                break;
-            case hd::ga::pga::constraint2dp::distance:
-                type_str = "distance";
-                break;
-            case hd::ga::pga::constraint2dp::frame:
-                type_str = "frame";
-                break;
-        }
-
         auto out =
             fmt::format_to(ctx.out(), "loop_constraint2dp(frame_a = {}", c.frame_a);
         out = fmt::format_to(out, ", anchor_a = ");
@@ -538,7 +797,7 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint2dp> {
         out = fmt::format_to(out, ", frame_b = {}", c.frame_b);
         out = fmt::format_to(out, ", anchor_b = ");
         out = fmt::format_to(out, fmt::runtime(child), c.anchor_b);
-        out = fmt::format_to(out, ", type = {}", type_str);
+        out = fmt::format_to(out, ", type = {}", c.type);
         out = fmt::format_to(out, ", length = ");
         out = fmt::format_to(out, fmt::runtime(child), c.length);
         return fmt::format_to(out, ", active = {})", c.active);
@@ -570,19 +829,6 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint3dp> {
     {
         auto const child = fmt::format("{{:{}}}", spec_);
 
-        char const* type_str = "?";
-        switch (c.type) {
-            case hd::ga::pga::constraint3dp::coincidence:
-                type_str = "coincidence";
-                break;
-            case hd::ga::pga::constraint3dp::distance:
-                type_str = "distance";
-                break;
-            case hd::ga::pga::constraint3dp::frame:
-                type_str = "frame";
-                break;
-        }
-
         auto out =
             fmt::format_to(ctx.out(), "loop_constraint3dp(frame_a = {}", c.frame_a);
         out = fmt::format_to(out, ", anchor_a = ");
@@ -590,7 +836,7 @@ template <> struct fmt::formatter<hd::ga::pga::loop_constraint3dp> {
         out = fmt::format_to(out, ", frame_b = {}", c.frame_b);
         out = fmt::format_to(out, ", anchor_b = ");
         out = fmt::format_to(out, fmt::runtime(child), c.anchor_b);
-        out = fmt::format_to(out, ", type = {}", type_str);
+        out = fmt::format_to(out, ", type = {}", c.type);
         out = fmt::format_to(out, ", length = ");
         out = fmt::format_to(out, fmt::runtime(child), c.length);
         return fmt::format_to(out, ", active = {})", c.active);

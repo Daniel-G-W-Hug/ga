@@ -5,21 +5,17 @@
 
 #include "ga_fmt_core.hpp"
 
-// hint: inclusion sequence is important
-// (scalar and vector types need to come before multivector types for mv ctors to work)
-
 #include "../type_t/ga_scalar_t.hpp"
 
 #include "../type_t/ga_vec4_t.hpp"
-
-#include "../type_t/ga_bvec6_t.hpp"
+#include "../type_t/ga_vec5_t.hpp"
 
 #include "../type_t/ga_bvec10_t.hpp"
+#include "../type_t/ga_bvec6_t.hpp"
+
 #include "../type_t/ga_mvec16_t.hpp"
-#include "../type_t/ga_mvec2_t.hpp"
 #include "../type_t/ga_mvec32_t.hpp"
 #include "../type_t/ga_mvec8_t.hpp"
-#include "../type_t/ga_vec5_t.hpp"
 
 // specific convenience types for cga
 #include "../type_t/ga_type2dc.hpp"
@@ -44,7 +40,7 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::Scalar_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
@@ -80,7 +76,7 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::Vec4_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::Vec4_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
@@ -142,7 +138,7 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::BVec6_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::BVec6_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         // Format as BiVec2dc(vx, vy, vz, mx, my, mz)
@@ -180,7 +176,7 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::MVec8_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::MVec8_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
@@ -280,7 +276,7 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::MVec16_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::MVec16_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         // Format as MVec2dc(c0, c1, c2, ..., c15)
@@ -349,7 +345,7 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::Scalar_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
@@ -380,7 +376,7 @@ struct fmt::formatter<hd::ga::Vec5_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::Vec5_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::Vec5_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::Vec5_t<T, Tag>,
@@ -435,7 +431,7 @@ struct fmt::formatter<hd::ga::BVec10_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::BVec10_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::BVec10_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::BVec10_t<T, Tag>,
@@ -520,7 +516,7 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::MVec16_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::MVec16_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         if constexpr (std::is_same_v<hd::ga::MVec16_t<T, Tag>,
@@ -640,7 +636,7 @@ struct fmt::formatter<hd::ga::MVec32_t<T, Tag>> : fmt::nested_formatter<T> {
     }
 
     template <typename FormatContext>
-    auto format(const hd::ga::MVec32_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(hd::ga::MVec32_t<T, Tag> const& v, FormatContext& ctx) const
     {
         using hd::ga::detail::suppress_negative_zero;
         auto out = fmt::format_to(ctx.out(), "MVec3dc(");
