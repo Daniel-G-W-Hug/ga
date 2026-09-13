@@ -163,7 +163,9 @@ class ground_contact2dp {
     // Advance the system by dt with the contact events resolved in order: each
     // touchdown is located by bisection on the sub-interval it happens in, applied,
     // and the remainder of dt is integrated on -- so a landing is exact in time rather
-    // than late by up to one step. Lift-offs are checked at the end of the step.
+    // than late by up to one step. Contacts reaching the ground within simultaneity() of
+    // the first are engaged TOGETHER, in one impact map (see touchdown). Lift-offs are
+    // checked at the end of the step.
     void step(value_t dt, value_t tol = value_t(1e-10))
     {
         value_t remaining = dt;
@@ -177,6 +179,7 @@ class ground_contact2dp {
             // the first contact that crossed the ground downward in this interval
             size_t hit = contacts_.size();
             value_t tau = remaining;
+            std::vector<value_t> t_cross(contacts_.size(), value_t(-1.0));
             for (size_t c = 0; c < contacts_.size(); ++c) {
                 // (h0 >= -1e-9: a foot released at the ground line sits at a height
                 // of round-off size, possibly negative; it must still be able to land)
@@ -192,15 +195,22 @@ class ground_contact2dp {
                     if (height(trial_point(trial, c)) < 0.0) hi = mid;
                     else lo = mid;
                 }
+                t_cross[c] = hi;
                 if (hi < tau) {
                     tau = hi;
                     hit = c;
                 }
             }
             if (hit == contacts_.size()) break; // no event: the whole interval is done
+            // every contact crossing within the simultaneity window of the first lands
+            // with it (a negative window: the first one alone)
+            std::vector<size_t> landing{hit};
+            for (size_t c = 0; c < contacts_.size(); ++c)
+                if (c != hit && t_cross[c] >= 0.0 && t_cross[c] <= tau + simultaneity_)
+                    landing.push_back(c);
             *cl_ = before;
             cl_->step(tau);
-            touchdown(hit);
+            touchdown(landing);
             remaining -= tau;
         }
         // lift-off: an active contact whose normal reaction pulls is released
@@ -286,6 +296,16 @@ class ground_contact2dp {
         return point_world(contacts_[idx].spec.frame, contacts_[idx].spec.point_b);
     }
     value_t contact_height(size_t idx) const { return height(contact_point(idx)); }
+
+    // SIMULTANEOUS TOUCHDOWNS. Contacts that reach the ground within this time of the
+    // first one in a step are engaged together and resolved by ONE impact map. Resolved
+    // one after the other, simultaneous impacts come out order-dependent -- a level rod
+    // falling flat puts the pinned-end impulse, about a quarter of m v, on whichever end
+    // is taken first, where the combined map gives each end half. Default 1 microsecond
+    // (simultaneous to well within any control step); a negative window resolves every
+    // contact on its own, in the order found.
+    void set_simultaneity(value_t window) { simultaneity_ = window; }
+    value_t simultaneity() const { return simultaneity_; }
 
     // the reaction the ground exerts on the contact point (world), from the last
     // multipliers read: the force, its normal component, and (flat) the moment
@@ -444,24 +464,32 @@ class ground_contact2dp {
         cl_->system().set_pose(c.ground, at, 2.0 * rlog(M).z);
     }
 
-    // touchdown of contact idx at the current state (its point on or just below the
-    // ground): anchor at the projection onto the ground line, engage with the impact
-    void touchdown(size_t idx)
+    // touchdown of the contacts idxs at the current state (their points on or just below
+    // the ground; one landing within the simultaneity window may still sit above it by
+    // that window's travel, which the next step's position projection closes): each is
+    // anchored at its projection onto the ground line and switched on, and ONE impact map
+    // resolves them together. Each event records that shared Lambda (all active rows).
+    void touchdown(std::vector<size_t> const& idxs)
     {
-        contact& c = contacts_[idx];
-        vec2dp const P = contact_point(idx);
-        vec2dp const landing = unitize(project_onto(P, L_));
-        std::vector<value_t> Lam;
-        if (c.spec.kind == contact_kind2dp::flat) {
-            pose_ground_frame(idx, landing);
-            Lam = cl_->activate_loop_with_impact(c.weld, 0.0);
+        std::vector<vec2dp> at;
+        at.reserve(idxs.size());
+        for (size_t idx : idxs) {
+            contact& c = contacts_[idx];
+            vec2dp const landing = unitize(project_onto(contact_point(idx), L_));
+            if (c.spec.kind == contact_kind2dp::flat) {
+                pose_ground_frame(idx, landing);
+                cl_->set_loop_active(c.weld, true);
+            }
+            else {
+                cl_->set_loop_anchors(c.pin, c.spec.point_b, landing);
+                cl_->set_loop_active(c.pin, true);
+            }
+            c.active = true;
+            at.push_back(landing);
         }
-        else {
-            cl_->set_loop_anchors(c.pin, c.spec.point_b, landing);
-            Lam = cl_->activate_loop_with_impact(c.pin, 0.0);
-        }
-        c.active = true;
-        events_.push_back({cl_->system().time(), idx, true, landing, Lam});
+        std::vector<value_t> const Lam = cl_->impact(0.0);
+        for (size_t k = 0; k < idxs.size(); ++k)
+            events_.push_back({cl_->system().time(), idxs[k], true, at[k], Lam});
     }
 
     closed_loop_system2dp* cl_;
@@ -472,6 +500,7 @@ class ground_contact2dp {
     std::vector<event> events_;
     value_t release_threshold_{value_t(0.5)};
     value_t separation_dt_{value_t(1e-4)}; // the trial step of would_separate
+    value_t simultaneity_{value_t(1e-6)};  // contacts landing together (set_simultaneity)
 };
 
 } // namespace hd::ga::pga

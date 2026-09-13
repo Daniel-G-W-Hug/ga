@@ -2613,6 +2613,59 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: ground_contact3dp - simultaneous touchdowns share one impact")
+    {
+        fmt::println("pga3dp: ground_contact3dp - simultaneous touchdowns");
+
+        // The 2D gate in space: a level rod along x falls flat onto z = 0, both ends at
+        // once. Together, one impact map gives each end half of m v; in sequence (a
+        // negative window, the falsification) the first end takes the pinned-end impulse
+        // m v I_cm / (I_cm + m (L/2)^2).
+        value_t const m = 2.0, L = 1.0, h_ = 0.02, g = 9.81, h = 0.3, dt = 1.0e-3;
+        auto const floor = ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{0.0, 1.0, 0.0, 1.0});
+        value_t const I_cm = m * (L * L + h_ * h_) / 12.0;
+        auto drop_rod = [&](value_t window) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, -g, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, h, 1.0}),
+                        make_cuboid_body(m, L, h_, h_));
+            ground_contact3dp gc(cl, floor);
+            gc.set_simultaneity(window);
+            size_t const rod = cl.index_of("rod");
+            gc.add({rod, vec3dp{-0.5, 0.0, 0.0, 1.0}});
+            gc.add({rod, vec3dp{0.5, 0.0, 0.0, 1.0}});
+            for (int i = 0; i < 400 && gc.events().size() < 2; ++i)
+                gc.step(dt);
+            return gc.events();
+        };
+
+        auto const both = drop_rod(1.0e-6);
+        REQUIRE(both.size() == 2);
+        CHECK(both[0].t == both[1].t);
+        REQUIRE(both[0].impulse.size() == 6); // the two ball pins, resolved together
+        value_t const mv = m * g * both[0].t;
+        value_t const La = std::abs(both[0].impulse[2]),
+                      Lb = std::abs(both[0].impulse[5]);
+        CHECK(La == doctest::Approx(Lb).epsilon(1e-9));
+        CHECK(La + Lb == doctest::Approx(mv).epsilon(1e-9));
+
+        auto const seq = drop_rod(-1.0);
+        REQUIRE(seq.size() == 2);
+        REQUIRE(seq[0].impulse.size() == 3); // the first pin alone
+        value_t const first = std::abs(seq[0].impulse[2]);
+        value_t const mv_s = m * g * seq[0].t;
+        value_t const pinned_end = mv_s * I_cm / (I_cm + m * 0.25 * L * L);
+        CHECK(first == doctest::Approx(pinned_end).epsilon(1e-9));
+        CHECK(first < 0.3 * mv_s);
+        fmt::println("  together: {:.6f} + {:.6f} N s of m v = {:.6f}; in sequence the "
+                     "first end takes {:.6f} (pinned-end {:.6f})",
+                     La, Lb, mv, first, pinned_end);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: ground_contact3dp - the reaction wrench and the ZMP as a meet")
     {
         fmt::println("pga3dp: ground_contact3dp - reaction_wrench() and zmp()");
