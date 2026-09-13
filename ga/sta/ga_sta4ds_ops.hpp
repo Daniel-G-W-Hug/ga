@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "../ga_usr_consts.hpp" // named basis-blade constants
 #include "ga_sta4ds_ops_basics.hpp"
 #include "ga_sta4ds_ops_products.hpp"
-#include "ga_usr_consts.hpp" // named basis-blade constants
 
 #include <algorithm> // std::clamp, std::max
 #include <array>     // std::array (transform_opt coefficient matrices)

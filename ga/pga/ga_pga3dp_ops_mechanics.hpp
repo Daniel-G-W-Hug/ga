@@ -3,11 +3,11 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_solver.hpp" // hd::ga::lu_decomp / lu_backsubs / det
+#include "../detail/ga_solver.hpp" // hd::ga::lu_decomp / lu_backsubs / det
+#include "../ga_usr_types.hpp"     // value_t type aliases
+#include "../ga_usr_utilities.hpp" // hd::ga::rk4_step (shared RK4 integrator)
+#include "../ga_value_t.hpp"       // for value_t used in convenience type alias
 #include "ga_pga3dp_ops.hpp"
-#include "ga_usr_types.hpp"     // value_t type aliases
-#include "ga_usr_utilities.hpp" // hd::ga::rk4_step (shared RK4 integrator)
-#include "ga_value_t.hpp"       // for value_t used in convenience type alias
 
 #include <algorithm> // std::find, std::reverse
 #include <array>

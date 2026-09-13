@@ -53,7 +53,7 @@ class SimOdePlatePga2dp:
       u[0] = B_b   (position bivector;       B_b = phi   * Q_b)
       u[1] = Omega (velocity / rate bivector;Omega = omega * Q_b)
     Both are stored as `vec2dp` in PGA2DP (the dual of a "rate of change"
-    bivector in 2dp lives in vec2dp, see ga/ga_pga2dp_ops_mechanics.hpp).
+    bivector in 2dp lives in vec2dp, see ga/pga/ga_pga2dp_ops_mechanics.hpp).
     """
 
     def __init__(self, m, w, h, cm_pos, cm_phi, cm_omega):

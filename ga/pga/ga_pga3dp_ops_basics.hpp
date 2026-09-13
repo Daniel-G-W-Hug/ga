@@ -3,12 +3,12 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_foundation.hpp"        // ga library headers and infrastructure
-#include "detail/type_t/ga_dualnum3dp.hpp" // DualNum3dp
-#include "detail/type_t/ga_mvec3dp.hpp"    // 3dp multivector types
-#include "detail/type_t/ga_type3dp.hpp"    // Point3dp, Vector3d, Point3d, Line3d, Plane3d
+#include "../detail/ga_foundation.hpp"        // ga library headers and infrastructure
+#include "../detail/type_t/ga_dualnum3dp.hpp" // DualNum3dp
+#include "../detail/type_t/ga_mvec3dp.hpp"    // 3dp multivector types
+#include "../detail/type_t/ga_type3dp.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
 
-#include "detail/ga_error_handling.hpp"
+#include "../detail/ga_error_handling.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga3dp basic operations:

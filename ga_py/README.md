@@ -236,11 +236,11 @@ integration, and a JSON cross-check against the C++ reference outputs.
 The Python surface mirrors the C++ headers exactly. Until `.pyi` stub generation lands
 ([§6.2](#62-stub-generation-pyi-and-mypy)), the authoritative reference is the C++ source:
 
-- EGA: `ga/ga_ega2d_ops.hpp`, `ga/ga_ega3d_ops.hpp`, `ga/ga_usr_consts.hpp`
-- PGA: `ga/ga_pga2dp_ops.hpp`, `ga/ga_pga3dp_ops.hpp`, `ga/ga_usr_consts.hpp`
-- CGA: `ga/ga_cga2dc_ops.hpp`, `ga/ga_cga3dc_ops.hpp`, `ga/ga_usr_consts.hpp`
+- EGA: `ga/ega/ga_ega2d_ops.hpp`, `ga/ega/ga_ega3d_ops.hpp`, `ga/ga_usr_consts.hpp`
+- PGA: `ga/pga/ga_pga2dp_ops.hpp`, `ga/pga/ga_pga3dp_ops.hpp`, `ga/ga_usr_consts.hpp`
+- CGA: `ga/cga/ga_cga2dc_ops.hpp`, `ga/cga/ga_cga3dc_ops.hpp`, `ga/ga_usr_consts.hpp`
   (worked example: [`demo/cga_objects.py`](demo/cga_objects.py))
-- STA: `ga/ga_sta4ds_ops.hpp`, `ga/ga_usr_consts.hpp`
+- STA: `ga/sta/ga_sta4ds_ops.hpp`, `ga/ga_usr_consts.hpp`
   (worked example: [`demo/sta_spacetime.py`](demo/sta_spacetime.py))
 
 Use `dir(ga_py.ega)` / `dir(ga_py.pga)` / `dir(ga_py.cga)` / `dir(ga_py.sta)` for a quick

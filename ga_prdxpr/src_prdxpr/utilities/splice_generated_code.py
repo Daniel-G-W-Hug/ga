@@ -7,7 +7,7 @@ When the extended metric (or any other generator input) changes, the metric-deri
 products emitted by `ga_prdxpr --output=code` change too. This tool regenerates the
 selected products for one algebra, clang-formats them with the project style, and
 replaces *only the matching function blocks* in
-`ga/ga_<algebra>_ops_products.hpp` — every comment, namespace, hand-written
+`ga/<family>/ga_<algebra>_ops_products.hpp` — every comment, namespace, hand-written
 delegation and unrelated product in the library is left byte-for-byte intact.
 
 It matches functions by their normalized declaration (return type + name + argument
@@ -100,6 +100,13 @@ def decl_key(block):
 _ENCLOSING_LEVELS = 4
 
 
+# The library headers live in a per-FAMILY folder under ga/ (ega/ pga/ sta/ cga/);
+# the four umbrella headers stay at ga/. Derive the folder from the algebra name.
+def _family(algebra):
+    return {"ega2d": "ega", "ega3d": "ega", "pga2dp": "pga", "pga3dp": "pga",
+            "sta4ds": "sta", "cga2dc": "cga", "cga3dc": "cga"}[algebra]
+
+
 def find_ga_prdxpr(repo_root):
     """Default location of the ga_prdxpr binary; --ga-prdxpr overrides it."""
     dirs = [os.path.join(repo_root, "build", "ga_prdxpr")]
@@ -136,7 +143,7 @@ def main():
     ap.add_argument("--ga-prdxpr", default=None,
                     help="path to ga_prdxpr binary (default: found in the build tree)")
     ap.add_argument("--lib", default=None,
-                    help="library header to patch (default: ga/ga_<algebra>_ops_products.hpp)")
+                    help="library header to patch (default: ga/<family>/ga_<algebra>_ops_products.hpp)")
     ap.add_argument("--clang-format", default="clang-format",
                     help="clang-format executable (default: clang-format on PATH)")
     ap.add_argument("--dry-run", action="store_true",
@@ -144,7 +151,8 @@ def main():
     args = ap.parse_args()
 
     ga_prdxpr = args.ga_prdxpr or find_ga_prdxpr(REPO_ROOT)
-    lib = args.lib or os.path.join(REPO_ROOT, "ga", f"ga_{args.algebra}_ops_products.hpp")
+    lib = args.lib or os.path.join(REPO_ROOT, "ga", _family(args.algebra),
+                                   f"ga_{args.algebra}_ops_products.hpp")
 
     if not os.path.isfile(ga_prdxpr):
         sys.exit(f"error: ga_prdxpr not found at {ga_prdxpr} (build it first)")

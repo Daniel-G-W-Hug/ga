@@ -5,7 +5,7 @@
 
 #include "ga_cga2dc_ops_basics.hpp"
 
-#include "detail/ga_error_handling.hpp" // inv()/rinv() null checks
+#include "../detail/ga_error_handling.hpp" // inv()/rinv() null checks
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides cga2dc product operations:

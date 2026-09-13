@@ -349,7 +349,9 @@ Critical usage requirements:
 
 ### Header layering — where to find a `ga/` operation
 
-Each algebra's operations are split across a fixed set of `ga/ga_<alg>_ops*.hpp` headers
+Each algebra's operations are split across a fixed set of `ga/<family>/ga_<alg>_ops*.hpp`
+headers (`<family>` ∈ `ega, pga, sta, cga` — the four umbrellas `ga/ga_<family>.hpp` stay
+at `ga/`)
 (`<alg>` ∈ `ega2d, ega3d, pga2dp, pga3dp, sta4ds, cga2dc, cga3dc`), layered by what they
 build on. **Every
 file lists the functions it provides in a `// provides ... operations:` comment placed
@@ -617,7 +619,7 @@ grep -rnE '\b(auto|value_t|double|int)( const)? +(near|far|small)\b' --include=*
 
 ### Function-body style for ops_products
 
-In `ga/*_ops_products.hpp`, primitive product functions follow a uniform
+In `ga/<family>/*_ops_products.hpp`, primitive product functions follow a uniform
 canonical form (enforced project-wide; produced by
 `ga_prdxpr --output=code`):
 
@@ -758,7 +760,7 @@ mangles the coefficient expressions (silently — it produced no validator warni
 
 `ga_prdxpr --output=code` emits ready-to-paste C++ implementations for primitive
 products in the canonical form documented under "Function-body style for
-ops_products" above. Source files `ga/*_ops_products.hpp` are ~95% char-identical
+ops_products" above. Source files `ga/<family>/*_ops_products.hpp` are ~95% char-identical
 with this output post-`clang-format`; the remaining ~5% are intentional semantic
 delegations.
 
@@ -1021,7 +1023,7 @@ Audit scripts complementing the in-process validator live in
 - `compare_algebras.sh <product>` — diff one product's pair sets across same-dim
   algebras.
 - `library_coverage.py` — compare what `ga_prdxpr --output=code` emits against
-  what's in the library headers: `ga/ga_<algebra>_ops_products.hpp` **plus**
+  what's in the library headers: `ga/<family>/ga_<algebra>_ops_products.hpp` **plus**
   `ga_<algebra>_ops_basics.hpp` (where the generated complements/duals are
   spliced). Reports which generated functions
   still need to be copy-pasted into the library; supports `--show-code` for

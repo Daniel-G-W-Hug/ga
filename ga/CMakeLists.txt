@@ -84,41 +84,41 @@ set(HEADERS
     ga_algebra.hpp
     ga_value_t.hpp
     #
-    ga_ega2d_ops_basics.hpp
-    ga_ega2d_ops_products.hpp
-    ga_ega2d_ops.hpp
-    ga_ega2d_ops_calculus.hpp
-    ga_ega3d_ops_basics.hpp
-    ga_ega3d_ops_products.hpp
-    ga_ega3d_ops.hpp
-    ga_ega3d_ops_calculus.hpp
+    ega/ga_ega2d_ops_basics.hpp
+    ega/ga_ega2d_ops_products.hpp
+    ega/ga_ega2d_ops.hpp
+    ega/ga_ega2d_ops_calculus.hpp
+    ega/ga_ega3d_ops_basics.hpp
+    ega/ga_ega3d_ops_products.hpp
+    ega/ga_ega3d_ops.hpp
+    ega/ga_ega3d_ops_calculus.hpp
     #
-    ga_pga2dp_ops_basics.hpp
-    ga_pga2dp_ops_products.hpp
-    ga_pga2dp_ops.hpp
-    ga_pga2dp_ops_mechanics.hpp
-    ga_pga2dp_ops_constraints.hpp
-    ga_pga2dp_ops_contact.hpp
+    pga/ga_pga2dp_ops_basics.hpp
+    pga/ga_pga2dp_ops_products.hpp
+    pga/ga_pga2dp_ops.hpp
+    pga/ga_pga2dp_ops_mechanics.hpp
+    pga/ga_pga2dp_ops_constraints.hpp
+    pga/ga_pga2dp_ops_contact.hpp
     #
-    ga_pga3dp_ops_basics.hpp
-    ga_pga3dp_ops_products.hpp
-    ga_pga3dp_ops.hpp
-    ga_pga3dp_ops_mechanics.hpp
-    ga_pga3dp_ops_constraints.hpp
-    ga_pga3dp_ops_contact.hpp
+    pga/ga_pga3dp_ops_basics.hpp
+    pga/ga_pga3dp_ops_products.hpp
+    pga/ga_pga3dp_ops.hpp
+    pga/ga_pga3dp_ops_mechanics.hpp
+    pga/ga_pga3dp_ops_constraints.hpp
+    pga/ga_pga3dp_ops_contact.hpp
     #
-    ga_sta4ds_ops_basics.hpp
-    ga_sta4ds_ops_products.hpp
-    ga_sta4ds_ops.hpp
-    ga_sta4ds_ops_calculus.hpp
+    sta/ga_sta4ds_ops_basics.hpp
+    sta/ga_sta4ds_ops_products.hpp
+    sta/ga_sta4ds_ops.hpp
+    sta/ga_sta4ds_ops_calculus.hpp
     #
-    ga_cga2dc_ops_basics.hpp
-    ga_cga2dc_ops_products.hpp
-    ga_cga2dc_ops.hpp
+    cga/ga_cga2dc_ops_basics.hpp
+    cga/ga_cga2dc_ops_products.hpp
+    cga/ga_cga2dc_ops.hpp
     #
-    ga_cga3dc_ops_basics.hpp
-    ga_cga3dc_ops_products.hpp
-    ga_cga3dc_ops.hpp
+    cga/ga_cga3dc_ops_basics.hpp
+    cga/ga_cga3dc_ops_products.hpp
+    cga/ga_cga3dc_ops.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)

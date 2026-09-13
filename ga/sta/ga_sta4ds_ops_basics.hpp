@@ -3,11 +3,11 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_foundation.hpp"     // ga library headers and infrastructure
-#include "detail/type_t/ga_mvec4ds.hpp" // 4ds multivector types
-#include "detail/type_t/ga_type4ds.hpp" // Scalar4ds, Vec4ds, BiVec4ds, TriVec4ds, ...
+#include "../detail/ga_foundation.hpp"     // ga library headers and infrastructure
+#include "../detail/type_t/ga_mvec4ds.hpp" // 4ds multivector types
+#include "../detail/type_t/ga_type4ds.hpp" // Scalar4ds, Vec4ds, BiVec4ds, TriVec4ds, ...
 
-#include "detail/ga_error_handling.hpp"
+#include "../detail/ga_error_handling.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga4ds basic operations:

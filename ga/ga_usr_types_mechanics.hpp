@@ -13,10 +13,10 @@
 // included after the mechanics ops headers (see ga_pga.hpp).
 /////////////////////////////////////////////////////////////////////////////////////////
 
-#include "ga_pga2dp_ops_mechanics.hpp" // Inertia2dp<T>, kinematic frame/system types
-#include "ga_pga3dp_ops_mechanics.hpp" // Inertia3dp<T>
-#include "ga_usr_types.hpp"            // value_t type aliases
-#include "ga_value_t.hpp"              // value_t
+#include "ga_usr_types.hpp"                // value_t type aliases
+#include "ga_value_t.hpp"                  // value_t
+#include "pga/ga_pga2dp_ops_mechanics.hpp" // Inertia2dp<T>, kinematic frame/system types
+#include "pga/ga_pga3dp_ops_mechanics.hpp" // Inertia3dp<T>
 
 namespace hd::ga {
 

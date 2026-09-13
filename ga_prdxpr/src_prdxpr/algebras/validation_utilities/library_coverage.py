@@ -4,8 +4,8 @@ library_coverage.py
 
 For each algebra, compare the set of product functions emitted by
 `ga_prdxpr --output=code` against the set already present in the
-hand-maintained library headers: `ga/ga_<algebra>_ops_products.hpp`
-plus `ga/ga_<algebra>_ops_basics.hpp` (where the generated complements
+hand-maintained library headers: `ga/<family>/ga_<algebra>_ops_products.hpp`
+plus `ga/<family>/ga_<algebra>_ops_basics.hpp` (where the generated complements
 and duals are spliced). Reports which generated functions still need
 to be copy-pasted into the ga library.
 
@@ -325,13 +325,21 @@ def _extract_signature_text(block):
     return ""
 
 
+# The library headers live in a per-FAMILY folder under ga/ (ega/ pga/ sta/ cga/);
+# the four umbrella headers stay at ga/. Derive the folder from the algebra name.
+def _family(algebra):
+    return {"ega2d": "ega", "ega3d": "ega", "pga2dp": "pga", "pga3dp": "pga",
+            "sta4ds": "sta", "cga2dc": "cga", "cga3dc": "cga"}[algebra]
+
+
 def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatter_path):
     # The generated functions land in two library headers: the products file
     # (dot, gpr, wdg, contractions, ...) and the basics file (complements and
     # duals, spliced there by splice_generated_code.py). Scan both.
-    lib_file = os.path.join(lib_dir, f"ga_{algebra}_ops_products.hpp")
+    fam_dir = os.path.join(lib_dir, _family(algebra))
+    lib_file = os.path.join(fam_dir, f"ga_{algebra}_ops_products.hpp")
     lib_files = [lib_file]
-    basics_file = os.path.join(lib_dir, f"ga_{algebra}_ops_basics.hpp")
+    basics_file = os.path.join(fam_dir, f"ga_{algebra}_ops_basics.hpp")
     if os.path.isfile(basics_file):
         lib_files.append(basics_file)
     lib_names = " / ".join(os.path.basename(f) for f in lib_files)
@@ -353,7 +361,7 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatte
 
     if diff_mode:
         # Workspace-relative paths for the location hint (one level above
-        # `ga/` is the project root, e.g. `ga/ga_ega3d_ops_products.hpp`).
+        # `ga/` is the project root, e.g. `ga/ega/ga_ega3d_ops_products.hpp`).
         proj_root = os.path.dirname(lib_dir)
         lib_blocks = {}
         for lf in lib_files:
@@ -522,7 +530,7 @@ def main():
     known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "cga2dc", "cga3dc"]
 
     # Resolve project paths up-front so the default algebra set can be derived
-    # from which `ga/ga_<algebra>_ops_products.hpp` files actually exist —
+    # from which `ga/<family>/ga_<algebra>_ops_products.hpp` files actually exist —
     # adding a new library header automatically expands the default with no
     # script edit needed.
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -531,7 +539,8 @@ def main():
     default_algebras = [
         a
         for a in known_algebras
-        if os.path.isfile(os.path.join(lib_dir, f"ga_{a}_ops_products.hpp"))
+        if os.path.isfile(
+            os.path.join(lib_dir, _family(a), f"ga_{a}_ops_products.hpp"))
     ]
 
     parser = argparse.ArgumentParser(
@@ -548,7 +557,7 @@ def main():
             "  cga3dc  Conformal 3D, G(4,1,0) diagonalized\n"
             "\n"
             "Default selection is derived from existing\n"
-            "ga/ga_<algebra>_ops_products.hpp files; algebras whose library\n"
+            "ga/<family>/ga_<algebra>_ops_products.hpp files; algebras whose library\n"
             "file is absent must be requested explicitly with --algebra=NAME.\n"
         ),
     )
@@ -560,7 +569,7 @@ def main():
             "comma-separated algebra list (mirrors ga_prdxpr's interface). "
             "Choose any of: " + ",".join(known_algebras) + ". "
             "Special value: 'all' selects every known algebra. "
-            "Default: every algebra whose ga/ga_<name>_ops_products.hpp "
+            "Default: every algebra whose ga/<family>/ga_<name>_ops_products.hpp "
             "file exists (currently: "
             + (",".join(default_algebras) if default_algebras else "none")
             + "). "

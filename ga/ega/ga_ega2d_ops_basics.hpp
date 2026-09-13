@@ -3,23 +3,23 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_foundation.hpp"    // ga library headers and infrastructure
-#include "detail/type_t/ga_mvec3d.hpp" // 3D multivector types (includes component types)
+#include "../detail/ga_foundation.hpp"    // ga library headers and infrastructure
+#include "../detail/type_t/ga_mvec2d.hpp" // 2D multivector types (includes component types)
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// provides ega3d basic operations:
+// provides ega2d basic operations:
 //
 // - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
 // - conj()                        -> Clifford conjugation
 //
-// - cmpl()                        -> complement
+// - r_cmpl(), l_cmpl()            -> right and left complements
 //
 // - nrm_sq(), nrm()               -> norm
 //
 // - normalize()                   -> normalization (nrm scaled to 1.0)
 //
-// - dual()                        -> dual
+// - r_dual(), l_dual()            -> right and left duals
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +33,7 @@ namespace hd::ga::ega {
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3d<T> gr_inv(Scalar3d<T> s)
+constexpr Scalar2d<T> gr_inv(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -41,7 +41,7 @@ constexpr Scalar3d<T> gr_inv(Scalar3d<T> s)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3d<T> gr_inv(Vec3d<T> const& v)
+constexpr Vec2d<T> gr_inv(Vec2d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -49,23 +49,15 @@ constexpr Vec3d<T> gr_inv(Vec3d<T> const& v)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3d<T> gr_inv(BiVec3d<T> const& B)
+constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
 {
     // grade 2: no sign change
-    return B;
+    return ps;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3d<T> gr_inv(PScalar3d<T> ps)
-{
-    // grade 3: sign reversal
-    return -ps;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d_E<T> gr_inv(MVec3d_E<T> const& M)
+constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& M)
 {
     // grade 0 and 2: no sign change
     return M;
@@ -73,19 +65,11 @@ constexpr MVec3d_E<T> gr_inv(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_U<T> gr_inv(MVec3d_U<T> const& M)
-{
-    // grade 1 and 3: sign reversal
-    return -M;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
+constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
 {
     // grade 0 and 2: no sign change
-    // grade 1 and 3: sign reversal
-    return MVec3d<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)), gr_inv(gr3(M)));
+    // grade 1: sign reversal
+    return MVec2d<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)));
 }
 
 
@@ -97,7 +81,7 @@ constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3d<T> rev(Scalar3d<T> s)
+constexpr Scalar2d<T> rev(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -105,7 +89,7 @@ constexpr Scalar3d<T> rev(Scalar3d<T> s)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3d<T> rev(Vec3d<T> const& v)
+constexpr Vec2d<T> rev(Vec2d<T> const& v)
 {
     // grade 1: no sign change
     return v;
@@ -113,47 +97,29 @@ constexpr Vec3d<T> rev(Vec3d<T> const& v)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3d<T> rev(BiVec3d<T> const& B)
+constexpr PScalar2d<T> rev(PScalar2d<T> ps)
 {
     // grade 2: sign reversal
-    return -B;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr PScalar3d<T> rev(PScalar3d<T> ps)
-{
-    // grade 3: sign reversal
     return -ps;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_E<T> rev(MVec3d_E<T> const& M)
+constexpr MVec2d_E<T> rev(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
-    // grade 2: sign change
-    return MVec3d_E<T>(rev(gr0(M)), rev(gr2(M)));
+    // grade 2: sign reversal
+    return MVec2d_E<T>(rev(gr0(M)), rev(gr2(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_U<T> rev(MVec3d_U<T> const& M)
-{
-    // grade 1: no sign change
-    // grade 3: sign change
-    return MVec3d_U<T>(rev(gr1(M)), rev(gr3(M)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d<T> rev(MVec3d<T> const& M)
+constexpr MVec2d<T> rev(MVec2d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: no sign change
-    // grade 2: sign change
-    // grade 3: sign change
-    return MVec3d<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)), rev(gr3(M)));
+    // grade 2: sign reversal
+    return MVec2d<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)));
 }
 
 
@@ -165,7 +131,7 @@ constexpr MVec3d<T> rev(MVec3d<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3d<T> conj(Scalar3d<T> s)
+constexpr Scalar2d<T> conj(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -173,7 +139,7 @@ constexpr Scalar3d<T> conj(Scalar3d<T> s)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3d<T> conj(Vec3d<T> const& v)
+constexpr Vec2d<T> conj(Vec2d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -181,140 +147,156 @@ constexpr Vec3d<T> conj(Vec3d<T> const& v)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3d<T> conj(BiVec3d<T> const& B)
+constexpr PScalar2d<T> conj(PScalar2d<T> ps)
 {
     // grade 2: sign reversal
-    return -B;
+    return -ps;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3d<T> conj(PScalar3d<T> ps)
-{
-    // grade 3: no sign change
-    return ps;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d_E<T> conj(MVec3d_E<T> const& M)
+constexpr MVec2d_E<T> conj(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
-    // grade 2: sign change
-    return MVec3d_E<T>(conj(gr0(M)), conj(gr2(M)));
+    // grade 2: sign reversal
+    return MVec2d_E<T>(conj(gr0(M)), conj(gr2(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_U<T> conj(MVec3d_U<T> const& M)
-{
-    // grade 1: sign reversal
-    // grade 3: no sign change
-    return MVec3d_U<T>(conj(gr1(M)), conj(gr3(M)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d<T> conj(MVec3d<T> const& M)
+constexpr MVec2d<T> conj(MVec2d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
     // grade 2: sign reversal
-    // grade 3: no sign change
-    return MVec3d<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)), conj(gr3(M)));
+    return MVec2d<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 3d complement operations
+// 2d complement operations (impact on basis vector exclusively!)
 // (the concept of complement is defined w.r.t. the outer product)
 // it depends on the pseudoscalar of the space
-// here implemented for I_3d = e1^e2^e3 = e123
+// here implemented for I_2d = e1^e2 = e12
 ////////////////////////////////////////////////////////////////////////////////
 
-// if M represents the subspace B of the blade u as subspace of R^3 then
+// if M represents the subspace B of the blade u as subspace of R^2 then
 // compl(M) represents the subspace orthorgonal to B
 // the complement exchanges basis vectors (exclusively, no impact on magnitude),
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3  =>  l_cmpl(u) = I_3d * rev(u)
-// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(v) * I_3d
+// left complement:  l_cmpl(u) ^ u  = I_2d = e1^e2  =>  l_cmpl(u) = I_2d * rev(u)
+// right complement: u ^ r_cmpl(u)  = I_2d = e1^e2  =>  r_cmpl(u) = rev(u) * I_2d
+//
+// (get formula on the rhs by multiplying with inv(u) from the right or left respectively)
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_cmpl(u) == r_cmpl(u) == cmpl(u)
+// is only one complement operation defined l_cmpl(u) = r_cmpl(u) = cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
+constexpr PScalar2d<T> l_cmpl(Scalar2d<T> s)
 {
-    // u ^ cmpl(u) = e1^e2^e3
+    // l_cmpl(u) ^ u = e1^e2
     // u = s 1:
-    //     s ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(s) * I_3d = s e1^e2^e3
-    return PScalar3d<T>(T(s));
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(s) = s e1^e2
+    return PScalar2d<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
+constexpr Vec2d<T> l_cmpl(Vec2d<T> const& v)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(u) * I_3d
-    //     e1 => cmpl(u) = v.x e23
-    //     e2 => cmpl(u) = v.y e31
-    //     e3 => cmpl(u) = v.z e12
-    return BiVec3d<T>(v.x, v.y, v.z);
+    // l_cmpl(u) ^ u = e1^e2
+    // u = v.x e1 + v.y e2:
+    //     l_cmpl(u) ^ u = e1^e2 => cmpl(u) = I_2d * rev(v)
+    //     l_cmpl(u) = e12 * (v.x * e1 + v.y * e2) = -v.x * e2 + v.y * e1
+    //                                            b=  v.y * e1 - v.x * e2
+    //     => l_cmpl(u).x =  v.y e1
+    //     => l_cmpl(u).y = -v.x e2
+    return Vec2d<T>(v.y, -v.x);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
+constexpr Scalar2d<T> l_cmpl(PScalar2d<T> ps)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = B.x e23 + B.y e31 + B.z e12:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(B) * I_3d
-    //     e23 => cmpl(u) = B.x e1
-    //     e31 => cmpl(u) = B.y e2
-    //     e12 => cmpl(u) = B.z e3
-    return Vec3d<T>(B.x, B.y, B.z);
+    // l_cmpl(u) ^ u = e1^e2
+    // u = ps e1^e2:
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(ps) = ps 1
+    return Scalar2d<T>(T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
-{
-    // u ^ compl(u) = e1^e2^e3
-    // u = ps e1^e2^e3:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(ps) * I_3d = ps 1
-    return Scalar3d<T>(T(ps));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec3d_U<T> cmpl(MVec3d_E<T> const& M)
+constexpr MVec2d_E<T> l_cmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3d_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+    return MVec2d_E<T>(l_cmpl(gr2(M)), l_cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_E<T> cmpl(MVec3d_U<T> const& M)
+constexpr MVec2d<T> l_cmpl(MVec2d<T> const& M)
 {
     // use the component complements directly
-    return MVec3d_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+    return MVec2d<T>(l_cmpl(gr2(M)), l_cmpl(gr1(M)), l_cmpl(gr0(M)));
+}
+
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> r_cmpl(Scalar2d<T> s)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = s 1:
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(s) * I_2d = s e1^e2
+    return PScalar2d<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
+constexpr Vec2d<T> r_cmpl(Vec2d<T> const& v)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = v.x e1 + v.y e2:
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(v) * I_2d
+    //     r_cmpl(u) = (v.x * e1 + v.y * e2) * e12 =   v.x * e2 - v.y * e1
+    //                                             = - v.y * e1 + v.x * e2
+    //     => r_cmpl(u).x = -v.y e1
+    //     => r_cmpl(u).y =  v.x e2
+
+    return Vec2d<T>(-v.y, v.x);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar2d<T> r_cmpl(PScalar2d<T> ps)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = ps e1^e2:
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(ps) * I_2d = ps 1
+    return Scalar2d<T>(T(ps));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d_E<T> r_cmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+    return MVec2d_E<T>(r_cmpl(gr2(M)), r_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d<T> r_cmpl(MVec2d<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d<T>(r_cmpl(gr2(M)), r_cmpl(gr1(M)), r_cmpl(gr0(M)));
 }
 
 
@@ -328,98 +310,70 @@ constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm_sq(Scalar3d<T> s)
+constexpr T nrm_sq(Scalar2d<T> s)
 {
     return T(s) * T(s);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm(Scalar3d<T> s)
+constexpr T nrm(Scalar2d<T> s)
 {
     return std::sqrt(nrm_sq(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm_sq(Vec3d<T> const& v)
+constexpr T nrm_sq(Vec2d<T> const& v)
 {
-    return v.x * v.x + v.y * v.y + v.z * v.z;
+    return v.x * v.x + v.y * v.y;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm(Vec3d<T> const& v)
+constexpr T nrm(Vec2d<T> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm_sq(BiVec3d<T> const& B)
-{
-    return B.x * B.x + B.y * B.y + B.z * B.z;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr T nrm(BiVec3d<T> const& B)
-{
-    return std::sqrt(nrm_sq(B));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(PScalar3d<T> ps)
+constexpr T nrm_sq(PScalar2d<T> ps)
 {
     return T(ps) * T(ps);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm(PScalar3d<T> ps)
+constexpr T nrm(PScalar2d<T> ps)
 {
     return std::sqrt(nrm_sq(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm_sq(MVec3d_E<T> const& M)
+constexpr T nrm_sq(MVec2d_E<T> const& M)
 {
     return nrm_sq(gr0(M)) + nrm_sq(gr2(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm(MVec3d_E<T> const& M)
+constexpr T nrm(MVec2d_E<T> const& M)
 {
     return std::sqrt(nrm_sq(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm_sq(MVec3d_U<T> const& M)
+constexpr T nrm_sq(MVec2d<T> const& M)
 {
-    return nrm_sq(gr1(M)) + nrm_sq(gr3(M));
+    return nrm_sq(gr0(M)) + nrm_sq(gr1(M)) + nrm_sq(gr2(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr T nrm(MVec3d_U<T> const& M)
-{
-    return std::sqrt(nrm_sq(M));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(MVec3d<T> const& M)
-{
-    return nrm_sq(gr0(M)) + nrm_sq(gr1(M)) + nrm_sq(gr2(M)) + nrm_sq(gr3(M));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr T nrm(MVec3d<T> const& M)
+constexpr T nrm(MVec2d<T> const& M)
 {
     return std::sqrt(nrm_sq(M));
 }
@@ -432,78 +386,58 @@ constexpr T nrm(MVec3d<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-inline Scalar3d<T> normalize(Scalar3d<T> s)
+inline Scalar2d<T> normalize(Scalar2d<T> s)
 {
     T m = nrm(s);
-    hd::ga::detail::check_nonzero<T>(m, "scalar (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "scalar (2d)");
     T inv = T(1.0) / m;
-    return Scalar3d<T>(inv * T(s));
+    return Scalar2d<T>(inv * T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-inline Vec3d<T> normalize(Vec3d<T> const& v)
+inline Vec2d<T> normalize(Vec2d<T> const& v)
 {
     T m = nrm(v);
-    hd::ga::detail::check_nonzero<T>(m, "vector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "vector (2d)");
     T inv = T(1.0) / m;
     return inv * v;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-inline BiVec3d<T> normalize(BiVec3d<T> const& B)
-{
-    T m = nrm(B);
-    hd::ga::detail::check_nonzero<T>(m, "bivector (3d)");
-    T inv = T(1.0) / m;
-    return inv * B;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-inline PScalar3d<T> normalize(PScalar3d<T> ps)
+inline PScalar2d<T> normalize(PScalar2d<T> ps)
 {
     T m = nrm(ps);
-    hd::ga::detail::check_nonzero<T>(m, "pseudoscalar (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "pseudoscalar (2d)");
     T inv = T(1.0) / m;
-    return PScalar3d<T>(inv * T(ps));
+    return PScalar2d<T>(inv * T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-inline MVec3d_E<T> normalize(MVec3d_E<T> const& M)
+inline MVec2d_E<T> normalize(MVec2d_E<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_nonzero<T>(m, "even-grade multivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "even-grade multivector (2d)");
     T inv = T(1.0) / m;
     return inv * M;
 }
 
 template <typename T>
     requires(numeric_type<T>)
-inline MVec3d_U<T> normalize(MVec3d_U<T> const& M)
+inline MVec2d<T> normalize(MVec2d<T> const& M)
 {
     T m = nrm(M);
-    hd::ga::detail::check_nonzero<T>(m, "odd-grade multivector (3d)");
+    hd::ga::detail::check_nonzero<T>(m, "multivector (2d)");
     T inv = T(1.0) / m;
     return inv * M;
 }
-
-template <typename T>
-    requires(numeric_type<T>)
-inline MVec3d<T> normalize(MVec3d<T> const& M)
-{
-    T m = nrm(M);
-    hd::ga::detail::check_nonzero<T>(m, "multivector (3d)");
-    T inv = T(1.0) / m;
-    return inv * M;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
-// duality (as defined in Lengyel, "PGA illuminated")
-// the outer product.
+// duality is defined w.r.t. the outer product,
+// because the complement is defined w.r.t. the outer product.
+// (as defined in Lengyel, "PGA illuminated")
 //
 // The only difference between the dual and the complement is the fact that
 // for the dual the argument is multiplied with the extended metric before
@@ -526,53 +460,81 @@ inline MVec3d<T> normalize(MVec3d<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 
 
+// this one is problematic for overloading, because 2d and 3d case
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3d<T> dual(Scalar3d<T> s)
+constexpr PScalar2d<T> r_dual(Scalar2d<T> s)
 {
-    return cmpl(s);
+    return r_cmpl(s);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3d<T> dual(Vec3d<T> const& v)
+constexpr Vec2d<T> r_dual(Vec2d<T> const& v)
 {
-    return cmpl(v);
+    return r_cmpl(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3d<T> dual(BiVec3d<T> const& B)
+constexpr Scalar2d<T> r_dual(PScalar2d<T> ps)
 {
-    return cmpl(B);
+    return r_cmpl(ps);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3d<T> dual(PScalar3d<T> ps)
+constexpr MVec2d_E<T> r_dual(MVec2d_E<T> const& M)
 {
-    return cmpl(ps);
+    return MVec2d_E<T>(r_cmpl(gr2(M)), r_cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_U<T> dual(MVec3d_E<T> const& M)
+constexpr MVec2d<T> r_dual(MVec2d<T> const& M)
 {
-    return MVec3d_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+    return MVec2d<T>(r_cmpl(gr2(M)), r_cmpl(gr1(M)), r_cmpl(gr0(M)));
+}
+
+
+// this one is problematic for overloading, because 2d and 3d case
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> l_dual(Scalar2d<T> s)
+{
+    return l_cmpl(s);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d_E<T> dual(MVec3d_U<T> const& M)
+constexpr Vec2d<T> l_dual(Vec2d<T> const& v)
 {
-    return MVec3d_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+    return l_cmpl(v);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3d<T> dual(MVec3d<T> const& M)
+constexpr Scalar2d<T> l_dual(PScalar2d<T> ps)
 {
-    return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+    return l_cmpl(ps);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d_E<T> l_dual(MVec2d_E<T> const& M)
+{
+    return MVec2d_E<T>(l_cmpl(gr2(M)), l_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d<T> l_dual(MVec2d<T> const& M)
+{
+    return MVec2d<T>(l_cmpl(gr2(M)), l_cmpl(gr1(M)), l_cmpl(gr0(M)));
 }
 
 } // namespace hd::ga::ega

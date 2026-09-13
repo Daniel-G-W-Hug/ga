@@ -13,7 +13,7 @@ out of the char-identity goal). Both files should be passed through `clang-forma
 so that line-wrapping doesn't pollute the diff.
 
 ```bash
-clang-format ga/ga_ega2d_ops_products.hpp                 > /tmp/source.cpp
+clang-format ga/ega/ga_ega2d_ops_products.hpp                 > /tmp/source.cpp
 ga_prdxpr --algebra=ega2d --output=code | clang-format    > /tmp/codegen.cpp
 python3 diff_codegen.py /tmp/source.cpp /tmp/codegen.cpp [N] [--full]
 ```
@@ -39,7 +39,7 @@ Standalone function-extractor used by `diff_codegen.py`. Useful in isolation whe
 just want a list of function bodies from a header without the surrounding scaffolding.
 
 ```bash
-python3 extract_funcs.py ga/ga_pga2dp_ops_products.hpp
+python3 extract_funcs.py ga/pga/ga_pga2dp_ops_products.hpp
 ```
 
 Outputs each function as: signature line(s) + body, separated by blank lines. Strips

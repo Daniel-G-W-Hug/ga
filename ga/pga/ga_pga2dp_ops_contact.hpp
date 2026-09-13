@@ -44,10 +44,10 @@
 // torso: a falling mechanism then lands on whatever touches first and lies on the
 // ground, instead of sinking through it.
 
+#include "../ga_usr_consts.hpp"          // O_2dp
+#include "../ga_usr_types.hpp"           // value_t type aliases
+#include "../ga_value_t.hpp"             // value_t
 #include "ga_pga2dp_ops_constraints.hpp" // closed_loop_system2dp
-#include "ga_usr_consts.hpp"             // O_2dp
-#include "ga_usr_types.hpp"              // value_t type aliases
-#include "ga_value_t.hpp"                // value_t
 
 #include <cmath>   // std::abs, std::sqrt
 #include <cstddef> // size_t

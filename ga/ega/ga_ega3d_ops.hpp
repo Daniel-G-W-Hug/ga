@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "../ga_usr_consts.hpp"      // named basis-blade constants
 #include "ga_ega3d_ops_basics.hpp"   // ega3d ops basics
 #include "ga_ega3d_ops_products.hpp" // ega3d ops products
-#include "ga_usr_consts.hpp"         // named basis-blade constants
 
 #include <array>   // std::array (reciprocal_frame)
 #include <complex> // std::complex (the centre span{1, I_3d} of ega3d)

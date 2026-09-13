@@ -282,7 +282,7 @@ The remaining ~5% are intentional semantic delegations
 # round-trip check for one algebra (run from build/)
 ./ga_prdxpr/ga_prdxpr --algebra=ega3d --output=code | \
     clang-format -assume-filename=x.cpp > /tmp/codegen.cpp
-clang-format ../ga/ga_ega3d_ops_products.hpp > /tmp/source.cpp
+clang-format ../ga/ega/ga_ega3d_ops_products.hpp > /tmp/source.cpp
 python3 ../ga_prdxpr/src_prdxpr/codegen/tools/diff_codegen.py \
     /tmp/source.cpp /tmp/codegen.cpp
 ```

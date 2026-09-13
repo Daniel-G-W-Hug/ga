@@ -32,21 +32,21 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // PGA-specific operations are in namespace hd::ga::pga
-#include "ga_pga2dp_ops.hpp" // include all pga operations for 2dp
-#include "ga_pga3dp_ops.hpp" // include all pga operations for 3dp
+#include "pga/ga_pga2dp_ops.hpp" // include all pga operations for 2dp
+#include "pga/ga_pga3dp_ops.hpp" // include all pga operations for 3dp
 
 // PGA mechanics operations (inertia, rigid body dynamics)
-#include "ga_pga2dp_ops_mechanics.hpp" // mechanics operations for 2dp
-#include "ga_pga3dp_ops_mechanics.hpp" // mechanics operations for 3dp
+#include "pga/ga_pga2dp_ops_mechanics.hpp" // mechanics operations for 2dp
+#include "pga/ga_pga3dp_ops_mechanics.hpp" // mechanics operations for 3dp
 
 // PGA closed-loop / parallel-mechanism operations (loop-closure constraints), an additive
 // layer composed on top of the open-chain mechanics tier (open-loop users need not
 // include it)
-#include "ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
-#include "ga_pga3dp_ops_constraints.hpp" // closed-loop operations for 3dp
+#include "pga/ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
+#include "pga/ga_pga3dp_ops_constraints.hpp" // closed-loop operations for 3dp
 
-#include "ga_pga2dp_ops_contact.hpp" // unilateral ground contact for 2dp (events on the loop layer)
-#include "ga_pga3dp_ops_contact.hpp" // unilateral ground contact for 3dp
+#include "pga/ga_pga2dp_ops_contact.hpp" // unilateral ground contact for 2dp (events on the loop layer)
+#include "pga/ga_pga3dp_ops_contact.hpp" // unilateral ground contact for 3dp
 
 // mechanics convenience aliases (after the mechanics ops headers they depend on)
 #include "ga_usr_types_mechanics.hpp" // inertia2dp / inertia3dp (value_t-based)

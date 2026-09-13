@@ -6,9 +6,9 @@
 #include "ga_cga3dc_ops_basics.hpp"
 #include "ga_cga3dc_ops_products.hpp"
 
-#include "detail/type_t/ga_type3d.hpp" // Vec3d<T>: the Euclidean position and
-                                       // direction arguments, and what the
-                                       // position / direction accessors return
+#include "../detail/type_t/ga_type3d.hpp" // Vec3d<T>: the Euclidean position and
+                                          // direction arguments, and what the
+                                          // position / direction accessors return
 
 #include <cmath>     // dipole_points
 #include <complex>   // exp/log/sqrt of regressive versors (central subalgebra = C)

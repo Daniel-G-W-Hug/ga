@@ -3,11 +3,11 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_foundation.hpp"     // ga library headers and infrastructure
-#include "detail/type_t/ga_mvec3dc.hpp" // cga3dc multivectors incl. even/uneven
-#include "detail/type_t/ga_type3dc.hpp" // cga3dc concrete types
+#include "../detail/ga_foundation.hpp"     // ga library headers and infrastructure
+#include "../detail/type_t/ga_mvec3dc.hpp" // cga3dc multivectors incl. even/uneven
+#include "../detail/type_t/ga_type3dc.hpp" // cga3dc concrete types
 
-#include "detail/ga_error_handling.hpp" // unitize() zero-division checks
+#include "../detail/ga_error_handling.hpp" // unitize() zero-division checks
 
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc basic operations:

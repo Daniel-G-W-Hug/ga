@@ -30,8 +30,8 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // STA-specific operations are in namespace hd::ga::sta
-#include "ga_sta4ds_ops.hpp"          // sta4ds operations (basics and products)
-#include "ga_sta4ds_ops_calculus.hpp" // sta4ds field operators
+#include "sta/ga_sta4ds_ops.hpp"          // sta4ds operations (basics and products)
+#include "sta/ga_sta4ds_ops_calculus.hpp" // sta4ds field operators
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

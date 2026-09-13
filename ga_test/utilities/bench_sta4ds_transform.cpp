@@ -12,7 +12,7 @@
 //              also times the std::vector transform_opt overload (matrix built once)
 //   SINGLE --- a fresh rotor per call (matrix rebuilt each time; true one-off cost)
 //
-// Takeaway (see ga/ga_sta4ds_ops.hpp): for one-off transforms the direct transform()
+// Takeaway (see ga/sta/ga_sta4ds_ops.hpp): for one-off transforms the direct transform()
 // is faster; only the batch overload (amortizing the rotor-only matrix over many
 // vectors) reliably beats it.
 

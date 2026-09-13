@@ -7,19 +7,19 @@
 
 // Pull in the mechanics inertia types so their fmt::formatter specialisations
 // below are available wherever ga_pga.hpp is included.
-#include "../../ga_pga2dp_ops_mechanics.hpp"
-#include "../../ga_pga3dp_ops_mechanics.hpp"
+#include "../../pga/ga_pga2dp_ops_mechanics.hpp"
+#include "../../pga/ga_pga3dp_ops_mechanics.hpp"
 
 // Pull in the (optional) closed-loop layers so the loop_constraint{2,3}dp formatters
 // below are available wherever ga_pga.hpp is included (the constraints headers themselves
 // stay free of any fmt dependency).
-#include "../../ga_pga2dp_ops_constraints.hpp"
-#include "../../ga_pga3dp_ops_constraints.hpp"
+#include "../../pga/ga_pga2dp_ops_constraints.hpp"
+#include "../../pga/ga_pga3dp_ops_constraints.hpp"
 
 // Pull in the unilateral contact layers for the contact_kind{2,3}dp formatters below
 // (same reasoning as the closed-loop layers above).
-#include "../../ga_pga2dp_ops_contact.hpp"
-#include "../../ga_pga3dp_ops_contact.hpp"
+#include "../../pga/ga_pga2dp_ops_contact.hpp"
+#include "../../pga/ga_pga3dp_ops_contact.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for PGA mechanics types (Inertia matrices)

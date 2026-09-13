@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "../ga_usr_consts.hpp"
 #include "ga_pga3dp_ops_basics.hpp"
 #include "ga_pga3dp_ops_products.hpp"
-#include "ga_usr_consts.hpp"
 
 #include <utility> // std::forward
 #include <vector>  // std::vector

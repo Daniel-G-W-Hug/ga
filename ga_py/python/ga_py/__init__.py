@@ -43,7 +43,7 @@ __all__ = ["ega", "pga", "cga", "sta"] + [n for n in dir(_ga_py)
 
 # ---------------------------------------------------------------------------
 # PGA 2dp — forwarder functions (generic C++ templates)
-# Source: ga/ga_pga2dp_ops_products.hpp
+# Source: ga/pga/ga_pga2dp_ops_products.hpp
 # ---------------------------------------------------------------------------
 
 def _pga2dp_l_bulk_contract2dp(a, b):
@@ -101,7 +101,7 @@ pga.r_weight_expand2dp = _pga2dp_r_weight_expand2dp
 
 # ---------------------------------------------------------------------------
 # PGA 3dp — forwarder functions (generic C++ templates)
-# Source: ga/ga_pga3dp_ops_products.hpp
+# Source: ga/pga/ga_pga3dp_ops_products.hpp
 #
 # 3dp is even-dimensional, so the bulk/weight duals come in left and right
 # variants (l_bulk_dual / r_bulk_dual etc.). The contractions and expansions
@@ -161,7 +161,7 @@ pga.r_weight_expand3dp = _pga3dp_r_weight_expand3dp
 
 # ---------------------------------------------------------------------------
 # STA4D — expansion forwarders (generic C++ templates)
-# Source: ga/ga_sta4ds_ops_products.hpp
+# Source: ga/sta/ga_sta4ds_ops_products.hpp
 # ---------------------------------------------------------------------------
 
 def _sta_l_expand4ds(a, b):

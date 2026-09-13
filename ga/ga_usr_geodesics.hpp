@@ -11,14 +11,14 @@
 #include <stdexcept> // std::invalid_argument
 #include <string>    // std::string
 
-#include "ga_ega2d_ops.hpp"     // normalize, operator*(vec, I_2d), ... for the 2D frame
-#include "ga_ega3d_ops.hpp"     // wdg, dual, normalize, ... for the direction frame
-#include "ga_pga2dp_ops.hpp"    // get_motor, move2dp, unitize, ... for the 2D case
-#include "ga_pga3dp_ops.hpp"    // get_motor, move3dp, unitize, ... for points/motors
-#include "ga_usr_consts.hpp"    // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
-#include "ga_usr_types.hpp"     // vec3d, vec3dp, mvec3dp_e
-#include "ga_usr_utilities.hpp" // deg2rad, rad2deg, pi
-#include "ga_value_t.hpp"       // value_t
+#include "ega/ga_ega2d_ops.hpp"  // normalize, operator*(vec, I_2d), ... for the 2D frame
+#include "ega/ga_ega3d_ops.hpp"  // wdg, dual, normalize, ... for the direction frame
+#include "ga_usr_consts.hpp"     // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
+#include "ga_usr_types.hpp"      // vec3d, vec3dp, mvec3dp_e
+#include "ga_usr_utilities.hpp"  // deg2rad, rad2deg, pi
+#include "ga_value_t.hpp"        // value_t
+#include "pga/ga_pga2dp_ops.hpp" // get_motor, move2dp, unitize, ... for the 2D case
+#include "pga/ga_pga3dp_ops.hpp" // get_motor, move3dp, unitize, ... for points/motors
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Geodetic coordinates on a reference ellipsoid.
@@ -1027,4 +1027,10 @@ inline mvec2dp_u un_motor_at(vec2dp const& P, ellipsoid const& el = wgs84)
 
 } // namespace hd::ga::pga
 
-#include "detail/fmt/ga_fmt_geodesics.hpp" // printing support for the types above
+// Printing support for the types above -- and it has to stay HERE, at the very end.
+// ga_fmt_geodesics.hpp includes this header back (so it compiles on its own), but
+// that include is a no-op by the time it runs: the #pragma once guard is already
+// set. Hoisted to the top, the formatter specialisations are therefore written
+// before the types exist -- measured: "no member named 'ellipsoid' in namespace
+// 'hd::ga'", 7 errors, both standalone and through ga_pga.hpp.
+#include "detail/fmt/ga_fmt_geodesics.hpp"

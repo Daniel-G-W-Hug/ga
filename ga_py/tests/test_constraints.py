@@ -1,7 +1,7 @@
 """Tests for the closed-loop constraint bindings and the scoped-enum support
 that unlocks them.
 
-The C++ closed-loop layer (ga/ga_pga2dp_ops_constraints.hpp) is built around a
+The C++ closed-loop layer (ga/pga/ga_pga2dp_ops_constraints.hpp) is built around a
 pure-data descriptor, loop_constraint2dp, whose `type` field is the scoped enum
 constraint2dp. Binding a struct with an enum field required teaching ga_bindgen
 to bind scoped enums (nb::enum_); that same support also exposes the joint

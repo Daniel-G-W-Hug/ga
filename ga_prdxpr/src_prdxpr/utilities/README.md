@@ -41,7 +41,7 @@ basics header to splice them in:
 ```bash
 python3 splice_generated_code.py --algebra=sta4ds \
     --products=l_cmpl,r_cmpl,l_dual,r_dual \
-    --lib ../../../ga/ga_sta4ds_ops_basics.hpp --dry-run
+    --lib ../../../ga/sta/ga_sta4ds_ops_basics.hpp --dry-run
 ```
 
 Notes: the generated forms are flat closed forms with no inner derivation comments

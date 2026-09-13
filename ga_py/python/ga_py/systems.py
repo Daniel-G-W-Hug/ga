@@ -1,7 +1,7 @@
 """ga_py.systems — pure-Python reconstruction of the PGA3DP multibody system classes.
 
 The stateful C++ classes `static_system3dp` / `kinematic_system3dp` /
-`dynamic_system3dp` (ga/ga_pga3dp_ops_mechanics.hpp) are NOT bound to Python by design.
+`dynamic_system3dp` (ga/pga/ga_pga3dp_ops_mechanics.hpp) are NOT bound to Python by design.
 This module rebuilds them from the bound GA primitives in `ga_py.pga`, so the same
 frame-tree kinematics that the C++ classes provide is reachable from Python.
 
