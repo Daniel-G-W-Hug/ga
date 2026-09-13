@@ -7,8 +7,8 @@
 #include "ga_pga3dp_ops_products.hpp"
 #include "ga_usr_consts.hpp"
 
-
-namespace hd::ga::pga {
+#include <utility> // std::forward
+#include <vector>  // std::vector
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides functionality that is based on pga3dp ops basics and products:
@@ -48,6 +48,7 @@ namespace hd::ga::pga {
 //                                           motion? (motors double-cover them)
 /////////////////////////////////////////////////////////////////////////////////////////
 
+namespace hd::ga::pga {
 
 ////////////////////////////////////////////////////////////////////////////////
 // angle operations 3dp

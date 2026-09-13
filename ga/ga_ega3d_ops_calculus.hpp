@@ -12,6 +12,19 @@
 #include <type_traits> // std::invoke_result_t
 #include <utility>     // std::forward
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides ega3d differential operations on multivector FIELDS:
+//
+// - nabla()                        -> the vector derivative, sum_i e_i * d_i f
+// - nabla_dot()                    -> inner derivative  (grade-lowering part of nabla)
+// - nabla_wdg()                    -> outer derivative  (grade-raising part of nabla)
+// - laplacian()                    -> the scalar (grade-preserving) operator sum_i d_i^2
+// - d_dt()                         -> the time derivative of a time-dependent field
+//
+// A FIELD here is any callable, f(r) or f(r, t), returning a multivector type. Nothing
+// is stored: the operators sample the callable, so analytic and tabulated fields are
+// treated alike and no grid, no ownership and no allocation are involved.
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -52,20 +65,6 @@ inline fd_scheme const& ega3d_default_scheme(int deriv)
 
 
 namespace hd::ga::ega {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// provides ega3d differential operations on multivector FIELDS:
-//
-// - nabla()                        -> the vector derivative, sum_i e_i * d_i f
-// - nabla_dot()                    -> inner derivative  (grade-lowering part of nabla)
-// - nabla_wdg()                    -> outer derivative  (grade-raising part of nabla)
-// - laplacian()                    -> the scalar (grade-preserving) operator sum_i d_i^2
-// - d_dt()                         -> the time derivative of a time-dependent field
-//
-// A FIELD here is any callable, f(r) or f(r, t), returning a multivector type. Nothing
-// is stored: the operators sample the callable, so analytic and tabulated fields are
-// treated alike and no grid, no ownership and no allocation are involved.
-/////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // the vector derivative (nabla operator)

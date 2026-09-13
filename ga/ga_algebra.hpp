@@ -6,8 +6,6 @@
 #include <array>   // std::array
 #include <cstdint> // uint8_t
 
-namespace hd::ga {
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // create an algebra<P,N,Z> = G(P,N,Z) with:
 //      P generators for numbers that square to +1
@@ -16,6 +14,8 @@ namespace hd::ga {
 //
 // provides information on the dimension and basis vectors of the used algebra
 /////////////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga {
 
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
     requires(P + N + Z >= 2) && (P + N + Z <= 5) && (P >= 1) && (P <= 4) && (N <= 3) &&

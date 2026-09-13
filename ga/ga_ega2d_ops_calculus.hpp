@@ -11,37 +11,6 @@
 #include <type_traits> // std::invoke_result_t, std::is_same_v
 #include <utility>     // std::forward
 
-
-namespace hd::ga::detail {
-
-// Helpers for the ega2d field operators. Kept in hd::ga::detail (NOT
-// hd::ga::ega::detail): opening a detail namespace inside hd::ga::ega shadows
-// the hd::ga::detail names that the algebra headers use unqualified, and whether
-// that breaks the build then depends on include order.
-
-// i-th cartesian basis vector of ega2d
-template <typename T> inline Vec2d<T> ega2d_basis(int i)
-{
-    return (i == 0) ? Vec2d<T>(T(1.0), T(0.0)) : Vec2d<T>(T(0.0), T(1.0));
-}
-
-// directional derivative of a field along axis i -- apply_scheme() owns the weight
-// loop and rejects a scheme that cannot be evaluated at a single point
-template <typename F>
-inline MVec2d<value_t> ega2d_axis_deriv(F&& f, Vec2d<value_t> const& r, int i,
-                                        fd_scheme const& sc, value_t h)
-{
-    Vec2d<value_t> const e = ega2d_basis<value_t>(i);
-    return apply_scheme<MVec2d<value_t>>(
-        sc, [&](value_t off) { return f(r + off * e); }, h);
-}
-
-
-} // namespace hd::ga::detail
-
-
-namespace hd::ga::ega {
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides ega2d differential operations on multivector FIELDS:
 //
@@ -97,6 +66,36 @@ namespace hd::ga::ega {
 // The 2d curl is a pseudoscalar rather than a bivector-valued object, which is the
 // usual "curl is a scalar in the plane" statement read off the grade structure.
 /////////////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga::detail {
+
+// Helpers for the ega2d field operators. Kept in hd::ga::detail (NOT
+// hd::ga::ega::detail): opening a detail namespace inside hd::ga::ega shadows
+// the hd::ga::detail names that the algebra headers use unqualified, and whether
+// that breaks the build then depends on include order.
+
+// i-th cartesian basis vector of ega2d
+template <typename T> inline Vec2d<T> ega2d_basis(int i)
+{
+    return (i == 0) ? Vec2d<T>(T(1.0), T(0.0)) : Vec2d<T>(T(0.0), T(1.0));
+}
+
+// directional derivative of a field along axis i -- apply_scheme() owns the weight
+// loop and rejects a scheme that cannot be evaluated at a single point
+template <typename F>
+inline MVec2d<value_t> ega2d_axis_deriv(F&& f, Vec2d<value_t> const& r, int i,
+                                        fd_scheme const& sc, value_t h)
+{
+    Vec2d<value_t> const e = ega2d_basis<value_t>(i);
+    return apply_scheme<MVec2d<value_t>>(
+        sc, [&](value_t off) { return f(r + off * e); }, h);
+}
+
+
+} // namespace hd::ga::detail
+
+
+namespace hd::ga::ega {
 
 ////////////////////////////////////////////////////////////////////////////////
 // METRIC ASSUMPTION -- read before porting this to another algebra

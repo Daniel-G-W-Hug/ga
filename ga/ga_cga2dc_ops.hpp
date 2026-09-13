@@ -6,13 +6,14 @@
 #include "ga_cga2dc_ops_basics.hpp"
 #include "ga_cga2dc_ops_products.hpp"
 
+#include "detail/type_t/ga_type2d.hpp" // Vec2d<T>: the Euclidean position and
+                                       // direction arguments, and what the
+                                       // position / direction accessors return
+
 #include <cmath>     // dipole_points
 #include <complex>   // exp/log/sqrt of regressive versors (central subalgebra = C)
 #include <stdexcept> // dipole_points: the imaginary dipole
 #include <utility>   // std::pair
-
-
-namespace hd::ga::cga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides cga2dc geometric operations (layer under construction):
@@ -75,6 +76,7 @@ namespace hd::ga::cga {
 //                              (versors double-cover the transformations)
 /////////////////////////////////////////////////////////////////////////////////////////
 
+namespace hd::ga::cga {
 
 ////////////////////////////////////////////////////////////////////////////////
 // exponential, logarithm and square root w.r.t. the regressive geometric

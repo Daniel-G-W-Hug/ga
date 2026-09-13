@@ -54,8 +54,7 @@
 #include <string>
 #include <vector>
 
-namespace hd::ga::pga {
-
+/////////////////////////////////////////////////////////////////////////////////////////
 // provides unilateral ground-contact operations:
 //
 // - contact_kind2dp                     -> point (a pin) / flat (a weld: the flat foot)
@@ -65,6 +64,9 @@ namespace hd::ga::pga {
 //                                          of which kind) and event (a touchdown /
 //                                          lift-off record) -- nested so the binding
 //                                          generator leaves them with the class
+/////////////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga::pga {
 
 enum class contact_kind2dp { point, flat };
 

@@ -11,7 +11,52 @@
 #include <array>     // std::array (transform_opt coefficient matrices)
 #include <cmath>     // std::cos, std::sin, std::cosh, std::sinh, std::sqrt, std::abs
 #include <stdexcept> // std::runtime_error
+#include <utility>   // std::forward
+#include <vector>    // std::vector (the transform_opt batch overloads)
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// High-level STA (G(1,3,0)) operations built on the geometric product (gpr).
+//
+// Unlike pga3dp (which uses regressive motors for rigid motions), STA transforms via
+// the geometric-product rotor sandwich  X' = R * X * rev(R),  with R = exp(bivector).
+// The structure mirrors ega3d_ops.hpp (also gpr-based), extended for the Lorentzian
+// signature: spatial bivectors  (g23, g31, g12; B^2 < 0) generate rotations,
+//            timelike bivectors (g14, g24, g34; B^2 > 0) generate Lorentz boosts.
+//
+// provides sta4ds functionality that is based on sta4ds ops basics and products:
+//
+//   - exp(BiVec)                      -> rotor exponential of a bivector (simple or not)
+//   - exp(PScalar)                    -> cos + I sin: a duality-rotation factor for
+//                                        bivector fields, NOT a rotor (see the block)
+//   - log(rotor)                      -> bivector log of a rotor (inverse of exp)
+//   - get_rotor(plane, angle)         -> rotor for a spatial rotation
+//   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
+//   - sqrt(rotor)                     -> rotor halving the rotation angle / rapidity
+//   - angle() / rapidity()            -> separation of two vectors (spacelike / timelike)
+//   - transform(X, R)                 -> apply a rotor via the sandwich R*X*rev(R)
+//   - transform_opt(X, R)             -> closed-form transform, vec/bivec/trivec
+//                                        (scalar + std::vector batch overloads)
+//   - time_split() / space_split()    -> spacetime split of a vector (time + rel. space)
+//   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
+//   - is_simple()                     -> does the bivector lie in a single plane?
+//   - boost_part() / rot_part()       -> invariant (observer-independent) decomposition
+//                                        of a bivector into its two orthogonal planes
+//   - ortho_proj4ds()                 -> orthogonal projection onto a higher-grade blade
+//   - project_onto() / reject_from()  -> projection / rejection (onto vector, bivector
+//                                        or hyperplane)
+//   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
+//   - reciprocal_frame()              -> the frame {a^i} with a^i . a_j = delta
+//
+//   - is_congruent()                  -> same subspace up to a scalar factor
+//   - is_close()                      -> same value within a RELATIVE tolerance
+//   - is_same_transform()             -> do two rotors describe the same Lorentz
+//                                        transformation? (rotors double-cover them)
+//
+// exp() / log() / sqrt() handle general (non-simple) rotors -- a Lorentz boost and a
+// spatial rotation combined in dual planes -- via the invariant bivector decomposition
+// and the signature-agnostic Study-number renormalisation (De Keninck & Roelfs 2022,
+// arXiv:2206.07496); see the detail:: helpers at the top of this file.
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -232,50 +277,6 @@ inline MVec4ds_E<T> sta4ds_nearest_rotor(MVec4ds_E<T> const& X)
 
 
 namespace hd::ga::sta {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// High-level STA (G(1,3,0)) operations built on the geometric product (gpr).
-//
-// Unlike pga3dp (which uses regressive motors for rigid motions), STA transforms via
-// the geometric-product rotor sandwich  X' = R * X * rev(R),  with R = exp(bivector).
-// The structure mirrors ega3d_ops.hpp (also gpr-based), extended for the Lorentzian
-// signature: spatial bivectors  (g23, g31, g12; B^2 < 0) generate rotations,
-//            timelike bivectors (g14, g24, g34; B^2 > 0) generate Lorentz boosts.
-//
-// Implemented:
-//   - exp(BiVec)                      -> rotor exponential of a bivector (simple or not)
-//   - exp(PScalar)                    -> cos + I sin: a duality-rotation factor for
-//                                        bivector fields, NOT a rotor (see the block)
-//   - log(rotor)                      -> bivector log of a rotor (inverse of exp)
-//   - get_rotor(plane, angle)         -> rotor for a spatial rotation
-//   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
-//   - sqrt(rotor)                     -> rotor halving the rotation angle / rapidity
-//   - angle() / rapidity()            -> separation of two vectors (spacelike / timelike)
-//   - transform(X, R)                 -> apply a rotor via the sandwich R*X*rev(R)
-//   - transform_opt(X, R)             -> closed-form transform, vec/bivec/trivec
-//                                        (scalar + std::vector batch overloads)
-//   - time_split() / space_split()    -> spacetime split of a vector (time + rel. space)
-//   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
-//   - is_simple()                     -> does the bivector lie in a single plane?
-//   - boost_part() / rot_part()       -> invariant (observer-independent) decomposition
-//                                        of a bivector into its two orthogonal planes
-//   - ortho_proj4ds()                 -> orthogonal projection onto a higher-grade blade
-//   - project_onto() / reject_from()  -> projection / rejection (onto vector, bivector
-//                                        or hyperplane)
-//   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
-//   - reciprocal_frame()              -> the frame {a^i} with a^i . a_j = delta
-//
-//   - is_congruent()                  -> same subspace up to a scalar factor
-//   - is_close()                      -> same value within a RELATIVE tolerance
-//   - is_same_transform()             -> do two rotors describe the same Lorentz
-//                                        transformation? (rotors double-cover them)
-//
-// exp() / log() / sqrt() handle general (non-simple) rotors -- a Lorentz boost and a
-// spatial rotation combined in dual planes -- via the invariant bivector decomposition
-// and the signature-agnostic Study-number renormalisation (De Keninck & Roelfs 2022,
-// arXiv:2206.07496); see the detail:: helpers at the top of this file.
-/////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // rotor exponential w.r.t. the geometric product

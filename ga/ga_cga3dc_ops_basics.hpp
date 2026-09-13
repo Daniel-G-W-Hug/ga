@@ -9,9 +9,6 @@
 
 #include "detail/ga_error_handling.hpp" // unitize() zero-division checks
 
-
-namespace hd::ga::cga {
-
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc basic operations:
 //
@@ -45,6 +42,8 @@ namespace hd::ga::cga {
 //                                    flat/round: a concentric meet is round)
 // - unitize()                     -> scale so the round weight norm equals one
 ////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga::cga {
 
 ////////////////////////////////////////////////////////////////////////////////
 // grade inversion operation: reverse the sign of odd blades

@@ -7,8 +7,31 @@
 #include "ga_ega2d_ops_products.hpp" // ega2d ops products
 #include "ga_usr_consts.hpp"         // named basis-blade constants
 
+#include <array>   // std::array (reciprocal_frame)
 #include <utility> // std::pair
 #include <vector>
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides ega2d functionality that is based on ega2d ops basics and products:
+//
+// - angle(), angle_to_re()         -> angle operations
+// - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
+// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
+// - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
+// - get_rotor()                    -> provide a rotor
+// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
+// - project_onto(), reject_from()  -> projection and rejection
+// - reflect_on(), reflect_on_vec() -> reflections
+// - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
+// - reciprocal_frame()             -> the frame {a^i} with a^i . a_j = delta
+//
+// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
+// - is_close()                     -> Same value within a RELATIVE tolerance
+// - is_same_rotation()             -> Do two rotors describe the same rotation?
+//                                     (rotors double-cover the rotations)
+//
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -35,29 +58,6 @@ inline std::pair<T, T> ega2d_euler_pair(T w2)
 
 
 namespace hd::ga::ega {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// provides ega2d functionality that is based on ega2d ops basics and products:
-//
-// - angle(), angle_to_re()         -> angle operations
-// - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
-// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
-// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
-// - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
-// - get_rotor()                    -> provide a rotor
-// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
-// - project_onto(), reject_from()  -> projection and rejection
-// - reflect_on(), reflect_on_vec() -> reflections
-// - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
-// - reciprocal_frame()             -> the frame {a^i} with a^i . a_j = delta
-//
-// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
-// - is_close()                     -> Same value within a RELATIVE tolerance
-// - is_same_rotation()             -> Do two rotors describe the same rotation?
-//                                     (rotors double-cover the rotations)
-//
-/////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // angle operations

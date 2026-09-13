@@ -9,6 +9,37 @@
 
 #include "detail/ga_error_handling.hpp"
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides pga4ds basic operations:
+//
+// - gr_inv()                      -> grade involution
+// - rev()                         -> reversion
+// - rrev()                        -> regressive reversion
+// - conj()                        -> Clifford conjugation
+//
+// - r_cmpl()                      -> right complement (non-metric)
+// - l_cmpl()                      -> left complement (non-metric)
+//
+// - nrm_sq()                      -> squared norm (the metric reverse-norm <X ~X>_0,
+//                                    i.e. the extended metric P; see causal-character
+//                                    note below for how this differs from B^2)
+// - nrm()                         -> magnitude = sqrt(|nrm_sq()|), always >= 0
+//
+// - is_timelike()                 -> true, if B^2 = gr0(X*X) > 0   (timelike plane)
+// - is_spacelike()                -> true, if B^2 = gr0(X*X) < 0   (spacelike plane)
+// - is_lightlike()                -> true, if B^2 = gr0(X*X) == 0  (lightlike/null)
+//                                    (causal character reads the GEOMETRIC square B^2,
+//                                    not nrm_sq -- see detail::sta4ds_geom_sq)
+//
+// - normalize()                   -> return normalized object
+//                                    nrm scales the blade to nrm_sq == +/-1 (the sign
+//                                    follows the reverse-norm); null blades unchanged
+//
+// - r_dual()                      -> right metric dual
+// - l_dual()                      -> left metric dual
+// - r_undual()                    -> inverse of r_dual (metric on the dual side)
+// - l_undual()                    -> inverse of l_dual (metric on the dual side)
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -56,39 +87,6 @@ constexpr T sta4ds_geom_sq(TriVec4ds<T> const& t)
 
 
 namespace hd::ga::sta {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// provides pga4ds basic operations:
-//
-// - gr_inv()                      -> grade involution
-// - rev()                         -> reversion
-// - rrev()                        -> regressive reversion
-// - conj()                        -> Clifford conjugation
-//
-// - r_cmpl()                      -> right complement (non-metric)
-// - l_cmpl()                      -> left complement (non-metric)
-//
-// - nrm_sq()                      -> squared norm (the metric reverse-norm <X ~X>_0,
-//                                    i.e. the extended metric P; see causal-character
-//                                    note below for how this differs from B^2)
-// - nrm()                         -> magnitude = sqrt(|nrm_sq()|), always >= 0
-//
-// - is_timelike()                 -> true, if B^2 = gr0(X*X) > 0   (timelike plane)
-// - is_spacelike()                -> true, if B^2 = gr0(X*X) < 0   (spacelike plane)
-// - is_lightlike()                -> true, if B^2 = gr0(X*X) == 0  (lightlike/null)
-//                                    (causal character reads the GEOMETRIC square B^2,
-//                                    not nrm_sq -- see detail::sta4ds_geom_sq)
-//
-// - normalize()                   -> return normalized object
-//                                    nrm scales the blade to nrm_sq == +/-1 (the sign
-//                                    follows the reverse-norm); null blades unchanged
-//
-// - r_dual()                      -> right metric dual
-// - l_dual()                      -> left metric dual
-// - r_undual()                    -> inverse of r_dual (metric on the dual side)
-// - l_undual()                    -> inverse of l_dual (metric on the dual side)
-/////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // grade inversion operation: reverse the sign of odd blades

@@ -7,9 +7,6 @@
 
 #include "detail/ga_error_handling.hpp" // inv()/rinv() null checks
 
-
-namespace hd::ga::cga {
-
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc product operations:
 //
@@ -44,6 +41,8 @@ namespace hd::ga::cga {
 //                              section: the metric is non-degenerate, so neither
 //                              of the pga exclusions applies)
 ////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga::cga {
 
 ////////////////////////////////////////////////////////////////////////////////
 // dot products (=inner product defined for equal grades exclusively)

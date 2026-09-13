@@ -22,6 +22,54 @@
 #include <utility>       // std::pair, std::move (assemble_mass_bias return)
 #include <vector>
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides pga3dp rigid-body mechanics, built on the pga3dp ops:
+//
+// The classes form ONE inheritance chain, each layer adding state to the one below;
+// pick the lowest that answers the question.
+//
+// - static_frame3dp     -> one frame posed vs. its parent (name + pose3dp)
+// - static_system3dp    -> a tree of them: add_frame(), index_of(), frame(), parent(),
+//                          get_pos_trafo() between any two frames
+// - kinematic_system3dp -> + a relative twist per frame: set_state()/set_twist(),
+//                          point_velocity(), point_acceleration(), twist_world()
+// - dynamic_system3dp   -> + mass and forces: add_body(), add_revolute_body(),
+//                          add_prismatic_body(), step(), and the read-offs below
+//
+// Value types the chain is built from:
+//
+// - Inertia3dp<T>       -> the body inertia map (6x6); get_point_inertia(),
+//                          get_cuboid_inertia(), get_disc_inertia(),
+//                          get_inertia_inverse()
+// - pose3dp             -> a frame's pose vs. its parent
+// - kin_state3dp        -> its momentary velocity / acceleration
+// - body3dp             -> a body's inertial record; make_cuboid_body(),
+//                          make_disc_body(), make_point_body3dp(),
+//                          make_body_from_inertia()
+// - joint3dp / joint_state3dp -> the reduced-coordinate joint of a body vs. its parent
+// - grounded_spring3dp  -> the body-point-to-ground spring/damper element
+// - screw_axis3dp       -> Chasles' axis of a motor or a twist; screw_axis()
+// - screw_system3dp     -> span and Lie closure of a set of joint screws; screw_system()
+//
+// Free functions:
+//
+// - motor_from_pose3dp() / pose3dp_from_motor() -> the pose <-> motor converters
+// - moment_about(R, F)  -> the torque of a force line about a point
+// - compute_omega_dot() -> the angular acceleration of a moving frame
+//
+// Read-offs on dynamic_system3dp (the ones an external law consumes):
+//
+// - total_mass(), centre_of_mass(), centre_of_mass_velocity(),
+//   centre_of_mass_acceleration()
+// - gravity_wrench()    -> gravity as ONE wrench
+// - kinetic_energy(), potential_energy(), total_energy(), momentum_world()
+// - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
+// - mass_matrix(), mass_bias()      -> the joint-space equation of motion
+//
+// Force elements: set_joint_spring_damper(), set_applied_wrench(), set_joint_torque(),
+// add_grounded_spring(), set_driven_rate(), and the protected extra_wrenches() seam a
+// subclass overrides to fold in application-specific wrenches.
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::pga {
 

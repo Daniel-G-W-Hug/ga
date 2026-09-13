@@ -61,6 +61,46 @@
 #include <string>
 #include <vector>
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides the OPT-IN closed-loop (KKT) layer on top of the pga2dp mechanics:
+//
+// dynamic_system2dp integrates a spanning TREE. This header adds the loop closures that
+// turn the tree into a mechanism, solved as a constrained system. Open-loop users never
+// include it.
+//
+// - constraint2dp        -> the closure kinds: coincidence (pin / ball), distance (rod),
+//                           frame (weld) -- each removing its own subspace of relative
+//                           motion, i.e. contributing its rows of G
+// - loop_constraint2dp   -> one closure: the two frames, their anchors, kind, length,
+//                           and whether it is currently active
+// - closed_loop_system2dp -> the solver
+//
+// Building it (the tree-side calls are forwarded to the wrapped dynamic_system2dp):
+//
+// - add_frame(), add_body(), add_revolute_body(), add_prismatic_body(), index_of()
+// - add_loop_constraint(), set_loop_active(), set_loop_anchors()
+// - set_joint(), set_joint_rate(), joint_rate()
+//
+// Solving:
+//
+// - assemble()            -> close the loops from an approximate posture (tolerates a
+//                           sub-millimetre least-squares stall at a singular
+//                           configuration)
+// - solve_velocities()    -> the constrained velocities
+// - joint_accelerations() -> the KKT accelerations, optionally with the multipliers
+// - sync_accelerations()  -> write them into the per-frame accel twists, so
+//                           point_acceleration() reports the CONSTRAINED dynamics
+// - step()                -> one integration step of the constrained system
+// - impact(e) / activate_loop_with_impact(c, e) -> the impulsive velocity jump a newly
+//                           active constraint demands
+//
+// Reading the constraint system out (what an external law needs):
+//
+// - constraint_rows(), constraint_rank(), active_loop_count()
+// - constraint_jacobian()     -> the active G, row-major over dof_coords()
+// - constraint_row_offset(c)  -> where one closure's rows / lambda block start
+// - residual(), residual_norm(), separation(), rod_axis(), anchor_world()
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::pga {
 

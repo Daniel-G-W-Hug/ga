@@ -21,6 +21,53 @@
 #include <utility>       // std::pair, std::move (assemble_mass_bias return)
 #include <vector>
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides pga2dp rigid-body mechanics, built on the pga2dp ops:
+//
+// The classes form ONE inheritance chain, each layer adding state to the one below;
+// pick the lowest that answers the question.
+//
+// - static_frame2dp     -> one frame posed vs. its parent (name + pose2dp)
+// - static_system2dp    -> a tree of them: add_frame(), index_of(), frame(), parent(),
+//                          get_pos_trafo() between any two frames
+// - kinematic_system2dp -> + a relative twist per frame: set_state()/set_twist(),
+//                          point_velocity(), point_acceleration(), twist_world()
+// - dynamic_system2dp   -> + mass and forces: add_body(), add_revolute_body(),
+//                          add_prismatic_body(), step(), and the read-offs below
+//
+// Value types the chain is built from:
+//
+// - Inertia2dp<T>       -> the body inertia map (3x3); get_point_inertia(),
+//                          get_plate_inertia(), get_disc_inertia(), get_inertia_inverse()
+// - pose2dp             -> a frame's pose vs. its parent
+// - kin_state2dp        -> its momentary velocity / acceleration
+// - body2dp             -> a body's inertial record; make_plate_body(),
+//                          make_disc_body(), make_point_body2dp(),
+//                          make_body_from_inertia()
+// - joint2dp / joint_state2dp -> the reduced-coordinate joint of a body vs. its parent
+// - grounded_spring2dp  -> the body-point-to-ground spring/damper element
+// - screw_axis2dp       -> Chasles' axis of a motor or a twist; screw_axis()
+// - screw_system2dp     -> span and Lie closure of a set of joint screws; screw_system()
+//
+// Free functions:
+//
+// - motor_from_pose2dp() / pose2dp_from_motor() -> the pose <-> motor converters
+// - moment_about(R, F)  -> the torque of a force line about a point
+// - compute_omega_dot() -> the angular acceleration of a moving frame
+//
+// Read-offs on dynamic_system2dp (the ones an external law consumes):
+//
+// - total_mass(), centre_of_mass(), centre_of_mass_velocity(),
+//   centre_of_mass_acceleration()
+// - gravity_wrench()    -> gravity as ONE wrench
+// - kinetic_energy(), potential_energy(), total_energy(), momentum_world()
+// - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
+// - mass_matrix(), mass_bias()      -> the joint-space equation of motion
+//
+// Force elements: set_joint_spring_damper(), set_applied_wrench(), set_joint_torque(),
+// add_grounded_spring(), set_driven_rate(). (The protected extra_wrenches() seam a
+// subclass overrides for application-specific wrenches exists in 3dp only.)
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::pga {
 

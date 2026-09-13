@@ -11,6 +11,18 @@
 #include <type_traits> // std::invoke_result_t, std::is_same_v
 #include <utility>     // std::forward
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides sta4ds differential operations on multivector FIELDS:
+//
+// - nabla()                        -> the vector derivative, sum_mu e^mu * d_mu f
+// - nabla_dot()                    -> inner derivative  (grade-lowering part of nabla)
+// - nabla_wdg()                    -> outer derivative  (grade-raising part of nabla)
+// - dalembertian()                 -> the wave operator, nabla . nabla
+//
+// A FIELD is any callable f(x) of a spacetime position, returning a multivector type.
+// Nothing is stored: the operators sample the callable, so analytic and tabulated
+// fields are treated alike.
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -58,19 +70,6 @@ inline MVec4ds<value_t> sta4ds_axis_deriv(F&& f, Vec4ds<value_t> const& x, int m
 
 
 namespace hd::ga::sta {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// provides sta4ds differential operations on multivector FIELDS:
-//
-// - nabla()                        -> the vector derivative, sum_mu e^mu * d_mu f
-// - nabla_dot()                    -> inner derivative  (grade-lowering part of nabla)
-// - nabla_wdg()                    -> outer derivative  (grade-raising part of nabla)
-// - dalembertian()                 -> the wave operator, nabla . nabla
-//
-// A FIELD is any callable f(x) of a spacetime position, returning a multivector type.
-// Nothing is stored: the operators sample the callable, so analytic and tabulated
-// fields are treated alike.
-/////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // the spacetime vector derivative

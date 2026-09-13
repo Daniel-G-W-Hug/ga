@@ -7,9 +7,37 @@
 #include "ga_ega3d_ops_products.hpp" // ega3d ops products
 #include "ga_usr_consts.hpp"         // named basis-blade constants
 
+#include <array>   // std::array (reciprocal_frame)
 #include <complex> // std::complex (the centre span{1, I_3d} of ega3d)
+#include <utility> // std::forward
 #include <vector>
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// provides ega3d functionality that is based on ega3d ops basics and products:
+//
+// - angle()                        -> angle operations
+// - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - exp(pscalar)                   -> exponential of a pseudoscalar: cos + I sin,
+//                                     a duality-rotation factor, NOT a rotor
+// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
+//                                     (the centre span{1, I_3d} acts as the complex
+//                                     numbers, so the series close)
+// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
+// - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
+// - get_rotor()                    -> provide a rotor
+// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
+// - ortho_proj3d()                 -> orthogonal projection onto a blade of higher grade
+// - project_onto(), reject_from()  -> projection and rejection
+// - reflect_on(), reflect_on_vec() -> reflections
+// - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
+// - reciprocal_frame()             -> the frame {a^i} with a^i . a_j = delta
+//
+// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
+// - is_close()                     -> Same value within a RELATIVE tolerance
+// - is_same_rotation()             -> Do two rotors describe the same rotation?
+//                                     (rotors double-cover the rotations)
+//
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::detail {
 
@@ -56,34 +84,6 @@ inline std::complex<T> ega3d_sinc(std::complex<T> const& f, std::complex<T> cons
 
 
 namespace hd::ga::ega {
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// provides ega3d functionality that is based on ega3d ops basics and products:
-//
-// - angle()                        -> angle operations
-// - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
-// - exp(pscalar)                   -> exponential of a pseudoscalar: cos + I sin,
-//                                     a duality-rotation factor, NOT a rotor
-// - exp(mvec), cos(mvec), sin(mvec) -> closed-form functions of a GENERAL multivector
-//                                     (the centre span{1, I_3d} acts as the complex
-//                                     numbers, so the series close)
-// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
-// - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
-// - get_rotor()                    -> provide a rotor
-// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
-// - ortho_proj3d()                 -> orthogonal projection onto a blade of higher grade
-// - project_onto(), reject_from()  -> projection and rejection
-// - reflect_on(), reflect_on_vec() -> reflections
-// - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
-// - reciprocal_frame()             -> the frame {a^i} with a^i . a_j = delta
-//
-// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
-// - is_close()                     -> Same value within a RELATIVE tolerance
-// - is_same_rotation()             -> Do two rotors describe the same rotation?
-//                                     (rotors double-cover the rotations)
-//
-/////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // angle operations

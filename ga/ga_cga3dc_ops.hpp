@@ -6,14 +6,15 @@
 #include "ga_cga3dc_ops_basics.hpp"
 #include "ga_cga3dc_ops_products.hpp"
 
+#include "detail/type_t/ga_type3d.hpp" // Vec3d<T>: the Euclidean position and
+                                       // direction arguments, and what the
+                                       // position / direction accessors return
+
 #include <cmath>     // dipole_points
 #include <complex>   // exp/log/sqrt of regressive versors (central subalgebra = C)
 #include <limits>    // get_translation zero-direction guard
 #include <stdexcept> // dipole_points: the imaginary dipole
 #include <utility>   // std::pair
-
-
-namespace hd::ga::cga {
 
 ////////////////////////////////////////////////////////////////////////////////
 // provides cga3dc geometric operations (layer under construction):
@@ -81,6 +82,7 @@ namespace hd::ga::cga {
 // - is_same_transform()     -> do two motors act as the same conformal map?
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace hd::ga::cga {
 
 // forward declarations of the object constructors used by the transformation
 // builders (defined in the object-construction section below, which follows
