@@ -46,6 +46,7 @@
 #include <limits>    // std::numeric_limits (fact beyond 170!)
 #include <mdspan>    // std::mdspan (views onto the scratch storage)
 #include <stdexcept> // std::invalid_argument
+#include <utility>   // std::move
 #include <vector>    // std::vector
 
 #include "ga_solver.hpp" // lu_decomp, lu_backsubs

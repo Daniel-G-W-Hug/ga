@@ -68,7 +68,7 @@ constexpr U safe_epsilon() noexcept
 // Standardized error checking and throwing for division operations
 template <typename T>
     requires(std::floating_point<T>)
-inline void check_division_by_zero(T divisor, const char* operation_name = "division")
+inline void check_division_by_zero(T divisor, char const* operation_name = "division")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(divisor) < safe_epsilon<T>()) {
@@ -86,7 +86,7 @@ inline void check_division_by_zero(T divisor, const char* operation_name = "divi
 // Standardized error checking for mixed-type division operations
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline void check_division_by_zero(U divisor, const char* operation_name = "division")
+inline void check_division_by_zero(U divisor, char const* operation_name = "division")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(divisor) < safe_epsilon<T, U>()) {
@@ -108,7 +108,7 @@ inline void check_division_by_zero(U divisor, const char* operation_name = "divi
 // for the weight divisions check_unitization below.
 template <typename T>
     requires(std::floating_point<T>)
-inline void check_normalization(T magnitude, const char* object_type = "vector")
+inline void check_normalization(T magnitude, char const* object_type = "vector")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (magnitude < safe_epsilon<T>()) {
@@ -130,7 +130,7 @@ inline void check_normalization(T magnitude, const char* object_type = "vector")
 // the two differ exactly by that absolute comparison of weight against bulk.
 template <typename T>
     requires(std::floating_point<T>)
-inline void check_unitization(T weight_norm, const char* object_type = "multivector")
+inline void check_unitization(T weight_norm, char const* object_type = "multivector")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (weight_norm < safe_epsilon<T>()) {
@@ -161,7 +161,7 @@ inline void check_unitization(T weight_norm, const char* object_type = "multivec
 // that is what check_nonzero below is for, and it is the honest spelling there.
 template <typename T>
     requires(std::floating_point<T>)
-inline void check_invertible(T divisor, T coeff_sq, const char* object_type = "blade")
+inline void check_invertible(T divisor, T coeff_sq, char const* object_type = "blade")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     // the negation also rejects NaN, which a plain <= would let through
@@ -185,7 +185,7 @@ inline void check_invertible(T divisor, T coeff_sq, const char* object_type = "b
 // own gauge and no relative form exists.
 template <typename T>
     requires(std::floating_point<T>)
-inline void check_nonzero(T divisor, const char* object_type = "blade")
+inline void check_nonzero(T divisor, char const* object_type = "blade")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (!(std::abs(divisor) > T(0.0))) {
@@ -214,7 +214,7 @@ inline void check_nonzero(T divisor, const char* object_type = "blade")
 // Gated by its own switch so a consumer can keep the division guard while dropping this
 // one (see ga/CMakeLists.txt): the check costs a wedge square, which the division guard
 // does not.
-inline void check_simple_target(bool target_is_simple, const char* operation_name)
+inline void check_simple_target(bool target_is_simple, char const* operation_name)
 {
 #if defined(_HD_GA_EXTENDED_TEST_BLADE_TARGET)
     if (!target_is_simple) {
