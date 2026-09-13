@@ -15,9 +15,15 @@
 #include "algebras/ga_prdxpr_sta4ds.hpp" // mvsta4ds_basis_kvec
 
 #include <algorithm>
+#include <cmath>
+#include <map>
+#include <memory>
 #include <numeric>
 #include <regex>
-#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "fmt/format.h"
 
@@ -43,8 +49,8 @@ basis_kvec_grades(std::vector<mvec_coeff> const& basis_kvec,
 ///////////////////////////////////////////////////////////////////////////////
 
 SandwichTransformer::MatrixTransformation
-SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expression,
-                                              const std::string& algebra_type)
+SandwichTransformer::transformSandwichProduct(std::string const& sandwich_expression,
+                                              std::string const& algebra_type)
 {
 
     MatrixTransformation result;
@@ -83,9 +89,9 @@ SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expres
 
 // Main transformation interface with custom patterns
 SandwichTransformer::MatrixTransformation
-SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expression,
-                                              const std::string& algebra_type,
-                                              const GeometricVariablePatterns& patterns)
+SandwichTransformer::transformSandwichProduct(std::string const& sandwich_expression,
+                                              std::string const& algebra_type,
+                                              GeometricVariablePatterns const& patterns)
 {
     MatrixTransformation result;
     result.input_expression = sandwich_expression;
@@ -119,13 +125,13 @@ SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expres
 
 std::vector<SandwichTransformer::MatrixTransformation>
 SandwichTransformer::transformMultipleExpressions(
-    const std::vector<std::string>& expressions, const std::string& algebra_type)
+    std::vector<std::string> const& expressions, std::string const& algebra_type)
 {
 
     std::vector<MatrixTransformation> results;
     results.reserve(expressions.size());
 
-    for (const auto& expr : expressions) {
+    for (auto const& expr : expressions) {
         results.push_back(transformSandwichProduct(expr, algebra_type));
     }
 
@@ -133,11 +139,11 @@ SandwichTransformer::transformMultipleExpressions(
 }
 
 std::string
-SandwichTransformer::generateMatrixFormExpression(const MatrixTransformation& transform)
+SandwichTransformer::generateMatrixFormExpression(MatrixTransformation const& transform)
 {
     std::string result = "Matrix form transformation:\n";
 
-    for (const auto& [result_comp, simplified_expr] : transform.simplified_expressions) {
+    for (auto const& [result_comp, simplified_expr] : transform.simplified_expressions) {
         result += fmt::format("[{}] = {}\n", result_comp, simplified_expr);
     }
 
@@ -145,15 +151,15 @@ SandwichTransformer::generateMatrixFormExpression(const MatrixTransformation& tr
 }
 
 std::string
-SandwichTransformer::generateOptimizedCoefficients(const MatrixTransformation& transform)
+SandwichTransformer::generateOptimizedCoefficients(MatrixTransformation const& transform)
 {
     std::string result = "Optimized coefficients:\n";
 
     // Extract common sub-expressions like R.c0*R.c0, R.c0*R.c1, etc.
     std::map<std::string, std::string> k_coefficients;
 
-    for (const auto& [result_comp, var_coeffs] : transform.matrix_coefficients) {
-        for (const auto& [var, coeff] : var_coeffs) {
+    for (auto const& [result_comp, var_coeffs] : transform.matrix_coefficients) {
+        for (auto const& [var, coeff] : var_coeffs) {
 
             // Find patterns like R.c0*R.c0, R.c0*R.c1
             std::regex pattern(R"(R\.c(\d+)\s*\*\s*R\.c(\d+))");
@@ -176,7 +182,7 @@ SandwichTransformer::generateOptimizedCoefficients(const MatrixTransformation& t
     }
 
     // Generate k-coefficient definitions
-    for (const auto& [k_name, k_expr] : k_coefficients) {
+    for (auto const& [k_name, k_expr] : k_coefficients) {
         result += fmt::format("{} = {};\n", k_name, k_expr);
     }
 
@@ -188,7 +194,7 @@ SandwichTransformer::generateOptimizedCoefficients(const MatrixTransformation& t
 ///////////////////////////////////////////////////////////////////////////////
 
 std::pair<std::vector<SimplifiedTerm>, std::shared_ptr<ast_node>>
-SandwichTransformer::parseAndSimplify(const std::string& expression)
+SandwichTransformer::parseAndSimplify(std::string const& expression)
 {
     // Parse expression using existing parser
     Parser parser(expression);
@@ -205,8 +211,8 @@ SandwichTransformer::parseAndSimplify(const std::string& expression)
 }
 
 void SandwichTransformer::extractMatrixCoefficients(
-    const std::vector<SimplifiedTerm>& terms, MatrixTransformation& result,
-    const std::string& algebra_type)
+    std::vector<SimplifiedTerm> const& terms, MatrixTransformation& result,
+    std::string const& algebra_type)
 {
 
     auto config = AlgebraRegistry::getConfig(algebra_type);
@@ -214,8 +220,8 @@ void SandwichTransformer::extractMatrixCoefficients(
     // Group terms by geometric variables
     std::map<std::string, std::vector<SimplifiedTerm>> terms_by_variable;
 
-    for (const auto& term : terms) {
-        for (const auto& [var, power] : term.factors) {
+    for (auto const& term : terms) {
+        for (auto const& [var, power] : term.factors) {
             if (std::find(config.geometric_variables.begin(),
                           config.geometric_variables.end(),
                           var) != config.geometric_variables.end()) {
@@ -225,14 +231,14 @@ void SandwichTransformer::extractMatrixCoefficients(
     }
 
     // For each result component, extract coefficients for each geometric variable
-    for (const auto& result_comp : config.result_components) {
-        for (const auto& geom_var : config.geometric_variables) {
+    for (auto const& result_comp : config.result_components) {
+        for (auto const& geom_var : config.geometric_variables) {
 
             // Combine all terms for this geometric variable
             std::vector<std::string> coefficients;
 
             if (terms_by_variable.count(geom_var) > 0) {
-                for (const auto& term : terms_by_variable[geom_var]) {
+                for (auto const& term : terms_by_variable[geom_var]) {
                     std::string coeff = extractRotorCoefficient(term, geom_var);
                     if (!coeff.empty()) {
                         coefficients.push_back(coeff);
@@ -252,14 +258,14 @@ void SandwichTransformer::extractMatrixCoefficients(
 }
 
 void SandwichTransformer::generateSimplifiedExpressions(MatrixTransformation& result,
-                                                        const std::string& algebra_type)
+                                                        std::string const& algebra_type)
 {
     auto config = AlgebraRegistry::getConfig(algebra_type);
 
-    for (const auto& result_comp : config.result_components) {
+    for (auto const& result_comp : config.result_components) {
         std::vector<std::string> terms;
 
-        for (const auto& geom_var : config.geometric_variables) {
+        for (auto const& geom_var : config.geometric_variables) {
             auto coeff = result.matrix_coefficients[result_comp][geom_var];
             if (coeff != "0") {
                 if (coeff == "1") {
@@ -278,7 +284,7 @@ void SandwichTransformer::generateSimplifiedExpressions(MatrixTransformation& re
             // Combine terms with proper sign handling
             std::string expression = terms[0];
             for (size_t i = 1; i < terms.size(); ++i) {
-                const std::string& term = terms[i];
+                std::string const& term = terms[i];
 
                 // Simply add the term as-is - parentheses are already correct from matrix
                 // coefficients
@@ -294,8 +300,8 @@ void SandwichTransformer::generateSimplifiedExpressions(MatrixTransformation& re
 // Helper functions
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string SandwichTransformer::extractRotorCoefficient(const SimplifiedTerm& term,
-                                                         const std::string& geometric_var)
+std::string SandwichTransformer::extractRotorCoefficient(SimplifiedTerm const& term,
+                                                         std::string const& geometric_var)
 {
 
     // Calculate the signed coefficient
@@ -303,7 +309,7 @@ std::string SandwichTransformer::extractRotorCoefficient(const SimplifiedTerm& t
 
     // Add rotor factors (everything except geometric_var)
     std::vector<std::string> rotor_factors;
-    for (const auto& [var, power] : term.factors) {
+    for (auto const& [var, power] : term.factors) {
         if (var != geometric_var) {
             // Generate C++-compatible multiplication instead of exponentiation
             for (int p = 0; p < power; ++p) {
@@ -329,7 +335,7 @@ std::string SandwichTransformer::extractRotorCoefficient(const SimplifiedTerm& t
         // Combine numeric coefficient with rotor factors
         std::string factors_str = std::accumulate(
             rotor_factors.begin() + 1, rotor_factors.end(), rotor_factors[0],
-            [](const std::string& a, const std::string& b) { return a + " * " + b; });
+            [](std::string const& a, std::string const& b) { return a + " * " + b; });
 
         if (std::abs(signed_coeff - 1.0) < 1e-10) {
             return factors_str;
@@ -344,7 +350,7 @@ std::string SandwichTransformer::extractRotorCoefficient(const SimplifiedTerm& t
 }
 
 std::string
-SandwichTransformer::combineCoefficients(const std::vector<std::string>& coeffs)
+SandwichTransformer::combineCoefficients(std::vector<std::string> const& coeffs)
 {
     if (coeffs.empty()) return "0";
     if (coeffs.size() == 1) return coeffs[0];
@@ -353,7 +359,7 @@ SandwichTransformer::combineCoefficients(const std::vector<std::string>& coeffs)
     std::string result = coeffs[0];
 
     for (size_t i = 1; i < coeffs.size(); ++i) {
-        const std::string& coeff = coeffs[i];
+        std::string const& coeff = coeffs[i];
 
         // Check if the coefficient has a minus sign (after any leading whitespace)
         size_t first_non_space = coeff.find_first_not_of(" \t");
@@ -378,8 +384,8 @@ SandwichTransformer::combineCoefficients(const std::vector<std::string>& coeffs)
 // New API functions for src_prdxpr integration
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string SandwichTransformer::transformExpression(const std::string& expression,
-                                                     const std::string& algebra_type)
+std::string SandwichTransformer::transformExpression(std::string const& expression,
+                                                     std::string const& algebra_type)
 {
     if (expression == "0" || expression.empty()) {
         return "0";
@@ -392,9 +398,9 @@ std::string SandwichTransformer::transformExpression(const std::string& expressi
 
 // Simple string-to-string interface with custom patterns
 std::string
-SandwichTransformer::transformExpression(const std::string& expression,
-                                         const std::string& algebra_type,
-                                         const GeometricVariablePatterns& patterns)
+SandwichTransformer::transformExpression(std::string const& expression,
+                                         std::string const& algebra_type,
+                                         GeometricVariablePatterns const& patterns)
 {
     if (expression == "0" || expression.empty()) {
         return "0";
@@ -406,14 +412,14 @@ SandwichTransformer::transformExpression(const std::string& expression,
 }
 
 std::vector<std::string> SandwichTransformer::transformSandwichMultivector(
-    const std::vector<std::string>& component_expressions,
-    const std::string& algebra_type)
+    std::vector<std::string> const& component_expressions,
+    std::string const& algebra_type)
 {
 
     std::vector<std::string> transformed_results;
     transformed_results.reserve(component_expressions.size());
 
-    for (const auto& expr : component_expressions) {
+    for (auto const& expr : component_expressions) {
         transformed_results.push_back(transformExpression(expr, algebra_type));
     }
 
@@ -424,7 +430,7 @@ std::vector<std::string> SandwichTransformer::transformSandwichMultivector(
 // Algebra configuration implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type)
+SandwichAlgebraConfig AlgebraRegistry::getConfig(std::string const& algebra_type)
 {
     if (algebra_type == "ega2d") {
         return createEGA2DConfig();
@@ -554,8 +560,8 @@ void TransformationTests::testEGA2DVectorTransformation()
 
     // Show matrix coefficients
     fmt::println("Matrix coefficients:");
-    for (const auto& [result_comp, var_coeffs] : result.matrix_coefficients) {
-        for (const auto& [var, coeff] : var_coeffs) {
+    for (auto const& [result_comp, var_coeffs] : result.matrix_coefficients) {
+        for (auto const& [var, coeff] : var_coeffs) {
             fmt::println("M[{}][{}] = {}", result_comp, var, coeff);
         }
     }
@@ -607,8 +613,8 @@ void TransformationTests::testEGA3DVectorTransformation()
 
     // Show matrix coefficients
     fmt::println("Matrix coefficients extracted:");
-    for (const auto& [result_comp, var_coeffs] : result.matrix_coefficients) {
-        for (const auto& [var, coeff] : var_coeffs) {
+    for (auto const& [result_comp, var_coeffs] : result.matrix_coefficients) {
+        for (auto const& [var, coeff] : var_coeffs) {
             fmt::println("  M[{}][{}] = {}", result_comp, var, coeff);
         }
     }

@@ -26,6 +26,10 @@
 #include "rules/ga_prdxpr_metric_calc.hpp"
 #include "rules/ga_prdxpr_rule_generator.hpp"
 
+#include <algorithm>
+#include <map>
+#include <string>
+
 namespace {
 
 AlgebraConfig make_null_basis_config()

@@ -108,6 +108,8 @@
 
 #include "algebras/ga_prdxpr_ega3d_config.hpp"
 
+#include <string>
+
 // Automatic rule generation configuration for EGA3D
 AlgebraConfig get_ega3d_algebra_config()
 {

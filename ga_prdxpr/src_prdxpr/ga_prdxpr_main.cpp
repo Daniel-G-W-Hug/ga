@@ -13,6 +13,7 @@
 #include "generator/ga_prdxpr_generator.hpp"
 #include "rules/ga_prdxpr_metric_export.hpp"
 #include "rules/ga_prdxpr_rule_generator.hpp"
+#include <exception>
 #include <fmt/core.h>
 #include <vector>
 
@@ -337,7 +338,7 @@ int main(int argc, char const* argv[])
 
         return 0;
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         fmt::println("Error: {}", e.what());
         return 1;
     }

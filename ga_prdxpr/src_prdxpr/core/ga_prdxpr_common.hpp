@@ -3,7 +3,6 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include <exception>
 #include <map>
 #include <string>
 #include <vector>
@@ -94,64 +93,64 @@ using namespace std::literals::string_literals;
 // variables were used and accessed before initialization during complement rule
 // generation.
 //
-inline const std::string& empty_str()
+inline std::string const& empty_str()
 {
-    static const std::string s{""s};
+    static std::string const s{""s};
     return s;
 }
-inline const std::string& zero_str()
+inline std::string const& zero_str()
 {
-    static const std::string s{"0"s};
+    static std::string const s{"0"s};
     return s;
 }
-inline const std::string& one_str()
+inline std::string const& one_str()
 {
-    static const std::string s{"1"s};
+    static std::string const s{"1"s};
     return s;
 }
-inline const std::string& plus_str()
+inline std::string const& plus_str()
 {
-    static const std::string s{"+"s};
+    static std::string const s{"+"s};
     return s;
 }
-inline const std::string& minus_str()
+inline std::string const& minus_str()
 {
-    static const std::string s{"-"s};
+    static std::string const s{"-"s};
     return s;
 }
-inline const std::string& mul_str()
+inline std::string const& mul_str()
 {
-    static const std::string s{"*"s};
+    static std::string const s{"*"s};
     return s;
 }
-inline const std::string& wdg_str()
+inline std::string const& wdg_str()
 {
-    static const std::string s{"^"s};
+    static std::string const s{"^"s};
     return s;
 }
-inline const std::string& lcontr_str()
+inline std::string const& lcontr_str()
 {
-    static const std::string s{"<<"s};
+    static std::string const s{"<<"s};
     return s;
 }
-inline const std::string& rcontr_str()
+inline std::string const& rcontr_str()
 {
-    static const std::string s{">>"s};
+    static std::string const s{">>"s};
     return s;
 }
-inline const std::string& space_str()
+inline std::string const& space_str()
 {
-    static const std::string s{" "s};
+    static std::string const s{" "s};
     return s;
 }
-inline const std::string& brace_open_str()
+inline std::string const& brace_open_str()
 {
-    static const std::string s{"("s};
+    static std::string const s{"("s};
     return s;
 }
-inline const std::string& brace_close_str()
+inline std::string const& brace_close_str()
 {
-    static const std::string s{")"s};
+    static std::string const s{")"s};
     return s;
 }
 

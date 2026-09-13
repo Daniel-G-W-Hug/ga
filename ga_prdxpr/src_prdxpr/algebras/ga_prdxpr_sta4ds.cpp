@@ -25,15 +25,15 @@
 static auto sta4ds_generated_rules = generate_algebra_rules(get_sta4ds_algebra_config());
 
 // Stage 2: Initialize product rules (no dependencies)
-const prd_rules gpr_sta4ds_rules = sta4ds_generated_rules.geometric_product;
-const prd_rules wdg_sta4ds_rules = sta4ds_generated_rules.wedge_product;
-const prd_rules dot_sta4ds_rules = sta4ds_generated_rules.dot_product;
+prd_rules const gpr_sta4ds_rules = sta4ds_generated_rules.geometric_product;
+prd_rules const wdg_sta4ds_rules = sta4ds_generated_rules.wedge_product;
+prd_rules const dot_sta4ds_rules = sta4ds_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules l_cmpl_sta4ds_rules = sta4ds_generated_rules.l_cmpl;
-const prd_rules r_cmpl_sta4ds_rules = sta4ds_generated_rules.r_cmpl;
+prd_rules const l_cmpl_sta4ds_rules = sta4ds_generated_rules.l_cmpl;
+prd_rules const r_cmpl_sta4ds_rules = sta4ds_generated_rules.r_cmpl;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
-const prd_rules l_dual_sta4ds_rules = sta4ds_generated_rules.l_dual;
-const prd_rules r_dual_sta4ds_rules = sta4ds_generated_rules.r_dual;
+prd_rules const l_dual_sta4ds_rules = sta4ds_generated_rules.l_dual;
+prd_rules const r_dual_sta4ds_rules = sta4ds_generated_rules.r_dual;

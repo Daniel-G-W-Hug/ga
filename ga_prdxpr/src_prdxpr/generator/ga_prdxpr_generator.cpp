@@ -5,7 +5,10 @@
 #include "codegen/ga_codegen_emitter.hpp"
 #include "codegen/ga_codegen_types.hpp"
 #include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
+#include <algorithm>
 #include <cctype>
+#include <cstddef>
+#include <exception>
 #include <fmt/core.h>
 #include <limits>
 #include <map>
@@ -13,7 +16,10 @@
 #include <regex>
 #include <set>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 // Include mathematical definitions
 #include "algebras/ga_prdxpr_cga2dc.hpp"
@@ -882,7 +888,7 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
             generate_sandwich_case(algebra, config, dummy_case, basis_tab);
         }
         else {
-            for (const auto& case_def : config.cases) {
+            for (auto const& case_def : config.cases) {
                 if (case_def.is_two_step) {
                     generate_sandwich_case(algebra, config, case_def, basis_tab);
                 }
@@ -896,7 +902,7 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
     // Emit C++ code (opt-in via --output=code). Sandwich cases are skipped here; their
     // structure differs enough that they're handled by a separate path.
     if (options.should_show_code() && !config.is_sandwich_product) {
-        for (const auto& case_def : config.cases) {
+        for (auto const& case_def : config.cases) {
             if (case_def.is_two_step) continue;
             emit_single_case_code(algebra, config, case_def, basis_tab);
         }
@@ -1583,8 +1589,8 @@ void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
 }
 
 prd_table
-ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
-                                                   const std::string& product_name)
+ConfigurableGenerator::get_basis_table_for_product(AlgebraData const& algebra,
+                                                   std::string const& product_name)
 {
     // This function maps product names to the EXISTING mathematical basis table
     // generation from the reference implementation - no changes to mathematical logic
@@ -4060,7 +4066,7 @@ void ConfigurableGenerator::print_transformed_result(mvec_coeff const& result,
         // right-alignment
         print_mvec(transformed_result, basis);
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         fmt::println("  Transformation error: {}", e.what());
     }
     fmt::println("");
@@ -4075,7 +4081,7 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
     std::regex var_regex(R"([a-zA-Z]+\.[a-zA-Z]+)");
     std::set<std::string> all_variables;
 
-    for (const auto& expr : expressions) {
+    for (auto const& expr : expressions) {
         if (expr.empty() || expr == "0") continue;
 
         std::sregex_iterator iter(expr.begin(), expr.end(), var_regex);
@@ -4123,7 +4129,7 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
 
     // Create factors map from variables (all with power 1)
     std::map<std::string, int> factors_map;
-    for (const auto& var : all_variables) {
+    for (auto const& var : all_variables) {
         factors_map[var] = 1;
     }
 
@@ -4132,7 +4138,7 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
 
     // Extract just the variable names in canonical order
     std::vector<std::string> sorted_variables;
-    for (const auto& pair : sorted_pairs) {
+    for (auto const& pair : sorted_pairs) {
         sorted_variables.push_back(pair.first);
     }
 
@@ -4142,11 +4148,11 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
     // expressions
     std::map<std::string, size_t> max_coeff_widths;
 
-    for (const auto& var : sorted_variables) {
+    for (auto const& var : sorted_variables) {
         size_t max_width = 0;
         bool found_in_any_expr = false;
 
-        for (const auto& expr : expressions) {
+        for (auto const& expr : expressions) {
             if (expr.empty() || expr == "0") continue;
 
             std::string pattern = " * " + var;
@@ -4216,7 +4222,7 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
         // Build new expression with proper column alignment
         std::string result = " "; // Start with leading space
 
-        for (const auto& var : sorted_variables) {
+        for (auto const& var : sorted_variables) {
             if (max_coeff_widths.find(var) == max_coeff_widths.end()) continue;
 
             std::string pattern = " * " + var;

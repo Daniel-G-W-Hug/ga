@@ -110,6 +110,8 @@
 
 #include "algebras/ga_prdxpr_pga3dp_config.hpp"
 
+#include <string>
+
 // Automatic rule generation configuration for PGA3DP
 AlgebraConfig get_pga3dp_algebra_config()
 {

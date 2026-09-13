@@ -3,8 +3,11 @@
 
 #include "rules/ga_prdxpr_metric_export.hpp"
 #include "rules/ga_prdxpr_metric_calc.hpp"
+#include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper Functions

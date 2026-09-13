@@ -6,8 +6,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <memory>
 #include <set>
-#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "fmt/format.h"
 
@@ -15,27 +19,27 @@
 // NAryTerm implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-NAryTerm NAryTerm::operator*(const NAryTerm& other) const
+NAryTerm NAryTerm::operator*(NAryTerm const& other) const
 {
     NAryTerm result;
     result.coefficient = this->coefficient * other.coefficient;
 
     // Combine variable maps
     result.variables = this->variables;
-    for (const auto& [var, power] : other.variables) {
+    for (auto const& [var, power] : other.variables) {
         result.variables[var] += power;
     }
 
     return result;
 }
 
-bool NAryTerm::canCombineWith(const NAryTerm& other) const
+bool NAryTerm::canCombineWith(NAryTerm const& other) const
 {
     // Terms can combine if they have the same variables with same powers
     return this->variables == other.variables;
 }
 
-NAryTerm NAryTerm::operator+(const NAryTerm& other) const
+NAryTerm NAryTerm::operator+(NAryTerm const& other) const
 {
     if (!canCombineWith(other)) {
         throw std::runtime_error("Cannot add terms with different variable factors");
@@ -60,7 +64,7 @@ void NAryTerm::applyCommutativity()
         GAAlgebraRules::reorderCommutativeFactors(variables, GeometricVariablePatterns{});
 }
 
-void NAryTerm::applyCommutativity(const GeometricVariablePatterns& patterns)
+void NAryTerm::applyCommutativity(GeometricVariablePatterns const& patterns)
 {
     // Apply canonical ordering to variables using custom patterns
     variables = GAAlgebraRules::reorderCommutativeFactors(variables, patterns);
@@ -72,7 +76,7 @@ std::string NAryTerm::toString() const
     return toString(GeometricVariablePatterns{});
 }
 
-std::string NAryTerm::toString(const GeometricVariablePatterns& patterns) const
+std::string NAryTerm::toString(GeometricVariablePatterns const& patterns) const
 {
     if (isZero()) return "0";
 
@@ -104,7 +108,7 @@ std::string NAryTerm::toString(const GeometricVariablePatterns& patterns) const
     auto var_pairs = GAAlgebraRules::getSortedVariablePairs(variables, patterns);
 
     bool first_var = (result.empty() || result == "-");
-    for (const auto& [var, power] : var_pairs) {
+    for (auto const& [var, power] : var_pairs) {
         if (!first_var) {
             result += " * ";
         }
@@ -149,7 +153,7 @@ void NAryExpression::normalizeSignsAndCommutativity()
 }
 
 void NAryExpression::normalizeSignsAndCommutativity(
-    const GeometricVariablePatterns& patterns)
+    GeometricVariablePatterns const& patterns)
 {
     // Step 2: Sign normalization and apply commutativity with custom patterns
     for (auto& term : terms) {
@@ -164,7 +168,7 @@ void NAryExpression::combineTermsAndRegroup()
 
 
     // First pass: combine exact matches
-    for (const auto& term : terms) {
+    for (auto const& term : terms) {
         if (term.isZero()) continue;
 
         bool combined = false;
@@ -191,7 +195,7 @@ void NAryExpression::combineTermsAndRegroup()
         std::string geom_var = "";
 
         // Find the geometric variable (v.x, v.y, B.x, B.vx, B.mx, t.x, etc.)
-        for (const auto& [var, power] : result[i].variables) {
+        for (auto const& [var, power] : result[i].variables) {
             if (var.starts_with("v.") || var.starts_with("B.") || var.starts_with("t.")) {
                 geom_var = var;
                 break;
@@ -209,7 +213,7 @@ void NAryExpression::combineTermsAndRegroup()
     std::set<size_t> processed;
 
     // Always factor by geometric variable - this is the correct behavior
-    for (const auto& [geom_var, indices] : groups_by_geom_var) {
+    for (auto const& [geom_var, indices] : groups_by_geom_var) {
         if (indices.size() > 1) {
             // Multiple terms with this geometric variable - create factored expression
 
@@ -224,8 +228,8 @@ void NAryExpression::combineTermsAndRegroup()
             std::sort(sorted_indices.begin(), sorted_indices.end(),
                       [&result](size_t a, size_t b) {
                           // Extract coefficient pattern recognition for sorting
-                          auto get_first_coeff = [](const NAryTerm& term) -> std::string {
-                              for (const auto& [var, power] : term.variables) {
+                          auto get_first_coeff = [](NAryTerm const& term) -> std::string {
+                              for (auto const& [var, power] : term.variables) {
                                   // Support common coefficient patterns: R.c, M.c, etc.
                                   if (var.contains(".c") &&
                                       (var.starts_with("R.") || var.starts_with("M."))) {
@@ -275,7 +279,7 @@ void NAryExpression::combineTermsAndRegroup()
             bool first = true;
 
             for (size_t idx : sorted_indices) {
-                const auto& term = result[idx];
+                auto const& term = result[idx];
 
                 // Build rotor coefficient string
                 std::string rotor_str = "";
@@ -293,7 +297,7 @@ void NAryExpression::combineTermsAndRegroup()
                 rotor_vars.erase(geom_var);
 
                 if (!rotor_vars.empty()) {
-                    for (const auto& [var, power] : rotor_vars) {
+                    for (auto const& [var, power] : rotor_vars) {
                         // Expand powers using multiplication (R.c0^2 -> R.c0 * R.c0)
                         for (int p = 0; p < power; ++p) {
                             if (!rotor_str.empty()) rotor_str += " * ";
@@ -398,12 +402,12 @@ void NAryExpression::combineTermsAndRegroup()
     // Sort terms by geometric variable to match manual output (user requirement)
     // Manual output is sorted according to the first variable in the term
     std::sort(final_result.begin(), final_result.end(),
-              [](const NAryTerm& a, const NAryTerm& b) {
+              [](NAryTerm const& a, NAryTerm const& b) {
                   // Extract geometric variables for comparison
                   std::string geom_var_a = "";
                   std::string geom_var_b = "";
 
-                  for (const auto& [var, power] : a.variables) {
+                  for (auto const& [var, power] : a.variables) {
                       if (var.starts_with("v.") || var.starts_with("B.") ||
                           var.starts_with("t.")) {
                           geom_var_a = var;
@@ -411,7 +415,7 @@ void NAryExpression::combineTermsAndRegroup()
                       }
                   }
 
-                  for (const auto& [var, power] : b.variables) {
+                  for (auto const& [var, power] : b.variables) {
                       if (var.starts_with("v.") || var.starts_with("B.") ||
                           var.starts_with("t.")) {
                           geom_var_b = var;
@@ -423,7 +427,7 @@ void NAryExpression::combineTermsAndRegroup()
                   // Vectors: v.x, v.y, v.z, v.w
                   // Bivectors: B.vx, B.vy, B.vz, B.mx, B.my, B.mz
                   // Trivectors: t.x, t.y, t.z, t.w
-                  auto getDimensionalOrder = [](const std::string& var) -> int {
+                  auto getDimensionalOrder = [](std::string const& var) -> int {
                       // Vector ordering
                       if (var == "v.x" || var == "B.x") return 1;
                       if (var == "v.y" || var == "B.y") return 2;
@@ -471,7 +475,7 @@ void NAryExpression::factorCommonVariables()
 void NAryExpression::removeZeroTerms()
 {
     terms.erase(std::remove_if(terms.begin(), terms.end(),
-                               [](const NAryTerm& t) { return t.isZero(); }),
+                               [](NAryTerm const& t) { return t.isZero(); }),
                 terms.end());
 }
 
@@ -500,7 +504,7 @@ std::string NAryExpression::toString() const
     return result;
 }
 
-std::string NAryExpression::toString(const GeometricVariablePatterns& patterns) const
+std::string NAryExpression::toString(GeometricVariablePatterns const& patterns) const
 {
     if (terms.empty()) return "0";
 
@@ -525,14 +529,14 @@ std::string NAryExpression::toString(const GeometricVariablePatterns& patterns) 
     return result;
 }
 
-void NAryExpression::printDebug(const std::string& step_name) const
+void NAryExpression::printDebug(std::string const& step_name) const
 {
     fmt::println("=== {} ===", step_name);
     fmt::println("Terms ({}): {}", terms.size(), toString());
     for (size_t i = 0; i < terms.size(); ++i) {
         fmt::println("  Term {}: coeff={}, vars={}", i, terms[i].coefficient,
                      terms[i].variables.size());
-        for (const auto& [var, power] : terms[i].variables) {
+        for (auto const& [var, power] : terms[i].variables) {
             fmt::println("    {} ^ {}", var, power);
         }
     }
@@ -648,7 +652,7 @@ void NAryConverter::extractFactorsFromTerm(std::shared_ptr<ast_node> node,
     }
 }
 
-std::shared_ptr<ast_node> NAryConverter::toBinaryAST(const NAryExpression& expr)
+std::shared_ptr<ast_node> NAryConverter::toBinaryAST(NAryExpression const& expr)
 {
     if (expr.terms.empty()) {
         auto primary = std::make_shared<Primary>();
@@ -666,7 +670,7 @@ std::shared_ptr<ast_node> NAryConverter::toBinaryAST(const NAryExpression& expr)
     return buildExpressionAST(expr.terms);
 }
 
-std::shared_ptr<ast_node> NAryConverter::buildTermAST(const NAryTerm& term)
+std::shared_ptr<ast_node> NAryConverter::buildTermAST(NAryTerm const& term)
 {
     std::shared_ptr<ast_node> result;
 
@@ -697,7 +701,7 @@ std::shared_ptr<ast_node> NAryConverter::buildTermAST(const NAryTerm& term)
     // geometric_variable
 
     // First pass: Process FACTORED expressions
-    for (const auto& [var, power] : term.variables) {
+    for (auto const& [var, power] : term.variables) {
         if (var.starts_with("FACTORED:")) {
             // Handle factored expressions specially
             std::string factored_expr = var.substr(9); // Remove "FACTORED:" prefix
@@ -740,7 +744,7 @@ std::shared_ptr<ast_node> NAryConverter::buildTermAST(const NAryTerm& term)
     }
 
     // Second pass: Process geometric variables (v.x, B.y, etc.)
-    for (const auto& [var, power] : term.variables) {
+    for (auto const& [var, power] : term.variables) {
         if (!var.starts_with("FACTORED:")) {
             // Handle normal variables
             auto var_primary = std::make_shared<Primary>();
@@ -777,7 +781,7 @@ std::shared_ptr<ast_node> NAryConverter::buildTermAST(const NAryTerm& term)
 }
 
 std::shared_ptr<ast_node>
-NAryConverter::buildExpressionAST(const std::vector<NAryTerm>& terms)
+NAryConverter::buildExpressionAST(std::vector<NAryTerm> const& terms)
 {
     std::shared_ptr<ast_node> result = buildTermAST(terms[0]);
 

@@ -4,7 +4,11 @@
 #include "core/ga_prdxpr_common.hpp"
 
 #include <algorithm>
-#include <exception>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // user related functions
@@ -610,7 +614,7 @@ void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
     }
 
     size_t max_width = 0;
-    for (const auto& e : mv) {
+    for (auto const& e : mv) {
         if (e.size() > max_width) max_width = e.size();
     }
     // fmt::println("max_width = {}", max_width);
@@ -618,7 +622,7 @@ void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
     // print elements right aligned fitting to max_width with vertical separator like
     // tables
     for (size_t i = 0; i < mv.size(); ++i) {
-        const auto& e = mv[i];
+        auto const& e = mv[i];
         fmt::print("[ ");
         fmt::print("{:>{w}}", e, fmt::arg("w", max_width));
         fmt::println(" ] | {}", mv_basis[i]);
@@ -628,15 +632,15 @@ void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
 void print_prd_tab(prd_table const& tab)
 {
     size_t max_width = 0;
-    for (const auto& e : tab) {
-        for (const auto& sub : e) {
+    for (auto const& e : tab) {
+        for (auto const& sub : e) {
             if (sub.size() > max_width) max_width = sub.size();
         }
     }
     // fmt::println("max_width = {}", max_width);
 
     // print elements right aligned fitting to max_width
-    for (const auto& e : tab) {
+    for (auto const& e : tab) {
         fmt::print("[ ");
         fmt::print("{:>{w}}", fmt::join(e, ", "), fmt::arg("w", max_width));
         if (&e != &tab.back()) {
@@ -657,14 +661,14 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
 
     // Calculate maximum width for table cells and headers
     size_t max_cell_width = 0;
-    for (const auto& row : tab) {
-        for (const auto& cell : row) {
+    for (auto const& row : tab) {
+        for (auto const& cell : row) {
             max_cell_width = std::max(max_cell_width, cell.size());
         }
     }
 
     size_t max_header_width = 0;
-    for (const auto& header : basis) {
+    for (auto const& header : basis) {
         max_header_width = std::max(max_header_width, header.size());
     }
 
@@ -672,7 +676,7 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
 
     // Calculate max width for row headers
     size_t max_row_header_width = 0;
-    for (const auto& header : basis) {
+    for (auto const& header : basis) {
         max_row_header_width = std::max(max_row_header_width, header.size());
     }
 
@@ -728,8 +732,8 @@ void print_prd_rules(prd_rules const& rules, std::string const& title,
     fmt::println("\n=== {} ===", title);
 
     // Print in grade order by iterating through basis in order
-    for (const auto& a : basis_order) {
-        for (const auto& b : basis_order) {
+    for (auto const& a : basis_order) {
+        for (auto const& b : basis_order) {
             std::string key = a + " " + operator_symbol + " " + b;
 
             auto it = rules.find(key);

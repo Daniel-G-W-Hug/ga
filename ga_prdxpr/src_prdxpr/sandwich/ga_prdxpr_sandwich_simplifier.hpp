@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 // Forward declarations
@@ -28,17 +29,17 @@ class SimplifiedTerm {
     int sign;                           // +1 or -1
 
     SimplifiedTerm();
-    SimplifiedTerm(double coeff, const std::map<std::string, int>& vars, int s = 1);
+    SimplifiedTerm(double coeff, std::map<std::string, int> const& vars, int s = 1);
 
     // Create from string representation
-    static SimplifiedTerm fromString(const std::string& term_str);
+    static SimplifiedTerm fromString(std::string const& term_str);
 
     // Operations
-    SimplifiedTerm operator*(const SimplifiedTerm& other) const;
-    SimplifiedTerm operator+(const SimplifiedTerm& other) const; // Only if same variables
-    bool canCombineWith(const SimplifiedTerm& other) const;
+    SimplifiedTerm operator*(SimplifiedTerm const& other) const;
+    SimplifiedTerm operator+(SimplifiedTerm const& other) const; // Only if same variables
+    bool canCombineWith(SimplifiedTerm const& other) const;
     bool isZero() const;
-    bool isEquivalentTo(const SimplifiedTerm& other) const;
+    bool isEquivalentTo(SimplifiedTerm const& other) const;
 
     // Convert back to string
     std::string toString() const;
@@ -74,7 +75,7 @@ class ExpressionSimplifier {
     static std::vector<SimplifiedTerm> astToTerms(std::shared_ptr<ast_node> ast);
 
     // Convert simplified terms back to AST
-    static std::shared_ptr<ast_node> termsToAst(const std::vector<SimplifiedTerm>& terms);
+    static std::shared_ptr<ast_node> termsToAst(std::vector<SimplifiedTerm> const& terms);
 
     // Test functions for specific GA patterns
     static void testEGA2DExpansion();
@@ -83,7 +84,7 @@ class ExpressionSimplifier {
 
     // Public for testing
     static std::vector<SimplifiedTerm>
-    combineTermsVector(const std::vector<SimplifiedTerm>& terms);
+    combineTermsVector(std::vector<SimplifiedTerm> const& terms);
 
   private:
 
@@ -99,10 +100,10 @@ class ExpressionSimplifier {
                                                           int sign = 1);
 
     // Algebraic simplification rules (moved to public)
-    static SimplifiedTerm expandSingleTerm(const SimplifiedTerm& term);
+    static SimplifiedTerm expandSingleTerm(SimplifiedTerm const& term);
     static bool
-    isCommutativeVariable(const std::string& var); // R.c0, R.c1, etc. are commutative
-    static SimplifiedTerm applyCommutativeReordering(const SimplifiedTerm& term);
+    isCommutativeVariable(std::string const& var); // R.c0, R.c1, etc. are commutative
+    static SimplifiedTerm applyCommutativeReordering(SimplifiedTerm const& term);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -137,36 +138,36 @@ class GAAlgebraRules {
 
     // Comprehensive canonical ordering for all GA variable types
     // Returns priority value where lower numbers come first in ordering
-    static int getCanonicalOrderPriority(const std::string& var,
-                                         const GeometricVariablePatterns& patterns = {});
+    static int getCanonicalOrderPriority(std::string const& var,
+                                         GeometricVariablePatterns const& patterns = {});
 
     // Get sorted vector of variable pairs in canonical order
     static std::vector<std::pair<std::string, int>>
-    getSortedVariablePairs(const std::map<std::string, int>& factors,
-                           const GeometricVariablePatterns& patterns = {});
+    getSortedVariablePairs(std::map<std::string, int> const& factors,
+                           GeometricVariablePatterns const& patterns = {});
 
     // Legacy overload for simple coefficient prefix (backward compatibility)
     static std::vector<std::pair<std::string, int>>
-    getSortedVariablePairs(const std::map<std::string, int>& factors,
-                           const std::string& coeff_prefix);
+    getSortedVariablePairs(std::map<std::string, int> const& factors,
+                           std::string const& coeff_prefix);
 
     // Legacy function - kept for backward compatibility but uses new canonical ordering
     static std::map<std::string, int>
-    reorderCommutativeFactors(const std::map<std::string, int>& factors,
-                              const GeometricVariablePatterns& patterns = {});
+    reorderCommutativeFactors(std::map<std::string, int> const& factors,
+                              GeometricVariablePatterns const& patterns = {});
 
     // Legacy overload for simple coefficient prefix (backward compatibility)
     static std::map<std::string, int>
-    reorderCommutativeFactors(const std::map<std::string, int>& factors,
-                              const std::string& coeff_prefix);
+    reorderCommutativeFactors(std::map<std::string, int> const& factors,
+                              std::string const& coeff_prefix);
 
     // Detect and apply GA-specific simplifications
     // Example: (R.c0^2 + R.c1^2 - R.c2^2 - R.c3^2) patterns
-    static SimplifiedTerm applyGASimplifications(const SimplifiedTerm& term);
+    static SimplifiedTerm applyGASimplifications(SimplifiedTerm const& term);
 
     // Symmetry-based cancellation detection
     // Example: terms that cancel due to GA bivector antisymmetry
-    static bool cancelsToZero(const SimplifiedTerm& term1, const SimplifiedTerm& term2);
+    static bool cancelsToZero(SimplifiedTerm const& term1, SimplifiedTerm const& term2);
 
   private:
 
@@ -180,4 +181,4 @@ class GAAlgebraRules {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Convert single simplified term back to AST representation
-std::shared_ptr<ast_node> convertSingleTermToAst(const SimplifiedTerm& term);
+std::shared_ptr<ast_node> convertSingleTermToAst(SimplifiedTerm const& term);

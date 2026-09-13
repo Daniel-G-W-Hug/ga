@@ -25,17 +25,17 @@ class NAryTerm {
     NAryTerm(double coeff = 1.0) : coefficient(coeff) {}
 
     // Operations
-    NAryTerm operator*(const NAryTerm& other) const;
-    bool canCombineWith(const NAryTerm& other) const; // Same variables
-    NAryTerm operator+(const NAryTerm& other) const;  // Combine coefficients
+    NAryTerm operator*(NAryTerm const& other) const;
+    bool canCombineWith(NAryTerm const& other) const; // Same variables
+    NAryTerm operator+(NAryTerm const& other) const;  // Combine coefficients
 
     // Utilities
     std::string toString() const;
-    std::string toString(const GeometricVariablePatterns& patterns) const;
+    std::string toString(GeometricVariablePatterns const& patterns) const;
     bool isZero() const;
     void applyCommutativity(); // Sort variables canonically (default patterns)
     void applyCommutativity(
-        const GeometricVariablePatterns& patterns); // Sort with custom patterns
+        GeometricVariablePatterns const& patterns); // Sort with custom patterns
 
   private:
 
@@ -49,14 +49,14 @@ class NAryExpression {
     std::vector<NAryTerm> terms;
 
     NAryExpression() = default;
-    NAryExpression(const std::vector<NAryTerm>& t) : terms(t) {}
+    NAryExpression(std::vector<NAryTerm> const& t) : terms(t) {}
 
     // Core 3-step transformation process (following manual approach)
     void expandDistributiveProducts();     // Step 1: Resolve braces by multiplication
     void normalizeSignsAndCommutativity(); // Step 2: Sign normalization and variable
                                            // ordering (default patterns)
     void normalizeSignsAndCommutativity(
-        const GeometricVariablePatterns& patterns); // Step 2 with custom patterns
+        GeometricVariablePatterns const& patterns); // Step 2 with custom patterns
     void combineTermsAndRegroup();                  // Step 3: Combine like terms
     void factorCommonVariables(); // Step 4: Factor out common variables for cleaner
                                   // parenthesization
@@ -72,7 +72,7 @@ class NAryExpression {
     }
 
     // Combined transformation with custom patterns
-    void simplify(const GeometricVariablePatterns& patterns)
+    void simplify(GeometricVariablePatterns const& patterns)
     {
         expandDistributiveProducts();
         normalizeSignsAndCommutativity(patterns);
@@ -83,17 +83,17 @@ class NAryExpression {
 
     // Conversion and utilities
     std::string toString() const;
-    std::string toString(const GeometricVariablePatterns& patterns) const;
+    std::string toString(GeometricVariablePatterns const& patterns) const;
     void removeZeroTerms();
     size_t termCount() const { return terms.size(); }
 
     // Debug support
-    void printDebug(const std::string& step_name) const;
+    void printDebug(std::string const& step_name) const;
 
   private:
 
     // Helper for factorization
-    double getRotorCoefficientValue(const std::map<std::string, int>& rotor_vars);
+    double getRotorCoefficientValue(std::map<std::string, int> const& rotor_vars);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ class NAryConverter {
     static NAryExpression fromBinaryAST(std::shared_ptr<ast_node> ast);
 
     // Convert N-ary expression tree back to binary AST (do this once)
-    static std::shared_ptr<ast_node> toBinaryAST(const NAryExpression& expr);
+    static std::shared_ptr<ast_node> toBinaryAST(NAryExpression const& expr);
 
   private:
 
@@ -121,9 +121,9 @@ class NAryConverter {
                                        NAryTerm& current_term, double sign = 1.0);
 
     // Helper functions for N-ary → AST conversion
-    static std::shared_ptr<ast_node> buildTermAST(const NAryTerm& term);
+    static std::shared_ptr<ast_node> buildTermAST(NAryTerm const& term);
     static std::shared_ptr<ast_node>
-    buildExpressionAST(const std::vector<NAryTerm>& terms);
+    buildExpressionAST(std::vector<NAryTerm> const& terms);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

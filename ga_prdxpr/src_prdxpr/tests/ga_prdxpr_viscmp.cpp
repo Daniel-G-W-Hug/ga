@@ -10,9 +10,12 @@
 #include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 #include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
+#include <algorithm>
+#include <exception>
 #include <fstream>
-#include <iostream>
 #include <map>
+#include <string>
+#include <tuple>
 #include <vector>
 
 #include "fmt/format.h"
@@ -33,7 +36,7 @@ class VisualComparisonTester {
 
     // Extract input and expected output from manual file using section markers
     std::map<std::string, std::string>
-    extract_input_from_manual(const std::string& algebra, const std::string& case_type)
+    extract_input_from_manual(std::string const& algebra, std::string const& case_type)
     {
         std::map<std::string, std::string> input_components;
 
@@ -138,7 +141,7 @@ class VisualComparisonTester {
 
         // Fill in missing components with "0" to get complete multivector
         auto all_components = getAllComponents(algebra);
-        for (const auto& comp : all_components) {
+        for (auto const& comp : all_components) {
             if (input_components.find(comp) == input_components.end()) {
                 input_components[comp] = "0";
             }
@@ -164,7 +167,7 @@ class VisualComparisonTester {
         // Group tests by algebra and case type for organized output
         std::string current_case_group = "";
 
-        for (const auto& test : test_cases) {
+        for (auto const& test : test_cases) {
             total_tests++;
 
             // Print case group header when we encounter a new algebra+case_type
@@ -302,7 +305,7 @@ class VisualComparisonTester {
 
                 fmt::println("");
             }
-            catch (const std::exception& e) {
+            catch (std::exception const& e) {
                 fmt::println("❌ {} FAILED: {}", test.component, e.what());
                 fmt::println("");
             }
@@ -314,7 +317,7 @@ class VisualComparisonTester {
   private:
 
     // Get all components for each algebra
-    std::vector<std::string> getAllComponents(const std::string& algebra)
+    std::vector<std::string> getAllComponents(std::string const& algebra)
     {
         if (algebra == "ega2d") {
             return {"1", "e1", "e2", "e12"};
@@ -343,8 +346,8 @@ class VisualComparisonTester {
     std::string get_pga3dp_trivector_input() { return "placeholder"; }
 
     // Get argument type components (components that should be non-zero)
-    std::vector<std::string> getArgumentComponents(const std::string& algebra,
-                                                   const std::string& argument_type)
+    std::vector<std::string> getArgumentComponents(std::string const& algebra,
+                                                   std::string const& argument_type)
     {
         if (argument_type == "vector") {
             if (algebra == "ega2d") return {"e1", "e2"};
@@ -363,14 +366,14 @@ class VisualComparisonTester {
     }
 
     // Get symmetry cancellation components (components that should be zero)
-    std::vector<std::string> getSymmetryComponents(const std::string& algebra,
-                                                   const std::string& argument_type)
+    std::vector<std::string> getSymmetryComponents(std::string const& algebra,
+                                                   std::string const& argument_type)
     {
         auto all_components = getAllComponents(algebra);
         auto argument_components = getArgumentComponents(algebra, argument_type);
 
         std::vector<std::string> symmetry_components;
-        for (const auto& comp : all_components) {
+        for (auto const& comp : all_components) {
             if (std::find(argument_components.begin(), argument_components.end(), comp) ==
                 argument_components.end()) {
                 symmetry_components.push_back(comp);
@@ -381,7 +384,7 @@ class VisualComparisonTester {
 
     // Extract expected results from manual file using MANUAL EXTENSION sections
     std::map<std::string, std::string>
-    extract_expected_from_manual(const std::string& algebra, const std::string& case_type)
+    extract_expected_from_manual(std::string const& algebra, std::string const& case_type)
     {
         std::map<std::string, std::string> expected_components;
 
@@ -511,7 +514,7 @@ class VisualComparisonTester {
             {"pga3dp", "trivector", "PGA3DP Trivector"}};
 
         // Generate test cases dynamically from manual file
-        for (const auto& [algebra, case_type, description] : test_configs) {
+        for (auto const& [algebra, case_type, description] : test_configs) {
             // Extract input components from manual file
             auto input_components = extract_input_from_manual(algebra, case_type);
 
@@ -523,7 +526,7 @@ class VisualComparisonTester {
             auto all_components = getAllComponents(algebra);
             bool has_expected_results = !expected_components.empty();
 
-            for (const auto& comp : all_components) {
+            for (auto const& comp : all_components) {
                 std::string input_expr =
                     input_components.count(comp) ? input_components[comp] : "0";
                 std::string expected_result;
@@ -552,7 +555,7 @@ class VisualComparisonTester {
         return cases;
     }
 
-    bool compare_expressions(const std::string& our_result, const std::string& expected)
+    bool compare_expressions(std::string const& our_result, std::string const& expected)
     {
         // Basic comparison for exact matches
         // Remove all spaces for comparison

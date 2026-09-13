@@ -4,6 +4,9 @@
 #include "ga_prdxpr_viscmp_tests.hpp"
 #include "sandwich/ga_prdxpr_sandwich_parser.hpp"
 
+#include <map>
+#include <string>
+
 #include <fmt/format.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +46,7 @@ void SimplificationTests::testMotorCoefficientOrdering()
     auto sorted_ega3d =
         GAAlgebraRules::getSortedVariablePairs(test_factors, ega3d_patterns);
     fmt::print("EGA3D ordering: ");
-    for (const auto& [var, power] : sorted_ega3d) {
+    for (auto const& [var, power] : sorted_ega3d) {
         fmt::print("{} ", var);
     }
     fmt::println("");
@@ -53,7 +56,7 @@ void SimplificationTests::testMotorCoefficientOrdering()
     auto sorted_pga3dp =
         GAAlgebraRules::getSortedVariablePairs(test_factors, pga3dp_patterns);
     fmt::print("PGA3DP ordering: ");
-    for (const auto& [var, power] : sorted_pga3dp) {
+    for (auto const& [var, power] : sorted_pga3dp) {
         fmt::print("{} ", var);
     }
     fmt::println("");
@@ -64,7 +67,7 @@ void SimplificationTests::testMotorCoefficientOrdering()
     auto sorted_motor_compat =
         GAAlgebraRules::getSortedVariablePairs(test_factors, simple_motor_patterns);
     fmt::print("Motor compat ordering: ");
-    for (const auto& [var, power] : sorted_motor_compat) {
+    for (auto const& [var, power] : sorted_motor_compat) {
         fmt::print("{} ", var);
     }
     fmt::println("");
@@ -194,10 +197,10 @@ void SimplificationTests::testPredefinedPatterns()
     auto sorted_ega2d =
         GAAlgebraRules::getSortedVariablePairs(comprehensive_factors, ega2d);
     fmt::print("  Coeff prefix: {} | Vectors: ", ega2d.coeff_prefix);
-    for (const auto& v : ega2d.vectors)
+    for (auto const& v : ega2d.vectors)
         fmt::print("{} ", v);
     fmt::print("| Ordering: ");
-    for (const auto& [var, power] : sorted_ega2d)
+    for (auto const& [var, power] : sorted_ega2d)
         fmt::print("{} ", var);
     fmt::println("");
 
@@ -206,13 +209,13 @@ void SimplificationTests::testPredefinedPatterns()
     auto sorted_ega3d =
         GAAlgebraRules::getSortedVariablePairs(comprehensive_factors, ega3d);
     fmt::print("  Coeff prefix: {} | Vectors: ", ega3d.coeff_prefix);
-    for (const auto& v : ega3d.vectors)
+    for (auto const& v : ega3d.vectors)
         fmt::print("{} ", v);
     fmt::print("| Bivectors: ");
-    for (const auto& b : ega3d.bivectors)
+    for (auto const& b : ega3d.bivectors)
         fmt::print("{} ", b);
     fmt::print("| Ordering: ");
-    for (const auto& [var, power] : sorted_ega3d)
+    for (auto const& [var, power] : sorted_ega3d)
         fmt::print("{} ", var);
     fmt::println("");
 
@@ -221,13 +224,13 @@ void SimplificationTests::testPredefinedPatterns()
     auto sorted_pga2dp =
         GAAlgebraRules::getSortedVariablePairs(comprehensive_factors, pga2dp);
     fmt::print("  Coeff prefix: {} | Vectors: ", pga2dp.coeff_prefix);
-    for (const auto& v : pga2dp.vectors)
+    for (auto const& v : pga2dp.vectors)
         fmt::print("{} ", v);
     fmt::print("| Bivectors: ");
-    for (const auto& b : pga2dp.bivectors)
+    for (auto const& b : pga2dp.bivectors)
         fmt::print("{} ", b);
     fmt::print("| Ordering: ");
-    for (const auto& [var, power] : sorted_pga2dp)
+    for (auto const& [var, power] : sorted_pga2dp)
         fmt::print("{} ", var);
     fmt::println("");
 
@@ -236,16 +239,16 @@ void SimplificationTests::testPredefinedPatterns()
     auto sorted_pga3dp =
         GAAlgebraRules::getSortedVariablePairs(comprehensive_factors, pga3dp);
     fmt::print("  Coeff prefix: {} | Vectors: ", pga3dp.coeff_prefix);
-    for (const auto& v : pga3dp.vectors)
+    for (auto const& v : pga3dp.vectors)
         fmt::print("{} ", v);
     fmt::print("| Bivectors: ");
-    for (const auto& b : pga3dp.bivectors)
+    for (auto const& b : pga3dp.bivectors)
         fmt::print("{} ", b);
     fmt::print("| Trivectors: ");
-    for (const auto& t : pga3dp.trivectors)
+    for (auto const& t : pga3dp.trivectors)
         fmt::print("{} ", t);
     fmt::print("| Ordering: ");
-    for (const auto& [var, power] : sorted_pga3dp)
+    for (auto const& [var, power] : sorted_pga3dp)
         fmt::print("{} ", var);
     fmt::println("");
 

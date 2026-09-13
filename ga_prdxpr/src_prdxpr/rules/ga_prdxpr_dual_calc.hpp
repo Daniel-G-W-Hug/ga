@@ -1,8 +1,7 @@
+#pragma once
+
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
-
-#ifndef GA_PRDXPR_DUAL_CALC_HPP
-#define GA_PRDXPR_DUAL_CALC_HPP
 
 #include "rules/ga_prdxpr_rule_generator.hpp"
 #include <vector>
@@ -37,5 +36,3 @@ prd_rules calculate_dual_rules(AlgebraConfig const& config,
 prd_rules calculate_regressive_dual_rules(AlgebraConfig const& config,
                                           std::vector<int> const& G_reg_data,
                                           prd_rules const& complement_rules);
-
-#endif // GA_PRDXPR_DUAL_CALC_HPP

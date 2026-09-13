@@ -4,7 +4,10 @@
 #include "cli/ga_prdxpr_options.hpp"
 #include <algorithm>
 #include <fmt/core.h>
+#include <set>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace configurable {
 

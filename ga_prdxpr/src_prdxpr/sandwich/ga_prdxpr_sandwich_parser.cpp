@@ -3,12 +3,14 @@
 
 #include "sandwich/ga_prdxpr_sandwich_parser.hpp"
 
-#include <algorithm>
 #include <cctype>
+#include <exception>
 #include <iterator>
+#include <memory>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
+#include <string>
 
 #include "fmt/chrono.h"  // chrono support
 #include "fmt/format.h"  // formatting
@@ -261,7 +263,7 @@ Token Lexer::getNextToken()
 // Parser implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-Parser::Parser(const std::string& input) : lexer(input) {}
+Parser::Parser(std::string const& input) : lexer(input) {}
 
 std::shared_ptr<ast_node> Parser::parse()
 {

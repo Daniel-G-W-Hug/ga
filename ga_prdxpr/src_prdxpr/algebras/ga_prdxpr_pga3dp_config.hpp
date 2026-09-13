@@ -1,7 +1,7 @@
+#pragma once
+
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
-
-#pragma once
 
 #include "algebras/ga_prdxpr_pga3dp.hpp"
 #include "core/ga_prdxpr_config_types.hpp"

@@ -3,13 +3,17 @@
 
 #include "codegen/ga_codegen_emitter.hpp"
 
-#include <algorithm>
 #include <cctype>
+#include <cstddef>
+#include <exception>
 #include <fmt/core.h>
-#include <set>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace codegen {
 

@@ -5,6 +5,9 @@
 #include "rules/ga_prdxpr_rule_generator.hpp" // For calculate_extended_metric()
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Integer Determinant Computation for Gram Matrices

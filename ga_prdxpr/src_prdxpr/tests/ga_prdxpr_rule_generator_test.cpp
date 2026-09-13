@@ -12,12 +12,15 @@
 #include "algebras/ga_prdxpr_sta4ds.hpp"
 #include "rules/ga_prdxpr_rule_generator.hpp"
 
-#include <iostream>
+#include <algorithm>
+#include <exception>
 #include <mdspan>
+#include <string>
+#include <vector>
 
 // Helper function to print all rules in grade-ordered way
-void print_all_rules(const prd_rules& rules, const std::string& title,
-                     const mvec_coeff& basis_order, const std::string& algebra_name = "")
+void print_all_rules(prd_rules const& rules, std::string const& title,
+                     mvec_coeff const& basis_order, std::string const& algebra_name = "")
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
@@ -27,8 +30,8 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
     }
 
     // Print in grade order by iterating through basis in order
-    for (const auto& a : basis_order) {
-        for (const auto& b : basis_order) {
+    for (auto const& a : basis_order) {
+        for (auto const& b : basis_order) {
             std::string key = a + " * " + b;
             if (title.find("wedge") != std::string::npos) {
                 key = a + " ^ " + b; // Use wedge operator for wedge products
@@ -44,9 +47,9 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
 
 // Helper function to print multi-term rules (non-orthogonal metrics) in
 // grade-ordered way, e.g. "e3 * e4" -> "-1 + e34"
-void print_all_rules_mt(const prd_rules_mt& rules, const std::string& title,
-                        const mvec_coeff& basis_order,
-                        const std::string& algebra_name = "")
+void print_all_rules_mt(prd_rules_mt const& rules, std::string const& title,
+                        mvec_coeff const& basis_order,
+                        std::string const& algebra_name = "")
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
@@ -56,8 +59,8 @@ void print_all_rules_mt(const prd_rules_mt& rules, const std::string& title,
     }
 
     // Print in grade order by iterating through basis in order
-    for (const auto& a : basis_order) {
-        for (const auto& b : basis_order) {
+    for (auto const& a : basis_order) {
+        for (auto const& b : basis_order) {
             std::string key = a + " * " + b;
             auto it = rules.find(key);
             if (it != rules.end()) {
@@ -69,8 +72,8 @@ void print_all_rules_mt(const prd_rules_mt& rules, const std::string& title,
 }
 
 // Print complement rules in grade order (scalars, vectors, bivectors, etc.)
-void print_cmpl_rules(const prd_rules& rules, const std::string& title,
-                      const mvec_coeff& basis_order, const std::string& algebra_name = "")
+void print_cmpl_rules(prd_rules const& rules, std::string const& title,
+                      mvec_coeff const& basis_order, std::string const& algebra_name = "")
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
@@ -80,7 +83,7 @@ void print_cmpl_rules(const prd_rules& rules, const std::string& title,
     }
 
     // Print complement rules in grade order by iterating through basis in order
-    for (const auto& basis_element : basis_order) {
+    for (auto const& basis_element : basis_order) {
         auto it = rules.find(basis_element);
         if (it != rules.end()) {
             fmt::println("    {{\"{}\", \"{}\"}},", basis_element, it->second);
@@ -89,8 +92,8 @@ void print_cmpl_rules(const prd_rules& rules, const std::string& title,
 }
 
 // Helper function to do complete rule comparison
-bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
-                       const std::string& product_name)
+bool compare_all_rules(prd_rules const& generated, prd_rules const& reference,
+                       std::string const& product_name)
 {
     fmt::println("\n=== Complete {} Validation ===", product_name);
 
@@ -99,7 +102,7 @@ bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
     int matching_rules = 0;
 
     // Check all reference rules exist and match in generated
-    for (const auto& [key, ref_value] : reference) {
+    for (auto const& [key, ref_value] : reference) {
         total_rules++;
         auto it = generated.find(key);
         if (it == generated.end()) {
@@ -117,7 +120,7 @@ bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
     }
 
     // Check for extra rules in generated that aren't in reference
-    for (const auto& [key, gen_value] : generated) {
+    for (auto const& [key, gen_value] : generated) {
         if (reference.find(key) == reference.end()) {
             fmt::println("  EXTRA: {} -> {}", key, gen_value);
             all_match = false;
@@ -141,7 +144,7 @@ bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
 }
 
 // Function to display generated rules for a specific algebra
-void display_algebra_rules(const AlgebraConfig& config, const std::string& algebra_name)
+void display_algebra_rules(AlgebraConfig const& config, std::string const& algebra_name)
 {
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
@@ -246,7 +249,7 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
 
     // Calculate and display full extended metric matrix
     auto matrix_data = calculate_extended_metric_matrix(config);
-    const size_t n = generated_rules.basis.size();
+    size_t const n = generated_rules.basis.size();
     std::mdspan G{matrix_data.data(), n, n};
 
     fmt::println("\n{} extended metric matrix (full)", algebra_name);
@@ -401,14 +404,14 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
 }
 
 // Function to test a specific algebra with complement validation
-bool test_algebra_with_cmpls(const AlgebraConfig& config, const std::string& algebra_name,
-                             const mvec_coeff& reference_basis,
-                             const prd_rules& reference_gpr,
-                             const prd_rules& reference_wdg,
-                             const prd_rules& reference_dot,
-                             const prd_rules* reference_lcmpl = nullptr,
-                             const prd_rules* reference_rcmpl = nullptr,
-                             const prd_rules* reference_cmpl = nullptr)
+bool test_algebra_with_cmpls(AlgebraConfig const& config, std::string const& algebra_name,
+                             mvec_coeff const& reference_basis,
+                             prd_rules const& reference_gpr,
+                             prd_rules const& reference_wdg,
+                             prd_rules const& reference_dot,
+                             prd_rules const* reference_lcmpl = nullptr,
+                             prd_rules const* reference_rcmpl = nullptr,
+                             prd_rules const* reference_cmpl = nullptr)
 {
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
@@ -502,7 +505,7 @@ bool test_algebra_with_cmpls(const AlgebraConfig& config, const std::string& alg
 
     // Calculate and display full extended metric matrix
     auto matrix_data = calculate_extended_metric_matrix(config);
-    const size_t n = generated_rules.basis.size();
+    size_t const n = generated_rules.basis.size();
     std::mdspan G{matrix_data.data(), n, n};
 
     fmt::println("\n{} extended metric matrix (full)", algebra_name);
@@ -624,9 +627,9 @@ bool test_algebra_with_cmpls(const AlgebraConfig& config, const std::string& alg
 }
 
 // Function to test a specific algebra (keep for compatibility)
-bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
-                  const mvec_coeff& reference_basis, const prd_rules& reference_gpr,
-                  const prd_rules& reference_wdg, const prd_rules& reference_dot)
+bool test_algebra(AlgebraConfig const& config, std::string const& algebra_name,
+                  mvec_coeff const& reference_basis, prd_rules const& reference_gpr,
+                  prd_rules const& reference_wdg, prd_rules const& reference_dot)
 {
 
     std::string separator(80, '=');
@@ -1022,7 +1025,7 @@ int main(int argc, char* argv[])
 
         return 0;
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         fmt::println("Error: {}", e.what());
         return 1;
     }

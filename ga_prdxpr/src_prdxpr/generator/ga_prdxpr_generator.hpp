@@ -8,6 +8,8 @@
 #include "core/ga_prdxpr_config_types.hpp"
 #include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
+#include <string>
+
 namespace configurable {
 
 // Print a summary of all OutputCase validation warnings emitted during the

@@ -24,15 +24,15 @@
 static auto pga2dp_generated_rules = generate_algebra_rules(get_pga2dp_algebra_config());
 
 // Stage 2: Initialize product rules (no dependencies)
-const prd_rules gpr_pga2dp_rules = pga2dp_generated_rules.geometric_product;
-const prd_rules wdg_pga2dp_rules = pga2dp_generated_rules.wedge_product;
-const prd_rules dot_pga2dp_rules = pga2dp_generated_rules.dot_product;
+prd_rules const gpr_pga2dp_rules = pga2dp_generated_rules.geometric_product;
+prd_rules const wdg_pga2dp_rules = pga2dp_generated_rules.wedge_product;
+prd_rules const dot_pga2dp_rules = pga2dp_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules cmpl_pga2dp_rules = pga2dp_generated_rules.complement;
+prd_rules const cmpl_pga2dp_rules = pga2dp_generated_rules.complement;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
 // PGA2DP has bulk_dual and weight_dual (no left/right distinction for odd-dimensional)
-const prd_rules bulk_dual_pga2dp_rules = pga2dp_generated_rules.bulk_dual;
-const prd_rules weight_dual_pga2dp_rules = pga2dp_generated_rules.weight_dual;
+prd_rules const bulk_dual_pga2dp_rules = pga2dp_generated_rules.bulk_dual;
+prd_rules const weight_dual_pga2dp_rules = pga2dp_generated_rules.weight_dual;

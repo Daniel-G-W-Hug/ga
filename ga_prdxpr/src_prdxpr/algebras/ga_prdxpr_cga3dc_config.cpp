@@ -4,6 +4,8 @@
 #include "algebras/ga_prdxpr_cga3dc_config.hpp"
 #include "algebras/ga_prdxpr_cga3dc.hpp"
 
+#include <string>
+
 ////////////////////////////////////////////////////////////////////////////////
 // cga3dc algebra configuration
 //

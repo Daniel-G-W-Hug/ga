@@ -24,15 +24,15 @@
 static auto ega2d_generated_rules = generate_algebra_rules(get_ega2d_algebra_config());
 
 // Stage 2: Initialize product rules (no dependencies)
-const prd_rules gpr_ega2d_rules = ega2d_generated_rules.geometric_product;
-const prd_rules wdg_ega2d_rules = ega2d_generated_rules.wedge_product;
-const prd_rules dot_ega2d_rules = ega2d_generated_rules.dot_product;
+prd_rules const gpr_ega2d_rules = ega2d_generated_rules.geometric_product;
+prd_rules const wdg_ega2d_rules = ega2d_generated_rules.wedge_product;
+prd_rules const dot_ega2d_rules = ega2d_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules l_cmpl_ega2d_rules = ega2d_generated_rules.l_cmpl;
-const prd_rules r_cmpl_ega2d_rules = ega2d_generated_rules.r_cmpl;
+prd_rules const l_cmpl_ega2d_rules = ega2d_generated_rules.l_cmpl;
+prd_rules const r_cmpl_ega2d_rules = ega2d_generated_rules.r_cmpl;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
-const prd_rules l_dual_ega2d_rules = ega2d_generated_rules.l_dual;
-const prd_rules r_dual_ega2d_rules = ega2d_generated_rules.r_dual;
+prd_rules const l_dual_ega2d_rules = ega2d_generated_rules.l_dual;
+prd_rules const r_dual_ega2d_rules = ega2d_generated_rules.r_dual;

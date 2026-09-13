@@ -24,13 +24,13 @@
 static auto ega3d_generated_rules = generate_algebra_rules(get_ega3d_algebra_config());
 
 // Stage 2: Initialize product rules (no dependencies)
-const prd_rules gpr_ega3d_rules = ega3d_generated_rules.geometric_product;
-const prd_rules wdg_ega3d_rules = ega3d_generated_rules.wedge_product;
-const prd_rules dot_ega3d_rules = ega3d_generated_rules.dot_product;
+prd_rules const gpr_ega3d_rules = ega3d_generated_rules.geometric_product;
+prd_rules const wdg_ega3d_rules = ega3d_generated_rules.wedge_product;
+prd_rules const dot_ega3d_rules = ega3d_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules cmpl_ega3d_rules = ega3d_generated_rules.complement;
+prd_rules const cmpl_ega3d_rules = ega3d_generated_rules.complement;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
-const prd_rules dual_ega3d_rules = ega3d_generated_rules.dual;
+prd_rules const dual_ega3d_rules = ega3d_generated_rules.dual;

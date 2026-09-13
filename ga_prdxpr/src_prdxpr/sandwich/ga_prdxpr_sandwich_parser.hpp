@@ -6,13 +6,10 @@
 // transformation of simple product expressions
 
 #include <limits>
-#include <map>
 #include <memory>
 #include <queue>
-#include <set>
 #include <stack>
 #include <string>
-#include <vector>
 
 using namespace std::literals::string_literals;
 
@@ -116,9 +113,9 @@ struct Token {
 class Lexer {
   public:
 
-    explicit Lexer(const std::string& input_in);
+    explicit Lexer(std::string const& input_in);
     Token getNextToken();
-    const Token& getCurrentToken() const { return currentToken; }
+    Token const& getCurrentToken() const { return currentToken; }
     void advance() { currentToken = getNextToken(); }
 
   private:

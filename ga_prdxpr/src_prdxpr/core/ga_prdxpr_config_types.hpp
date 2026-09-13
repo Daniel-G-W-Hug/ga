@@ -26,19 +26,19 @@ struct OutputCase {
     std::string intermediate_name = ""; // For sandwich: intermediate result name
 
     // Constructor for simple cases (5 parameters)
-    OutputCase(const std::string& case_n, const std::string& left_coeff,
-               const std::string& right_coeff, const std::string& left_filter,
-               const std::string& right_filter) :
+    OutputCase(std::string const& case_n, std::string const& left_coeff,
+               std::string const& right_coeff, std::string const& left_filter,
+               std::string const& right_filter) :
         case_name(case_n), left_coeff_name(left_coeff), right_coeff_name(right_coeff),
         left_filter_name(left_filter), right_filter_name(right_filter)
     {
     }
 
     // Constructor for sandwich products (7 parameters)
-    OutputCase(const std::string& case_n, const std::string& left_coeff,
-               const std::string& right_coeff, const std::string& left_filter,
-               const std::string& right_filter, bool two_step,
-               const std::string& inter_name) :
+    OutputCase(std::string const& case_n, std::string const& left_coeff,
+               std::string const& right_coeff, std::string const& left_filter,
+               std::string const& right_filter, bool two_step,
+               std::string const& inter_name) :
         case_name(case_n), left_coeff_name(left_coeff), right_coeff_name(right_coeff),
         left_filter_name(left_filter), right_filter_name(right_filter),
         is_two_step(two_step), intermediate_name(inter_name)

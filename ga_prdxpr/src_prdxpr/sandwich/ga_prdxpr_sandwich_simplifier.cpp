@@ -6,8 +6,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <memory>
 #include <regex>
-#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "fmt/format.h"
 
@@ -17,14 +22,14 @@
 
 SimplifiedTerm::SimplifiedTerm() : numeric_coefficient(1.0), sign(1) {}
 
-SimplifiedTerm::SimplifiedTerm(double coeff, const std::map<std::string, int>& vars,
+SimplifiedTerm::SimplifiedTerm(double coeff, std::map<std::string, int> const& vars,
                                int s) :
     numeric_coefficient(std::abs(coeff)), factors(vars), sign(s * (coeff >= 0 ? 1 : -1))
 {
     normalize();
 }
 
-SimplifiedTerm SimplifiedTerm::fromString(const std::string& term_str)
+SimplifiedTerm SimplifiedTerm::fromString(std::string const& term_str)
 {
     SimplifiedTerm term;
 
@@ -65,7 +70,7 @@ SimplifiedTerm SimplifiedTerm::fromString(const std::string& term_str)
     return term;
 }
 
-SimplifiedTerm SimplifiedTerm::operator*(const SimplifiedTerm& other) const
+SimplifiedTerm SimplifiedTerm::operator*(SimplifiedTerm const& other) const
 {
     SimplifiedTerm result;
 
@@ -74,7 +79,7 @@ SimplifiedTerm SimplifiedTerm::operator*(const SimplifiedTerm& other) const
 
     // Combine variable factors
     result.factors = this->factors;
-    for (const auto& [var, power] : other.factors) {
+    for (auto const& [var, power] : other.factors) {
         result.factors[var] += power;
     }
 
@@ -82,7 +87,7 @@ SimplifiedTerm SimplifiedTerm::operator*(const SimplifiedTerm& other) const
     return result;
 }
 
-SimplifiedTerm SimplifiedTerm::operator+(const SimplifiedTerm& other) const
+SimplifiedTerm SimplifiedTerm::operator+(SimplifiedTerm const& other) const
 {
     if (!canCombineWith(other)) {
         throw std::runtime_error("Cannot add terms with different variable factors");
@@ -103,7 +108,7 @@ SimplifiedTerm SimplifiedTerm::operator+(const SimplifiedTerm& other) const
     return result;
 }
 
-bool SimplifiedTerm::canCombineWith(const SimplifiedTerm& other) const
+bool SimplifiedTerm::canCombineWith(SimplifiedTerm const& other) const
 {
     // Check if terms can be combined after applying commutativity
     auto this_reordered = GAAlgebraRules::reorderCommutativeFactors(this->factors);
@@ -113,7 +118,7 @@ bool SimplifiedTerm::canCombineWith(const SimplifiedTerm& other) const
 
 bool SimplifiedTerm::isZero() const { return std::abs(numeric_coefficient) < 1e-10; }
 
-bool SimplifiedTerm::isEquivalentTo(const SimplifiedTerm& other) const
+bool SimplifiedTerm::isEquivalentTo(SimplifiedTerm const& other) const
 {
     // Check if terms are equivalent after applying commutativity
     auto this_reordered = GAAlgebraRules::reorderCommutativeFactors(this->factors);
@@ -143,7 +148,7 @@ std::string SimplifiedTerm::toString() const
 
     bool has_coefficient = (std::abs(numeric_coefficient - 1.0) > 1e-10);
     bool first_factor = true;
-    for (const auto& [var, power] : factor_pairs) {
+    for (auto const& [var, power] : factor_pairs) {
         if (!first_factor || has_coefficient) {
             result += " * ";
         }
@@ -211,7 +216,7 @@ ExpressionSimplifier::expandProducts(std::shared_ptr<ast_node> ast)
     std::string prev_str = "";
     std::string curr_str = ast_str;
     int iterations = 0;
-    const int max_iterations = 5;
+    int const max_iterations = 5;
 
     while (prev_str != curr_str && iterations < max_iterations) {
         prev_str = curr_str;
@@ -261,7 +266,7 @@ std::shared_ptr<ast_node> ExpressionSimplifier::cancelZeros(std::shared_ptr<ast_
 
     // Remove zero terms
     terms.erase(std::remove_if(terms.begin(), terms.end(),
-                               [](const SimplifiedTerm& t) { return t.isZero(); }),
+                               [](SimplifiedTerm const& t) { return t.isZero(); }),
                 terms.end());
 
     return termsToAst(terms);
@@ -354,8 +359,8 @@ void ExpressionSimplifier::extractTermsFromTerm(std::shared_ptr<Term> term,
 
     for (size_t i = 1; i < factor_groups.size(); ++i) {
         std::vector<SimplifiedTerm> new_result;
-        for (const auto& left_term : result_terms) {
-            for (const auto& right_term : factor_groups[i]) {
+        for (auto const& left_term : result_terms) {
+            for (auto const& right_term : factor_groups[i]) {
                 SimplifiedTerm combined = left_term * right_term;
                 combined.sign *= sign;
                 new_result.push_back(combined);
@@ -365,7 +370,7 @@ void ExpressionSimplifier::extractTermsFromTerm(std::shared_ptr<Term> term,
     }
 
     // Add all resulting terms
-    for (const auto& result_term : result_terms) {
+    for (auto const& result_term : result_terms) {
         terms.push_back(result_term);
     }
 }
@@ -432,7 +437,7 @@ ExpressionSimplifier::extractFactorTerms(std::shared_ptr<Factor> factor, int sig
 }
 
 std::vector<SimplifiedTerm>
-ExpressionSimplifier::combineTermsVector(const std::vector<SimplifiedTerm>& terms)
+ExpressionSimplifier::combineTermsVector(std::vector<SimplifiedTerm> const& terms)
 {
     std::vector<SimplifiedTerm> result;
 
@@ -460,7 +465,7 @@ ExpressionSimplifier::combineTermsVector(const std::vector<SimplifiedTerm>& term
 }
 
 SimplifiedTerm
-ExpressionSimplifier::applyCommutativeReordering(const SimplifiedTerm& term)
+ExpressionSimplifier::applyCommutativeReordering(SimplifiedTerm const& term)
 {
     SimplifiedTerm result = term;
     result.factors = GAAlgebraRules::reorderCommutativeFactors(term.factors);
@@ -468,7 +473,7 @@ ExpressionSimplifier::applyCommutativeReordering(const SimplifiedTerm& term)
 }
 
 std::shared_ptr<ast_node>
-ExpressionSimplifier::termsToAst(const std::vector<SimplifiedTerm>& terms)
+ExpressionSimplifier::termsToAst(std::vector<SimplifiedTerm> const& terms)
 {
     if (terms.empty()) {
         // Return zero
@@ -509,7 +514,7 @@ ExpressionSimplifier::termsToAst(const std::vector<SimplifiedTerm>& terms)
 // Helper function implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<ast_node> convertSingleTermToAst(const SimplifiedTerm& term)
+std::shared_ptr<ast_node> convertSingleTermToAst(SimplifiedTerm const& term)
 {
     if (term.isZero()) {
         auto primary = std::make_shared<Primary>();
@@ -532,7 +537,7 @@ std::shared_ptr<ast_node> convertSingleTermToAst(const SimplifiedTerm& term)
     }
 
     // Add variable factors
-    for (const auto& [var, power] : term.factors) {
+    for (auto const& [var, power] : term.factors) {
         auto var_primary = std::make_shared<Primary>();
         var_primary->type = Primary::Primary_t::VARIABLE;
         var_primary->str_value = var;
@@ -656,8 +661,8 @@ GeometricVariablePatterns GeometricVariablePatterns::createCGA3DCPatterns()
 // GAAlgebraRules implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var,
-                                              const GeometricVariablePatterns& patterns)
+int GAAlgebraRules::getCanonicalOrderPriority(std::string const& var,
+                                              GeometricVariablePatterns const& patterns)
 {
     // Comprehensive canonical ordering for coefficient extraction in sandwich products
     // Lower numbers = higher priority (appear first in expressions)
@@ -741,8 +746,8 @@ int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var,
 }
 
 std::vector<std::pair<std::string, int>>
-GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors,
-                                       const GeometricVariablePatterns& patterns)
+GAAlgebraRules::getSortedVariablePairs(std::map<std::string, int> const& factors,
+                                       GeometricVariablePatterns const& patterns)
 {
 
     // Convert map to vector for custom sorting
@@ -750,7 +755,7 @@ GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors
 
     // Sort by canonical order priority, then alphabetically for ties
     std::sort(var_pairs.begin(), var_pairs.end(),
-              [&patterns](const auto& a, const auto& b) {
+              [&patterns](auto const& a, auto const& b) {
                   int order_a = getCanonicalOrderPriority(a.first, patterns);
                   int order_b = getCanonicalOrderPriority(b.first, patterns);
                   if (order_a != order_b) {
@@ -763,8 +768,8 @@ GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors
 }
 
 std::map<std::string, int>
-GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& factors,
-                                          const GeometricVariablePatterns& patterns)
+GAAlgebraRules::reorderCommutativeFactors(std::map<std::string, int> const& factors,
+                                          GeometricVariablePatterns const& patterns)
 {
 
     // Use the new canonical ordering system
@@ -774,7 +779,7 @@ GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& fact
     // This function is kept for backward compatibility but toString methods
     // should use getSortedVariablePairs directly
     std::map<std::string, int> result;
-    for (const auto& [var, power] : sorted_pairs) {
+    for (auto const& [var, power] : sorted_pairs) {
         result[var] = power;
     }
 
@@ -783,8 +788,8 @@ GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& fact
 
 // Legacy overload for getSortedVariablePairs with simple coefficient prefix
 std::vector<std::pair<std::string, int>>
-GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors,
-                                       const std::string& coeff_prefix)
+GAAlgebraRules::getSortedVariablePairs(std::map<std::string, int> const& factors,
+                                       std::string const& coeff_prefix)
 {
     // Create default patterns with specified coefficient prefix
     GeometricVariablePatterns patterns;
@@ -796,8 +801,8 @@ GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors
 
 // Legacy overload for simple coefficient prefix (backward compatibility)
 std::map<std::string, int>
-GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& factors,
-                                          const std::string& coeff_prefix)
+GAAlgebraRules::reorderCommutativeFactors(std::map<std::string, int> const& factors,
+                                          std::string const& coeff_prefix)
 {
     // Create default patterns with specified coefficient prefix
     GeometricVariablePatterns patterns;

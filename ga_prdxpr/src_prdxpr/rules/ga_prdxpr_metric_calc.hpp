@@ -1,11 +1,12 @@
+#pragma once
+
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#ifndef GA_PRDXPR_METRIC_CALC_HPP
-#define GA_PRDXPR_METRIC_CALC_HPP
-
 #include "rules/ga_prdxpr_rule_generator.hpp"
 #include <mdspan>
+#include <string>
+#include <utility>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,5 +124,3 @@ std::vector<int> matrix_triple_product(std::vector<int> const& C_data,
 std::vector<int>
 calculate_regressive_extended_metric_matrix_full(AlgebraConfig const& config,
                                                  prd_rules const& complement_rules);
-
-#endif // GA_PRDXPR_METRIC_CALC_HPP

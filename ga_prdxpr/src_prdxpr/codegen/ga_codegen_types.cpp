@@ -3,7 +3,11 @@
 
 #include "codegen/ga_codegen_types.hpp"
 
+#include <cstddef>
+#include <map>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace codegen {
 

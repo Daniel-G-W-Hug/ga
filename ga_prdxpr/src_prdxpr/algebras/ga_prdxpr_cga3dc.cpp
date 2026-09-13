@@ -22,19 +22,19 @@
 static auto cga3dc_generated_rules = generate_algebra_rules(get_cga3dc_algebra_config());
 
 // Stage 2: Initialize product rules (no dependencies)
-const prd_rules_mt gpr_cga3dc_rules_mt = cga3dc_generated_rules.geometric_product_mt;
-const prd_rules wdg_cga3dc_rules = cga3dc_generated_rules.wedge_product;
-const prd_rules dot_cga3dc_rules = cga3dc_generated_rules.dot_product;
+prd_rules_mt const gpr_cga3dc_rules_mt = cga3dc_generated_rules.geometric_product_mt;
+prd_rules const wdg_cga3dc_rules = cga3dc_generated_rules.wedge_product;
+prd_rules const dot_cga3dc_rules = cga3dc_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are
 // already generated; ODD dimension -> the generator fills the singular
 // complement/dual/antidual fields, and left == right)
-const prd_rules cmpl_cga3dc_rules = cga3dc_generated_rules.complement;
+prd_rules const cmpl_cga3dc_rules = cga3dc_generated_rules.complement;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended
 // metric matrix; non-degenerate metric -> a single regular dual)
-const prd_rules dual_cga3dc_rules = cga3dc_generated_rules.dual;
+prd_rules const dual_cga3dc_rules = cga3dc_generated_rules.dual;
 
 // Stage 5: Initialize antidual rules (negated dual; the anti-exomorphism
 // identity is verified during generation)
-const prd_rules antidual_cga3dc_rules = cga3dc_generated_rules.antidual;
+prd_rules const antidual_cga3dc_rules = cga3dc_generated_rules.antidual;

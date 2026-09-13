@@ -4,10 +4,10 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "core/ga_prdxpr_common.hpp"
-#include <algorithm>
 #include <functional>
-#include <numeric>
-#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Automatic GA Rule Generation System

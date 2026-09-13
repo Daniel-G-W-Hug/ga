@@ -6,7 +6,9 @@
 #include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 
 #include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,64 +46,64 @@ class SandwichTransformer {
     // Input: Raw sandwich product expression from ga_prdxpr
     // Output: Matrix transformation with simplified coefficients
     static MatrixTransformation transformSandwichProduct(
-        const std::string& sandwich_expression,
-        const std::string& algebra_type = "ega2d" // ega2d, ega3d, pga2dp, pga3dp, sta4ds
+        std::string const& sandwich_expression,
+        std::string const& algebra_type = "ega2d" // ega2d, ega3d, pga2dp, pga3dp, sta4ds
     );
 
     // Main transformation interface with custom patterns
     static MatrixTransformation
-    transformSandwichProduct(const std::string& sandwich_expression,
-                             const std::string& algebra_type,
-                             const GeometricVariablePatterns& patterns);
+    transformSandwichProduct(std::string const& sandwich_expression,
+                             std::string const& algebra_type,
+                             GeometricVariablePatterns const& patterns);
 
     // Simple string-to-string interface for src_prdxpr integration
-    static std::string transformExpression(const std::string& expression,
-                                           const std::string& algebra_type = "ega2d");
+    static std::string transformExpression(std::string const& expression,
+                                           std::string const& algebra_type = "ega2d");
 
     // Simple string-to-string interface with custom patterns
-    static std::string transformExpression(const std::string& expression,
-                                           const std::string& algebra_type,
-                                           const GeometricVariablePatterns& patterns);
+    static std::string transformExpression(std::string const& expression,
+                                           std::string const& algebra_type,
+                                           GeometricVariablePatterns const& patterns);
 
     // Transform complete multivector result (vector of component expressions)
     static std::vector<std::string>
-    transformSandwichMultivector(const std::vector<std::string>& component_expressions,
-                                 const std::string& algebra_type = "ega2d");
+    transformSandwichMultivector(std::vector<std::string> const& component_expressions,
+                                 std::string const& algebra_type = "ega2d");
 
     // Batch processing for multiple expressions (existing interface)
     static std::vector<MatrixTransformation>
-    transformMultipleExpressions(const std::vector<std::string>& expressions,
-                                 const std::string& algebra_type = "ega2d");
+    transformMultipleExpressions(std::vector<std::string> const& expressions,
+                                 std::string const& algebra_type = "ega2d");
 
     // Generate final matrix form string suitable for code generation
     static std::string
-    generateMatrixFormExpression(const MatrixTransformation& transform);
+    generateMatrixFormExpression(MatrixTransformation const& transform);
 
     // Generate optimized coefficient expressions (with k-coefficients)
     static std::string
-    generateOptimizedCoefficients(const MatrixTransformation& transform);
+    generateOptimizedCoefficients(MatrixTransformation const& transform);
 
   private:
 
     // Core transformation pipeline
     static std::pair<std::vector<SimplifiedTerm>, std::shared_ptr<ast_node>>
-    parseAndSimplify(const std::string& expression);
-    static void extractMatrixCoefficients(const std::vector<SimplifiedTerm>& terms,
+    parseAndSimplify(std::string const& expression);
+    static void extractMatrixCoefficients(std::vector<SimplifiedTerm> const& terms,
                                           MatrixTransformation& result,
-                                          const std::string& algebra_type);
+                                          std::string const& algebra_type);
     static void generateSimplifiedExpressions(MatrixTransformation& result,
-                                              const std::string& algebra_type);
+                                              std::string const& algebra_type);
 
     // Algebra-specific patterns
     static std::vector<std::string>
-    getGeometricVariables(const std::string& algebra_type);
-    static std::vector<std::string> getResultComponents(const std::string& algebra_type);
-    static std::string extractRotorCoefficient(const SimplifiedTerm& term,
-                                               const std::string& geometric_var);
+    getGeometricVariables(std::string const& algebra_type);
+    static std::vector<std::string> getResultComponents(std::string const& algebra_type);
+    static std::string extractRotorCoefficient(SimplifiedTerm const& term,
+                                               std::string const& geometric_var);
 
     // Coefficient manipulation
-    static std::string combineCoefficients(const std::vector<std::string>& coeffs);
-    static std::string optimizeCoefficient(const std::string& coeff_expr);
+    static std::string combineCoefficients(std::vector<std::string> const& coeffs);
+    static std::string optimizeCoefficient(std::string const& coeff_expr);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,7 +121,7 @@ struct SandwichAlgebraConfig {
 class AlgebraRegistry {
   public:
 
-    static SandwichAlgebraConfig getConfig(const std::string& algebra_type);
+    static SandwichAlgebraConfig getConfig(std::string const& algebra_type);
 
   private:
 

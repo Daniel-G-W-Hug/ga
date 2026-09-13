@@ -5,6 +5,8 @@
 #include "rules/ga_prdxpr_metric_calc.hpp"
 #include <mdspan>
 #include <sstream>
+#include <string>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper Functions for Dual Expression Construction

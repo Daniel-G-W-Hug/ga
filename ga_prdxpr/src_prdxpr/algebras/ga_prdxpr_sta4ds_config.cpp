@@ -110,6 +110,8 @@
 
 #include "algebras/ga_prdxpr_sta4ds_config.hpp"
 
+#include <string>
+
 // Automatic rule generation configuration for sta4ds
 AlgebraConfig get_sta4ds_algebra_config()
 {

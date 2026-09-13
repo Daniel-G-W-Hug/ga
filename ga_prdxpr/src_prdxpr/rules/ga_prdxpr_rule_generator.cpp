@@ -7,9 +7,12 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <map>
 #include <mdspan>
-#include <numeric>
 #include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +116,7 @@ std::pair<std::string, int> multiply_basis_elements(std::string const& a,
     }
 
     // Find the canonical form of this basis element in the user-provided basis
-    for (const std::string& canonical : config.multivector_basis) {
+    for (std::string const& canonical : config.multivector_basis) {
         if (canonical == config.scalar_name) continue;
 
         auto canonical_indices = parse_indices(canonical, config.basis_prefix);
@@ -520,8 +523,8 @@ prd_rules generate_ordered_rules(
     auto basis = generate_basis(config);
 
     // Generate rules in grade order by iterating through ordered basis
-    for (const auto& a : basis) {
-        for (const auto& b : basis) {
+    for (auto const& a : basis) {
+        for (auto const& b : basis) {
             auto [result, sign] = multiply_func(a, b, config);
 
             // Create key using consistent operators from common header
@@ -1252,7 +1255,7 @@ prd_rules generate_cmpl_from_wedge_table(AlgebraConfig const& config,
 
     // For each basis element, find its complement using table lookup
     for (size_t i = 0; i < basis_size; ++i) {
-        const std::string& basis_element = config.multivector_basis[i];
+        std::string const& basis_element = config.multivector_basis[i];
         bool found_cmpl = false;
 
         // Special case: scalar complement is always the pseudoscalar
@@ -1271,7 +1274,7 @@ prd_rules generate_cmpl_from_wedge_table(AlgebraConfig const& config,
                 // Search column i for pseudoscalar
                 for (size_t row = 0; row < basis_size; ++row) {
                     if (row < wedge_table.size() && i < wedge_table[row].size()) {
-                        const std::string& table_entry = wedge_table[row][i];
+                        std::string const& table_entry = wedge_table[row][i];
                         if (table_entry == pseudoscalar) {
                             complement_rules[basis_element] =
                                 config.multivector_basis[row];
@@ -1293,7 +1296,7 @@ prd_rules generate_cmpl_from_wedge_table(AlgebraConfig const& config,
                 if (i < wedge_table.size()) {
                     for (size_t col = 0; col < basis_size && col < wedge_table[i].size();
                          ++col) {
-                        const std::string& table_entry = wedge_table[i][col];
+                        std::string const& table_entry = wedge_table[i][col];
                         if (table_entry == pseudoscalar) {
                             complement_rules[basis_element] =
                                 config.multivector_basis[col];
@@ -1404,7 +1407,7 @@ prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
 
     // For each basis element
     for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
+        std::string const& basis_element = basis[i];
 
         // Step 1: Apply complement to input basis element
         auto it_cmpl = complement_rules.find(basis_element);
@@ -1501,7 +1504,7 @@ prd_rules generate_l_weight_dual_rules(AlgebraConfig const& config,
 
     // For each basis element
     for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
+        std::string const& basis_element = basis[i];
 
         // Step 1: Apply l_cmpl to input basis element
         auto it_lcmpl = l_cmpl_rules.find(basis_element);
@@ -1584,7 +1587,7 @@ prd_rules generate_r_weight_dual_rules(AlgebraConfig const& config,
 
     // For each basis element
     for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
+        std::string const& basis_element = basis[i];
 
         // Step 1: Apply r_cmpl to input basis element
         auto it_rcmpl = r_cmpl_rules.find(basis_element);
@@ -1793,7 +1796,7 @@ bool validate_rules(prd_rules const& generated, prd_rules const& reference)
         return false;
     }
 
-    for (const auto& [key, value] : reference) {
+    for (auto const& [key, value] : reference) {
         auto it = generated.find(key);
         if (it == generated.end() || it->second != value) {
             return false;
@@ -1809,7 +1812,7 @@ void print_rule_comparison(prd_rules const& generated, prd_rules const& referenc
     fmt::println("Validating {} rules:", product_name);
 
     bool all_match = true;
-    for (const auto& [key, ref_value] : reference) {
+    for (auto const& [key, ref_value] : reference) {
         auto it = generated.find(key);
         if (it == generated.end()) {
             fmt::println("  MISSING: {} -> {}", key, ref_value);

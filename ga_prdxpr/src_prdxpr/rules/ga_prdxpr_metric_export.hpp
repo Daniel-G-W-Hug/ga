@@ -1,8 +1,7 @@
+#pragma once
+
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
-
-#ifndef GA_PRDXPR_METRIC_EXPORT_HPP
-#define GA_PRDXPR_METRIC_EXPORT_HPP
 
 #include "rules/ga_prdxpr_rule_generator.hpp"
 #include <mdspan>
@@ -47,5 +46,3 @@ std::string export_pga_metrics_to_code(std::string const& algebra_name,
 
 // Print all metrics for an algebra to stdout (ready for copy-paste)
 void print_metrics_for_algebra(AlgebraConfig const& config);
-
-#endif // GA_PRDXPR_METRIC_EXPORT_HPP
