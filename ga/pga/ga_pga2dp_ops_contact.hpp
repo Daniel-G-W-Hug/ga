@@ -49,8 +49,9 @@
 #include "../ga_value_t.hpp"             // value_t
 #include "ga_pga2dp_ops_constraints.hpp" // closed_loop_system2dp
 
-#include <cmath>   // std::abs, std::sqrt
-#include <cstddef> // size_t
+#include <cmath>     // std::abs, std::sqrt
+#include <cstddef>   // size_t
+#include <stdexcept> // std::invalid_argument
 #include <string>
 #include <vector>
 
@@ -105,6 +106,23 @@ class ground_contact2dp {
         value_t const nn = std::sqrt(n_.x * n_.x + n_.y * n_.y);
         n_ = vec2dp{n_.x / nn, n_.y / nn, 0.0};
     }
+
+    // A COPY OF THE LAYER, ATTACHED TO A COPY OF ITS SYSTEM -- a forecast run on a copied
+    // state. The layer acts through a pointer to its system, so a plain copy would keep
+    // stepping the ORIGINAL; that is why the plain copy is not public. `cl` must be a
+    // copy of the system this layer was built on: the contacts' loop constraints and
+    // ground frames live there, by index (a system with a different loop count is
+    // refused). Functions registered on the system are copied as they are, so one that
+    // captured the original system by reference still reads the original.
+    ground_contact2dp(ground_contact2dp const& other, closed_loop_system2dp& cl) :
+        ground_contact2dp(other)
+    {
+        if (cl.loop_count() != other.cl_->loop_count())
+            throw std::invalid_argument(
+                "ground_contact2dp: the system is not a copy of the layer's system");
+        cl_ = &cl;
+    }
+    ground_contact2dp& operator=(ground_contact2dp const&) = delete;
 
     // the ground line through two points; ABOVE the ground is to the left of P0 -> P1
     // (a floor: P0 = (0, y0), P1 = (1, y0))
@@ -373,6 +391,10 @@ class ground_contact2dp {
     }
 
   private:
+
+    // the plain copy still points at the original system: reached only through the
+    // re-attaching copy above
+    ground_contact2dp(ground_contact2dp const&) = default;
 
     static constexpr size_t npos = size_t(-1);
 

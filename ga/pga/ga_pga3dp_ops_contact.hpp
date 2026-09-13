@@ -50,8 +50,9 @@
 #include "../ga_value_t.hpp"             // value_t
 #include "ga_pga3dp_ops_constraints.hpp" // closed_loop_system3dp
 
-#include <cmath>   // std::abs, std::sqrt
-#include <cstddef> // size_t
+#include <cmath>     // std::abs, std::sqrt
+#include <cstddef>   // size_t
+#include <stdexcept> // std::invalid_argument
 #include <string>
 #include <vector>
 
@@ -108,6 +109,23 @@ class ground_contact3dp {
         value_t const nn = std::sqrt(n_.x * n_.x + n_.y * n_.y + n_.z * n_.z);
         n_ = vec3dp{n_.x / nn, n_.y / nn, n_.z / nn, 0.0};
     }
+
+    // A COPY OF THE LAYER, ATTACHED TO A COPY OF ITS SYSTEM -- a forecast run on a copied
+    // state. The layer acts through a pointer to its system, so a plain copy would keep
+    // stepping the ORIGINAL; that is why the plain copy is not public. `cl` must be a
+    // copy of the system this layer was built on: the contacts' loop constraints and
+    // ground frames live there, by index (a system with a different loop count is
+    // refused). Functions registered on the system are copied as they are, so one that
+    // captured the original system by reference still reads the original.
+    ground_contact3dp(ground_contact3dp const& other, closed_loop_system3dp& cl) :
+        ground_contact3dp(other)
+    {
+        if (cl.loop_count() != other.cl_->loop_count())
+            throw std::invalid_argument(
+                "ground_contact3dp: the system is not a copy of the layer's system");
+        cl_ = &cl;
+    }
+    ground_contact3dp& operator=(ground_contact3dp const&) = delete;
 
     // the ground plane through three points; ABOVE the ground is the side the normal
     // of P0 -> P1 -> P2 (right-handed) points to (a floor z = z0: (0,0,z0), (1,0,z0),
@@ -392,6 +410,10 @@ class ground_contact3dp {
     }
 
   private:
+
+    // the plain copy still points at the original system: reached only through the
+    // re-attaching copy above
+    ground_contact3dp(ground_contact3dp const&) = default;
 
     static constexpr size_t npos = size_t(-1);
 

@@ -2551,6 +2551,68 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: ground_contact3dp - a copy attached to a copied system")
+    {
+        fmt::println("pga3dp: ground_contact3dp - copying the layer with its system");
+
+        // The 2D gate in space: the event chapter's tilted rod is copied before its first
+        // touchdown, layer and system together; both pairs run through the touchdown
+        // bit for bit, and the copy stepped alone leaves the original where it is.
+        value_t const m = 2.0, L = 1.0, h_ = 0.02, g = 9.81, dt = 1.0e-3;
+        auto const floor = ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{0.0, 1.0, 0.0, 1.0});
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -g, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, 0.5, 1.0},
+                                    vec3dp{0.0, -0.1, 0.0, 0.0}),
+                    make_cuboid_body(m, L, h_, h_));
+        size_t const rod = cl.index_of("rod");
+        ground_contact3dp gc(cl, floor);
+        gc.add({rod, vec3dp{-0.5, 0.0, 0.0, 1.0}});
+        gc.add({rod, vec3dp{0.5, 0.0, 0.0, 1.0}});
+        for (int i = 0; i < 250; ++i) // the lower end lands at t* = 0.303 s
+            gc.step(dt);
+        REQUIRE(gc.events().empty());
+
+        closed_loop_system3dp cl_copy = cl;
+        ground_contact3dp gc_copy(gc, cl_copy);
+        for (int i = 0; i < 600; ++i) {
+            gc.step(dt);
+            gc_copy.step(dt);
+        }
+        auto end_of = [&](closed_loop_system3dp& s) {
+            return unitize(
+                move3dp(vec3dp{0.5, 0.0, 0.0, 1.0}, s.system().get_pos_trafo(rod, 0)));
+        };
+        REQUIRE(!gc.events().empty());
+        REQUIRE(gc_copy.events().size() == gc.events().size());
+        for (size_t k = 0; k < gc.events().size(); ++k)
+            CHECK(gc_copy.events()[k].t == gc.events()[k].t);
+        vec3dp const P = end_of(cl), Pc = end_of(cl_copy);
+        CHECK(Pc.x == P.x); // identical, not close
+        CHECK(Pc.y == P.y);
+        CHECK(Pc.z == P.z);
+
+        value_t const t0 = cl.system().time();
+        size_t const n0 = gc.events().size();
+        for (int i = 0; i < 200; ++i)
+            gc_copy.step(dt);
+        CHECK(cl.system().time() == t0);
+        CHECK(gc.events().size() == n0);
+        CHECK(end_of(cl).z == P.z);
+        CHECK(cl_copy.system().time() > t0 + 0.19);
+        fmt::println("  {} events in both, the far end at ({:+.9f}, {:+.9f}, {:+.9f}) in "
+                     "both; the copy ran 200 ms on alone",
+                     n0, P.x, P.y, P.z);
+
+        closed_loop_system3dp bare;
+        bare.add_frame(static_frame3dp("W"));
+        CHECK_THROWS_AS(ground_contact3dp(gc, bare), std::invalid_argument);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: ground_contact3dp - the reaction wrench and the ZMP as a meet")
     {
         fmt::println("pga3dp: ground_contact3dp - reaction_wrench() and zmp()");
