@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 import re
 import sys
 from collections import defaultdict
@@ -30,13 +31,50 @@ def _rel_source(file) -> str:
     libclang returns absolute OS-native paths which differ between platforms.
     Storing a project-root-relative POSIX path makes manifest.json identical
     across macOS, Linux, and Windows regardless of where the repo is cloned.
+
+    The path is normalised LEXICALLY (os.path.normpath, no filesystem access and
+    no symlink following) because libclang reports the path as SPELLED, not as
+    resolved. A header first reached through a `../` include therefore arrives as
+    e.g. `ga/detail/fmt/../../ga_usr_geodesics.hpp` — a second spelling of a file
+    already known as `ga/ga_usr_geodesics.hpp`. Since the merge of the four
+    per-umbrella parses keys on this string, the two spellings dedupe as
+    different files and every declaration in that header (and in everything IT
+    includes by a quoted relative path) is recorded twice. Measured when
+    ga_fmt_geodesics.hpp gained its own include of ga_usr_geodesics.hpp: 692
+    duplicate overloads, e.g. `enu_at` 2 -> 8 and `rotate` 15 -> 20.
     """
     if file is None:
         return ""
+    name = os.path.normpath(file.name)
     try:
-        return Path(file.name).relative_to(PROJECT_ROOT).as_posix()
+        return Path(name).relative_to(PROJECT_ROOT).as_posix()
     except ValueError:
-        return Path(file.name).as_posix()  # outside project root — keep absolute
+        return Path(name).as_posix()  # outside project root — keep absolute
+
+
+def _unseen(key, overloads, seen: set[tuple]) -> list:
+    """Keep the overloads of `key` not already merged from an earlier parse.
+
+    `collect()`'s own dedup set is per translation unit, so it cannot see that
+    the four umbrella headers OVERLAP: any header reachable from more than one
+    of them contributes its declarations once per parse. The merge below is
+    where that shows, so the cross-parse identity lives here -- same key as
+    collect's, on the merged side.
+
+    A declaration is the SAME declaration when it agrees on all of these; the
+    file and line are what separates two genuinely distinct overloads that a
+    scan cannot otherwise tell apart (identical signatures in different
+    headers).
+    """
+    out = []
+    for ov in overloads:
+        k = (*key, ov.return_type, tuple(ov.param_types), ov.source_file,
+             ov.source_line)
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(ov)
+    return out
 
 
 def _norm_canonical(spelling: str) -> str:
@@ -552,6 +590,7 @@ def main() -> int:
     all_ns: set[str] = set()
     all_consts: dict[tuple[str, str], Constant] = {}
     all_enums: dict[tuple[str, str], Enum] = {}
+    merged_overload_keys: set[tuple] = set()
 
     for rel in SOURCE_HEADERS:
         path = PROJECT_ROOT / rel
@@ -567,9 +606,9 @@ def main() -> int:
         for t in types:
             all_types.setdefault((t.namespace, t.name), t)
         for k, v in funcs.items():
-            all_funcs[k].extend(v)
+            all_funcs[k].extend(_unseen(k, v, merged_overload_keys))
         for k, v in ops.items():
-            all_ops[k].extend(v)
+            all_ops[k].extend(_unseen(k, v, merged_overload_keys))
         all_ns |= ns
         for c in consts:
             all_consts.setdefault((c.namespace, c.name), c)
