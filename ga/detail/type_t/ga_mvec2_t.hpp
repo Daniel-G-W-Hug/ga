@@ -4,9 +4,8 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <array>    // std::array (componentwise comparison)
-#include <cmath>    // std::abs, std::sqrt
 #include <concepts> // numeric_type<T>
-#include <iostream> // std::ostream
+#include <ostream>  // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_scalar_t.hpp" // Scalar_t<T, Tag> (graded ctor)

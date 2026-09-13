@@ -3,14 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include <algorithm> // std::max
-#include <array>     // std::array (componentwise comparison)
-#include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // numeric_type<T>
-#include <iostream>  // std::cout, std::ostream
-#include <limits>    // std::numeric_limits
-#include <stdexcept> // std::runtime_error
-#include <string>    // std::string, std::to_string
+#include <array>    // std::array (componentwise comparison)
+#include <concepts> // numeric_type<T>
+#include <ostream>  // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"

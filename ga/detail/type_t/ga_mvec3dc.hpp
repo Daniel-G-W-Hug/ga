@@ -3,9 +3,10 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_mvec3dc_e.hpp"
-#include "ga_mvec3dc_u.hpp"
-#include "ga_type3dc.hpp"
+#include "ga_type3dc.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
+
+#include "ga_mvec3dc_e.hpp" // even-grade multivector
+#include "ga_mvec3dc_u.hpp" // uneven- or odd-grade multivector
 
 
 namespace hd::ga {

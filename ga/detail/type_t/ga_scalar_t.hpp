@@ -12,13 +12,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-#include <array>     // std::array (componentwise comparison)
-#include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point etc.
-#include <iostream>  // std::ostream
-#include <limits>    // std::numeric_limits
-#include <stdexcept> // std::runtime_error
-#include <string>    // std::string, std::to_string
+#include <array>    // std::array (componentwise comparison)
+#include <cmath>    // std::abs, std::sqrt
+#include <concepts> // std::floating_point etc.
+#include <ostream>  // std::ostream
 
 // provide common type for Scalar2d<T>, Scalar3d<T>, ..., PScalar2d<T>, PScalar3d<T>, ...
 

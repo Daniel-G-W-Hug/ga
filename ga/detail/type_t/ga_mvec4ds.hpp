@@ -5,8 +5,8 @@
 
 #include "ga_type4ds.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec4ds_e.hpp" // even grade multivector
-#include "ga_mvec4ds_u.hpp" // uneven (or odd) grade multivector
+#include "ga_mvec4ds_e.hpp" // even-grade multivector
+#include "ga_mvec4ds_u.hpp" // uneven- or odd-grade multivector
 
 
 namespace hd::ga {
