@@ -113,7 +113,7 @@ is silent in both directions:
 
 That is how `ga/CMakeLists.txt` came to be missing **29 of its 101 headers**: the
 entire CGA algebra (`ga_cga.hpp`, both `ops` triples, the six `mvec*dc` headers,
-`ga_cga_types.hpp`, `ga_fmt_cga.hpp`) plus its storage primitives `vec5_t`,
+`ga_fmt_cga.hpp`) plus its storage primitives `vec5_t`,
 `bvec10_t`, `mvec32_t`, and later additions -- the three `ops_calculus` headers,
 both `ops_contact` headers, `ga_usr_fd.hpp`, `ga_usr_geodesics.hpp`. Each was
 added over months by someone who never had a reason to open the build file. The
@@ -430,8 +430,12 @@ the whole tree or hand-rolling a helper:
 | `ga/detail/ga_stencil.hpp` | finite-difference stencil generator — `stencil_t` (Fornberg-style weights, order, truncation error via `lu_decomp`/`lu_backsubs`), `fact` (compile-time table, no mutable statics). Its three point sets (f, f', f'') are independent and `x0` need not be a node, so explicit, compact/Padé, staggered and Hermite stencils are all one construction. The order test is RELATIVE to the residual's own magnitude, hence scale-independent, and it THROWS rather than reporting order 0 — an absolute threshold silently misreported every order ≥ 8 |
 | `ga/ga_usr_fd.hpp` | the algebra-independent finite-difference substrate the calculus headers build on: `fd_scheme`; the builders `make_scheme` (the general one — any node set, `x0` off-node, plus `aux_nodes` for supplied f'/f'' data), `central_scheme`, `staggered_scheme` (midpoint/Yee), `compact_scheme` (implicit Padé — couples neighbouring derivative values, so it needs a grid and cannot be evaluated at a point), `scheme_at` (arbitrary/stretched grids; minimal CENTRED footprint inside, widened one-sided closures at the ends); `apply_scheme<T>` (the one weight-application loop, shared by all three calculus headers), `fd_derivative`, `fd_step` (uses the leading truncation COEFFICIENT, not just the order, reproducing the textbook `cbrt(3·eps)`). Coordinates go to `stencil_t` as they are — no normalisation |
 
-`ga/detail/` also holds the foundation the user types are built on (`ga_core_types`,
-`ga_ega_types`, `ga_pga_types`, `ga_sta_types`, `ga_error_handling`, `ga_fmt_support`).
+`ga/detail/` also holds the foundation the user types are built on
+(`ga_foundation`, `ga_error_handling`, `ga_fmt_support`). The per-algebra
+aggregation headers that used to sit beside them (`ga_core_types`, `ga_ega_types`,
+`ga_pga_types`, `ga_sta_types`, `ga_cga_types`) were retired on 2026-09-13: only the
+two CGA `ops_basics` ever included one, the other three were dead, and every
+`ops_basics` now names the `detail/type_t/` headers it actually uses.
 The two umbrella headers `ga/ga_ega.hpp` and `ga/ga_pga.hpp` include the whole stack in
 the right order, so user code includes only those (see "Library Usage Patterns"). When a
 numeric helper seems missing, the solver and `rk4_step` above are the usual answer —

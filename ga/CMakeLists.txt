@@ -14,12 +14,7 @@ set(HEADERS
     detail/ga_fmt_support.hpp
     #
     detail/ga_error_handling.hpp
-    detail/ga_core_types.hpp
     detail/ga_foundation.hpp
-    detail/ga_ega_types.hpp
-    detail/ga_pga_types.hpp
-    detail/ga_sta_types.hpp
-    detail/ga_cga_types.hpp
     detail/ga_solver.hpp
     detail/ga_stencil.hpp
     #

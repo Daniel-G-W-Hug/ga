@@ -3,8 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "detail/ga_cga_types.hpp"  // cga2dc types incl. multivector wrappers
-#include "detail/ga_foundation.hpp" // ga library headers and infrastructure
+#include "detail/ga_foundation.hpp"     // ga library headers and infrastructure
+#include "detail/type_t/ga_mvec2dc.hpp" // cga2dc multivectors incl. even/uneven
+#include "detail/type_t/ga_type2dc.hpp" // cga2dc concrete types
 
 #include "detail/ga_error_handling.hpp" // unitize() zero-division checks
 
