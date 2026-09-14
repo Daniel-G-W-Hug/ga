@@ -15,7 +15,9 @@
 
 #include "fmt/format.h"
 
+#include <algorithm> // std::max
 #include <cmath>     // std::sin, std::cos, std::abs, std::log2, std::cbrt
+#include <cstdint>   // std::uint64_t
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::invalid_argument
 #include <vector>    // std::vector
@@ -1197,6 +1199,100 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             auto const x1 = lstsq_solve(M, r, 3), x2 = normal_eq(M, r, 3);
             for (size_t k = 0; k < 3; ++k)
                 CHECK(x1[k] == doctest::Approx(x2[k]).epsilon(1e-11));
+        }
+
+        // A SWEEP, because one fixed matrix per regime is not enough. Wherever the rank
+        // is below the column count, the complete orthogonal decomposition factors [R11
+        // R12]^T by a second QR, and that QR pivots its columns too. Applying its
+        // permutation the wrong way round is invisible when the permutation is its own
+        // inverse -- the identity, or one swap, as for the 4 x 9 case above -- and gave a
+        // step that did not solve A x = b at all for a 6 x 9 constraint Jacobian whose
+        // permutation was a longer cycle (a closed loop whose position Newton then
+        // diverged from a 1e-6 error). Seeded pseudo-random entries, every
+        // underdetermined shape up to 6 x 10: x must solve the system and equal A^T (A
+        // A^T)^-1 b.
+        std::uint64_t seed = 0x9E3779B97F4A7C15ull;
+        auto rnd = [&seed]() {
+            seed = seed * 6364136223846793005ull + 1442695040888963407ull;
+            return double(seed >> 11) / double(std::uint64_t(1) << 53) * 2.0 - 1.0;
+        };
+        {
+            size_t n_cases = 0;
+            double worst_res = 0.0, worst_ne = 0.0;
+            for (size_t m = 2; m <= 6; ++m)
+                for (size_t nc = m + 1; nc <= 10; ++nc)
+                    for (int rep = 0; rep < 20; ++rep, ++n_cases) {
+                        std::vector<double> M(m * nc), r(m);
+                        for (auto& v : M)
+                            v = rnd();
+                        for (auto& v : r)
+                            v = rnd();
+                        auto const x1 = lstsq_solve(M, r, nc), x2 = normal_eq(M, r, nc);
+                        for (size_t i = 0; i < m; ++i) {
+                            double acc = -r[i];
+                            for (size_t k = 0; k < nc; ++k)
+                                acc += M[i * nc + k] * x1[k];
+                            worst_res = std::max(worst_res, std::abs(acc));
+                        }
+                        for (size_t k = 0; k < nc; ++k)
+                            worst_ne = std::max(worst_ne, std::abs(x1[k] - x2[k]));
+                    }
+            CHECK(worst_res < 1e-9);
+            CHECK(worst_ne < 1e-8);
+            fmt::println("  {} underdetermined systems: max |A x - b| {:.1e}, max |x - "
+                         "A^T (A A^T)^-1 b| {:.1e}",
+                         n_cases, worst_res, worst_ne);
+        }
+        // ... and the RANK-DEFICIENT route through the same second QR, in both shapes:
+        // A = U V^T of rank r. A^+ b is characterised by A^T (A x - b) = 0 (least
+        // squares) and x orthogonal to the null space of A (least norm)
+        {
+            struct shape {
+                size_t m, nc, r;
+            };
+            size_t n_cases = 0;
+            double worst_ls = 0.0, worst_null = 0.0;
+            for (shape const sh : {shape{8, 5, 3}, shape{5, 8, 3}, shape{6, 9, 4}})
+                for (int rep = 0; rep < 20; ++rep, ++n_cases) {
+                    std::vector<double> U(sh.m * sh.r), V(sh.nc * sh.r), bd(sh.m);
+                    for (auto& v : U)
+                        v = rnd();
+                    for (auto& v : V)
+                        v = rnd();
+                    for (auto& v : bd)
+                        v = rnd();
+                    std::vector<double> Ad(sh.m * sh.nc, 0.0);
+                    for (size_t i = 0; i < sh.m; ++i)
+                        for (size_t j = 0; j < sh.nc; ++j)
+                            for (size_t k = 0; k < sh.r; ++k)
+                                Ad[i * sh.nc + j] += U[i * sh.r + k] * V[j * sh.r + k];
+                    size_t rk = 0;
+                    auto const xd = minnorm_solve(Ad, bd, sh.nc, &rk);
+                    CHECK(rk == sh.r);
+                    for (size_t k = 0; k < sh.nc; ++k) {
+                        double s = 0.0;
+                        for (size_t i = 0; i < sh.m; ++i) {
+                            double res = -bd[i];
+                            for (size_t j = 0; j < sh.nc; ++j)
+                                res += Ad[i * sh.nc + j] * xd[j];
+                            s += Ad[i * sh.nc + k] * res;
+                        }
+                        worst_ls = std::max(worst_ls, std::abs(s));
+                    }
+                    size_t const kn = sh.nc - sh.r;
+                    auto const N = nullspace_basis(Ad, sh.m, sh.nc);
+                    for (size_t c = 0; c < kn; ++c) {
+                        double dot = 0.0;
+                        for (size_t j = 0; j < sh.nc; ++j)
+                            dot += xd[j] * N[j * kn + c];
+                        worst_null = std::max(worst_null, std::abs(dot));
+                    }
+                }
+            CHECK(worst_ls < 1e-9);
+            CHECK(worst_null < 1e-9);
+            fmt::println("  {} rank-deficient systems: max |A^T (A x - b)| {:.1e}, max "
+                         "|x . null| {:.1e}",
+                         n_cases, worst_ls, worst_null);
         }
         fmt::println("");
     }

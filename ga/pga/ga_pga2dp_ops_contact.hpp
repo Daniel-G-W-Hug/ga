@@ -36,6 +36,17 @@
 // TIPPING when that leaves the foot (|cop| > half_length); the transition to a point
 // contact at the edge is left to the caller (a gait decides what a tipping foot does).
 //
+// A SEGMENT contact (spec.segment, a second point end_b) is a rigid segment standing on
+// the ground line -- a sole, an edge, a rod -- and the layer runs its transitions: while
+// only one end is down that end is a pin; when the other end lands, or both land within
+// the simultaneity window, the segment is WELDED flat at its first point, at the exact
+// touchdown and inside the same impact map; a flat segment whose centre of pressure lies
+// beyond one of its ends ROLLS onto a pin at that end (a lift-off of the other end); and
+// a segment lifts off by the rule of every contact. Two pins on one rigid segment would
+// over-constrain it -- four rows on three degrees of freedom, exactly dependent while the
+// segment is level and NEARLY dependent once it tilts by a hair, where the solve returns
+// enormous reactions -- so the modes never hold more than three rows.
+//
 // The ground is a LINE (bivec2dp), so a slope is as natural as a floor: the signed
 // height of a point is the incidence wdg(P, L) (a point on the line has zero, above =
 // to the left of the line's direction P0 -> P1), the landing point is project_onto(P,
@@ -49,6 +60,7 @@
 #include "../ga_value_t.hpp"             // value_t
 #include "ga_pga2dp_ops_constraints.hpp" // closed_loop_system2dp
 
+#include <algorithm> // std::min
 #include <cmath>     // std::abs, std::sqrt
 #include <cstddef>   // size_t
 #include <stdexcept> // std::invalid_argument
@@ -58,7 +70,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides unilateral ground-contact operations:
 //
-// - contact_kind2dp                     -> point (a pin) / flat (a weld: the flat foot)
+// - contact_kind2dp                     -> point (a pin) / flat (a weld: the flat foot);
+//                                          a SEGMENT spec (a second point) switches
+//                                          between the two by itself
 // - ground_contact2dp                   -> the event layer: step(), heights, reactions,
 //                                          the centre of pressure, the unilateral switch;
 //                                          its nested spec (which frame point touches,
@@ -85,6 +99,11 @@ class ground_contact2dp {
                                   // foot, or a held-torso statics whose pins pull by
                                   // construction) -- it lands and can be released by
                                   // hand, but the lift-off rule leaves it alone
+        // a SEGMENT: the rigid segment from point_b to end_b (the same frame) standing on
+        // the ground -- the layer switches it between a pin at either end and a weld at
+        // point_b (see the header); `kind` and `half_length` are not used by it
+        bool segment{false};
+        vec2dp end_b{0.0, 0.0, 1.0};
     };
 
     struct event {
@@ -93,6 +112,7 @@ class ground_contact2dp {
         bool touchdown{};             // true: touchdown (with impact), false: lift-off
         vec2dp point{};               // the world point it happened at
         std::vector<value_t> impulse; // touchdown: the impact map's Lambda (all rows)
+        size_t end{0}; // a segment: the end it happened at (0 = point_b, 1 = end_b)
     };
 
     // the ground line and the tree frame the contacts are anchored to (the world root)
@@ -148,7 +168,8 @@ class ground_contact2dp {
         c.pin = cl_->add_loop_constraint(loop_constraint2dp{
             spec.frame, spec.point_b, ground_frame_, P, constraint2dp::coincidence});
         cl_->set_loop_active(c.pin, false);
-        if (spec.kind == contact_kind2dp::flat) {
+        if (spec.segment) c.spec.kind = contact_kind2dp::point; // its state, not a choice
+        if (spec.kind == contact_kind2dp::flat || spec.segment) {
             std::string const name = "ground_contact_" + std::to_string(contacts_.size());
             cl_->add_frame(static_frame2dp(name, P, 0.0), ground_frame_);
             c.ground = cl_->index_of(name);
@@ -172,53 +193,74 @@ class ground_contact2dp {
         int guard = 0;
         while (remaining > 0.0 && guard++ < 16) {
             closed_loop_system2dp const before = *cl_;
-            std::vector<value_t> h0(contacts_.size());
-            for (size_t c = 0; c < contacts_.size(); ++c)
-                h0[c] = contact_height(c);
-            cl_->step(remaining);
-            // the first contact that crossed the ground downward in this interval
-            size_t hit = contacts_.size();
-            value_t tau = remaining;
-            std::vector<value_t> t_cross(contacts_.size(), value_t(-1.0));
+            // the points that may touch down: an inactive contact's point; a segment's
+            // two ends while it is off the ground, its free end while one end is pinned
+            std::vector<landing> cand;
             for (size_t c = 0; c < contacts_.size(); ++c) {
+                contact const& k = contacts_[c];
+                if (!k.active) {
+                    cand.push_back({c, 0});
+                    if (k.spec.segment) cand.push_back({c, 1});
+                }
+                else if (k.spec.segment && k.pinned_end >= 0)
+                    cand.push_back({c, size_t(1 - k.pinned_end)});
+            }
+            std::vector<value_t> h0(cand.size());
+            for (size_t i = 0; i < cand.size(); ++i)
+                h0[i] = height(end_point(cand[i].idx, cand[i].end));
+            cl_->step(remaining);
+            // the first point that crossed the ground downward in this interval
+            size_t hit = cand.size();
+            value_t tau = remaining;
+            std::vector<value_t> t_cross(cand.size(), value_t(-1.0));
+            for (size_t i = 0; i < cand.size(); ++i) {
                 // (h0 >= -1e-9: a foot released at the ground line sits at a height
                 // of round-off size, possibly negative; it must still be able to land)
-                if (contacts_[c].active || h0[c] < -1e-9 || contact_height(c) >= 0.0)
+                if (h0[i] < -1e-9 || height(end_point(cand[i].idx, cand[i].end)) >= 0.0)
                     continue;
                 // bisection on tau in (0, remaining]: not crossed at 0, crossed at
                 // remaining; a copy of the pre-event state is stepped by tau
                 value_t lo = 0.0, hi = remaining;
-                for (int i = 0; i < 60 && hi - lo > tol; ++i) {
+                for (int j = 0; j < 60 && hi - lo > tol; ++j) {
                     value_t const mid = 0.5 * (lo + hi);
                     closed_loop_system2dp trial = before;
                     trial.step(mid);
-                    if (height(trial_point(trial, c)) < 0.0) hi = mid;
+                    if (height(trial_point(trial, cand[i].idx, cand[i].end)) < 0.0)
+                        hi = mid;
                     else lo = mid;
                 }
-                t_cross[c] = hi;
+                t_cross[i] = hi;
                 if (hi < tau) {
                     tau = hi;
-                    hit = c;
+                    hit = i;
                 }
             }
-            if (hit == contacts_.size()) break; // no event: the whole interval is done
-            // every contact crossing within the simultaneity window of the first lands
+            if (hit == cand.size()) break; // no event: the whole interval is done
+            // every point crossing within the simultaneity window of the first lands
             // with it (a negative window: the first one alone)
-            std::vector<size_t> landing{hit};
-            for (size_t c = 0; c < contacts_.size(); ++c)
-                if (c != hit && t_cross[c] >= 0.0 && t_cross[c] <= tau + simultaneity_)
-                    landing.push_back(c);
+            std::vector<landing> lands{cand[hit]};
+            for (size_t i = 0; i < cand.size(); ++i)
+                if (i != hit && t_cross[i] >= 0.0 && t_cross[i] <= tau + simultaneity_)
+                    lands.push_back(cand[i]);
             *cl_ = before;
             cl_->step(tau);
-            touchdown(landing);
+            touchdown(lands);
             remaining -= tau;
         }
-        // lift-off: an active contact whose normal reaction pulls is released
+        // lift-off: an active contact whose normal reaction pulls is released; a flat
+        // segment whose centre of pressure lies beyond an end rolls onto that end
         read_reactions();
-        for (size_t c = 0; c < contacts_.size(); ++c)
+        bool rolled = false;
+        for (size_t c = 0; c < contacts_.size(); ++c) {
+            if (contacts_[c].active && contacts_[c].spec.segment &&
+                contacts_[c].spec.kind == contact_kind2dp::flat &&
+                contacts_[c].normal_force > 0.0)
+                rolled = roll_if_beyond(c) || rolled;
             if (contacts_[c].active && contacts_[c].spec.unilateral &&
                 contacts_[c].normal_force <= -release_threshold_ && would_separate(c))
                 release(c);
+        }
+        if (rolled) read_reactions();
     }
 
     // switch an ACTIVE contact's kind at run time (a pin becoming a flat foot when the
@@ -227,6 +269,9 @@ class ground_contact2dp {
     void set_kind(size_t idx, contact_kind2dp kind)
     {
         contact& c = contacts_[idx];
+        if (c.spec.segment)
+            throw std::invalid_argument("ground_contact2dp::set_kind: a segment's kind "
+                                        "follows its contact state");
         if (c.weld == npos && kind == contact_kind2dp::flat) {
             // a point contact promoted to flat: create its weld on demand
             std::string const name = "ground_contact_" + std::to_string(idx);
@@ -259,6 +304,32 @@ class ground_contact2dp {
     {
         contact& c = contacts_[idx];
         if (c.active) return;
+        if (c.spec.segment) {
+            // both ends on the ground: flat, welded at point_b; otherwise a pin at the
+            // lower end
+            value_t const h_0 = height(end_point(idx, 0)),
+                          h_1 = height(end_point(idx, 1));
+            if (std::abs(h_0) < 1e-6 && std::abs(h_1) < 1e-6) {
+                vec2dp const at = unitize(project_onto(end_point(idx, 0), L_));
+                pose_ground_frame(idx, at);
+                cl_->set_loop_active(c.weld, true);
+                c.spec.kind = contact_kind2dp::flat;
+                c.pinned_end = -1;
+                c.active = true;
+                events_.push_back({cl_->system().time(), idx, true, at, {}, 0});
+            }
+            else {
+                size_t const e = (h_1 < h_0) ? 1 : 0;
+                vec2dp const at = unitize(project_onto(end_point(idx, e), L_));
+                cl_->set_loop_anchors(c.pin, e == 1 ? c.spec.end_b : c.spec.point_b, at);
+                cl_->set_loop_active(c.pin, true);
+                c.pinned_end = int(e);
+                c.active = true;
+                events_.push_back({cl_->system().time(), idx, true, at, {}, e});
+            }
+            read_reactions();
+            return;
+        }
         vec2dp const at = unitize(project_onto(contact_point(idx), L_));
         if (c.spec.kind == contact_kind2dp::flat) {
             pose_ground_frame(idx, at);
@@ -283,7 +354,13 @@ class ground_contact2dp {
         c.active = false;
         c.normal_force = 0.0;
         c.moment = 0.0;
-        events_.push_back({cl_->system().time(), idx, false, contact_point(idx), {}});
+        size_t const end = (c.spec.segment && c.pinned_end == 1) ? 1 : 0;
+        events_.push_back(
+            {cl_->system().time(), idx, false, contact_point(idx), {}, end});
+        if (c.spec.segment) {
+            c.pinned_end = -1;
+            c.spec.kind = contact_kind2dp::point;
+        }
     }
 
     // --- queries ---------------------------------------------------------------
@@ -291,10 +368,23 @@ class ground_contact2dp {
     size_t count() const { return contacts_.size(); }
     bool active(size_t idx) const { return contacts_[idx].active; }
     contact_kind2dp kind(size_t idx) const { return contacts_[idx].spec.kind; }
+    // the contact's point in the world: point_b -- for a segment the pinned end (point_b
+    // while flat or off the ground), where its reaction acts
     vec2dp contact_point(size_t idx) const
     {
-        return point_world(contacts_[idx].spec.frame, contacts_[idx].spec.point_b);
+        auto const& c = contacts_[idx];
+        return point_world(c.spec.frame, (c.spec.segment && c.pinned_end == 1)
+                                             ? c.spec.end_b
+                                             : c.spec.point_b);
     }
+    // a segment's end in the world (0 = point_b, 1 = end_b; any contact's end 0 is its
+    // point), and the end it is pinned at (-1: off the ground, or flat)
+    vec2dp end_point(size_t idx, size_t end) const
+    {
+        auto const& s = contacts_[idx].spec;
+        return point_world(s.frame, (s.segment && end == 1) ? s.end_b : s.point_b);
+    }
+    int pinned_end(size_t idx) const { return contacts_[idx].pinned_end; }
     value_t contact_height(size_t idx) const { return height(contact_point(idx)); }
 
     // SIMULTANEOUS TOUCHDOWNS. Contacts that reach the ground within this time of the
@@ -323,7 +413,8 @@ class ground_contact2dp {
     bool tipping(size_t idx) const
     {
         auto const& c = contacts_[idx];
-        return c.active && c.spec.kind == contact_kind2dp::flat &&
+        // (a segment does not tip: it rolls onto its end by itself)
+        return c.active && !c.spec.segment && c.spec.kind == contact_kind2dp::flat &&
                std::abs(cop(idx)) > c.spec.half_length;
     }
 
@@ -427,6 +518,12 @@ class ground_contact2dp {
         vec2dp force{0.0, 0.0, 0.0};
         value_t normal_force{0.0};
         value_t moment{0.0};
+        int pinned_end{-1}; // a segment: the end its pin holds (-1: off, or flat)
+    };
+    // a point that may touch down: the contact, and (a segment) which end
+    struct landing {
+        size_t idx{0};
+        size_t end{0};
     };
 
     // the separation test of the lift-off rule: does the contact point move away from
@@ -437,9 +534,54 @@ class ground_contact2dp {
         closed_loop_system2dp trial = *cl_;
         trial.set_loop_active(c.pin, false);
         if (c.weld != npos) trial.set_loop_active(c.weld, false);
-        value_t const h0 = height(trial_point(trial, idx));
+        // the point that must rise: the contact's; a pinned segment's pinned end; a flat
+        // segment's LOWER end (lifting one end only is a roll, not a lift-off)
+        auto low = [&](closed_loop_system2dp& s) {
+            if (!c.spec.segment) return height(trial_point(s, idx, 0));
+            if (c.pinned_end >= 0)
+                return height(trial_point(s, idx, size_t(c.pinned_end)));
+            return std::min(height(trial_point(s, idx, 0)),
+                            height(trial_point(s, idx, 1)));
+        };
+        value_t const h0 = low(trial);
         trial.step(separation_dt_);
-        return height(trial_point(trial, idx)) > h0 + value_t(1e-9);
+        return low(trial) > h0 + value_t(1e-9);
+    }
+
+    // A flat segment rolls onto one end when the other end PULLS. The weld's reaction --
+    // normal force N and moment m about point_b -- is the same as two normal forces at
+    // the ends,
+    //
+    //     F_B = m / s_B,    F_A = N - F_B,
+    //
+    // s_B the segment's extent along the ground tangent t = (n.y, -n.x) (the direction in
+    // which a force line through point_b + s t carries the moment s N about point_b, so
+    // cop() = m / N is that s). An end pulling by more than release_threshold lets go:
+    // the weld goes, the pin holds the other end where it is (a subset of the weld's
+    // rows, which the velocities already satisfy -- no impact), and the lifted end's
+    // lift-off is recorded. Returns whether it rolled.
+    bool roll_if_beyond(size_t idx)
+    {
+        contact& c = contacts_[idx];
+        vec2dp const A = end_point(idx, 0), B = end_point(idx, 1);
+        value_t const sB = (B.x - A.x) * n_.y - (B.y - A.y) * n_.x;
+        if (std::abs(sB) < 1e-9) return false; // a segment standing on end has no lever
+        value_t const F_B = c.moment / sB, F_A = c.normal_force - F_B;
+        int e = -1;
+        if (F_A <= -release_threshold_) e = 1;      // A pulls: pinned at B
+        else if (F_B <= -release_threshold_) e = 0; // B pulls: pinned at A
+        if (e < 0) return false;
+        size_t const pe = size_t(e), other = 1 - pe;
+        cl_->set_loop_active(c.weld, false);
+        cl_->set_loop_anchors(c.pin, pe == 1 ? c.spec.end_b : c.spec.point_b,
+                              unitize(project_onto(end_point(idx, pe), L_)));
+        cl_->set_loop_active(c.pin, true);
+        c.spec.kind = contact_kind2dp::point;
+        c.pinned_end = e;
+        c.moment = 0.0;
+        events_.push_back(
+            {cl_->system().time(), idx, false, end_point(idx, other), {}, other});
+        return true;
     }
 
     value_t height_of(vec2dp const& P) const { return -value_t(wdg(P, L_)); }
@@ -448,10 +590,11 @@ class ground_contact2dp {
     {
         return unitize(move2dp(point_b, cl_->system().get_pos_trafo(frame, 0)));
     }
-    vec2dp trial_point(closed_loop_system2dp& trial, size_t idx) const
+    vec2dp trial_point(closed_loop_system2dp& trial, size_t idx, size_t end = 0) const
     {
         auto const& s = contacts_[idx].spec;
-        return unitize(move2dp(s.point_b, trial.system().get_pos_trafo(s.frame, 0)));
+        vec2dp const& p_b = (s.segment && end == 1) ? s.end_b : s.point_b;
+        return unitize(move2dp(p_b, trial.system().get_pos_trafo(s.frame, 0)));
     }
 
     // the weld's ground frame: at the landing point, with the contact frame's heading
@@ -469,27 +612,55 @@ class ground_contact2dp {
     // that window's travel, which the next step's position projection closes): each is
     // anchored at its projection onto the ground line and switched on, and ONE impact map
     // resolves them together. Each event records that shared Lambda (all active rows).
-    void touchdown(std::vector<size_t> const& idxs)
+    // A segment's end landing: a pin at that end while the segment is off the ground and
+    // its other end is not landing with it; the WELD (at point_b) when the other end is
+    // already pinned or lands in the same window
+    void touchdown(std::vector<landing> const& lands)
     {
         std::vector<vec2dp> at;
-        at.reserve(idxs.size());
-        for (size_t idx : idxs) {
+        at.reserve(lands.size());
+        for (size_t k = 0; k < lands.size(); ++k) {
+            size_t const idx = lands[k].idx, end = lands[k].end;
             contact& c = contacts_[idx];
-            vec2dp const landing = unitize(project_onto(contact_point(idx), L_));
-            if (c.spec.kind == contact_kind2dp::flat) {
-                pose_ground_frame(idx, landing);
-                cl_->set_loop_active(c.weld, true);
+            vec2dp const landing = unitize(project_onto(end_point(idx, end), L_));
+            at.push_back(landing);
+            if (!c.spec.segment) {
+                if (c.spec.kind == contact_kind2dp::flat) {
+                    pose_ground_frame(idx, landing);
+                    cl_->set_loop_active(c.weld, true);
+                }
+                else {
+                    cl_->set_loop_anchors(c.pin, c.spec.point_b, landing);
+                    cl_->set_loop_active(c.pin, true);
+                }
+                c.active = true;
+                continue;
+            }
+            bool both_now = false;
+            for (auto const& l : lands)
+                both_now = both_now || (l.idx == idx && l.end != end);
+            bool const other_pinned = c.active && c.pinned_end == int(1 - end);
+            if (both_now || other_pinned) {
+                if (c.spec.kind != contact_kind2dp::flat) { // weld once
+                    cl_->set_loop_active(c.pin, false);
+                    pose_ground_frame(idx, unitize(project_onto(end_point(idx, 0), L_)));
+                    cl_->set_loop_active(c.weld, true);
+                    c.spec.kind = contact_kind2dp::flat;
+                    c.pinned_end = -1;
+                }
             }
             else {
-                cl_->set_loop_anchors(c.pin, c.spec.point_b, landing);
+                cl_->set_loop_anchors(c.pin, end == 1 ? c.spec.end_b : c.spec.point_b,
+                                      landing);
                 cl_->set_loop_active(c.pin, true);
+                c.pinned_end = int(end);
             }
             c.active = true;
-            at.push_back(landing);
         }
         std::vector<value_t> const Lam = cl_->impact(0.0);
-        for (size_t k = 0; k < idxs.size(); ++k)
-            events_.push_back({cl_->system().time(), idxs[k], true, at[k], Lam});
+        for (size_t k = 0; k < lands.size(); ++k)
+            events_.push_back(
+                {cl_->system().time(), lands[k].idx, true, at[k], Lam, lands[k].end});
     }
 
     closed_loop_system2dp* cl_;

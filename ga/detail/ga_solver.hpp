@@ -628,15 +628,17 @@ std::vector<T> minnorm_solve(std::vector<T> const& A, std::vector<T> const& b,
         for (size_t i = 0; i < r; ++i)
             for (size_t j = i; j < ncols; ++j)
                 Tt[j * r + i] = f.qr[i * ncols + j];
-        detail::qr_factor const g =
-            detail::qr_decomp(std::move(Tt), ncols, r, 0.0); // no pivoting needed:
-        // T has full row rank r, and the pivot threshold 0 keeps every column
-        // T = (Z L^T)^T = L Z^T with L^T = R of the second factorization (upper, r x r),
-        // columns of Z permuted by g.perm. Solve L w = c_{1:r}, i.e. R^T w = c
-        // (forward substitution on the transposed upper factor), in g's column order.
+        detail::qr_factor const g = detail::qr_decomp(std::move(Tt), ncols, r, 0.0);
+        // T has full row rank r, so the threshold 0 keeps every column -- but qr_decomp
+        // still PIVOTS them: T^T P = Q R, column i of T^T P being column perm[i] of T^T.
+        // Hence T = P R^T Q^T, and T y = c becomes R^T w = P^T c with w = (Q^T y)_{1:r},
+        // where (P^T c)_i = c_{perm[i]}: the right-hand side is read in the PIVOTED order
+        // (forward substitution on the transposed upper factor). The inverse reading,
+        // c_{perm[i]} = bb_i, agrees only when the permutation is its own inverse (the
+        // identity, one swap) and otherwise returns a y that does not solve T y = c.
         std::vector<double> c(r);
         for (size_t i = 0; i < r; ++i)
-            c[g.perm[i]] = bb[i];
+            c[i] = bb[g.perm[i]];
         std::vector<double> w(r, 0.0);
         for (size_t i = 0; i < r; ++i) {
             double s = c[i];

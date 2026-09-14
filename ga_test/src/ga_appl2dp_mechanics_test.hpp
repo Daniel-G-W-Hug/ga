@@ -5753,6 +5753,170 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE(
+        "pga2dp: ground_contact2dp - a segment lands on an end, then flat, and rolls")
+    {
+        fmt::println("pga2dp: ground_contact2dp - the segment contact");
+
+        value_t const m = 2.0, L = 1.0, t = 0.02, g = 9.81, dt = 1.0e-3;
+        auto const floor =
+            ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0}, vec2dp{1.0, 0.0, 1.0});
+        auto segment = [](size_t frame, vec2dp const& A, vec2dp const& B) {
+            ground_contact2dp::spec s;
+            s.frame = frame;
+            s.point_b = A;
+            s.segment = true;
+            s.end_b = B;
+            return s;
+        };
+
+        { // A tilted rod, ONE segment contact from end to end, falls onto the floor. Its
+          // lower end lands first, at the free-fall time, as a pin (two rows); the rod
+          // swings down and the other end's touchdown welds it flat (three rows -- two
+          // pins would be four on three degrees of freedom). At rest it carries its
+          // weight with the centre of pressure at the segment's middle, and the ZMP
+          // under the centre of mass; nothing happens after that.
+            value_t const h = 0.5, th0 = 0.1;
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, -g, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            cl.add_body(static_frame2dp("rod", vec2dp{0.0, h, 1.0}, th0),
+                        make_plate_body(m, L, t));
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(segment(cl.index_of("rod"), vec2dp{-0.5, 0.0, 1.0},
+                                            vec2dp{0.5, 0.0, 1.0}));
+            CHECK(gc.pinned_end(c) == -1);
+            value_t const h_end = gc.height(gc.end_point(c, 0));
+            for (int i = 0; i < 1500 && gc.events().size() < 2; ++i) {
+                gc.step(dt);
+                if (gc.events().size() == 1) {
+                    CHECK(gc.pinned_end(c) == 0);
+                    CHECK(gc.kind(c) == contact_kind2dp::point);
+                    CHECK(cl.constraint_rows() == 2);
+                }
+            }
+            auto const ev = gc.events();
+            REQUIRE(ev.size() == 2);
+            CHECK(ev[0].touchdown);
+            CHECK(ev[0].end == 0);
+            CHECK(ev[0].t == doctest::Approx(std::sqrt(2.0 * h_end / g)).epsilon(1e-9));
+            CHECK(ev[0].impulse.size() == 2);
+            CHECK(ev[1].touchdown);
+            CHECK(ev[1].end == 1);
+            CHECK(ev[1].impulse.size() == 3); // the weld's rows, not a second pin
+            CHECK(gc.kind(c) == contact_kind2dp::flat);
+            CHECK(gc.pinned_end(c) == -1);
+            CHECK(cl.constraint_rows() == 3);
+            for (int i = 0; i < 1000; ++i)
+                gc.step(dt);
+            CHECK(gc.events().size() == 2); // at rest: no roll, no lift-off
+            CHECK(std::abs(gc.height(gc.end_point(c, 0))) < 1e-9);
+            CHECK(std::abs(gc.height(gc.end_point(c, 1))) < 1e-9);
+            CHECK(gc.normal_force(c) == doctest::Approx(m * g).epsilon(1e-6));
+            CHECK(gc.cop(c) == doctest::Approx(0.5 * L).epsilon(1e-6));
+            CHECK(!gc.tipping(c));
+            vec2dp const Z = gc.zmp();
+            CHECK(Z.x == doctest::Approx(cl.system().centre_of_mass().x).epsilon(1e-6));
+            fmt::println("  end 0 down at t = {:.9f} (pin), end 1 at {:.6f} (weld); at "
+                         "rest N = {:.4f} N, cop {:.6f} m along the segment",
+                         ev[0].t, ev[1].t, gc.normal_force(c), gc.cop(c));
+        }
+
+        // A plate standing on its bottom edge, one segment from the left corner to the
+        // right, with a vertical load off its centre. The weld's reaction, split into
+        // the two corner forces F_B = moment / s_B and F_A = N - F_B, must follow the
+        // lever rule -- a reference that does not use the layer's sign convention.
+        value_t const mp = 4.0, w = 1.0, hp = 0.1, xc = 0.2;
+        auto plate_on = [&](value_t F, value_t xF, value_t alpha, value_t y0) {
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, -g, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            vec2dp const C{xc - 0.5 * hp * std::sin(alpha),
+                           y0 + 0.5 * hp * std::cos(alpha), 1.0};
+            cl.add_body(static_frame2dp("plate", C, alpha), make_plate_body(mp, w, hp));
+            cl.system().set_applied_wrench(cl.index_of("plate"), [F, xF](value_t) {
+                return wdg(vec2dp{xF, 0.3, 1.0}, vec2dp{0.0, -F, 0.0});
+            });
+            return cl;
+        };
+        vec2dp const corner_l{-0.5 * w, -0.5 * hp, 1.0},
+            corner_r{0.5 * w, -0.5 * hp, 1.0};
+        value_t const xl = xc - 0.5 * w, xr = xc + 0.5 * w;
+
+        { // resting: both corners push, the plate stays welded
+            value_t const F = 30.0, xF = 0.45;
+            closed_loop_system2dp cl = plate_on(F, xF, 0.0, 0.0);
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(segment(cl.index_of("plate"), corner_l, corner_r));
+            gc.engage(c); // both ends on the ground: flat
+            CHECK(gc.kind(c) == contact_kind2dp::flat);
+            CHECK(cl.constraint_rows() == 3);
+            value_t const N = mp * g + F;
+            value_t const x_lever = (mp * g * xc + F * xF) / N;
+            value_t const F_r = (mp * g * (xc - xl) + F * (xF - xl)) / w;
+            CHECK(gc.normal_force(c) == doctest::Approx(N).epsilon(1e-9));
+            CHECK(gc.cop(c) == doctest::Approx(x_lever - xl).epsilon(1e-9));
+            CHECK(gc.moment(c) / w == doctest::Approx(F_r).epsilon(1e-9));
+            CHECK(gc.zmp().x == doctest::Approx(x_lever).epsilon(1e-9));
+            CHECK_THROWS_AS(gc.set_kind(c, contact_kind2dp::point),
+                            std::invalid_argument);
+            for (int i = 0; i < 200; ++i)
+                gc.step(dt);
+            CHECK(gc.events().size() == 1);
+            CHECK(gc.kind(c) == contact_kind2dp::flat);
+            fmt::println("  resting plate: cop {:.9f} (lever rule {:.9f}), right corner "
+                         "{:.6f} N (lever rule {:.6f})",
+                         gc.cop(c), x_lever - xl, gc.moment(c) / w, F_r);
+        }
+
+        { // a load beyond the right corner: the left corner would pull, so the plate
+          // ROLLS onto a pin at the right corner and the left one lifts
+            value_t const F = 200.0, xF = 0.9;
+            closed_loop_system2dp cl = plate_on(F, xF, 0.0, 0.0);
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(segment(cl.index_of("plate"), corner_l, corner_r));
+            gc.engage(c);
+            value_t const F_l = (mp * g * (xr - xc) - F * (xF - xr)) / w; // < 0: a pull
+            CHECK(F_l < -gc.release_threshold());
+            CHECK(gc.normal_force(c) - gc.moment(c) / w ==
+                  doctest::Approx(F_l).epsilon(1e-9));
+            gc.step(dt);
+            REQUIRE(gc.events().size() == 2);
+            auto const& roll = gc.events()[1];
+            CHECK(!roll.touchdown);
+            CHECK(roll.end == 0); // the left corner let go
+            CHECK(gc.active(c));
+            CHECK(gc.pinned_end(c) == 1);
+            CHECK(gc.kind(c) == contact_kind2dp::point);
+            CHECK(cl.constraint_rows() == 2);
+            value_t const x_pin = gc.contact_point(c).x;
+            CHECK(x_pin == doctest::Approx(xr).epsilon(1e-6));
+            for (int i = 0; i < 100; ++i)
+                gc.step(dt);
+            CHECK(gc.events().size() == 2);
+            CHECK(gc.pinned_end(c) == 1);
+            CHECK(gc.contact_point(c).x == doctest::Approx(x_pin).epsilon(1e-9));
+            CHECK(gc.height(gc.end_point(c, 0)) > 1.0e-3); // tipping over the corner
+            fmt::println("  loaded beyond the corner: left corner {:.4f} N -> rolled, "
+                         "left corner {:.4f} m up after 0.1 s",
+                         F_l, gc.height(gc.end_point(c, 0)));
+        }
+
+        { // placed tilted, engage pins the LOWER end
+            value_t const alpha = 0.1;
+            closed_loop_system2dp cl =
+                plate_on(0.0, 0.0, alpha, 0.5 * w * std::sin(alpha));
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(segment(cl.index_of("plate"), corner_l, corner_r));
+            CHECK(std::abs(gc.height(gc.end_point(c, 0))) < 1e-12);
+            CHECK(gc.height(gc.end_point(c, 1)) > 0.05);
+            gc.engage(c);
+            CHECK(gc.pinned_end(c) == 0);
+            CHECK(cl.constraint_rows() == 2);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga2dp: floating base - a planar space station: momentum + energy");
