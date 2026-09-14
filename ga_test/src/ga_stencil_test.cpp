@@ -1297,6 +1297,84 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 
+    TEST_CASE("minnorm_solve: a pivot CYCLE in the second QR (regression)")
+    {
+        fmt::println(
+            "minnorm_solve: a non-involutive pivot permutation in the second QR");
+
+        // The constraint Jacobian at which a closed loop's position Newton diverged: two
+        // welded segments on a floating base, 3 + 3 rows over the base's 3 coordinates
+        // and six revolute joints, full row rank. Its complete orthogonal decomposition
+        // factors [R11 R12]^T by a second, column-pivoted QR whose permutation is NOT its
+        // own inverse -- the case in which reading the permutation the wrong way round
+        // returned a step with |A x - b| as large as |b|. The property is checked first,
+        // so a change to the pivoting cannot silently turn this into an easy matrix.
+        std::vector<double> const A{
+            0.0, 1.0, 0.84709984999997001, 0.84709984999997034, 0.45751514336235116, 0.0,
+            0.0, 0.059999849999970031, 0.0,
+            // row 1
+            -1.0, 0.0, 0.28520005999992498, 0.28520005999992509, 0.19451513096493972, 0.0,
+            0.0, 0.15000005999992508, 0.0,
+            // row 2
+            0.0, 0.0, 1.0, 1.0000000000000004, 1.0000000000000004, 0.0, 0.0,
+            1.0000000000000004, 0.0,
+            // row 3
+            0.0, 1.0, 0.84709999999999974, 0.0, 0.0, 0.84710000000000019,
+            0.44958470663761912, 0.0, 0.060000000000000026,
+            // row 4
+            -1.0, 0.0, 0.014799999999999982, 0.0, 0.0, 0.014799999999999987,
+            0.059315070965014587, 0.0, 0.15000000000000005,
+            // row 5
+            0.0, 0.0, 1.0, 0.0, 0.0, 1.0000000000000004, 1.0000000000000004, 0.0,
+            1.0000000000000004};
+        std::vector<double> const b{-5.9999925083875638e-08, -1.5000002987711897e-07,
+                                    -9.9999999999246369e-07, 0.0,
+                                    -1.1666015375944028e-16, 0.0};
+        size_t const m = 6, n = 9;
+
+        // the property: the second QR's permutation is not an involution
+        auto const f = hd::ga::detail::qr_decomp(A, m, n);
+        REQUIRE(f.rank == m);
+        std::vector<double> Tt(n * m, 0.0); // [R11 R12]^T, n x m
+        for (size_t i = 0; i < m; ++i)
+            for (size_t j = i; j < n; ++j)
+                Tt[j * m + i] = f.qr[i * n + j];
+        auto const g = hd::ga::detail::qr_decomp(Tt, n, m, 0.0);
+        bool involution = true;
+        for (size_t i = 0; i < m; ++i)
+            involution = involution && (g.perm[g.perm[i]] == i);
+        REQUIRE(!involution);
+
+        // the solve: A x = b, and x = A^T (A A^T)^-1 b (the minimum-norm solution)
+        auto const x = minnorm_solve(A, b, n);
+        std::vector<double> AAt(m * m, 0.0);
+        for (size_t i = 0; i < m; ++i)
+            for (size_t k = 0; k < m; ++k)
+                for (size_t j = 0; j < n; ++j)
+                    AAt[i * m + k] += A[i * n + j] * A[k * n + j];
+        auto const y = lu_solve(AAt, b, m);
+        double bmax = 0.0, res = 0.0, dx = 0.0;
+        for (size_t i = 0; i < m; ++i) {
+            bmax = std::max(bmax, std::abs(b[i]));
+            double acc = -b[i];
+            for (size_t j = 0; j < n; ++j)
+                acc += A[i * n + j] * x[j];
+            res = std::max(res, std::abs(acc));
+        }
+        for (size_t j = 0; j < n; ++j) {
+            double xn = 0.0;
+            for (size_t i = 0; i < m; ++i)
+                xn += A[i * n + j] * y[i];
+            dx = std::max(dx, std::abs(x[j] - xn));
+        }
+        CHECK(res < 1e-12 * bmax);
+        CHECK(dx < 1e-12 * bmax);
+        fmt::println("  second-QR permutation not an involution; |A x - b| {:.1e} of |b| "
+                     "{:.1e}, |x - A^T (A A^T)^-1 b| {:.1e}",
+                     res, bmax, dx);
+        fmt::println("");
+    }
+
     TEST_CASE("kkt_solve: a rank-deficient constraint block is solved, not inflated (W1)")
     {
         fmt::println("kkt_solve: rank-deficient G -> unique x, minimum-norm multipliers");
