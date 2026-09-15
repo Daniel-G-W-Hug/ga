@@ -252,10 +252,14 @@ class ground_contact2dp {
         read_reactions();
         bool rolled = false;
         for (size_t c = 0; c < contacts_.size(); ++c) {
+            // (whatever the sign of the TOTAL normal force: a segment lifted at one end
+            // and pressed at the other pulls in total and must still roll -- measured, a
+            // sole at N -4.5 N, one end -9.7 N, stayed welded when this required N > 0)
             if (contacts_[c].active && contacts_[c].spec.segment &&
-                contacts_[c].spec.kind == contact_kind2dp::flat &&
-                contacts_[c].normal_force > 0.0)
-                rolled = roll_if_beyond(c) || rolled;
+                contacts_[c].spec.kind == contact_kind2dp::flat && roll_if_beyond(c)) {
+                rolled = true;
+                continue; // its reaction is re-read below before anything else acts
+            }
             if (contacts_[c].active && contacts_[c].spec.unilateral &&
                 contacts_[c].normal_force <= -release_threshold_ && would_separate(c))
                 release(c);
@@ -556,10 +560,12 @@ class ground_contact2dp {
     //
     // s_B the segment's extent along the ground tangent t = (n.y, -n.x) (the direction in
     // which a force line through point_b + s t carries the moment s N about point_b, so
-    // cop() = m / N is that s). An end pulling by more than release_threshold lets go:
-    // the weld goes, the pin holds the other end where it is (a subset of the weld's
-    // rows, which the velocities already satisfy -- no impact), and the lifted end's
-    // lift-off is recorded. Returns whether it rolled.
+    // cop() = m / N is that s). An end pulling by more than release_threshold lets go
+    // while the other end still pushes: the weld goes, the pin holds the pushing end
+    // where it is (a subset of the weld's rows, which the velocities already satisfy --
+    // no impact), and the lifted end's lift-off is recorded. The total N may be a pull
+    // (lifted at one end, pressed at the other). Both ends pulling is not a roll: the
+    // whole segment leaves by the lift-off rule. Returns whether it rolled.
     bool roll_if_beyond(size_t idx)
     {
         contact& c = contacts_[idx];
@@ -568,8 +574,8 @@ class ground_contact2dp {
         if (std::abs(sB) < 1e-9) return false; // a segment standing on end has no lever
         value_t const F_B = c.moment / sB, F_A = c.normal_force - F_B;
         int e = -1;
-        if (F_A <= -release_threshold_) e = 1;      // A pulls: pinned at B
-        else if (F_B <= -release_threshold_) e = 0; // B pulls: pinned at A
+        if (F_A <= -release_threshold_ && F_B > -release_threshold_) e = 1;      // onto B
+        else if (F_B <= -release_threshold_ && F_A > -release_threshold_) e = 0; // onto A
         if (e < 0) return false;
         size_t const pe = size_t(e), other = 1 - pe;
         cl_->set_loop_active(c.weld, false);

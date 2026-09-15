@@ -5914,6 +5914,36 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             CHECK(gc.pinned_end(c) == 0);
             CHECK(cl.constraint_rows() == 2);
         }
+
+        { // lifted at one end and pressed at the other: the TOTAL normal force is a pull
+          // while the pressed end still pushes -- the segment rolls onto that end (the
+          // pull is no lift-off: the pressed end would not rise)
+            value_t const Fu = 80.0, Fd = 20.0;
+            closed_loop_system2dp cl = plate_on(0.0, 0.0, 0.0, 0.0);
+            vec2dp const Pl{xl, 0.0, 1.0}, Pr{xr, 0.0, 1.0};
+            cl.system().set_applied_wrench(cl.index_of("plate"), [&](value_t) {
+                return wdg(Pl, vec2dp{0.0, Fu, 0.0}) + wdg(Pr, vec2dp{0.0, -Fd, 0.0});
+            });
+            ground_contact2dp gc(cl, floor);
+            size_t const c = gc.add(segment(cl.index_of("plate"), corner_l, corner_r));
+            gc.engage(c);
+            REQUIRE(gc.kind(c) == contact_kind2dp::flat);
+            value_t const N = mp * g - Fu + Fd;                    // < 0
+            value_t const F_r = (mp * g * (xc - xl) + Fd * w) / w; // > 0
+            CHECK(gc.normal_force(c) == doctest::Approx(N).epsilon(1e-9));
+            CHECK(gc.moment(c) / w == doctest::Approx(F_r).epsilon(1e-9));
+            CHECK(N < -gc.release_threshold());
+            CHECK(F_r > 0.0);
+            gc.step(dt);
+            REQUIRE(gc.events().size() == 2);
+            CHECK(!gc.events()[1].touchdown);
+            CHECK(gc.events()[1].end == 0); // the lifted end let go
+            CHECK(gc.active(c));
+            CHECK(gc.pinned_end(c) == 1); // onto the pressed end
+            fmt::println("  lifted and pressed: N {:+.2f} N, pressed end {:+.2f} N -> "
+                         "rolled onto it, pinned end {}",
+                         N, F_r, gc.pinned_end(c));
+        }
         fmt::println("");
     }
 
