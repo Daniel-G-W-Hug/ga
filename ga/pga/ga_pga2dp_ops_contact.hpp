@@ -249,6 +249,17 @@ class ground_contact2dp {
         }
         // lift-off: an active contact whose normal reaction pulls is released; a flat
         // segment whose centre of pressure lies beyond an end rolls onto that end
+        //
+        // THE ROLL IS INDEPENDENT OF `unilateral`, and the release below is not. That is
+        // deliberate: `unilateral` says whether the ground may PULL at this contact, i.e.
+        // whether the lift-off rule applies to it, while a segment's pin-or-weld is the
+        // segment's own kinematic state -- the thing that makes it a segment rather than
+        // two pins. A caller that switches a segment to bilateral for a while (to keep a
+        // contact from vanishing while its load goes to zero) therefore still gets the
+        // roll when the centre of pressure leaves an end, which is what keeps the
+        // constraint set consistent with where the load actually is. If a segment must
+        // stay welded flat regardless, do not model it as a contact: weld it with a
+        // `frame` loop closure, which has no rules of its own.
         read_reactions();
         bool rolled = false;
         for (size_t c = 0; c < contacts_.size(); ++c) {
