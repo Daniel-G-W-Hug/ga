@@ -2520,8 +2520,10 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             vec3dp const M = gc.moment(c);
             CHECK(std::sqrt(M.x * M.x + M.y * M.y + M.z * M.z) ==
                   doctest::Approx(m * g * 0.5 * std::cos(th0)).epsilon(1e-9));
-            CHECK(std::abs(gc.cop(c).x) ==
-                  doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
+            // SIGNED: the pressure lies under the rod's mass, which is +x of the welded
+            // end in the rod's own axes (end_b is the -x end) -- a mirrored pressure
+            // centre passed the magnitude check this used to be
+            CHECK(gc.cop(c).x == doctest::Approx(0.5 * std::cos(th0)).epsilon(1e-9));
             CHECK(std::abs(gc.cop(c).y) < 1e-9);
             CHECK(gc.tipping(c));
             // the weld accessor: the flat contact's frame loop and its lambda block

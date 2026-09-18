@@ -325,11 +325,15 @@ class ground_contact3dp {
     {
         auto const& c = contacts_[idx];
         if (c.normal_force <= 0.0) return vec3dp{0.0, 0.0, 0.0, 0.0};
-        // the moment about the foot's x axis shifts the pressure along y and vice
-        // versa: cop = (M_y, -M_x) / N in the foot frame
+        // the pressure centre r is where the normal force N alone reproduces the
+        // weld's couple T about the contact point: T = r x (N e_z), so T_x = r_y N and
+        // T_y = -r_x N, i.e. r = (-T_y, T_x) / N in the foot frame. (Written with the
+        // signs the other way round until 2026-09-18, it mirrored the pressure through
+        // the contact point; a rod welded by one end read its pressure centre on the
+        // side away from its mass. Only the magnitude had been gated.)
         auto const M = cl_->system().get_pos_trafo(c.spec.frame, 0);
-        vec3dp const mb = move3dp(c.moment, rrev(M)); // the moment in the foot frame
-        return vec3dp{mb.y / c.normal_force, -mb.x / c.normal_force, 0.0, 0.0};
+        vec3dp const mb = move3dp(c.moment, rrev(M)); // the couple in the foot frame
+        return vec3dp{-mb.y / c.normal_force, mb.x / c.normal_force, 0.0, 0.0};
     }
     bool tipping(size_t idx) const
     {
