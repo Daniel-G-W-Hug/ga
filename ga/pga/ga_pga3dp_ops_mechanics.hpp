@@ -47,8 +47,10 @@
 //                          make_disc_body(), make_point_body3dp(),
 //                          make_body_from_inertia()
 // - joint3dp / joint_state3dp -> the reduced-coordinate joint of a body vs. its parent
-// - joint_range3dp      -> where a 1-dof joint MAY GO (an interval on q; neutral
-//                          value (-inf, +inf), i.e. the unrestricted joint)
+// - joint_range3dp      -> where a 1-dof joint MAY GO (an interval on q plus the
+//                          one-sided STOP that realizes it; neutral value
+//                          (-inf, +inf) with no stop, i.e. the unrestricted joint).
+//                          is_unrestricted() asks whether it says anything at all
 // - joint_drive3dp      -> what its actuator CAN DELIVER (force / rate / rate-change
 //                          bounds, reflected inertia; neutral value an ideal drive)
 // - grounded_spring3dp  -> the body-point-to-ground spring/damper element
@@ -71,7 +73,8 @@
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
 //
-// The joint's own specification: set_joint_range(), set_joint_drive().
+// The joint's own specification: set_joint_range(), set_joint_drive() -- both
+// validate, and set_joint() clamps into the range.
 //
 // Force elements: set_joint_spring_damper(), set_applied_wrench(), set_joint_torque(),
 // add_grounded_spring(), set_driven_rate(), and the protected extra_wrenches() seam a
@@ -1241,11 +1244,43 @@ enum class joint3dp {
 struct joint_range3dp {
     value_t lo{-std::numeric_limits<value_t>::infinity()}; // lowest admissible q
     value_t hi{std::numeric_limits<value_t>::infinity()};  // highest admissible q
+
+    // The STOP that realizes the bound in the dynamics: a one-sided spring-damper
+    // engaging only where the coordinate has left its interval,
+    //
+    //     tau += min(0, -k_stop (q - hi) - c_stop q-dot)     above the top
+    //     tau += max(0, -k_stop (q - lo) - c_stop q-dot)     below the bottom
+    //
+    // and nothing at all inside it. The clamp on the sign is what makes it a STOP
+    // rather than a spring: a stop may only push the joint back INTO its range, never
+    // pull it in, and without the clamp the damper does exactly that on the way out --
+    // the same unilateral condition the ground contact enforces on a foot that may not
+    // be pulled down. Both zero by default, which is the restriction STATED but not
+    // realized: the bound is then a fact about the model that nothing enforces.
+    //
+    // c_stop belongs to the LINK THIS JOINT STOPS and not to the chain below it: size
+    // it with critical_damping(k_stop, I_link) and check c dt / I against the explicit
+    // integrator's stability bound, which a damper sized on the wrong inertia reaches
+    // long before the physics complains.
+    value_t k_stop{0.0}; // [N m / rad] or [N / m] -- 0: stated, not enforced
+    value_t c_stop{0.0}; // [N m s / rad] or [N s / m]
 };
 
 inline bool operator==(joint_range3dp const& a, joint_range3dp const& b)
 {
-    return a.lo == b.lo && a.hi == b.hi;
+    return a.lo == b.lo && a.hi == b.hi && a.k_stop == b.k_stop && a.c_stop == b.c_stop;
+}
+
+// Does this restriction say anything at all? The neutral value -- an unbounded interval
+// with no stop -- is the unrestricted joint, and a joint holding it behaves exactly as a
+// joint that was never given one. Used where a restriction's MEANING matters rather than
+// its presence: a motor joint may hold the neutral value harmlessly (it says nothing) but
+// cannot be given a scalar interval, since its configuration is a motor over a subspace
+// and not a coordinate (see set_joint_range).
+inline bool is_unrestricted(joint_range3dp const& r)
+{
+    return r.lo == -std::numeric_limits<value_t>::infinity() &&
+           r.hi == std::numeric_limits<value_t>::infinity();
 }
 
 // The joint's ACTUATOR CAPABILITY: WHAT ITS PHYSICAL REALIZATION CAN DELIVER on the way
@@ -1709,7 +1744,14 @@ class dynamic_system3dp : public kinematic_system3dp {
     // mechanism from outside the integrator -- an IK step, a finite-difference probe.
     void set_joint(size_t idx, value_t q)
     {
-        joint[idx].phi = q;
+        // CLAMPED into the joint's restriction, which is a no-op at the neutral value.
+        // A clamp rather than a refusal because this is how a mechanism is POSED from
+        // outside the integrator -- an IK step, a finite-difference probe -- and a
+        // solver stepping marginally past a bound should land on it, not throw in the
+        // middle of an iteration. Building a joint outside its range IS refused, by
+        // set_joint_range.
+        auto const& r = joint[idx].range;
+        joint[idx].phi = (q < r.lo) ? r.lo : (q > r.hi) ? r.hi : q;
         apply_joint_state(idx);
     }
     void set_joint_rate(size_t idx, value_t qdot)
@@ -1736,8 +1778,45 @@ class dynamic_system3dp : public kinematic_system3dp {
     // Read back through joint_props(idx). Stating them is a change of SPECIFICATION and
     // never a change of joint kind, which is why they are setters on an existing joint
     // rather than arguments of the add_*_body calls.
-    void set_joint_range(size_t idx, joint_range3dp const& r) { joint[idx].range = r; }
-    void set_joint_drive(size_t idx, joint_drive3dp const& d) { joint[idx].drive = d; }
+    void set_joint_range(size_t idx, joint_range3dp const& r)
+    {
+        if (!(r.lo <= r.hi))
+            throw std::runtime_error(
+                "dynamic_system3dp: a joint range must have lo <= hi.");
+        if (r.k_stop < 0.0 || r.c_stop < 0.0)
+            throw std::runtime_error("dynamic_system3dp: a joint stop's stiffness and "
+                                     "damping must not be negative.");
+        // A MOTOR joint has no scalar coordinate to bound -- its configuration is a
+        // motor over a subspace, and its restriction is a region of that subspace (a
+        // cone, a box), which is a different object. Holding the NEUTRAL value is
+        // harmless there, because it says nothing; being given an interval is not, and
+        // refusing it here is the difference between a modelling error that is reported
+        // and one that looks exactly like a stated restriction while doing nothing.
+        if (!joint[idx].screws.empty() && !is_unrestricted(r))
+            throw std::runtime_error(
+                "dynamic_system3dp: a scalar joint range cannot restrict a motor "
+                "joint (cylindrical / spherical / planar / free) -- its restriction is a "
+                "region of its screw subspace, which this type does not express.");
+        // and the model refuses to be BUILT outside its own restriction: a joint already
+        // standing where the new bound forbids is a specification error, not a state to
+        // be silently corrected
+        if (joint[idx].screws.empty() && (joint[idx].phi < r.lo || joint[idx].phi > r.hi))
+            throw std::runtime_error(std::string("dynamic_system3dp: joint coordinate ") +
+                                     std::to_string(joint[idx].phi) +
+                                     " lies outside the range [" + std::to_string(r.lo) +
+                                     ", " + std::to_string(r.hi) +
+                                     "] it is being given.");
+        joint[idx].range = r;
+    }
+
+    void set_joint_drive(size_t idx, joint_drive3dp const& dr)
+    {
+        if (dr.tau_max < 0.0 || dr.qd_max < 0.0 || dr.qdd_max < 0.0 || dr.armature < 0.0)
+            throw std::runtime_error(
+                "dynamic_system3dp: an actuator capability must not be negative (the "
+                "neutral value is an ideal drive: infinite bounds, zero armature).");
+        joint[idx].drive = dr;
+    }
 
     // Attach a GROUNDED spatial spring + damper to frame `idx`: a body-fixed point
     // `anchor_b` (body frame, w = 1) tied to the inertial anchor `p0_world` by
@@ -1929,6 +2008,14 @@ class dynamic_system3dp : public kinematic_system3dp {
             // joint-spring potential 1/2 k (q - q0)^2 (zero unless a spring is attached)
             value_t const dq = joint[i].phi - joint[i].q_rest;
             pe += 0.5 * joint[i].stiffness * dq * dq;
+            // and the STOP's, 1/2 k_stop d^2 over the penetration d -- zero inside the
+            // restriction, and zero altogether unless a stop was stated. Without it an
+            // energy gate would read a stop's stored work as a loss.
+            auto const& r = joint[i].range;
+            value_t const d_stop = (joint[i].phi > r.hi)   ? joint[i].phi - r.hi
+                                   : (joint[i].phi < r.lo) ? joint[i].phi - r.lo
+                                                           : value_t(0.0);
+            pe += 0.5 * r.k_stop * d_stop * d_stop;
         }
         // grounded-spring potential 1/2 (k.x dx^2 + k.y dy^2 + k.z dz^2)
         for (auto const& [fi, sps] : springs_) {
@@ -2056,6 +2143,9 @@ class dynamic_system3dp : public kinematic_system3dp {
                 }
             }
         }
+        // the actuators' reflected inertia, exactly as the assembly adds it
+        for (size_t j = 0; j < n; ++j)
+            Mmat[j * n + j] += joint[rc[j].frame].drive.armature;
         return Mmat;
     }
 
@@ -2460,6 +2550,14 @@ class dynamic_system3dp : public kinematic_system3dp {
             }
         }
 
+        // REFLECTED INERTIA (the actuator's rotor seen through its gear, N^2 I_rotor):
+        // not a bound but a mass, so its place is the mass matrix's own DIAGONAL at
+        // assembly -- the idiom the established libraries share, and the reason a geared
+        // joint is harder to accelerate than its link alone suggests. Zero by default,
+        // so the matrix is byte-unchanged for an ideal drive.
+        for (size_t j = 0; j < n; ++j)
+            Mmat[j * n + j] += joint[rc[j].frame].drive.armature;
+
         // linear spring/damper generalised forces on each joint coordinate (additive,
         // diagonal in joint space): tau_j += -k_j (q_j - q0_j) - c_j q-dot_j. Zero unless
         // a spring/damper was attached via set_joint_spring_damper.
@@ -2467,6 +2565,20 @@ class dynamic_system3dp : public kinematic_system3dp {
             auto const& js = joint[rc[j].frame];
             if (!js.screws.empty()) continue; // motor joints carry no coordinate spring
             RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
+            // the joint's own STOP: a one-sided spring-damper that engages only outside
+            // the restriction and may only push the coordinate back INTO it, never pull
+            // it in (see joint_range's comment for why the sign is clamped). Zero
+            // unless a stop stiffness or damping was stated, and never touched inside
+            // the range -- an unbounded interval cannot be left.
+            auto const& r = js.range;
+            if (r.k_stop > 0.0 || r.c_stop > 0.0) {
+                if (js.phi > r.hi)
+                    RHS[j] += std::min(value_t(0.0),
+                                       -r.k_stop * (js.phi - r.hi) - r.c_stop * js.omega);
+                else if (js.phi < r.lo)
+                    RHS[j] += std::max(value_t(0.0),
+                                       -r.k_stop * (js.phi - r.lo) - r.c_stop * js.omega);
+            }
         }
 
         // actuator torques (generalised forces at the joints, evaluated at the current

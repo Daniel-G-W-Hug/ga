@@ -38,6 +38,70 @@ constexpr value_t radps2rpm(value_t value) { return value * 60.0 / (2.0 * pi); }
 constexpr value_t Hz2radps(value_t value) { return value * 2.0 * pi; };
 constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
 
+// WHICH INERTIA `I` IS, when the spring sits on a joint (it is not obvious, and it is
+// not a norm of anything). The pga physics carries a body's inertia as the MAP
+// Inertia{2,3}dp -- 3x3 in the plane, 6x6 in space -- taking a body twist to a body
+// momentum. The scalar wanted here is the GENERALISED inertia of the one coordinate the
+// spring acts on, which is that map's quadratic form evaluated on the joint's own unit
+// screw and summed over every body the joint carries:
+//
+//     I_j = sum_bodies <S_j, I_body(S_j)>  =  mass_matrix()[j*n + j]
+//
+// -- the diagonal entry of the joint-space mass matrix, and equivalently TWICE the
+// kinetic energy of everything below the joint when that coordinate moves at unit rate.
+// Three consequences worth knowing, each measured rather than argued:
+//
+//   - it is NOT a norm of the inertia map, and the two differ by the PARALLEL-AXIS
+//     term the joint's own screw brings in. Measured on a 2 kg plate pivoted at one
+//     end, I_j = 0.2406: in 3D the map's trace is identically 0 (its blocks are
+//     off-diagonal) and its Frobenius norm 3.465; in 3x3 the trace is 0.0606, the
+//     body's polar moment about its OWN origin, short by exactly the m d^2 = 0.18 the
+//     offset pivot adds. A map is a property of the BODY; I_j is a property of the
+//     body seen THROUGH a particular joint.
+//   - ITS UNITS FOLLOW THE COORDINATE, because the screws differ: kg m^2 for a revolute
+//     joint, whose q is an angle (a point mass m at distance d gives m d^2), and plain
+//     kg for a prismatic one, whose q is a distance (a point mass m gives m).
+//   - it is CONFIGURATION-DEPENDENT -- the screws move with the pose -- so it is a
+//     snapshot, not a constant of the model. Sizing a damper once, at the pose the
+//     mechanism is built in, is the usual and adequate thing; where the inertia varies
+//     a lot over the joint's travel, size it at the pose where it is SMALLEST, since
+//     that is where c dt / I is largest.
+//
+// Critical damping of a 1-dof spring-inertia pair: the c at which k and I return
+// without overshoot and without crawling, c = 2 sqrt(k I). Written out because this
+// project has paid three times for a damper sized on the wrong inertia -- a joint's
+// damper belongs to the LINK IT STOPS, not to the chain hanging below it, and scaling
+// one joint's damper by the mass below gave a small link six times critical, whose rate
+// then grew 2.45x per millisecond until the solve went singular. Under-damping is the
+// safe side of this number; over-damping is not, because an explicit integrator's
+// stability bound is c dt / I (~2.8 for RK4), which a large c reaches long before the
+// physics complains.
+inline value_t critical_damping(value_t k, value_t I)
+{
+    return 2.0 * std::sqrt(std::max(value_t(0.0), k) * std::max(value_t(0.0), I));
+}
+
+// The largest stiffness an EXPLICIT integrator can carry for an inertia I at step dt,
+// when the damper that goes with it is critical. Rearranging c = 2 sqrt(k I) gives
+//
+//     c dt / I = 2 dt sqrt(k / I)      ==>      k = I (ratio / (2 dt))^2
+//
+// so the admissible k falls with the inertia and with the SQUARE of the step. `ratio` is
+// the stability margin to spend, well under the scheme's own bound (~2.8 for RK4);
+// leaving it at 1 keeps a factor of ~3 in hand.
+//
+// The number this makes visible is the one that keeps being missed: a light link admits
+// a far softer spring than a heavy one at the same step, and the admissible stiffness
+// falls in PROPORTION to the inertia. So a chain whose links differ by one or two orders
+// of magnitude in inertia cannot carry a single stiffness across all of them -- chosen
+// for the heaviest, the lightest link's damper passes the integrator's limit while the
+// physics it is modelling still looks perfectly reasonable.
+inline value_t max_explicit_stiffness(value_t I, value_t dt, value_t ratio = 1.0)
+{
+    value_t const r = ratio / (2.0 * std::max(dt, value_t(1.0e-300)));
+    return std::max(value_t(0.0), I) * r * r;
+}
+
 // step functions mapping x to the range [0.0, 1.0] (e.g. for blending/easing):
 // each normalizes x over [low_x, high_x], clamps to [0.0, 1.0] and applies its shape
 //

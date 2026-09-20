@@ -6095,11 +6095,28 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 s.step(1.0e-3);
             return std::pair<value_t, value_t>{s.joint_phi(b), s.joint_omega(b)};
         };
+        joint_drive2dp bounded{};
+        bounded.tau_max = 40.0; // bounds it never reaches
+        bounded.qd_max = 6.0;
+        bounded.qdd_max = 300.0;
         auto const [phi_free, om_free] = run(joint_range2dp{}, joint_drive2dp{}, 0.6);
-        auto const [phi_spec, om_spec] = run(
-            joint_range2dp{-2.0, 2.0}, joint_drive2dp{40.0, 6.0, 300.0, 0.02, true}, 0.6);
+        auto const [phi_spec, om_spec] = run(joint_range2dp{-2.0, 2.0}, bounded, 0.6);
         CHECK(phi_spec == phi_free); // exact equality, not a tolerance
         CHECK(om_spec == om_free);
+
+        // ... but ARMATURE is NOT a bound, and must not be free. Reflected inertia is a
+        // MASS: it enters the mass matrix's diagonal, so a geared joint is harder to
+        // accelerate than its link alone suggests and the same swing covers less ground.
+        // A field that changes the dynamics is exactly what the rows above are not, and
+        // this case would have hidden the difference had it kept them together.
+        joint_drive2dp geared{};
+        geared.armature = 0.02;
+        auto const [phi_gear, om_gear] = run(joint_range2dp{}, geared, 0.6);
+        CHECK(phi_gear != phi_free);
+        CHECK(std::abs(phi_gear - 0.4) < std::abs(phi_free - 0.4)); // it lags
+        CHECK(std::abs(om_gear) < std::abs(om_free));
+        fmt::println("  armature 0.02 kg m^2: the swing reaches {:.6f} against {:.6f}",
+                     phi_gear, phi_free);
 
         // ... and the comparison above is not blind: change the physics and it parts
         auto const [phi_other, om_other] = run(joint_range2dp{}, joint_drive2dp{}, 0.7);
@@ -6108,6 +6125,228 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  200 ms of swing: q = {:.12f} stated, {:.12f} silent, "
                      "{:.12f} at another length",
                      phi_spec, phi_free, phi_other);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: the restriction enforced - a stop, a clamp, and a refusal")
+    {
+        fmt::println("pga2dp: a joint held inside its range (RQ-J8)");
+
+        // The restriction stops being a fact about the model and starts acting, in the
+        // three places the plan names, cheapest and most exact first: the model refuses
+        // to be BUILT outside its own range, set_joint CLAMPS into it, and the dynamics
+        // carries a one-sided STOP at each end. Plus the one capability row that is not
+        // a bound at all -- reflected inertia, which is a mass and lands on the mass
+        // matrix's diagonal.
+        //
+        // Note what the first two buy together: a joint can leave its range ONLY by
+        // being integrated past it, since neither posing it nor stating the range can
+        // put it there.
+
+        value_t const q0 = 0.4, half = 0.1; // a window 0.1 rad either side of the start
+        value_t const dt = 1.0e-3;
+        auto make = [&](value_t phi0) {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -9.81, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.3, 1.0}, 0.0),
+                                make_plate_body(2.0, 0.06, 0.6), vec2dp{0.0, 0.3, 1.0},
+                                phi0, 0.0, s.index_of("W"));
+            return s;
+        };
+
+        // -- THE STOP. The joint's own inertia IS the 1x1 mass matrix here, so the
+        //    damper is sized on the link it actually stops rather than on a guess.
+        auto sys = make(q0);
+        size_t const b = sys.index_of("b");
+        value_t const I_joint = sys.mass_matrix()[0];
+        value_t const k_stop = 2000.0;
+        value_t const c_stop = critical_damping(k_stop, I_joint);
+        CHECK(I_joint > 0.0);
+        CHECK(c_stop * dt / I_joint < 1.0); // explicit RK4 gives up near 2.8
+        fmt::println("  joint inertia {:.4f}, k_stop {:.0f}, c_stop {:.2f}, "
+                     "c dt / I = {:.3f}",
+                     I_joint, k_stop, c_stop, c_stop * dt / I_joint);
+
+        joint_range2dp stopped{q0 - half, q0 + half, k_stop, c_stop};
+        sys.set_joint_range(b, stopped);
+        value_t worst = 0.0;
+        for (int i = 0; i < 2000; ++i) { // 2 s, long past any transient
+            sys.step(dt);
+            value_t const q = sys.joint_phi(b);
+            worst = std::max(worst, std::max(q - stopped.hi, stopped.lo - q));
+        }
+        value_t const q_end = sys.joint_phi(b);
+        // the transient on FIRST impact is the larger number -- the stop has to
+        // absorb the arrival speed -- and the SETTLED penetration below is the exact
+        // one, so this threshold only has to say "it does not pass its stop", against a
+        // free excursion two orders of magnitude bigger
+        CHECK(worst < 0.02);
+        CHECK(q_end > stopped.lo - 0.02);
+        CHECK(q_end < stopped.hi + 0.02);
+        CHECK(std::abs(sys.joint_omega(b)) < 1.0e-3); // and it SETTLES against it
+        fmt::println("  2 s against the stop: worst penetration {:.2e} rad, settles at "
+                     "{:.6f} (range [{:.2f}, {:.2f}])",
+                     worst, q_end, stopped.lo, stopped.hi);
+
+        // ... and the case is not vacuous: with the range STATED but no stop to realize
+        // it, the same swing leaves the window far behind
+        auto loose = make(q0);
+        loose.set_joint_range(loose.index_of("b"), joint_range2dp{q0 - half, q0 + half});
+        for (int i = 0; i < 2000; ++i)
+            loose.step(dt);
+        value_t const q_loose = loose.joint_phi(loose.index_of("b"));
+        CHECK(std::abs(q_loose - q0) > 3.0 * half);
+        fmt::println("  the same swing with no stop: {:.4f}, {:.1f} windows out", q_loose,
+                     std::abs(q_loose - q0) / half);
+
+        // -- THE STOP'S STORED WORK IS ENERGY, not a loss. At the settled pose the
+        //    penetration d holds the link's weight, and potential_energy() carries
+        //    exactly 1/2 k_stop d^2 more than the same pose with no stop to store it.
+        {
+            value_t const d = std::max(q_end - stopped.hi, stopped.lo - q_end);
+            auto bare = make(q_end); // the same configuration, no stop
+            value_t const extra = sys.potential_energy() - bare.potential_energy();
+            CHECK(d > 0.0); // it really is resting ON the stop
+            CHECK(extra == doctest::Approx(0.5 * k_stop * d * d).epsilon(1e-9));
+
+            // and the SETTLED penetration is not a tolerance but a STATICS: at rest the
+            // stop carries exactly the gravity torque the same pose produces without
+            // one, so k_stop * d equals the |RHS| of the unstopped system there
+            auto const [Mb, RHSb] = bare.mass_bias();
+            CHECK(k_stop * d == doctest::Approx(std::abs(RHSb[0])).epsilon(1.0e-6));
+            fmt::println("  the stop stores {:.6f} J at a penetration of {:.2e} rad; "
+                         "k d = {:.4f} carries the weight's {:.4f}",
+                         extra, d, k_stop * d, std::abs(RHSb[0]));
+        }
+
+        // -- THE CLAMP. Posing a mechanism from outside the integrator lands ON the
+        //    bound rather than past it, and is untouched at the neutral value.
+        {
+            auto s = make(q0);
+            size_t const j = s.index_of("b");
+            s.set_joint_range(j, joint_range2dp{0.0, 1.0});
+            s.set_joint(j, 5.0);
+            CHECK(s.joint_phi(j) == 1.0);
+            s.set_joint(j, -5.0);
+            CHECK(s.joint_phi(j) == 0.0);
+            s.set_joint(j, 0.7);
+            CHECK(s.joint_phi(j) == 0.7); // inside: untouched
+            auto u = make(q0);
+            u.set_joint(u.index_of("b"), 5.0);
+            CHECK(u.joint_phi(u.index_of("b")) == 5.0); // unrestricted: no clamp at all
+        }
+
+        // -- THE REFUSALS, each a modelling error that would otherwise read as a stated
+        //    restriction quietly doing nothing.
+        {
+            auto s = make(q0);
+            size_t const j = s.index_of("b");
+            CHECK_THROWS_AS(s.set_joint_range(j, joint_range2dp{1.0, -1.0}),
+                            std::runtime_error); // lo > hi
+            joint_range2dp neg{};
+            neg.k_stop = -1.0;
+            CHECK_THROWS_AS(s.set_joint_range(j, neg), std::runtime_error);
+            // the joint stands at q0 and is handed a range that forbids it
+            CHECK_THROWS_AS(s.set_joint_range(j, joint_range2dp{q0 + 0.1, q0 + 0.2}),
+                            std::runtime_error);
+            CHECK(s.joint_props(j).range == joint_range2dp{}); // nothing was written
+            joint_drive2dp bad{};
+            bad.tau_max = -1.0;
+            CHECK_THROWS_AS(s.set_joint_drive(j, bad), std::runtime_error);
+        }
+
+        // a MOTOR joint has no scalar coordinate to bound: the NEUTRAL value is
+        // harmless there (it says nothing), an interval is refused rather than skipped.
+        // In the plane the free joint is the only motor joint, and add_body with a mass
+        // is what makes one.
+        {
+            dynamic_system2dp s;
+            s.add_frame(static_frame2dp("W"));
+            s.add_body(static_frame2dp("free", vec2dp{0.0, 1.0, 1.0}, 0.0),
+                       make_plate_body(1.0, 0.2, 0.2), kin_state2dp{}, s.index_of("W"));
+            size_t const fb = s.index_of("free");
+            CHECK_FALSE(s.joint_props(fb).screws.empty()); // it IS a motor joint
+            s.set_joint_range(fb, joint_range2dp{});       // says nothing: allowed
+            CHECK_THROWS_AS(s.set_joint_range(fb, joint_range2dp{-1.0, 1.0}),
+                            std::runtime_error);
+            CHECK(is_unrestricted(joint_range2dp{}));
+            CHECK_FALSE(is_unrestricted(joint_range2dp{-1.0, 1.0}));
+            fmt::println("  a free joint refuses a scalar interval, and accepts the "
+                         "neutral value");
+        }
+
+
+        // -- WHICH INERTIA the dampers above are sized on, pinned so the answer stays
+        //    checkable: NOT a norm of the inertia MAP, but that map's quadratic form on
+        //    the joint's own screw -- the joint-space mass matrix's diagonal, which is
+        //    twice the kinetic energy at unit rate, and whose UNITS follow the
+        //    coordinate rather than the body.
+        {
+            // a prismatic joint's coordinate is a DISTANCE: plain kg
+            dynamic_system2dp p;
+            p.add_frame(static_frame2dp("W"));
+            p.add_prismatic_body(static_frame2dp("s", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                                 make_point_body2dp(7.0), vec2dp{1.0, 0.0, 0.0}, 0.0, 0.0,
+                                 p.index_of("W"));
+            CHECK(p.mass_matrix()[0] == doctest::Approx(7.0).epsilon(1e-12));
+
+            // a revolute joint's is an ANGLE: kg m^2, and m d^2 for a point mass
+            value_t const m = 3.0, dist = 0.4;
+            dynamic_system2dp r;
+            r.add_frame(static_frame2dp("W"));
+            r.add_revolute_body(static_frame2dp("r", vec2dp{dist, 0.0, 1.0}, 0.0),
+                                make_point_body2dp(m), vec2dp{-dist, 0.0, 1.0}, 0.0, 0.0,
+                                r.index_of("W"));
+            CHECK(r.mass_matrix()[0] == doctest::Approx(m * dist * dist).epsilon(1e-12));
+
+            // and M[j][j] IS twice the kinetic energy at unit joint rate
+            auto e = make(q0);
+            value_t const Mjj = e.mass_matrix()[0];
+            e.set_joint_rate(e.index_of("b"), 1.0);
+            CHECK(2.0 * e.kinetic_energy() == doctest::Approx(Mjj).epsilon(1e-12));
+
+            // ... while no norm of the 3x3 inertia MAP is that number. In the plane
+            // the trace IS a physical quantity -- the plate's polar moment about its
+            // own origin -- and it still falls short of the joint's inertia by exactly
+            // the parallel-axis term the offset pivot adds, m d^2. A map belongs to the
+            // BODY; M[j][j] belongs to the body seen THROUGH a joint.
+            auto const& Imap = e.body_props(e.index_of("b")).I;
+            auto v = Imap.view();
+            value_t tr = 0.0;
+            for (size_t i = 0; i < 3; ++i)
+                tr += v[i, i];
+            value_t const m_b = 2.0, d_b = 0.3; // make()'s plate and its pivot offset
+            CHECK(tr == doctest::Approx(m_b * (0.06 * 0.06 + 0.6 * 0.6) / 12.0)
+                            .epsilon(1e-12)); // the polar moment
+            CHECK(Mjj - tr ==
+                  doctest::Approx(m_b * d_b * d_b).epsilon(1e-12)); // ... plus m d^2
+            fmt::println("  the joint-space inertia: M[0][0] = {:.6f} = 2 KE at unit "
+                         "rate; the map's trace {:.6f} + m d^2 {:.6f}",
+                         Mjj, tr, m_b * d_b * d_b);
+        }
+
+        // -- REFLECTED INERTIA is a MASS, so it lands on the mass matrix's DIAGONAL and
+        //    nowhere else (the idiom the established libraries share).
+        {
+            auto s = make(q0);
+            s.add_revolute_body(static_frame2dp("c", vec2dp{0.0, -0.9, 1.0}, 0.0),
+                                make_plate_body(1.0, 0.05, 0.6), vec2dp{0.0, 0.3, 1.0},
+                                0.3, 0.0, s.index_of("b"));
+            auto const M0 = s.mass_matrix();
+            joint_drive2dp geared{};
+            geared.armature = 0.05;
+            s.set_joint_drive(s.index_of("b"), geared);
+            auto const M1 = s.mass_matrix();
+            REQUIRE(M0.size() == 4);
+            CHECK(M1[0] - M0[0] == doctest::Approx(0.05).epsilon(1e-12)); // the diagonal
+            CHECK(M1[1] == M0[1]);                                        // and nothing
+            CHECK(M1[2] == M0[2]);                                        // else moves
+            CHECK(M1[3] == M0[3]);
+            fmt::println("  armature 0.05 on joint 0: M[0][0] {:.6f} -> {:.6f}, the "
+                         "other three unchanged",
+                         M0[0], M1[0]);
+        }
         fmt::println("");
     }
 

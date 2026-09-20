@@ -33,6 +33,8 @@ using namespace hd::ga::sta;
 void register_functions_top(nb::module_& m)
 {
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
+    m.def("critical_damping",
+          [](double a0, double a1) { return critical_damping(a0, a1); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
     m.def("fact", [](int a0) { return fact(a0); });
     m.def("fd_derivative",
@@ -78,6 +80,9 @@ void register_functions_top(nb::module_& m)
                          int a2) { return lu_solve(a0, a1, a2); });
     m.def("matrix_rank", [](std::vector<double> const& a0, int a1, int a2, double a3) {
         return matrix_rank(a0, a1, a2, a3);
+    });
+    m.def("max_explicit_stiffness", [](double a0, double a1, double a2) {
+        return max_explicit_stiffness(a0, a1, a2);
     });
     m.def("nullspace_project",
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2, int a3,

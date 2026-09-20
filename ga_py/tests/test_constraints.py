@@ -176,7 +176,7 @@ def test_joint_state2dp_roundtrips():
         type=pga.joint2dp.revolute, screw_b=pga.vec2dp(0.0, 0.0, 1.0),
         rest=pga.mvec2dp_u(), phi=0.5, omega=-1.0,
         stiffness=8.0, damping=0.3, q_rest=0.1,
-        range=pga.joint_range2dp(-1.0, 2.0), drive=pga.joint_drive2dp(40.0, 6.0, 300.0, 0.02, True),
+        range=pga.joint_range2dp(lo=-1.0, hi=2.0, k_stop=50.0, c_stop=3.0), drive=pga.joint_drive2dp(40.0, 6.0, 300.0, 0.02, True),
         screws=[], rate=[], M=pga.mvec2dp_u(),
     )
     assert j.type == pga.joint2dp.revolute
@@ -190,6 +190,10 @@ def test_joint_state2dp_roundtrips():
     # unrestricted joint / the ideal actuator
     assert j.range.lo == pytest.approx(-1.0)
     assert j.range.hi == pytest.approx(2.0)
+    assert j.range.k_stop == pytest.approx(50.0)   # the stop that realizes the bound
+    assert j.range.c_stop == pytest.approx(3.0)
+    assert pga.is_unrestricted(pga.joint_range2dp())
+    assert not pga.is_unrestricted(j.range)
     assert j.drive.tau_max == pytest.approx(40.0)
     assert j.drive.armature == pytest.approx(0.02)
     assert j.drive.actuated is True
@@ -208,7 +212,7 @@ def test_joint_state3dp_roundtrips():
         type=pga.joint3dp.prismatic, screw_b=pga.bivec3dp(0.0, 0.0, 0.0, 1.0, 0.0, 0.0),
         rest=pga.mvec3dp_e(), phi=2.0, omega=3.0,
         stiffness=8.0, damping=0.3, q_rest=0.1,
-        range=pga.joint_range3dp(-1.0, 2.0), drive=pga.joint_drive3dp(40.0, 6.0, 300.0, 0.02, True),
+        range=pga.joint_range3dp(lo=-1.0, hi=2.0, k_stop=50.0, c_stop=3.0), drive=pga.joint_drive3dp(40.0, 6.0, 300.0, 0.02, True),
         screws=[], rate=[], M=pga.mvec3dp_e(),
     )
     assert j.type == pga.joint3dp.prismatic

@@ -491,6 +491,10 @@ template <> struct fmt::formatter<hd::ga::pga::joint_range2dp> {
         out = fmt::format_to(out, fmt::runtime(child), r.lo);
         out = fmt::format_to(out, ", hi = ");
         out = fmt::format_to(out, fmt::runtime(child), r.hi);
+        out = fmt::format_to(out, ", k_stop = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.k_stop);
+        out = fmt::format_to(out, ", c_stop = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.c_stop);
         return fmt::format_to(out, ")");
     }
 };
@@ -721,6 +725,10 @@ template <> struct fmt::formatter<hd::ga::pga::joint_range3dp> {
         out = fmt::format_to(out, fmt::runtime(child), r.lo);
         out = fmt::format_to(out, ", hi = ");
         out = fmt::format_to(out, fmt::runtime(child), r.hi);
+        out = fmt::format_to(out, ", k_stop = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.k_stop);
+        out = fmt::format_to(out, ", c_stop = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.c_stop);
         return fmt::format_to(out, ")");
     }
 };

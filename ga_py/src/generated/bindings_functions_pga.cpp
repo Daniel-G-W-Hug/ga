@@ -396,6 +396,10 @@ void register_functions_pga(nb::module_& m)
         return is_same_motion(a0, a1, a2);
     });
     m.def("is_simple", [](bivec3dp const& a0, double a1) { return is_simple(a0, a1); });
+    m.def("is_unrestricted",
+          [](joint_range2dp const& a0) { return is_unrestricted(a0); });
+    m.def("is_unrestricted",
+          [](joint_range3dp const& a0) { return is_unrestricted(a0); });
     m.def("join", [](bivec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, bivec2dp const& a1) { return join(a0, a1); });
     m.def("join", [](vec2dp const& a0, vec2dp const& a1) { return join(a0, a1); });

@@ -36,12 +36,14 @@ void bind_joint_range2dp(nb::module_& m)
         .def("__init__", [](joint_range2dp* self) { new (self) joint_range2dp{}; })
         .def(
             "__init__",
-            [](joint_range2dp* self, double lo, double hi) {
-                new (self) joint_range2dp(lo, hi);
+            [](joint_range2dp* self, double lo, double hi, double k_stop, double c_stop) {
+                new (self) joint_range2dp(lo, hi, k_stop, c_stop);
             },
-            nb::arg("lo"), nb::arg("hi"))
+            nb::arg("lo"), nb::arg("hi"), nb::arg("k_stop"), nb::arg("c_stop"))
         .def_rw("lo", &joint_range2dp::lo)
         .def_rw("hi", &joint_range2dp::hi)
+        .def_rw("k_stop", &joint_range2dp::k_stop)
+        .def_rw("c_stop", &joint_range2dp::c_stop)
         .def("__repr__", [](const joint_range2dp& v) { return fmt::format("{}", v); })
         .def("__str__", [](const joint_range2dp& v) { return fmt::format("{}", v); })
         .def(
@@ -57,6 +59,7 @@ void bind_joint_range2dp(nb::module_& m)
             },
             nb::arg("format_spec"))
         .def("__eq__", [](const joint_range2dp& a, const joint_range2dp& b) {
-            return a.lo == b.lo && a.hi == b.hi;
+            return a.lo == b.lo && a.hi == b.hi && a.k_stop == b.k_stop &&
+                   a.c_stop == b.c_stop;
         });
 }
