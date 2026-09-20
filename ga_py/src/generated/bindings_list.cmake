@@ -15,6 +15,10 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_range2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_range3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state2dp.cpp

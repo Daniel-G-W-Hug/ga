@@ -64,14 +64,19 @@ class DoublePendulum:
         rest1 = pga.motor_from_pose2dp(pga.pose2dp(_pt(0.0, 0.0), 0.0))   # identity
         rest2 = pga.motor_from_pose2dp(pga.pose2dp(_pt(-2.0, -2.0), 0.0)) # translation
 
-        # the joint descriptors the closed-loop work unlocked in ga_py
-        # (trailing 0.0s = no spring/damper force elements: stiffness, damping, q_rest)
-        self.joints = [
-            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest1, phi1, omega1,
-                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u()),
-            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest2, phi2, omega2,
-                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u()),
-        ]
+        # the joint descriptors the closed-loop work unlocked in ga_py, BY KEYWORD:
+        # the generated constructor takes every field of the C++ record, so a new one
+        # shifts every later positional argument. The zeros are the spring/damper force
+        # elements; the defaulted range and drive are the unrestricted joint and the
+        # ideal actuator.
+        def _rev(rest, phi, omega):
+            return pga.joint_state2dp(
+                type=pga.joint2dp.revolute, screw_b=self.Q, rest=rest, phi=phi,
+                omega=omega, stiffness=0.0, damping=0.0, q_rest=0.0,
+                range=pga.joint_range2dp(), drive=pga.joint_drive2dp(),
+                screws=[], rate=[], M=pga.mvec2dp_u())
+
+        self.joints = [_rev(rest1, phi1, omega1), _rev(rest2, phi2, omega2)]
         self.inertia = [I, I]
         self._refresh()
 

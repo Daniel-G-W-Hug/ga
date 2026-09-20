@@ -5,8 +5,10 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>
+#include <utility>                    // std::pair
 using namespace std::string_literals; // enable s-suffix for std::string literals
 
 #include "fmt/format.h"  // formatting
@@ -6019,6 +6021,93 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  hub pose under dt-halving: {:.2e} -> {:.2e}, ratio {:.1f}", e1,
                      e2, e1 / e2);
         CHECK(e1 / e2 > 14.0);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: a joint's restriction and its drive - the neutral value")
+    {
+        fmt::println("pga2dp: a joint states where it MAY go and what its drive CAN do");
+
+        // The planar twin of the pga3dp case: beside its force element a joint carries
+        // its own SPECIFICATION -- joint_range2dp says where the coordinate may go,
+        // joint_drive2dp what the actuator can deliver -- with the same field names and
+        // the same neutral value, because the capability is a property of a joint and
+        // not of a dimension. What is gated is the NEUTRAL VALUE: an unrestricted joint
+        // is not one WITHOUT a restriction but one holding the restriction's neutral
+        // value, which is what makes stating a restriction a change of specification
+        // and never a change of kind.
+
+        auto make = []() {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -9.81, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            return s;
+        };
+        auto const link = make_plate_body(2.0, 0.06, 0.6);
+
+        // a joint added the ordinary way starts unrestricted and ideally driven
+        {
+            auto s = make();
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.3, 1.0}, 0.0), link,
+                                vec2dp{0.0, 0.3, 1.0}, 0.4, 0.0, s.index_of("W"));
+            auto const& js = s.joint_props(s.index_of("b"));
+            CHECK(js.range == joint_range2dp{}); // (-inf, +inf): the unrestricted joint
+            CHECK(js.drive == joint_drive2dp{}); // an ideal actuator
+            CHECK(js.range.lo == -std::numeric_limits<value_t>::infinity());
+            CHECK(js.range.hi == std::numeric_limits<value_t>::infinity());
+            CHECK(js.drive.tau_max == std::numeric_limits<value_t>::infinity());
+            CHECK(js.drive.qd_max == std::numeric_limits<value_t>::infinity());
+            CHECK(js.drive.qdd_max == std::numeric_limits<value_t>::infinity());
+            CHECK(js.drive.armature == 0.0); // no reflected inertia
+            CHECK(js.drive.actuated);        // actuated, not passive
+            fmt::println("  fresh joint: {}", js.range);
+            fmt::println("               {}", js.drive);
+        }
+
+        // the specification travels WITH the joint: written into the record, read back
+        {
+            auto s = make();
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.3, 1.0}, 0.0), link,
+                                vec2dp{0.0, 0.3, 1.0}, 0.4, 0.0, s.index_of("W"));
+            size_t const b = s.index_of("b");
+            s.set_joint_range(b, joint_range2dp{-1.0, 2.0});
+            s.set_joint_drive(b, joint_drive2dp{40.0, 6.0, 300.0, 0.02, true});
+            CHECK(s.joint_props(b).range.lo == -1.0);
+            CHECK(s.joint_props(b).range.hi == 2.0);
+            CHECK(s.joint_props(b).drive.tau_max == 40.0);
+            CHECK(s.joint_props(b).drive.armature == 0.02);
+            CHECK_FALSE(s.joint_props(b).range == joint_range2dp{});
+            CHECK_FALSE(s.joint_props(b).drive == joint_drive2dp{});
+        }
+
+        // AND THE POINT OF THE NEUTRAL VALUE, in the dynamics rather than in the
+        // record: a joint sitting inside a stated restriction, with a drive it never
+        // exceeds, integrates BIT-IDENTICALLY to one that states neither.
+        auto run = [&](joint_range2dp const& r, joint_drive2dp const& d, value_t len) {
+            auto s = make();
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.5 * len, 1.0}, 0.0),
+                                make_plate_body(2.0, 0.06, len),
+                                vec2dp{0.0, 0.5 * len, 1.0}, 0.4, 0.0, s.index_of("W"));
+            size_t const b = s.index_of("b");
+            s.set_joint_range(b, r);
+            s.set_joint_drive(b, d);
+            for (int i = 0; i < 200; ++i)
+                s.step(1.0e-3);
+            return std::pair<value_t, value_t>{s.joint_phi(b), s.joint_omega(b)};
+        };
+        auto const [phi_free, om_free] = run(joint_range2dp{}, joint_drive2dp{}, 0.6);
+        auto const [phi_spec, om_spec] = run(
+            joint_range2dp{-2.0, 2.0}, joint_drive2dp{40.0, 6.0, 300.0, 0.02, true}, 0.6);
+        CHECK(phi_spec == phi_free); // exact equality, not a tolerance
+        CHECK(om_spec == om_free);
+
+        // ... and the comparison above is not blind: change the physics and it parts
+        auto const [phi_other, om_other] = run(joint_range2dp{}, joint_drive2dp{}, 0.7);
+        CHECK(phi_other != phi_free);
+        CHECK(om_other != om_free);
+        fmt::println("  200 ms of swing: q = {:.12f} stated, {:.12f} silent, "
+                     "{:.12f} at another length",
+                     phi_spec, phi_free, phi_other);
         fmt::println("");
     }
 

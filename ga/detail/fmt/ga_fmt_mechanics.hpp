@@ -463,6 +463,72 @@ template <> struct fmt::formatter<hd::ga::pga::kin_state2dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// joint_range2dp / joint_drive2dp - a joint's own specification: where it may
+// go, and what its actuator can deliver. Both print their NEUTRAL value (inf
+// bounds, an ideal drive) as inf, which is what an unrestricted joint carries.
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::joint_range2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_range2dp const& r, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "joint_range2dp(lo = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.lo);
+        out = fmt::format_to(out, ", hi = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.hi);
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+template <> struct fmt::formatter<hd::ga::pga::joint_drive2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_drive2dp const& d_, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "joint_drive2dp(tau_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.tau_max);
+        out = fmt::format_to(out, ", qd_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.qd_max);
+        out = fmt::format_to(out, ", qdd_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.qdd_max);
+        out = fmt::format_to(out, ", armature = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.armature);
+        return fmt::format_to(out, ", actuated = {})", d_.actuated);
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // joint2dp / joint_state2dp - the reduced-coordinate joint of a body vs. its
 // parent (joint kind + screw generator + rest motor + generalised coord/rate)
 ////////////////////////////////////////////////////////////////////////////////
@@ -622,6 +688,72 @@ template <> struct fmt::formatter<hd::ga::pga::kinematic_system3dp> {
             out = fmt::format_to(out, "\n");
         }
         return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// joint_range3dp / joint_drive3dp - a joint's own specification: where it may
+// go, and what its actuator can deliver. Both print their NEUTRAL value (inf
+// bounds, an ideal drive) as inf, which is what an unrestricted joint carries.
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::joint_range3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_range3dp const& r, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "joint_range3dp(lo = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.lo);
+        out = fmt::format_to(out, ", hi = ");
+        out = fmt::format_to(out, fmt::runtime(child), r.hi);
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+template <> struct fmt::formatter<hd::ga::pga::joint_drive3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_drive3dp const& d_, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "joint_drive3dp(tau_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.tau_max);
+        out = fmt::format_to(out, ", qd_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.qd_max);
+        out = fmt::format_to(out, ", qdd_max = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.qdd_max);
+        out = fmt::format_to(out, ", armature = ");
+        out = fmt::format_to(out, fmt::runtime(child), d_.armature);
+        return fmt::format_to(out, ", actuated = {})", d_.actuated);
     }
 };
 

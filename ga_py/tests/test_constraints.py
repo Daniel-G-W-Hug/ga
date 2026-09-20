@@ -13,6 +13,8 @@ these tests cover the bound value descriptors and enums.
 """
 from __future__ import annotations
 
+import math
+
 import pytest
 
 import ga_py
@@ -167,10 +169,15 @@ def test_loop_constraint3dp_format_spec():
 # --- joint_state2dp / joint_state3dp (unlocked by the joint enums) -------
 
 def test_joint_state2dp_roundtrips():
-    # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
+    # BY KEYWORD: the generated constructor takes every field of the C++ record, so a
+    # new one shifts every later positional argument. stiffness/damping/q_rest are the
+    # spring/damper force elements; range and drive are the joint's own specification.
     j = pga.joint_state2dp(
-        pga.joint2dp.revolute, pga.vec2dp(0.0, 0.0, 1.0),
-        pga.mvec2dp_u(), 0.5, -1.0, 8.0, 0.3, 0.1, [], [], pga.mvec2dp_u(),
+        type=pga.joint2dp.revolute, screw_b=pga.vec2dp(0.0, 0.0, 1.0),
+        rest=pga.mvec2dp_u(), phi=0.5, omega=-1.0,
+        stiffness=8.0, damping=0.3, q_rest=0.1,
+        range=pga.joint_range2dp(-1.0, 2.0), drive=pga.joint_drive2dp(40.0, 6.0, 300.0, 0.02, True),
+        screws=[], rate=[], M=pga.mvec2dp_u(),
     )
     assert j.type == pga.joint2dp.revolute
     assert j.screw_b == pga.vec2dp(0.0, 0.0, 1.0)
@@ -179,15 +186,30 @@ def test_joint_state2dp_roundtrips():
     assert j.stiffness == pytest.approx(8.0)
     assert j.damping == pytest.approx(0.3)
     assert j.q_rest == pytest.approx(0.1)
+    # the joint's own specification round-trips too, and its NEUTRAL value is the
+    # unrestricted joint / the ideal actuator
+    assert j.range.lo == pytest.approx(-1.0)
+    assert j.range.hi == pytest.approx(2.0)
+    assert j.drive.tau_max == pytest.approx(40.0)
+    assert j.drive.armature == pytest.approx(0.02)
+    assert j.drive.actuated is True
+    assert pga.joint_range2dp().lo == -math.inf
+    assert pga.joint_range2dp().hi == math.inf
+    assert pga.joint_drive2dp().tau_max == math.inf
+    assert pga.joint_drive2dp().armature == 0.0
+    assert "joint_range2dp" in repr(j.range)
     assert "joint_state2dp" in repr(j)
     assert "revolute" in repr(j)
 
 
 def test_joint_state3dp_roundtrips():
-    # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
+    # by keyword, for the reason given in the 2dp case above
     j = pga.joint_state3dp(
-        pga.joint3dp.prismatic, pga.bivec3dp(0.0, 0.0, 0.0, 1.0, 0.0, 0.0),
-        pga.mvec3dp_e(), 2.0, 3.0, 8.0, 0.3, 0.1, [], [], pga.mvec3dp_e(),
+        type=pga.joint3dp.prismatic, screw_b=pga.bivec3dp(0.0, 0.0, 0.0, 1.0, 0.0, 0.0),
+        rest=pga.mvec3dp_e(), phi=2.0, omega=3.0,
+        stiffness=8.0, damping=0.3, q_rest=0.1,
+        range=pga.joint_range3dp(-1.0, 2.0), drive=pga.joint_drive3dp(40.0, 6.0, 300.0, 0.02, True),
+        screws=[], rate=[], M=pga.mvec3dp_e(),
     )
     assert j.type == pga.joint3dp.prismatic
     assert j.phi == pytest.approx(2.0)
@@ -195,6 +217,10 @@ def test_joint_state3dp_roundtrips():
     assert j.stiffness == pytest.approx(8.0)
     assert j.damping == pytest.approx(0.3)
     assert j.q_rest == pytest.approx(0.1)
+    assert j.range.lo == pytest.approx(-1.0)
+    assert j.drive.tau_max == pytest.approx(40.0)
+    assert pga.joint_range3dp().hi == math.inf
+    assert pga.joint_drive3dp().qdd_max == math.inf
     assert "joint_state3dp" in repr(j)
     assert "prismatic" in repr(j)
 

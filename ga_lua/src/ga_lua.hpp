@@ -6217,15 +6217,30 @@ void register_physics_pods(sol::state& lua)
 
     // joint_state: per-joint configuration + dynamics parameters
     // (factories rather than sol::constructors: the struct is an aggregate whose
-    // trailing members -- the motor-joint screws, rates and motor -- are defaulted, and
-    // the 8-argument form is a braced aggregate initialisation, which sol's
-    // placement-new cannot express)
+    // remaining members -- the joint's own specification, and the motor-joint screws,
+    // rates and motor -- are defaulted, and the 8-argument form is an aggregate
+    // initialisation, which sol's placement-new cannot express)
+    //
+    // The factory DEFAULT-CONSTRUCTS and then assigns the eight it is given, rather
+    // than listing every member positionally: a positional braced list names all of
+    // them, so adding a member to the joint record breaks this line -- with -Werror,
+    // loudly, but in a file nobody editing the joint tier would think to open. This
+    // form takes each new member's own default and needs no edit.
     lua.new_usertype<joint_state2dp>(
         "joint_state2dp", sol::call_constructor,
         sol::factories([]() { return joint_state2dp{}; },
                        [](joint2dp const& t, vec2dp const& s, mvec2dp_u const& r,
                           value_t phi, value_t om, value_t k, value_t c, value_t q0) {
-                           return joint_state2dp{t, s, r, phi, om, k, c, q0, {}, {}, {}};
+                           joint_state2dp j{};
+                           j.type = t;
+                           j.screw_b = s;
+                           j.rest = r;
+                           j.phi = phi;
+                           j.omega = om;
+                           j.stiffness = k;
+                           j.damping = c;
+                           j.q_rest = q0;
+                           return j;
                        }),
         "type", &joint_state2dp::type, "screw_b", &joint_state2dp::screw_b, "rest",
         &joint_state2dp::rest, "phi", &joint_state2dp::phi, "omega",
@@ -6240,7 +6255,16 @@ void register_physics_pods(sol::state& lua)
         sol::factories([]() { return joint_state3dp{}; },
                        [](joint3dp const& t, bivec3dp const& s, mvec3dp_e const& r,
                           value_t phi, value_t om, value_t k, value_t c, value_t q0) {
-                           return joint_state3dp{t, s, r, phi, om, k, c, q0, {}, {}, {}};
+                           joint_state3dp j{};
+                           j.type = t;
+                           j.screw_b = s;
+                           j.rest = r;
+                           j.phi = phi;
+                           j.omega = om;
+                           j.stiffness = k;
+                           j.damping = c;
+                           j.q_rest = q0;
+                           return j;
                        }),
         "type", &joint_state3dp::type, "screw_b", &joint_state3dp::screw_b, "rest",
         &joint_state3dp::rest, "phi", &joint_state3dp::phi, "omega",

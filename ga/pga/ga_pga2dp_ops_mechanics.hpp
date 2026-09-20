@@ -45,6 +45,10 @@
 //                          make_disc_body(), make_point_body2dp(),
 //                          make_body_from_inertia()
 // - joint2dp / joint_state2dp -> the reduced-coordinate joint of a body vs. its parent
+// - joint_range2dp      -> where a 1-dof joint MAY GO (an interval on q; neutral
+//                          value (-inf, +inf), i.e. the unrestricted joint)
+// - joint_drive2dp      -> what its actuator CAN DELIVER (force / rate / rate-change
+//                          bounds, reflected inertia; neutral value an ideal drive)
 // - grounded_spring2dp  -> the body-point-to-ground spring/damper element
 // - screw_axis2dp       -> Chasles' axis of a motor or a twist; screw_axis()
 // - screw_system2dp     -> span and Lie closure of a set of joint screws; screw_system()
@@ -64,6 +68,8 @@
 // - total_momentum()    -> the whole mechanism's momentum as ONE bivector
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
+//
+// The joint's own specification: set_joint_range(), set_joint_drive().
 //
 // Force elements: set_joint_spring_damper(), set_applied_wrench(), set_joint_torque(),
 // add_grounded_spring(), set_driven_rate(). (The protected extra_wrenches() seam a
@@ -1164,6 +1170,83 @@ inline body2dp make_point_body2dp(value_t m)
 //   prismatic : 1-DOF slider; screw = IDEAL point/direction (z = 0); q translates it.
 enum class joint2dp { free, revolute, prismatic };
 
+// The joint's RESTRICTION: WHERE IT MAY GO -- a closed interval on the generalised
+// coordinate q of a 1-dof joint (revolute, prismatic), in the units q carries (rad for
+// a hinge, m for a slider). The 3D twin is joint_range3dp: same fields, same neutral
+// value, one more joint kind to serve (helical).
+//
+// The unrestricted joint is NOT the absence of a restriction: it is this type's NEUTRAL
+// value, the interval (-inf, +inf). Restricting a joint is then a change of
+// SPECIFICATION and never a change of kind -- a model that states no limits behaves
+// exactly as it did, and a model that states them needs no new joint type to say so.
+//
+// The bound belongs against the joint's own UNWRAPPED phi, never against the logarithm
+// of its motor: rlog wraps, so a hinge turned three times carries the same relative
+// motor as one turned once and would read as sitting at zero. phi does not wrap --
+// set_joint() writes it and joint_motor(idx, q) builds the motor FROM it.
+//
+// A scalar interval is what a hinge's or a slider's limit IS, and a pseudoscalar adds
+// nothing to it. The NAMES are this library's rather than a description format's --
+// `lower` / `upper` there, `lo` / `hi` here beside `phi`, `omega` and `q_rest` -- on
+// the principle that a format's spelling is the importer's problem and should be
+// resolved in exactly one place instead of travelling through the model. In the plane
+// the free joint is the only one whose
+// configuration is a MOTOR rather than a scalar, and its restriction is a region of its
+// screw subspace -- a box and an angle -- which is its own type, not a wider interval.
+//
+// FIELDS ONLY, and that is a constraint rather than a preference: the binding
+// generator's "pure data struct" test rejects a struct carrying any member function,
+// and a field whose type it cannot resolve makes it drop the ENCLOSING struct with no
+// message at all. Hence the free operator== below, which joint_state2dp's generated
+// equality needs and which a member would have cost the binding.
+struct joint_range2dp {
+    value_t lo{-std::numeric_limits<value_t>::infinity()}; // lowest admissible q
+    value_t hi{std::numeric_limits<value_t>::infinity()};  // highest admissible q
+};
+
+inline bool operator==(joint_range2dp const& a, joint_range2dp const& b)
+{
+    return a.lo == b.lo && a.hi == b.hi;
+}
+
+// The joint's ACTUATOR CAPABILITY: WHAT ITS PHYSICAL REALIZATION CAN DELIVER on the way
+// to wherever the restriction lets it go. Three tiers, kept apart on purpose -- the
+// geometry says where a joint IS, joint_range2dp where it MAY GO, and this what it CAN
+// DO. A model stating the first two and not the third describes a mechanism nobody can
+// build. The 3D twin is joint_drive3dp: same fields, same neutral value.
+//
+// The neutral value is an IDEAL actuator (unbounded force, unbounded speed, unbounded
+// acceleration, no reflected inertia), the same kind of neutral value joint_range2dp
+// carries, so a model that states nothing behaves as it did.
+//
+// Held SEPARATELY from the restriction rather than merged into one record, because the
+// two are separately authored and separately overridden wherever this is done well: one
+// says what the joint may not exceed, the other what pushes it, and a deployment
+// override tightens the first without touching the second.
+//
+// `armature` is the odd row and deliberately so: it is NOT a bound. A gear ratio N and
+// a rotor inertia I_rotor arrive as the reflected inertia N^2 I_rotor, which changes
+// the MASS MATRIX rather than limiting it, so its place is that matrix's own diagonal
+// at assembly and nowhere in a per-tick check.
+//
+// `actuated` is likewise not a bound: a PASSIVE joint has no capability at all, which
+// is a different statement from an unbounded one.
+struct joint_drive2dp {
+    value_t tau_max{std::numeric_limits<value_t>::infinity()}; // largest generalised
+                                                               // force it may be asked
+                                                               // for [N m] / [N]
+    value_t qd_max{std::numeric_limits<value_t>::infinity()};  // largest rate [1/s]
+    value_t qdd_max{std::numeric_limits<value_t>::infinity()}; // largest rate change
+    value_t armature{0.0}; // reflected rotor inertia N^2 I_rotor (mass-matrix diagonal)
+    bool actuated{true};   // false: passive, no actuator at all
+};
+
+inline bool operator==(joint_drive2dp const& a, joint_drive2dp const& b)
+{
+    return a.tau_max == b.tau_max && a.qd_max == b.qd_max && a.qdd_max == b.qdd_max &&
+           a.armature == b.armature && a.actuated == b.actuated;
+}
+
 // Per-frame joint state (parallel to the body[] list). One source of truth per family:
 // phi / omega for a 1-dof joint (springs, drives and joint_phi read them), the motor M
 // and the rates for a motor joint; apply_joint_state() writes whichever applies into the
@@ -1191,6 +1274,14 @@ struct joint_state2dp {
     value_t stiffness{0.0}; // generalised spring constant k
     value_t damping{0.0};   // generalised damping constant c
     value_t q_rest{0.0};    // spring rest coordinate q0
+
+    // The joint's own SPECIFICATION, beside the force element above: where it may go
+    // (range) and what its actuator can deliver (drive). Both hold their NEUTRAL values
+    // by default -- unrestricted, ideal -- so a joint that states neither behaves
+    // exactly as it did. Two objects rather than one: see joint_range2dp /
+    // joint_drive2dp for what each means and why they are kept apart.
+    joint_range2dp range{};
+    joint_drive2dp drive{};
 
     // motor joints (free): the k body-frame screws spanning the motion subspace, the k
     // generalised rates on them, and the body->parent motor M that IS the configuration
@@ -1482,6 +1573,16 @@ class dynamic_system2dp : public kinematic_system2dp {
         joint[idx].damping = c;
         joint[idx].q_rest = q0;
     }
+
+    // Attach the joint's own SPECIFICATION: its RESTRICTION (where the coordinate may
+    // go, joint_range2dp) and its actuator CAPABILITY (what the drive can deliver,
+    // joint_drive2dp). Both hold their NEUTRAL values -- unrestricted, ideal -- until
+    // one is set, so a joint that is never given either behaves exactly as it did.
+    // Read back through joint_props(idx). Stating them is a change of SPECIFICATION and
+    // never a change of joint kind, which is why they are setters on an existing joint
+    // rather than arguments of the add_*_body calls.
+    void set_joint_range(size_t idx, joint_range2dp const& r) { joint[idx].range = r; }
+    void set_joint_drive(size_t idx, joint_drive2dp const& d) { joint[idx].drive = d; }
 
     // Attach a GROUNDED spatial spring + damper to frame `idx`: a body-fixed point
     // `anchor_b` (body frame, z = 1) tied to the inertial anchor `p0_world` by

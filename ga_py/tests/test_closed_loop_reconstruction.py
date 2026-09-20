@@ -87,9 +87,16 @@ class ClosedLoopSystem:
         rest = pga.motor_from_pose2dp(rest_pose)
         self.parent.append(parent)
         self.joints.append(
-            # trailing 0.0s = no spring/damper force elements (stiffness, damping, q_rest)
-            pga.joint_state2dp(pga.joint2dp.revolute, _ORIGIN_SCREW, rest, phi0, omega0,
-                               0.0, 0.0, 0.0, [], [], pga.mvec2dp_u())
+            # BY KEYWORD, not by position: the generated constructor takes every
+            # field, so a new one added to the C++ record shifts every later argument
+            # (which is how the joint's range and drive broke this line once). The
+            # zeros are the spring/damper force elements; the defaulted range and drive
+            # are the unrestricted joint and the ideal actuator.
+            pga.joint_state2dp(type=pga.joint2dp.revolute, screw_b=_ORIGIN_SCREW,
+                               rest=rest, phi=phi0, omega=omega0,
+                               stiffness=0.0, damping=0.0, q_rest=0.0,
+                               range=pga.joint_range2dp(), drive=pga.joint_drive2dp(),
+                               screws=[], rate=[], M=pga.mvec2dp_u())
         )
         self.mass.append(mass)
         self.inertia.append(pga.get_plate_inertia(mass, w, h))

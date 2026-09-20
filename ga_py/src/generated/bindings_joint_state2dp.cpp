@@ -38,14 +38,16 @@ void bind_joint_state2dp(nb::module_& m)
             "__init__",
             [](joint_state2dp* self, joint2dp const& type, vec2dp const& screw_b,
                mvec2dp_u const& rest, double phi, double omega, double stiffness,
-               double damping, double q_rest, std::vector<vec2dp> const& screws,
+               double damping, double q_rest, joint_range2dp const& range,
+               joint_drive2dp const& drive, std::vector<vec2dp> const& screws,
                std::vector<double> const& rate, mvec2dp_u const& M) {
                 new (self) joint_state2dp(type, screw_b, rest, phi, omega, stiffness,
-                                          damping, q_rest, screws, rate, M);
+                                          damping, q_rest, range, drive, screws, rate, M);
             },
             nb::arg("type"), nb::arg("screw_b"), nb::arg("rest"), nb::arg("phi"),
             nb::arg("omega"), nb::arg("stiffness"), nb::arg("damping"), nb::arg("q_rest"),
-            nb::arg("screws"), nb::arg("rate"), nb::arg("M"))
+            nb::arg("range"), nb::arg("drive"), nb::arg("screws"), nb::arg("rate"),
+            nb::arg("M"))
         .def_rw("type", &joint_state2dp::type)
         .def_rw("screw_b", &joint_state2dp::screw_b)
         .def_rw("rest", &joint_state2dp::rest)
@@ -54,6 +56,8 @@ void bind_joint_state2dp(nb::module_& m)
         .def_rw("stiffness", &joint_state2dp::stiffness)
         .def_rw("damping", &joint_state2dp::damping)
         .def_rw("q_rest", &joint_state2dp::q_rest)
+        .def_rw("range", &joint_state2dp::range)
+        .def_rw("drive", &joint_state2dp::drive)
         .def_rw("screws", &joint_state2dp::screws)
         .def_rw("rate", &joint_state2dp::rate)
         .def_rw("M", &joint_state2dp::M)
@@ -74,7 +78,8 @@ void bind_joint_state2dp(nb::module_& m)
         .def("__eq__", [](const joint_state2dp& a, const joint_state2dp& b) {
             return a.type == b.type && a.screw_b == b.screw_b && a.rest == b.rest &&
                    a.phi == b.phi && a.omega == b.omega && a.stiffness == b.stiffness &&
-                   a.damping == b.damping && a.q_rest == b.q_rest &&
-                   a.screws == b.screws && a.rate == b.rate && a.M == b.M;
+                   a.damping == b.damping && a.q_rest == b.q_rest && a.range == b.range &&
+                   a.drive == b.drive && a.screws == b.screws && a.rate == b.rate &&
+                   a.M == b.M;
         });
 }
