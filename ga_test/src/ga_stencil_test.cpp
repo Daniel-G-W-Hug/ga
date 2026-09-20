@@ -19,6 +19,7 @@
 #include <cmath>     // std::sin, std::cos, std::abs, std::log2, std::cbrt
 #include <cstdint>   // std::uint64_t
 #include <limits>    // std::numeric_limits
+#include <random>    // std::mt19937 (the seeded bvls sweep)
 #include <stdexcept> // std::invalid_argument
 #include <vector>    // std::vector
 
@@ -1469,6 +1470,198 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         // wrong-sized v is rejected rather than read out of bounds
         CHECK_THROWS_AS(nullspace_project(A, std::vector<double>(3, 1.0), 4, 9),
                         Solver_error);
+        fmt::println("");
+    }
+
+    TEST_CASE("bvls_solve: the constrained optimum, not a clamped one")
+    {
+        fmt::println("bvls_solve: bounded-variable least squares vs every active set");
+
+        value_t const inf = std::numeric_limits<value_t>::infinity();
+
+        // 1. LOOSE BOUNDS ARE THE NEUTRAL VALUE: the answer is lstsq_solve's, exactly.
+        {
+            std::vector<value_t> const A{2.0, 1.0, 1.0, -3.0, 0.5, 2.0};
+            std::vector<value_t> const b{1.0, 2.0};
+            std::vector<value_t> const lo(3, -inf), hi(3, inf);
+            auto const xu = lstsq_solve(A, b, 3);
+            auto const xb = bvls_solve(A, b, 3, lo, hi);
+            for (size_t j = 0; j < 3; ++j)
+                CHECK(xb[j] == doctest::Approx(xu[j]).epsilon(1e-12));
+            fmt::println("  unbounded: bvls == lstsq to 1e-12");
+        }
+
+        // 2. AGAINST EVERY ACTIVE SET. For n variables there are 3^n ways to call each
+        //    one free, at its lower bound or at its upper bound; solving the free part
+        //    of each and keeping the best FEASIBLE one is the constrained optimum by
+        //    definition. A seeded sweep, so a failure is reproducible.
+        auto brute = [&](std::vector<value_t> const& A, std::vector<value_t> const& b,
+                         size_t n, std::vector<value_t> const& lo,
+                         std::vector<value_t> const& hi) {
+            size_t const m = b.size();
+            auto resid = [&](std::vector<value_t> const& x) {
+                value_t s2 = 0.0;
+                for (size_t i = 0; i < m; ++i) {
+                    value_t acc = -b[i];
+                    for (size_t j = 0; j < n; ++j)
+                        acc += A[i * n + j] * x[j];
+                    s2 += acc * acc;
+                }
+                return s2;
+            };
+            value_t best = std::numeric_limits<value_t>::infinity();
+            size_t combos = 1;
+            for (size_t j = 0; j < n; ++j)
+                combos *= 3;
+            for (size_t k = 0; k < combos; ++k) {
+                std::vector<value_t> x(n, 0.0);
+                std::vector<size_t> fr;
+                size_t t = k;
+                bool ok = true;
+                for (size_t j = 0; j < n; ++j, t /= 3) {
+                    size_t const w = t % 3;
+                    if (w == 0) fr.push_back(j);
+                    else if (w == 1) {
+                        if (lo[j] == -inf) {
+                            ok = false;
+                            break;
+                        }
+                        x[j] = lo[j];
+                    }
+                    else {
+                        if (hi[j] == inf) {
+                            ok = false;
+                            break;
+                        }
+                        x[j] = hi[j];
+                    }
+                }
+                if (!ok) continue;
+                if (!fr.empty()) { // solve the free columns against what the rest leave
+                    std::vector<value_t> Af(m * fr.size()), bf(m);
+                    for (size_t i = 0; i < m; ++i) {
+                        value_t held = 0.0;
+                        for (size_t j = 0; j < n; ++j)
+                            held += A[i * n + j] * x[j];
+                        for (size_t c = 0; c < fr.size(); ++c)
+                            held -= A[i * n + fr[c]] * x[fr[c]];
+                        bf[i] = b[i] - held;
+                        for (size_t c = 0; c < fr.size(); ++c)
+                            Af[i * fr.size() + c] = A[i * n + fr[c]];
+                    }
+                    auto const xf = minnorm_solve(Af, bf, fr.size());
+                    for (size_t c = 0; c < fr.size(); ++c)
+                        x[fr[c]] = xf[c];
+                }
+                bool feasible = true;
+                for (size_t j = 0; j < n; ++j)
+                    if (x[j] < lo[j] - 1.0e-12 || x[j] > hi[j] + 1.0e-12)
+                        feasible = false;
+                if (feasible) best = std::min(best, resid(x));
+            }
+            return best;
+        };
+
+        std::mt19937 rng(20260920u); // seeded: a failure is reproducible
+        std::uniform_real_distribution<value_t> u(-2.0, 2.0), w(0.1, 1.2);
+        size_t bound_active = 0, worst_iters = 0;
+        value_t worst_gap = 0.0;
+        int const trials = 200;
+        for (int t = 0; t < trials; ++t) {
+            size_t const n = 2 + size_t(t % 3); // 2..4 variables
+            size_t const m =
+                1 + size_t((t / 3) % 4); // 1..4 rows: over- and under-determined
+            std::vector<value_t> A(m * n), b(m), lo(n), hi(n);
+            for (auto& v : A)
+                v = u(rng);
+            for (auto& v : b)
+                v = u(rng);
+            for (size_t j = 0; j < n; ++j) { // boxes tight enough to bind, often
+                value_t const c = 0.25 * u(rng), r = w(rng);
+                lo[j] = c - r;
+                hi[j] = c + r;
+            }
+            size_t iters = 0;
+            auto const x = bvls_solve(A, b, n, lo, hi, &iters);
+            worst_iters = std::max(worst_iters, iters);
+
+            for (size_t j = 0; j < n; ++j) { // FEASIBLE, always
+                CHECK(x[j] >= lo[j] - 1.0e-9);
+                CHECK(x[j] <= hi[j] + 1.0e-9);
+                if (std::abs(x[j] - lo[j]) < 1.0e-9 || std::abs(x[j] - hi[j]) < 1.0e-9)
+                    ++bound_active;
+            }
+            value_t s2 = 0.0; // ... and OPTIMAL: its residual is the best of every set
+            for (size_t i = 0; i < m; ++i) {
+                value_t acc = -b[i];
+                for (size_t j = 0; j < n; ++j)
+                    acc += A[i * n + j] * x[j];
+                s2 += acc * acc;
+            }
+            value_t const ref = brute(A, b, n, lo, hi);
+            worst_gap = std::max(worst_gap, s2 - ref);
+            CHECK(s2 <= ref + 1.0e-9);
+        }
+        CHECK(bound_active > 0); // the sweep really does reach its bounds
+        fmt::println("  {} seeded systems, 2-4 variables x 1-4 rows: every answer "
+                     "feasible, none worse than the best of all 3^n active sets "
+                     "(worst excess {:.2e}); {} variables ended ON a bound; at most {} "
+                     "iterations",
+                     trials, worst_gap, bound_active, worst_iters);
+
+        // 3. AND THE CLAMP IS NOT THE SAME ANSWER -- the case for having this at all.
+        //    Measured over the SAME seeded sweep rather than on one hand-picked system,
+        //    because a hand-picked one can happen to agree (the first attempt did).
+        {
+            std::mt19937 r2(20260920u);
+            std::uniform_real_distribution<value_t> u2(-2.0, 2.0), w2(0.1, 1.2);
+            value_t worst_excess = 0.0;
+            int differed = 0;
+            for (int t = 0; t < trials; ++t) {
+                size_t const n = 2 + size_t(t % 3);
+                size_t const m = 1 + size_t((t / 3) % 4);
+                std::vector<value_t> A(m * n), b(m), lo(n), hi(n);
+                for (auto& v : A)
+                    v = u2(r2);
+                for (auto& v : b)
+                    v = u2(r2);
+                for (size_t j = 0; j < n; ++j) {
+                    value_t const c = 0.25 * u2(r2), rr = w2(r2);
+                    lo[j] = c - rr;
+                    hi[j] = c + rr;
+                }
+                auto res = [&](std::vector<value_t> const& x) {
+                    value_t s2 = 0.0;
+                    for (size_t i = 0; i < m; ++i) {
+                        value_t acc = -b[i];
+                        for (size_t j = 0; j < n; ++j)
+                            acc += A[i * n + j] * x[j];
+                        s2 += acc * acc;
+                    }
+                    return s2;
+                };
+                auto const xb = bvls_solve(A, b, n, lo, hi);
+                auto xc = lstsq_solve(A, b, n); // solve, THEN cut
+                for (size_t j = 0; j < n; ++j)
+                    xc[j] = std::min(hi[j], std::max(lo[j], xc[j]));
+                value_t const rb = res(xb), rc = res(xc);
+                CHECK(rb <= rc + 1.0e-9); // the optimum is never worse than the clamp
+                if (rc > rb + 1.0e-9) {
+                    ++differed;
+                    worst_excess = std::max(worst_excess, rc - rb);
+                }
+            }
+            CHECK(differed > 0); // ... and it is STRICTLY better often enough to matter
+            fmt::println("  solve-then-clamp is strictly worse on {} of {} systems, by "
+                         "up to {:.3f} in residual^2 -- which is what a clamp costs and "
+                         "why this exists",
+                         differed, trials, worst_excess);
+        }
+
+        CHECK_THROWS_AS(bvls_solve(std::vector<value_t>{1.0}, std::vector<value_t>{1.0},
+                                   1, std::vector<value_t>{2.0},
+                                   std::vector<value_t>{1.0}),
+                        Solver_error); // lo > hi
         fmt::println("");
     }
 }

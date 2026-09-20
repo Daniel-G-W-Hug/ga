@@ -786,6 +786,169 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// BOUNDED-VARIABLE least squares: the minimiser of ||A x - b|| subject to a BOX on the
+// decision variables, lo <= x <= hi. A (m x ncols, flat ROW-MAJOR), b (length m), and
+// lo / hi (length ncols; +-infinity where a variable is unbounded, which is the neutral
+// value and reduces the answer to lstsq_solve's).
+//
+// WHY THIS AND NOT A CLAMP. Solving unconstrained and then cutting each variable to its
+// bound is one comparison per variable and it answers a DIFFERENT question: the cut
+// vector is no longer the least-squares solution of anything, so whatever the residual
+// was arranged to express is silently lost. This returns the constrained optimum
+// instead, and for a BOX it is not an approximation of the quadratic program -- it IS
+// the quadratic program's answer, reached in finitely many steps.
+//
+// HOW (the classical active-set method, Stark & Parker): hold each variable either FREE
+// or AT a bound; solve the free columns alone against the residual the bound-held ones
+// leave (dropping columns -- which is why minnorm_solve taking the matrix by column
+// count is all that was needed); if a free variable lands outside its box, walk along
+// the segment to the first bound it crosses and hold it there; when every free variable
+// is inside, read the gradient g = A^T (A x - b) and RELEASE any held variable whose
+// gradient says the residual would fall if it came off its bound. Each step either
+// holds or releases one variable and strictly decreases the residual, so it terminates;
+// `max_iter` is a guard against a pathological cycle, not part of the method, and
+// `iters_out` reports what it actually took.
+//
+// WHAT IT DOES NOT DO, so the boundary is known in advance: the box is on the VARIABLES.
+// A constraint that couples them -- a friction cone, a centre-of-pressure polygon, a
+// bound on some A x rather than on x -- is a general polytope, where an active-set
+// iteration can cycle and is not guaranteed to land on the optimum. That is where a
+// real quadratic program earns its place.
+//
+// Domain- and dimension-agnostic (pure linear algebra over T), like the rest of this
+// file: it carries no GA and no physics knowledge.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
+                          std::vector<T> const& lo, std::vector<T> const& hi,
+                          size_t* iters_out = nullptr, size_t max_iter = 0)
+{
+    size_t const m = b.size();
+    if (A.size() != m * ncols) {
+        throw Solver_error("hd::ga::bvls_solve: A must have b.size() * ncols entries.");
+    }
+    if (lo.size() != ncols || hi.size() != ncols) {
+        throw Solver_error("hd::ga::bvls_solve: lo and hi must have ncols entries.");
+    }
+    for (size_t j = 0; j < ncols; ++j)
+        if (!(lo[j] <= hi[j]))
+            throw Solver_error("hd::ga::bvls_solve: every bound must have lo <= hi.");
+
+    if (max_iter == 0) max_iter = 3 * ncols + 10;
+
+    enum class state { free_var, at_lo, at_hi };
+    std::vector<state> st(ncols, state::free_var);
+    std::vector<T> x(ncols, T(0));
+
+    // start feasible: a variable whose box excludes 0 begins held at the near bound
+    for (size_t j = 0; j < ncols; ++j) {
+        if (lo[j] > T(0)) {
+            x[j] = lo[j];
+            st[j] = state::at_lo;
+        }
+        else if (hi[j] < T(0)) {
+            x[j] = hi[j];
+            st[j] = state::at_hi;
+        }
+    }
+
+    auto residual = [&](std::vector<T> const& v) { // r = A v - b
+        std::vector<T> r(m);
+        for (size_t i = 0; i < m; ++i) {
+            T acc = -b[i];
+            for (size_t j = 0; j < ncols; ++j)
+                acc += A[i * ncols + j] * v[j];
+            r[i] = acc;
+        }
+        return r;
+    };
+
+    size_t used = 0;
+    for (; used < max_iter; ++used) {
+        // the free columns, and what the held ones leave of b
+        std::vector<size_t> fr;
+        for (size_t j = 0; j < ncols; ++j)
+            if (st[j] == state::free_var) fr.push_back(j);
+
+        std::vector<T> cand = x;
+        if (!fr.empty()) {
+            std::vector<T> Af(m * fr.size()), bf(m);
+            for (size_t i = 0; i < m; ++i) {
+                T held = T(0);
+                for (size_t j = 0; j < ncols; ++j)
+                    if (st[j] != state::free_var) held += A[i * ncols + j] * x[j];
+                bf[i] = b[i] - held;
+                for (size_t c = 0; c < fr.size(); ++c)
+                    Af[i * fr.size() + c] = A[i * ncols + fr[c]];
+            }
+            std::vector<T> const xf = minnorm_solve(Af, bf, fr.size());
+            for (size_t c = 0; c < fr.size(); ++c)
+                cand[fr[c]] = xf[c];
+        }
+
+        // does the free solve stay inside its box?
+        T step = T(1);
+        size_t hit = ncols;
+        bool to_lo = false;
+        for (size_t const j : fr) {
+            if (cand[j] < lo[j] || cand[j] > hi[j]) {
+                T const target = (cand[j] < lo[j]) ? lo[j] : hi[j];
+                T const denom = cand[j] - x[j];
+                T const t = (denom == T(0)) ? T(0) : (target - x[j]) / denom;
+                if (t < step) {
+                    step = t;
+                    hit = j;
+                    to_lo = (cand[j] < lo[j]);
+                }
+            }
+        }
+        if (hit != ncols) { // walk to the first bound crossed and hold that variable
+            for (size_t j = 0; j < ncols; ++j)
+                x[j] += step * (cand[j] - x[j]);
+            x[hit] = to_lo ? lo[hit] : hi[hit];
+            st[hit] = to_lo ? state::at_lo : state::at_hi;
+            continue;
+        }
+        x = cand;
+
+        // every free variable is inside: release a held one if the gradient wants it
+        // -- but only if it wants it by more than rounding. Without that floor a
+        // gradient of order the residual's own error releases a variable the next solve
+        // puts straight back, and the iteration walks to its guard instead of stopping
+        // (measured: every system in the seeded sweep hit `max_iter`, while still
+        // returning the optimum, before this floor was added).
+        std::vector<T> const r = residual(x);
+        T scale = T(0); // the gradient's own magnitude, so the floor is relative
+        for (size_t i = 0; i < m; ++i)
+            scale = std::max(scale, std::abs(r[i]));
+        T gscale = T(0);
+        for (size_t i = 0; i < m * ncols; ++i)
+            gscale = std::max(gscale, std::abs(A[i]));
+        T const gtol = T(1.0e-12) * std::max(T(1), scale * gscale * T(m));
+        size_t best = ncols;
+        T best_g = gtol;
+        for (size_t j = 0; j < ncols; ++j) {
+            if (st[j] == state::free_var) continue;
+            T g = T(0); // g_j = (A^T r)_j
+            for (size_t i = 0; i < m; ++i)
+                g += A[i * ncols + j] * r[i];
+            // at the LOWER bound x may only rise, which helps when g < 0; at the UPPER
+            // bound it may only fall, which helps when g > 0
+            T const gain = (st[j] == state::at_lo) ? -g : g;
+            if (gain > best_g) {
+                best_g = gain;
+                best = j;
+            }
+        }
+        if (best == ncols) break; // optimal: no held variable wants to move
+        st[best] = state::free_var;
+    }
+    if (iters_out) *iters_out = used;
+    return x;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // Null-space projection of a secondary objective: given an m x ncols map A and a desired
 // rate v (length ncols), return the part of v that A cannot see,
 //
