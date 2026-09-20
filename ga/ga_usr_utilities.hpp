@@ -102,6 +102,34 @@ inline value_t max_explicit_stiffness(value_t I, value_t dt, value_t ratio = 1.0
     return std::max(value_t(0.0), I) * r * r;
 }
 
+// THE VIABILITY (braking) BOUND: the largest acceleration a coordinate may be
+// COMMANDED over a step dt and still be able to stop before a wall `distance` ahead,
+// given that it can decelerate at a_max. With the rate it would then carry limited to
+// what that distance can still absorb,
+//
+//     v_allow = sqrt(2 a_max * distance)        and       a_bound = (v_allow - rate)/dt
+//
+// so a coordinate far from its wall is unconstrained, one approaching fast is held
+// back, and one already past it (distance <= 0) may only decelerate. The bound is
+// SIGNED and one-sided: it caps the acceleration TOWARDS the wall, and the opposite
+// direction is free.
+//
+// This is the viability condition, not the one-step form `(limit - q)/dt` that some
+// controllers use: the one-step form only asks whether the NEXT step overshoots, so it
+// permits a rate the coordinate can no longer shed and the wall is passed a few steps
+// later regardless. The square root is what makes the difference, and it is the whole
+// content of the bound.
+//
+// It says nothing about whether the acceleration is ACHIEVABLE -- that is the actuator's
+// question, and belongs to whatever bounds the actuation.
+inline value_t stopping_accel_bound(value_t distance, value_t rate, value_t a_max,
+                                    value_t dt)
+{
+    value_t const d = std::max(value_t(0), distance);
+    value_t const v_allow = std::sqrt(2.0 * std::max(value_t(0), a_max) * d);
+    return (v_allow - rate) / std::max(dt, value_t(1.0e-300));
+}
+
 // step functions mapping x to the range [0.0, 1.0] (e.g. for blending/easing):
 // each normalizes x over [low_x, high_x], clamps to [0.0, 1.0] and applies its shape
 //
