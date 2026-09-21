@@ -199,7 +199,11 @@ fall.
   via `register_convenience_types`, subclasses bound with `sol::base_classes`) +
   `expand`; **2b-ii** the physics **PODs** (`pose`, `kin_state`, `joint_state`,
   `loop_constraint`, via `register_physics_pods`) + the scoped enums
-  (`joint*`/`constraint*`) + `motor_from_pose`/`pose_from_motor`.
+  (`joint*`/`constraint*`) + `motor_from_pose`/`pose_from_motor`. **2b-iii**
+  (2026-09-21) a joint's own specification: `joint_range{2,3}dp` and `joint_drive{2,3}dp`
+  as usertypes and as `joint_state`'s `range` / `drive` fields, `pga.is_unrestricted`, and
+  the top-level `critical_damping` / `max_explicit_stiffness` that size a stop. Smoke
+  section: `ga_lua/input/test_application.lua`, part 2 (its asserts are live).
   **Skipped by decision:** the `inertia2dp/3dp` matrix type and the dynamics functions
   (`make_*_body`, `get_*_inertia`, `compute_omega_dot`, `get_inertia_inverse`).
 - **Phase 3 — STA4D — DONE** (100%: types 9/9, functions 39/39, constants 45/45). Added

@@ -4783,6 +4783,17 @@ void register_functions(sol::state& lua)
     // sign() is never zero (+1 at 0); signum() is the classical three-valued one
     lua.set_function("signum", sol::resolve<value_t(value_t)>(signum));
 
+    // sizing a spring-damper for an explicit integrator: the critical damper of a
+    // spring-inertia pair, and the stiffest spring an inertia carries at a step (its
+    // stability margin `ratio` defaults to 1, as in C++)
+    lua.set_function("critical_damping", &critical_damping);
+    lua.set_function(
+        "max_explicit_stiffness",
+        sol::overload([](value_t I, value_t dt) { return max_explicit_stiffness(I, dt); },
+                      [](value_t I, value_t dt, value_t ratio) {
+                          return max_explicit_stiffness(I, dt, ratio);
+                      }));
+
     // Note:
     // - Geometric product is only available as operator*, not as
     // gpr() function
@@ -6215,6 +6226,81 @@ void register_physics_pods(sol::state& lua)
         sol::meta_function::to_string,
         [](kin_state3dp const& k) { return fmt::format("{}", k); });
 
+    // joint_range / joint_drive: a joint's own specification -- where it may go, and what
+    // its actuator can deliver. Aggregates whose every member has a default (the
+    // unrestricted joint, the ideal actuator), so, as for joint_state below, the
+    // factories default-construct and assign what they are given.
+    lua.new_usertype<joint_range2dp>(
+        "joint_range2dp", sol::call_constructor,
+        sol::factories([]() { return joint_range2dp{}; },
+                       [](value_t lo, value_t hi) {
+                           joint_range2dp r{};
+                           r.lo = lo;
+                           r.hi = hi;
+                           return r;
+                       },
+                       [](value_t lo, value_t hi, value_t k_stop, value_t c_stop) {
+                           joint_range2dp r{};
+                           r.lo = lo;
+                           r.hi = hi;
+                           r.k_stop = k_stop;
+                           r.c_stop = c_stop;
+                           return r;
+                       }),
+        "lo", &joint_range2dp::lo, "hi", &joint_range2dp::hi, "k_stop",
+        &joint_range2dp::k_stop, "c_stop", &joint_range2dp::c_stop,
+        sol::meta_function::to_string,
+        [](joint_range2dp const& r) { return fmt::format("{}", r); });
+
+    lua.new_usertype<joint_range3dp>(
+        "joint_range3dp", sol::call_constructor,
+        sol::factories([]() { return joint_range3dp{}; },
+                       [](value_t lo, value_t hi) {
+                           joint_range3dp r{};
+                           r.lo = lo;
+                           r.hi = hi;
+                           return r;
+                       },
+                       [](value_t lo, value_t hi, value_t k_stop, value_t c_stop) {
+                           joint_range3dp r{};
+                           r.lo = lo;
+                           r.hi = hi;
+                           r.k_stop = k_stop;
+                           r.c_stop = c_stop;
+                           return r;
+                       }),
+        "lo", &joint_range3dp::lo, "hi", &joint_range3dp::hi, "k_stop",
+        &joint_range3dp::k_stop, "c_stop", &joint_range3dp::c_stop,
+        sol::meta_function::to_string,
+        [](joint_range3dp const& r) { return fmt::format("{}", r); });
+
+    lua.new_usertype<joint_drive2dp>(
+        "joint_drive2dp", sol::call_constructor,
+        sol::factories([]() { return joint_drive2dp{}; }), "tau_max",
+        &joint_drive2dp::tau_max, "qd_max", &joint_drive2dp::qd_max, "qdd_max",
+        &joint_drive2dp::qdd_max, "armature", &joint_drive2dp::armature, "actuated",
+        &joint_drive2dp::actuated, sol::meta_function::to_string,
+        [](joint_drive2dp const& d) { return fmt::format("{}", d); });
+
+    lua.new_usertype<joint_drive3dp>(
+        "joint_drive3dp", sol::call_constructor,
+        sol::factories([]() { return joint_drive3dp{}; }), "tau_max",
+        &joint_drive3dp::tau_max, "qd_max", &joint_drive3dp::qd_max, "qdd_max",
+        &joint_drive3dp::qdd_max, "armature", &joint_drive3dp::armature, "actuated",
+        &joint_drive3dp::actuated, sol::meta_function::to_string,
+        [](joint_drive3dp const& d) { return fmt::format("{}", d); });
+
+    // does a restriction say anything at all? (the neutral value is the unrestricted
+    // joint)
+    {
+        auto pga = lua["pga"].get_or_create<sol::table>();
+        pga.set_function("is_unrestricted",
+                         sol::overload(sol::resolve<bool(joint_range2dp const&)>(
+                                           &hd::ga::pga::is_unrestricted),
+                                       sol::resolve<bool(joint_range3dp const&)>(
+                                           &hd::ga::pga::is_unrestricted)));
+    }
+
     // joint_state: per-joint configuration + dynamics parameters
     // (factories rather than sol::constructors: the struct is an aggregate whose
     // remaining members -- the joint's own specification, and the motor-joint screws,
@@ -6247,6 +6333,7 @@ void register_physics_pods(sol::state& lua)
         &joint_state2dp::omega, "stiffness", &joint_state2dp::stiffness, "damping",
         &joint_state2dp::damping, "q_rest", &joint_state2dp::q_rest, "screws",
         &joint_state2dp::screws, "rate", &joint_state2dp::rate, "M", &joint_state2dp::M,
+        "range", &joint_state2dp::range, "drive", &joint_state2dp::drive,
         sol::meta_function::to_string,
         [](joint_state2dp const& j) { return fmt::format("{}", j); });
 
@@ -6271,6 +6358,7 @@ void register_physics_pods(sol::state& lua)
         &joint_state3dp::omega, "stiffness", &joint_state3dp::stiffness, "damping",
         &joint_state3dp::damping, "q_rest", &joint_state3dp::q_rest, "screws",
         &joint_state3dp::screws, "rate", &joint_state3dp::rate, "M", &joint_state3dp::M,
+        "range", &joint_state3dp::range, "drive", &joint_state3dp::drive,
         sol::meta_function::to_string,
         [](joint_state3dp const& j) { return fmt::format("{}", j); });
 

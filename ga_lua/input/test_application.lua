@@ -42,3 +42,40 @@ print("pga.att(mres) = ", pga.att(mres))
 print("pga.sup(m1) = ", pga.unitize(pga.sup(m1)))
 print("pga.sup(m2) = ", pga.unitize(pga.sup(m2)))
 print("pga.sup(mres) = ", pga.unitize(pga.sup(mres)))
+
+-- a joint's own specification: where it may go (range) and what its actuator can
+-- deliver (drive). Both default to the NEUTRAL value -- the unrestricted joint, the ideal
+-- actuator -- so a joint that states neither behaves as it always did.
+print("\n2. A joint's own specification: range and drive (pga2dp, pga3dp):")
+print("-----------------------------")
+local r0 = joint_range2dp()
+assert(r0.lo == -math.huge and r0.hi == math.huge and pga.is_unrestricted(r0))
+local r = joint_range2dp(-math.pi, -0.1745)
+assert(r.lo == -math.pi and r.hi == -0.1745 and not pga.is_unrestricted(r))
+assert(r.k_stop == 0 and r.c_stop == 0) -- stated, not enforced
+local rs = joint_range3dp(-0.5, 0.5, 100.0, 2.0)
+assert(rs.k_stop == 100.0 and rs.c_stop == 2.0 and not pga.is_unrestricted(rs))
+local d = joint_drive2dp()
+assert(d.tau_max == math.huge and d.qd_max == math.huge and d.armature == 0 and d.actuated)
+d.tau_max = 25.0
+local j = joint_state2dp()
+assert(pga.is_unrestricted(j.range) and j.drive.tau_max == math.huge)
+j.range = r
+j.drive = d
+assert(j.range.lo == -math.pi and j.range.hi == -0.1745 and j.drive.tau_max == 25.0)
+local j3 = joint_state3dp()
+assert(pga.is_unrestricted(j3.range) and joint_drive3dp().tau_max == math.huge)
+j3.range = rs
+assert(j3.range.k_stop == 100.0)
+print("range: ", r)
+print("drive: ", d)
+
+-- sizing a stop's damper for an explicit integrator: critical for the link it stops,
+-- and the stiffest spring that link carries at the step
+local I = 2.65e-4
+assert(math.abs(critical_damping(4.0, I) - 2.0 * math.sqrt(4.0 * I)) < 1e-15)
+assert(math.abs(max_explicit_stiffness(I, 1e-3) - I * (1.0 / 2e-3) ^ 2) < 1e-9)
+assert(math.abs(max_explicit_stiffness(I, 1e-3, 2.0) - I * (2.0 / 2e-3) ^ 2) < 1e-9)
+print("critical_damping(4, I) = ", critical_damping(4.0, I))
+print("max_explicit_stiffness(I, 1 ms) = ", max_explicit_stiffness(I, 1e-3))
+print("OK - joint range and drive round-trip through joint_state, is_unrestricted, the stop sizing")
