@@ -949,6 +949,248 @@ std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Least-squares QUADRATIC PROGRAM with equalities, general inequalities and a box:
+//
+//     minimize  1/2 |A x - b|^2   subject to   E x = e,   C x >= d,   lo <= x <= hi ,
+//
+// A (p x ncols), E (q x ncols) and C (r x ncols) flat ROW-MAJOR, b / e / d their
+// right-hand sides (q or r may be zero: pass empty vectors), lo / hi of length ncols
+// (+-infinity where a variable is unbounded). `x` holds a FEASIBLE starting point on
+// entry -- every constraint satisfied, to `tol` -- and the answer on return. A caller
+// always has one: the box's point nearest zero when E and C are empty, or the previous
+// solution of a hierarchy whose next level only adds constraints that solution meets.
+// Throws Solver_error if the start is not feasible.
+//
+// WHY THIS BESIDE bvls_solve. That one's box is on the VARIABLES, and its active set is
+// searched one variable at a time. A constraint that COUPLES the variables -- a friction
+// cone, a centre-of-pressure polygon, a bound on some rows of C x, a limit stated in one
+// set of coordinates while the objective lives in another -- is a general polytope, the
+// case bvls_solve's own comment names as where a real quadratic program earns its place.
+// This is that program, sized for the small dense problems this library poses (tens of
+// variables, tens of rows). With E and C empty it is bvls_solve's problem and returns
+// its answer; with the box loose and C empty it is the equality-constrained least
+// squares, whose solution satisfies the KKT conditions A^T (A x - b) = E^T lambda.
+//
+// HOW: the primal active-set method with a null-space step (Nocedal & Wright, ch. 16).
+// A WORKING SET W holds constraints as equalities: every row of E, plus the inequality
+// rows and box faces currently active. From the feasible x the step to the minimizer on
+// W's affine set is
+//
+//     p = N z,   N = nullspace_basis(E_W),   z = argmin |(A N) z - (b - A x)| ,
+//
+// with z the minimum-norm solution, so a rank-deficient objective picks one minimizer
+// rather than failing. If p is blocked by an inactive inequality, x moves to the first
+// one hit and that row joins W; if p is zero, the multipliers
+// lambda = argmin |E_W^T lambda - A^T (A x - b)| are read: an inequality whose
+// multiplier is negative is holding the objective up and is RELEASED (the most negative
+// first); when none is, the KKT conditions hold and x is the constrained optimum --
+// global, since the objective is convex. Every iterate is feasible. A blocking
+// constraint met at zero step length is added without moving, so the working set
+// grows and a degenerate vertex is left in finitely many steps; `max_iter` (default
+// 20 * (ncols + q + r + 1)) guards a pathological cycle, and `iters_out` reports what
+// it took.
+//
+// WHAT IT DOES NOT DO: it is not a general QP with an arbitrary Hessian (the objective
+// is a least-squares residual, which is what every use here has), it does not scale
+// the data (the caller's rows are already in comparable units), and its tolerance is
+// one number, `tol`, used relative to the size of x for "zero step", "active" and
+// "negative multiplier" alike.
+//
+// Domain- and dimension-agnostic, like the rest of this file.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T>&
+qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
+            std::vector<T> const& E, std::vector<T> const& e, std::vector<T> const& C,
+            std::vector<T> const& d, std::vector<T> const& lo, std::vector<T> const& hi,
+            std::vector<T>& x, size_t* iters_out = nullptr, size_t max_iter = 0,
+            double tol = 1.0e-10)
+{
+    size_t const n = ncols, p = b.size(), q = e.size(), r = d.size();
+    if (A.size() != p * n || E.size() != q * n || C.size() != r * n) {
+        throw Solver_error("hd::ga::qp_ls_solve: A, E and C must each have rows * ncols "
+                           "entries.");
+    }
+    if (lo.size() != n || hi.size() != n || x.size() != n) {
+        throw Solver_error("hd::ga::qp_ls_solve: lo, hi and x must have ncols entries.");
+    }
+    T const inf = std::numeric_limits<T>::infinity();
+    if (max_iter == 0) max_iter = 20 * (n + q + r + 1);
+
+    // every inequality as a "≥" row a^T x >= rhs: the r rows of C, then the lower and
+    // the upper face of each bounded variable
+    struct ineq {
+        std::vector<T> a;
+        T rhs;
+    };
+    std::vector<ineq> in;
+    for (size_t i = 0; i < r; ++i)
+        in.push_back({std::vector<T>(C.begin() + std::ptrdiff_t(i * n),
+                                     C.begin() + std::ptrdiff_t((i + 1) * n)),
+                      d[i]});
+    for (size_t j = 0; j < n; ++j) {
+        if (lo[j] > -inf) {
+            std::vector<T> a(n, T(0));
+            a[j] = T(1);
+            in.push_back({a, lo[j]});
+        }
+        if (hi[j] < inf) {
+            std::vector<T> a(n, T(0));
+            a[j] = T(-1);
+            in.push_back({a, -hi[j]});
+        }
+    }
+    size_t const ni = in.size();
+    auto scale = [&]() {
+        T s = T(1);
+        for (size_t j = 0; j < n; ++j)
+            s = std::max(s, std::abs(x[j]));
+        return s;
+    };
+    auto dotx = [&](std::vector<T> const& a, std::vector<T> const& v) {
+        T s = T(0);
+        for (size_t j = 0; j < n; ++j)
+            s += a[j] * v[j];
+        return s;
+    };
+    // the start must be feasible
+    {
+        T const feas = T(tol) * scale();
+        for (size_t i = 0; i < q; ++i) {
+            T s = -e[i];
+            for (size_t j = 0; j < n; ++j)
+                s += E[i * n + j] * x[j];
+            if (std::abs(s) > feas * T(100))
+                throw Solver_error("hd::ga::qp_ls_solve: the starting point violates an "
+                                   "equality constraint.");
+        }
+        for (auto const& c : in)
+            if (dotx(c.a, x) < c.rhs - feas * T(100))
+                throw Solver_error("hd::ga::qp_ls_solve: the starting point violates an "
+                                   "inequality constraint or the box.");
+    }
+    std::vector<bool> active(ni, false);
+    for (size_t i = 0; i < ni; ++i)
+        active[i] = std::abs(dotx(in[i].a, x) - in[i].rhs) <= T(tol) * scale();
+
+    size_t used = 0;
+    for (; used < max_iter; ++used) {
+        // the working set as an equality block
+        std::vector<size_t> wi;
+        for (size_t i = 0; i < ni; ++i)
+            if (active[i]) wi.push_back(i);
+        size_t const kw = q + wi.size();
+        std::vector<T> Ew(kw * n, T(0));
+        for (size_t i = 0; i < q; ++i)
+            for (size_t j = 0; j < n; ++j)
+                Ew[i * n + j] = E[i * n + j];
+        for (size_t w = 0; w < wi.size(); ++w)
+            for (size_t j = 0; j < n; ++j)
+                Ew[(q + w) * n + j] = in[wi[w]].a[j];
+
+        // the step on W's affine set: p = N z
+        std::vector<T> resid(p);
+        for (size_t i = 0; i < p; ++i) {
+            T s = b[i];
+            for (size_t j = 0; j < n; ++j)
+                s -= A[i * n + j] * x[j];
+            resid[i] = s;
+        }
+        std::vector<T> step(n, T(0));
+        size_t k = n;
+        std::vector<T> N;
+        if (kw > 0) {
+            size_t rk = 0;
+            N = nullspace_basis(Ew, kw, n, &rk);
+            k = n - rk;
+        }
+        if (k > 0) {
+            std::vector<T> AN(p * k, T(0));
+            for (size_t i = 0; i < p; ++i)
+                for (size_t c = 0; c < k; ++c) {
+                    T s = T(0);
+                    for (size_t j = 0; j < n; ++j)
+                        s += A[i * n + j] *
+                             (kw > 0 ? N[j * k + c] : (j == c ? T(1) : T(0)));
+                    AN[i * k + c] = s;
+                }
+            auto const z = lstsq_solve(AN, resid, k);
+            for (size_t j = 0; j < n; ++j) {
+                T s = T(0);
+                for (size_t c = 0; c < k; ++c)
+                    s += (kw > 0 ? N[j * k + c] : (j == c ? T(1) : T(0))) * z[c];
+                step[j] = s;
+            }
+        }
+        T pn = T(0);
+        for (size_t j = 0; j < n; ++j)
+            pn = std::max(pn, std::abs(step[j]));
+
+        if (pn <= T(tol) * scale()) {
+            // stationary on W: the multipliers decide whether to release or to stop
+            if (wi.empty()) break;
+            std::vector<T> g(n, T(0)); // A^T (A x - b) = -A^T resid
+            for (size_t j = 0; j < n; ++j) {
+                T s = T(0);
+                for (size_t i = 0; i < p; ++i)
+                    s -= A[i * n + j] * resid[i];
+                g[j] = s;
+            }
+            std::vector<T> EwT(n * kw);
+            for (size_t i = 0; i < kw; ++i)
+                for (size_t j = 0; j < n; ++j)
+                    EwT[j * kw + i] = Ew[i * n + j];
+            auto const lambda = lstsq_solve(EwT, g, kw);
+            T gscale = T(tol);
+            for (size_t j = 0; j < n; ++j)
+                gscale = std::max(gscale, std::abs(g[j]));
+            size_t worst = ni;
+            T most = -T(tol) * gscale;
+            for (size_t w = 0; w < wi.size(); ++w)
+                if (lambda[q + w] < most) {
+                    most = lambda[q + w];
+                    worst = wi[w];
+                }
+            if (worst == ni) break; // KKT: every active inequality pushes the right way
+            active[worst] = false;
+            continue;
+        }
+
+        // the ratio test over the inactive inequalities
+        T alpha = T(1);
+        size_t block = ni;
+        for (size_t i = 0; i < ni; ++i) {
+            if (active[i]) continue;
+            T const ap = dotx(in[i].a, step);
+            if (ap >= -T(tol)) continue; // the step does not approach this one
+            T const room = dotx(in[i].a, x) - in[i].rhs; // >= 0 by feasibility
+            T const a_i = std::max(T(0), room) / (-ap);
+            if (a_i < alpha) {
+                alpha = a_i;
+                block = i;
+            }
+        }
+        for (size_t j = 0; j < n; ++j)
+            x[j] += alpha * step[j];
+        if (block < ni) {
+            active[block] = true;
+            // land exactly on the face, so the working-set solves see it as tight
+            T const viol = dotx(in[block].a, x) - in[block].rhs;
+            if (std::abs(viol) > T(0)) {
+                T aa = T(0);
+                for (size_t j = 0; j < n; ++j)
+                    aa += in[block].a[j] * in[block].a[j];
+                if (aa > T(0))
+                    for (size_t j = 0; j < n; ++j)
+                        x[j] -= viol * in[block].a[j] / aa;
+            }
+        }
+    }
+    if (iters_out) *iters_out = used;
+    return x;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // Null-space projection of a secondary objective: given an m x ncols map A and a desired
 // rate v (length ncols), return the part of v that A cannot see,
 //

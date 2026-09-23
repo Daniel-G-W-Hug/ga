@@ -1473,6 +1473,213 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 
+    TEST_CASE("qp_ls_solve: the constrained optimum under equalities, inequalities and "
+              "a box")
+    {
+        fmt::println("qp_ls_solve: the least-squares QP vs every active set");
+
+        value_t const inf = std::numeric_limits<value_t>::infinity();
+        auto resid2 = [](std::vector<value_t> const& A, std::vector<value_t> const& b,
+                         size_t n, std::vector<value_t> const& x) {
+            value_t s2 = 0.0;
+            for (size_t i = 0; i < b.size(); ++i) {
+                value_t acc = -b[i];
+                for (size_t j = 0; j < n; ++j)
+                    acc += A[i * n + j] * x[j];
+                s2 += acc * acc;
+            }
+            return s2;
+        };
+
+        // 1. NO EQUALITIES, NO GENERAL ROWS: it is bvls_solve's problem, and its answer
+        {
+            std::vector<value_t> const A{2.0, 1.0, 1.0, -3.0, 0.5, 2.0, 1.0, 1.0, 1.0};
+            std::vector<value_t> const b{1.0, 2.0, -1.0};
+            std::vector<value_t> const lo{-0.2, -0.2, -0.2}, hi{0.2, 0.2, 0.2};
+            auto const xb = bvls_solve(A, b, 3, lo, hi);
+            std::vector<value_t> x(3, 0.0);
+            qp_ls_solve(A, b, 3, {}, {}, {}, {}, lo, hi, x);
+            for (size_t j = 0; j < 3; ++j)
+                CHECK(x[j] == doctest::Approx(xb[j]).epsilon(1e-9));
+            fmt::println("  box only: qp == bvls to 1e-9 ({:+.4f} {:+.4f} {:+.4f})", x[0],
+                         x[1], x[2]);
+        }
+
+        // 2. AN EQUALITY, THE BOX LOOSE: the KKT conditions hold, A^T (A x - b) = E^T l
+        {
+            std::vector<value_t> const A{1.0, 2.0, 0.0, 0.0, 1.0, 3.0};
+            std::vector<value_t> const b{1.0, 1.0};
+            std::vector<value_t> const E{1.0, 1.0, 1.0};
+            std::vector<value_t> const e{1.0};
+            std::vector<value_t> const lo(3, -inf), hi(3, inf);
+            std::vector<value_t> x{1.0, 0.0, 0.0}; // on the plane
+            qp_ls_solve(A, b, 3, E, e, {}, {}, lo, hi, x);
+            CHECK(x[0] + x[1] + x[2] == doctest::Approx(1.0).epsilon(1e-12));
+            std::vector<value_t> g(3, 0.0); // A^T (A x - b) must be a multiple of (1,1,1)
+            for (size_t j = 0; j < 3; ++j)
+                for (size_t i = 0; i < 2; ++i) {
+                    value_t acc = -b[i];
+                    for (size_t k = 0; k < 3; ++k)
+                        acc += A[i * 3 + k] * x[k];
+                    g[j] += A[i * 3 + j] * acc;
+                }
+            CHECK(std::abs(g[0] - g[1]) < 1e-9);
+            CHECK(std::abs(g[1] - g[2]) < 1e-9);
+            fmt::println(
+                "  one equality: KKT gradient ({:+.4f} {:+.4f} {:+.4f}) along E^T", g[0],
+                g[1], g[2]);
+        }
+
+        // 3. AGAINST EVERY ACTIVE SET, seeded. Each problem is built around a point x_f
+        //    inside its box: e = E x_f and d = C x_f - slack, so x_f is feasible and is
+        //    the start. The brute force holds every subset of the inequalities (rows of
+        //    C, box faces) as equalities beside E, solves that equality-constrained least
+        //    squares through the null space, keeps the feasible answers and takes the
+        //    best; the QP must match it. Also gated: the QP's answer is FEASIBLE.
+        {
+            std::mt19937 rng(20260923u); // seeded: a failure is reproducible
+            std::uniform_real_distribution<value_t> u(-2.0, 2.0), w(0.1, 1.5);
+            size_t const n = 3;
+            size_t worse = 0, infeasible = 0, systems = 0, max_iters = 0;
+            value_t worst_gap = 0.0;
+            for (size_t s = 0; s < 200; ++s) {
+                size_t const p = 2 + (s % 3), q = s % 2, r = 2;
+                std::vector<value_t> A(p * n), b(p), E(q * n), e(q), C(r * n), d(r);
+                std::vector<value_t> lo(n), hi(n), xf(n);
+                for (auto& v : A)
+                    v = u(rng);
+                for (auto& v : b)
+                    v = u(rng);
+                for (auto& v : E)
+                    v = u(rng);
+                for (auto& v : C)
+                    v = u(rng);
+                for (size_t j = 0; j < n; ++j) {
+                    value_t const c = u(rng), h = w(rng);
+                    lo[j] = c - h;
+                    hi[j] = c + h;
+                    xf[j] = c + (u(rng) / 2.0) * h * 0.9;
+                }
+                for (size_t i = 0; i < q; ++i) {
+                    e[i] = 0.0;
+                    for (size_t j = 0; j < n; ++j)
+                        e[i] += E[i * n + j] * xf[j];
+                }
+                for (size_t i = 0; i < r; ++i) {
+                    d[i] = -w(rng) * 0.5;
+                    for (size_t j = 0; j < n; ++j)
+                        d[i] += C[i * n + j] * xf[j];
+                }
+                // every inequality as a "≥" row: C's rows, then the 2n faces
+                std::vector<std::vector<value_t>> rows;
+                std::vector<value_t> rhs;
+                for (size_t i = 0; i < r; ++i) {
+                    rows.emplace_back(C.begin() + std::ptrdiff_t(i * n),
+                                      C.begin() + std::ptrdiff_t((i + 1) * n));
+                    rhs.push_back(d[i]);
+                }
+                for (size_t j = 0; j < n; ++j) {
+                    std::vector<value_t> a(n, 0.0);
+                    a[j] = 1.0;
+                    rows.push_back(a);
+                    rhs.push_back(lo[j]);
+                    a[j] = -1.0;
+                    rows.push_back(a);
+                    rhs.push_back(-hi[j]);
+                }
+                auto feasible = [&](std::vector<value_t> const& x) {
+                    for (size_t i = 0; i < q; ++i) {
+                        value_t acc = -e[i];
+                        for (size_t j = 0; j < n; ++j)
+                            acc += E[i * n + j] * x[j];
+                        if (std::abs(acc) > 1e-8) return false;
+                    }
+                    for (size_t i = 0; i < rows.size(); ++i) {
+                        value_t acc = -rhs[i];
+                        for (size_t j = 0; j < n; ++j)
+                            acc += rows[i][j] * x[j];
+                        if (acc < -1e-8) return false;
+                    }
+                    return true;
+                };
+                // the brute force
+                value_t best = std::numeric_limits<value_t>::infinity();
+                size_t const ni = rows.size();
+                for (size_t mask = 0; mask < (size_t(1) << ni); ++mask) {
+                    std::vector<value_t> Es(E), es(e);
+                    size_t ks = q;
+                    for (size_t i = 0; i < ni; ++i)
+                        if (mask & (size_t(1) << i)) {
+                            Es.insert(Es.end(), rows[i].begin(), rows[i].end());
+                            es.push_back(rhs[i]);
+                            ++ks;
+                        }
+                    std::vector<value_t> x(n, 0.0);
+                    if (ks > 0) {
+                        x = lstsq_solve(Es, es, n);
+                        value_t rr = 0.0;
+                        for (size_t i = 0; i < ks; ++i) {
+                            value_t acc = -es[i];
+                            for (size_t j = 0; j < n; ++j)
+                                acc += Es[i * n + j] * x[j];
+                            rr += acc * acc;
+                        }
+                        if (rr > 1e-16) continue; // an inconsistent subset
+                    }
+                    size_t rk = 0;
+                    auto const N = ks > 0
+                                       ? nullspace_basis(Es, ks, n, &rk)
+                                       : std::vector<value_t>{1, 0, 0, 0, 1, 0, 0, 0, 1};
+                    size_t const k = ks > 0 ? n - rk : n;
+                    if (k > 0) {
+                        std::vector<value_t> AN(p * k, 0.0), rb(p);
+                        for (size_t i = 0; i < p; ++i) {
+                            rb[i] = b[i];
+                            for (size_t j = 0; j < n; ++j)
+                                rb[i] -= A[i * n + j] * x[j];
+                            for (size_t c = 0; c < k; ++c)
+                                for (size_t j = 0; j < n; ++j)
+                                    AN[i * k + c] += A[i * n + j] * N[j * k + c];
+                        }
+                        auto const z = lstsq_solve(AN, rb, k);
+                        for (size_t j = 0; j < n; ++j)
+                            for (size_t c = 0; c < k; ++c)
+                                x[j] += N[j * k + c] * z[c];
+                    }
+                    if (feasible(x)) best = std::min(best, resid2(A, b, n, x));
+                }
+                // the QP, from the feasible point
+                std::vector<value_t> x = xf;
+                size_t iters = 0;
+                qp_ls_solve(A, b, n, E, e, C, d, lo, hi, x, &iters);
+                max_iters = std::max(max_iters, iters);
+                ++systems;
+                if (!feasible(x)) ++infeasible;
+                value_t const got = resid2(A, b, n, x);
+                value_t const gap = got - best;
+                worst_gap = std::max(worst_gap, gap);
+                if (gap > 1e-8 * std::max(value_t(1.0), best)) ++worse;
+            }
+            fmt::println("  {} seeded systems (3 variables, 2-4 rows, 0-1 equalities, 2 "
+                         "coupled rows, a box): {} worse than the best active set, {} "
+                         "infeasible, worst gap {:.1e}, at most {} iterations",
+                         systems, worse, infeasible, worst_gap, max_iters);
+            CHECK(worse == 0);
+            CHECK(infeasible == 0);
+        }
+
+        // 4. an infeasible start is refused, not silently repaired
+        {
+            std::vector<value_t> const A{1.0, 0.0, 0.0, 1.0}, b{0.0, 0.0};
+            std::vector<value_t> const C{1.0, 1.0}, d{1.0};
+            std::vector<value_t> const lo(2, -inf), hi(2, inf);
+            std::vector<value_t> x{0.0, 0.0}; // x + y >= 1 fails at the origin
+            CHECK_THROWS_AS(qp_ls_solve(A, b, 2, {}, {}, C, d, lo, hi, x), Solver_error);
+            fmt::println("  an infeasible start throws");
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("bvls_solve: the constrained optimum, not a clamped one")
     {
         fmt::println("bvls_solve: bounded-variable least squares vs every active set");
