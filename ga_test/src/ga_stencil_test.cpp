@@ -991,6 +991,202 @@ TEST_SUITE("fd stencil generator")
 // primitive with no consumer-specific home.
 /////////////////////////////////////////////////////////////////////////////////////////
 
+// THE LEAST-SQUARES QP'S TWO ORACLES, shared by its gates below. Both are independent
+// of the solver's own machinery: the brute force enumerates every active set, the
+// certificate is the KKT system solved as a non-negative least squares.
+namespace qp_gate {
+
+struct problem { // min |A x - b|^2  s.t.  E x = e,  C x >= d,  lo <= x <= hi
+    size_t n{};
+    std::vector<value_t> A, b, E, e, C, d, lo, hi;
+};
+
+// every inequality as a ">=" row: C's rows, then the lower and the upper face of each
+// bounded variable (an unbounded face is left out)
+inline void ineq_rows(problem const& P, std::vector<std::vector<value_t>>& rows,
+                      std::vector<value_t>& rhs)
+{
+    size_t const n = P.n, r = P.d.size();
+    rows.clear();
+    rhs.clear();
+    for (size_t i = 0; i < r; ++i) {
+        rows.emplace_back(P.C.begin() + std::ptrdiff_t(i * n),
+                          P.C.begin() + std::ptrdiff_t((i + 1) * n));
+        rhs.push_back(P.d[i]);
+    }
+    for (size_t j = 0; j < n; ++j) {
+        std::vector<value_t> a(n, 0.0);
+        if (std::isfinite(P.lo[j])) {
+            a[j] = 1.0;
+            rows.push_back(a);
+            rhs.push_back(P.lo[j]);
+        }
+        if (std::isfinite(P.hi[j])) {
+            a[j] = -1.0;
+            rows.push_back(a);
+            rhs.push_back(-P.hi[j]);
+        }
+    }
+}
+
+inline value_t resid2(problem const& P, std::vector<value_t> const& x)
+{
+    value_t s2 = 0.0;
+    for (size_t i = 0; i < P.b.size(); ++i) {
+        value_t acc = -P.b[i];
+        for (size_t j = 0; j < P.n; ++j)
+            acc += P.A[i * P.n + j] * x[j];
+        s2 += acc * acc;
+    }
+    return s2;
+}
+
+inline bool feasible(problem const& P, std::vector<value_t> const& x, value_t tol = 1e-8)
+{
+    size_t const n = P.n;
+    for (size_t i = 0; i < P.e.size(); ++i) {
+        value_t acc = -P.e[i];
+        for (size_t j = 0; j < n; ++j)
+            acc += P.E[i * n + j] * x[j];
+        if (std::abs(acc) > tol) return false;
+    }
+    std::vector<std::vector<value_t>> rows;
+    std::vector<value_t> rhs;
+    ineq_rows(P, rows, rhs);
+    for (size_t i = 0; i < rows.size(); ++i) {
+        value_t acc = -rhs[i];
+        for (size_t j = 0; j < n; ++j)
+            acc += rows[i][j] * x[j];
+        if (acc < -tol) return false;
+    }
+    return true;
+}
+
+// THE BRUTE FORCE: every subset of the inequalities held as equalities beside E, that
+// equality-constrained least squares solved through the null space, the feasible
+// answers kept and the best residual^2 returned (+inf if none is feasible)
+inline value_t best_active_set(problem const& P)
+{
+    size_t const n = P.n, p = P.b.size(), q = P.e.size();
+    std::vector<std::vector<value_t>> rows;
+    std::vector<value_t> rhs;
+    ineq_rows(P, rows, rhs);
+    value_t best = std::numeric_limits<value_t>::infinity();
+    size_t const ni = rows.size();
+    for (size_t mask = 0; mask < (size_t(1) << ni); ++mask) {
+        std::vector<value_t> Es(P.E), es(P.e);
+        size_t ks = q;
+        for (size_t i = 0; i < ni; ++i)
+            if (mask & (size_t(1) << i)) {
+                Es.insert(Es.end(), rows[i].begin(), rows[i].end());
+                es.push_back(rhs[i]);
+                ++ks;
+            }
+        std::vector<value_t> x(n, 0.0);
+        if (ks > 0) {
+            x = lstsq_solve(Es, es, n);
+            value_t rr = 0.0;
+            for (size_t i = 0; i < ks; ++i) {
+                value_t acc = -es[i];
+                for (size_t j = 0; j < n; ++j)
+                    acc += Es[i * n + j] * x[j];
+                rr += acc * acc;
+            }
+            if (rr > 1e-16) continue; // an inconsistent subset
+        }
+        size_t rk = 0;
+        std::vector<value_t> N;
+        size_t k = n;
+        if (ks > 0) {
+            N = nullspace_basis(Es, ks, n, &rk);
+            k = n - rk;
+        }
+        else {
+            N.assign(n * n, 0.0);
+            for (size_t j = 0; j < n; ++j)
+                N[j * n + j] = 1.0;
+        }
+        if (k > 0) {
+            std::vector<value_t> AN(p * k, 0.0), rb(p);
+            for (size_t i = 0; i < p; ++i) {
+                rb[i] = P.b[i];
+                for (size_t j = 0; j < n; ++j)
+                    rb[i] -= P.A[i * n + j] * x[j];
+                for (size_t c = 0; c < k; ++c)
+                    for (size_t j = 0; j < n; ++j)
+                        AN[i * k + c] += P.A[i * n + j] * N[j * k + c];
+            }
+            auto const z = lstsq_solve(AN, rb, k);
+            for (size_t j = 0; j < n; ++j)
+                for (size_t c = 0; c < k; ++c)
+                    x[j] += N[j * k + c] * z[c];
+        }
+        if (feasible(P, x)) best = std::min(best, resid2(P, x));
+    }
+    return best;
+}
+
+// THE KKT CERTIFICATE: at x, multipliers mu (free) on the equalities and lambda >= 0
+// on the TIGHT inequalities with E^T mu + W^T lambda = grad f, grad f = A^T (A x - b),
+// found as a non-negative least squares (bvls_solve). Returned: the residual of that
+// system relative to the gradient's size. Zero means x is optimal -- a sufficient
+// condition for a convex program, whatever the degeneracy of the tight set (a
+// dependent W has many multiplier vectors; the NNLS finds a non-negative one if any
+// exists, where a minimum-norm solve would not).
+inline value_t kkt_residual(problem const& P, std::vector<value_t> const& x)
+{
+    size_t const n = P.n, q = P.e.size();
+    value_t scale = 1.0;
+    for (auto v : x)
+        scale = std::max(scale, std::abs(v));
+    std::vector<value_t> g(n, 0.0);
+    for (size_t i = 0; i < P.b.size(); ++i) {
+        value_t acc = -P.b[i];
+        for (size_t j = 0; j < n; ++j)
+            acc += P.A[i * n + j] * x[j];
+        for (size_t j = 0; j < n; ++j)
+            g[j] += P.A[i * n + j] * acc;
+    }
+    value_t gn = 0.0;
+    for (auto v : g)
+        gn = std::max(gn, std::abs(v));
+    std::vector<std::vector<value_t>> rows;
+    std::vector<value_t> rhs;
+    ineq_rows(P, rows, rhs);
+    std::vector<size_t> tight;
+    for (size_t i = 0; i < rows.size(); ++i) {
+        value_t acc = -rhs[i];
+        for (size_t j = 0; j < n; ++j)
+            acc += rows[i][j] * x[j];
+        if (std::abs(acc) <= 1e-8 * scale) tight.push_back(i);
+    }
+    size_t const m = q + tight.size();
+    if (m == 0) return gn / std::max(value_t(1.0), scale); // unconstrained: grad f = 0
+    std::vector<value_t> M(n * m, 0.0), lo(m),
+        hi(m, std::numeric_limits<value_t>::infinity());
+    for (size_t i = 0; i < q; ++i) {
+        lo[i] = -std::numeric_limits<value_t>::infinity();
+        for (size_t j = 0; j < n; ++j)
+            M[j * m + i] = P.E[i * n + j];
+    }
+    for (size_t t = 0; t < tight.size(); ++t) {
+        lo[q + t] = 0.0;
+        for (size_t j = 0; j < n; ++j)
+            M[j * m + q + t] = rows[tight[t]][j];
+    }
+    auto const y = bvls_solve(M, g, m, lo, hi);
+    value_t r2 = 0.0;
+    for (size_t j = 0; j < n; ++j) {
+        value_t acc = -g[j];
+        for (size_t i = 0; i < m; ++i)
+            acc += M[j * m + i] * y[i];
+        r2 += acc * acc;
+    }
+    return std::sqrt(r2) / std::max(value_t(1.0), gn);
+}
+
+} // namespace qp_gate
+
 TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
 {
 
@@ -1479,18 +1675,6 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("qp_ls_solve: the least-squares QP vs every active set");
 
         value_t const inf = std::numeric_limits<value_t>::infinity();
-        auto resid2 = [](std::vector<value_t> const& A, std::vector<value_t> const& b,
-                         size_t n, std::vector<value_t> const& x) {
-            value_t s2 = 0.0;
-            for (size_t i = 0; i < b.size(); ++i) {
-                value_t acc = -b[i];
-                for (size_t j = 0; j < n; ++j)
-                    acc += A[i * n + j] * x[j];
-                s2 += acc * acc;
-            }
-            return s2;
-        };
-
         // 1. NO EQUALITIES, NO GENERAL ROWS: it is bvls_solve's problem, and its answer
         {
             std::vector<value_t> const A{2.0, 1.0, 1.0, -3.0, 0.5, 2.0, 1.0, 1.0, 1.0};
@@ -1540,8 +1724,8 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             std::mt19937 rng(20260923u); // seeded: a failure is reproducible
             std::uniform_real_distribution<value_t> u(-2.0, 2.0), w(0.1, 1.5);
             size_t const n = 3;
-            size_t worse = 0, infeasible = 0, systems = 0, max_iters = 0;
-            value_t worst_gap = 0.0;
+            size_t worse = 0, infeasible = 0, systems = 0, max_iters = 0, uncertified = 0;
+            value_t worst_gap = 0.0, worst_cert = 0.0;
             for (size_t s = 0; s < 200; ++s) {
                 size_t const p = 2 + (s % 3), q = s % 2, r = 2;
                 std::vector<value_t> A(p * n), b(p), E(q * n), e(q), C(r * n), d(r);
@@ -1570,102 +1754,33 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                     for (size_t j = 0; j < n; ++j)
                         d[i] += C[i * n + j] * xf[j];
                 }
-                // every inequality as a "≥" row: C's rows, then the 2n faces
-                std::vector<std::vector<value_t>> rows;
-                std::vector<value_t> rhs;
-                for (size_t i = 0; i < r; ++i) {
-                    rows.emplace_back(C.begin() + std::ptrdiff_t(i * n),
-                                      C.begin() + std::ptrdiff_t((i + 1) * n));
-                    rhs.push_back(d[i]);
-                }
-                for (size_t j = 0; j < n; ++j) {
-                    std::vector<value_t> a(n, 0.0);
-                    a[j] = 1.0;
-                    rows.push_back(a);
-                    rhs.push_back(lo[j]);
-                    a[j] = -1.0;
-                    rows.push_back(a);
-                    rhs.push_back(-hi[j]);
-                }
-                auto feasible = [&](std::vector<value_t> const& x) {
-                    for (size_t i = 0; i < q; ++i) {
-                        value_t acc = -e[i];
-                        for (size_t j = 0; j < n; ++j)
-                            acc += E[i * n + j] * x[j];
-                        if (std::abs(acc) > 1e-8) return false;
-                    }
-                    for (size_t i = 0; i < rows.size(); ++i) {
-                        value_t acc = -rhs[i];
-                        for (size_t j = 0; j < n; ++j)
-                            acc += rows[i][j] * x[j];
-                        if (acc < -1e-8) return false;
-                    }
-                    return true;
-                };
-                // the brute force
-                value_t best = std::numeric_limits<value_t>::infinity();
-                size_t const ni = rows.size();
-                for (size_t mask = 0; mask < (size_t(1) << ni); ++mask) {
-                    std::vector<value_t> Es(E), es(e);
-                    size_t ks = q;
-                    for (size_t i = 0; i < ni; ++i)
-                        if (mask & (size_t(1) << i)) {
-                            Es.insert(Es.end(), rows[i].begin(), rows[i].end());
-                            es.push_back(rhs[i]);
-                            ++ks;
-                        }
-                    std::vector<value_t> x(n, 0.0);
-                    if (ks > 0) {
-                        x = lstsq_solve(Es, es, n);
-                        value_t rr = 0.0;
-                        for (size_t i = 0; i < ks; ++i) {
-                            value_t acc = -es[i];
-                            for (size_t j = 0; j < n; ++j)
-                                acc += Es[i * n + j] * x[j];
-                            rr += acc * acc;
-                        }
-                        if (rr > 1e-16) continue; // an inconsistent subset
-                    }
-                    size_t rk = 0;
-                    auto const N = ks > 0
-                                       ? nullspace_basis(Es, ks, n, &rk)
-                                       : std::vector<value_t>{1, 0, 0, 0, 1, 0, 0, 0, 1};
-                    size_t const k = ks > 0 ? n - rk : n;
-                    if (k > 0) {
-                        std::vector<value_t> AN(p * k, 0.0), rb(p);
-                        for (size_t i = 0; i < p; ++i) {
-                            rb[i] = b[i];
-                            for (size_t j = 0; j < n; ++j)
-                                rb[i] -= A[i * n + j] * x[j];
-                            for (size_t c = 0; c < k; ++c)
-                                for (size_t j = 0; j < n; ++j)
-                                    AN[i * k + c] += A[i * n + j] * N[j * k + c];
-                        }
-                        auto const z = lstsq_solve(AN, rb, k);
-                        for (size_t j = 0; j < n; ++j)
-                            for (size_t c = 0; c < k; ++c)
-                                x[j] += N[j * k + c] * z[c];
-                    }
-                    if (feasible(x)) best = std::min(best, resid2(A, b, n, x));
-                }
+                qp_gate::problem const P{n, A, b, E, e, C, d, lo, hi};
+                value_t const best = qp_gate::best_active_set(P); // the brute force
                 // the QP, from the feasible point
                 std::vector<value_t> x = xf;
                 size_t iters = 0;
                 qp_ls_solve(A, b, n, E, e, C, d, lo, hi, x, &iters);
                 max_iters = std::max(max_iters, iters);
                 ++systems;
-                if (!feasible(x)) ++infeasible;
-                value_t const got = resid2(A, b, n, x);
+                if (!qp_gate::feasible(P, x)) ++infeasible;
+                value_t const got = qp_gate::resid2(P, x);
                 value_t const gap = got - best;
                 worst_gap = std::max(worst_gap, gap);
                 if (gap > 1e-8 * std::max(value_t(1.0), best)) ++worse;
+                // the second oracle: the KKT certificate at the answer
+                value_t const cert = qp_gate::kkt_residual(P, x);
+                worst_cert = std::max(worst_cert, cert);
+                if (cert > 1e-7) ++uncertified;
             }
             fmt::println("  {} seeded systems (3 variables, 2-4 rows, 0-1 equalities, 2 "
                          "coupled rows, a box): {} worse than the best active set, {} "
                          "infeasible, worst gap {:.1e}, at most {} iterations",
                          systems, worse, infeasible, worst_gap, max_iters);
+            fmt::println("  the KKT certificate: {} uncertified, worst residual {:.1e}",
+                         uncertified, worst_cert);
             CHECK(worse == 0);
             CHECK(infeasible == 0);
+            CHECK(uncertified == 0);
         }
 
         // 4. an infeasible start is refused, not silently repaired
@@ -1932,6 +2047,7 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         value_t const inf = std::numeric_limits<value_t>::infinity();
         struct instance {
             char const* note;
+            bool optimal; // certified by the KKT oracle -- or a KNOWN non-optimal stop
             size_t n, q, p, r;
             std::vector<value_t> A, b, E, e, C, d, lo, hi, x;
         };
@@ -1939,6 +2055,7 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             {"one row in seven variables, six equalities, twelve rows -- the degenerate "
              "vertex: a row released on a multiplier of -2.05 re-blocked at zero length "
              "520 times",
+             false,
              7,
              6,
              1,
@@ -2030,6 +2147,7 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
               -288.53451286698896}},
             {"two rows in ten, a step of 2e16 along a direction the level barely saw -- "
              "660 iterations",
+             true,
              10,
              2,
              2,
@@ -2132,6 +2250,7 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
               -874890.98763292818}},
             {"one row in ten, four equalities -- two near-dependent tight rows swapping, "
              "700 iterations",
+             true,
              10,
              4,
              1,
@@ -2258,6 +2377,16 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                 scale = std::max(scale, std::abs(v));
             CHECK(it <= 40);
             CHECK(r1 <= r0 + 1.0e-9 * (1.0 + r0));
+            // ... and OPTIMAL, by the KKT certificate -- which is what the iteration
+            // bound and the feasibility cannot say about a stop with pinned rows. The
+            // first instance is the KNOWN exception, pinned as failing: its stop is
+            // 23 % off its KKT (the descent needs two dependent rows released together;
+            // the solver's anti-cycling note records the remedy that was tried). A fix
+            // must move this check, not silently pass it.
+            qp_gate::problem const P{c.n, c.A, c.b, c.E, c.e, c.C, c.d, c.lo, c.hi};
+            value_t const cert = qp_gate::kkt_residual(P, x);
+            if (c.optimal) CHECK(cert <= 1.0e-7);
+            else CHECK(cert > 1.0e-2); // OPEN: a known non-optimal degenerate stop
             for (size_t i = 0; i < c.q; ++i) {
                 value_t s = -c.e[i];
                 for (size_t j = 0; j < c.n; ++j)
@@ -2276,8 +2405,8 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             }
             fmt::println(
                 "  n {} q {} p {} r {}: {} iterations, |Ax - b| {:.6g} -> {:.6g}, "
-                "max|x| {:.4g} ({})",
-                c.n, c.q, c.p, c.r, it, r0, r1, scale, c.note);
+                "max|x| {:.4g}, KKT residual {:.1e} ({})",
+                c.n, c.q, c.p, c.r, it, r0, r1, scale, cert, c.note);
             // ... and a cap the instance cannot meet THROWS instead of returning the
             // point it stopped at, as these did before, with the count reported first
             if (it > 2) {
@@ -2289,6 +2418,103 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                 CHECK(it2 == 2);
             }
         }
+        fmt::println("");
+    }
+
+    TEST_CASE("qp_ls_solve: degenerate vertices, seeded -- every active set and the "
+              "KKT certificate")
+    {
+        fmt::println("qp_ls_solve: degenerate vertices, seeded");
+        // The random sweep above never produces a DEGENERATE vertex -- tight rows that
+        // are exactly dependent -- and that is the regime that cycled (2026-09-24). Here
+        // each system is built AT one: the start x_f sits on one or two box faces, one
+        // coupled row is an exact combination of those faces' normals and tight (so the
+        // tight set is dependent by construction), a second coupled row is tight and
+        // independent, a third has slack; the objective has FEWER rows than the freedom
+        // left, so the level's Hessian is singular -- the other half of the cycle. Two
+        // oracles: the brute force over every active set, and the KKT certificate at
+        // the answer; and the solver must return (exhausting its cap throws).
+        std::mt19937 rng(20260924u);
+        std::uniform_real_distribution<value_t> u(-2.0, 2.0), w(0.1, 1.5);
+        size_t worse = 0, infeasible = 0, uncertified = 0, systems = 0, max_iters = 0,
+               threw = 0;
+        value_t worst_gap = 0.0, worst_cert = 0.0;
+        for (size_t s = 0; s < 200; ++s) {
+            size_t const n = 3 + (s % 2), q = (s / 2) % 2,
+                         p = 1 + ((s / 4) % 2 && n == 4), r = 3,
+                         nt = 1 + (s / 8) % 2; // tight faces
+            qp_gate::problem P;
+            P.n = n;
+            P.A.resize(p * n);
+            P.b.resize(p);
+            P.E.resize(q * n);
+            P.e.resize(q);
+            P.C.assign(r * n, 0.0);
+            P.d.resize(r);
+            P.lo.resize(n);
+            P.hi.resize(n);
+            std::vector<value_t> xf(n);
+            for (auto& v : P.A)
+                v = u(rng);
+            for (auto& v : P.b)
+                v = u(rng);
+            for (auto& v : P.E)
+                v = u(rng);
+            for (size_t j = 0; j < n; ++j) {
+                xf[j] = u(rng);
+                value_t const h = w(rng);
+                P.lo[j] = j < nt ? xf[j] : xf[j] - h; // the first nt faces TIGHT
+                P.hi[j] = xf[j] + h;
+            }
+            for (size_t i = 0; i < q; ++i) {
+                P.e[i] = 0.0;
+                for (size_t j = 0; j < n; ++j)
+                    P.e[i] += P.E[i * n + j] * xf[j];
+            }
+            // row 0: an exact positive combination of the tight faces' normals, tight
+            for (size_t j = 0; j < nt; ++j)
+                P.C[0 * n + j] = w(rng);
+            // row 1: random, tight; row 2: random, with slack
+            for (size_t j = 0; j < n; ++j) {
+                P.C[1 * n + j] = u(rng);
+                P.C[2 * n + j] = u(rng);
+            }
+            for (size_t i = 0; i < r; ++i) {
+                P.d[i] = i == 2 ? -w(rng) * 0.5 : 0.0;
+                for (size_t j = 0; j < n; ++j)
+                    P.d[i] += P.C[i * n + j] * xf[j];
+            }
+            value_t const best = qp_gate::best_active_set(P);
+            std::vector<value_t> x = xf;
+            size_t iters = 0;
+            try {
+                qp_ls_solve(P.A, P.b, n, P.E, P.e, P.C, P.d, P.lo, P.hi, x, &iters);
+            }
+            catch (Solver_error const&) {
+                ++threw;
+                continue;
+            }
+            ++systems;
+            max_iters = std::max(max_iters, iters);
+            if (!qp_gate::feasible(P, x)) ++infeasible;
+            value_t const gap = qp_gate::resid2(P, x) - best;
+            worst_gap = std::max(worst_gap, gap);
+            if (gap > 1e-8 * std::max(value_t(1.0), best)) ++worse;
+            value_t const cert = qp_gate::kkt_residual(P, x);
+            worst_cert = std::max(worst_cert, cert);
+            if (cert > 1e-7) ++uncertified;
+        }
+        fmt::println("  {} systems at a degenerate vertex (3-4 variables, 1-2 objective "
+                     "rows, 0-1 equalities, a dependent tight row, 1-2 tight faces): {} "
+                     "threw, {} worse than the best active set, {} infeasible, {} "
+                     "uncertified; worst gap {:.1e}, worst KKT residual {:.1e}, at most "
+                     "{} iterations",
+                     systems + threw, threw, worse, infeasible, uncertified, worst_gap,
+                     worst_cert, max_iters);
+        CHECK(threw == 0);
+        CHECK(worse == 0);
+        CHECK(infeasible == 0);
+        CHECK(uncertified == 0);
         fmt::println("");
     }
 

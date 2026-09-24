@@ -383,4 +383,12 @@
            start); the 200-system sweep and every consumer unmoved. And exhausting
            max_iter THROWS now, in qp_ls_solve and bvls_solve alike (iters_out is set
            first): a point the iteration did not settle on is not an answer, and
-           returned silently it read as one
+           returned silently it read as one. The gates gained a second, independent
+           oracle beside the brute force over every active set: the KKT certificate
+           (multipliers on the whole tight set as a non-negative least squares, zero
+           residual = optimal), on the 3-variable sweep, on a new sweep of 200 vertices
+           built degenerate on purpose (all certified), and on the three instances --
+           where one is NOT: a stop with pinned rows 23 % off its optimum, because the
+           descent needs two dependent rows released together. Gated as the known
+           failing stop it is; the certificate as an in-loop escape was tried and
+           cycled elsewhere

@@ -1172,10 +1172,14 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
     // times. So a row that re-blocks at zero step right after its release is PINNED --
     // it re-enters and the multipliers may not release it -- until x moves, which
     // clears every pin. Each iteration then moves x (the objective strictly
-    // decreases), grows the working set, pins a row, or stops: all finite. A stop
-    // with pinned rows is optimal on its face: the least-squares minimizer of the
-    // face without the pinned row lies ACROSS that row, so no release lowers the
-    // objective -- the negative multiplier was the singularity's artefact.
+    // decreases), grows the working set, pins a row, or stops: all finite. KNOWN AND
+    // GATED: a stop with pinned rows can be OFF the optimum -- the descent may need two
+    // dependent rows released TOGETHER, which one-at-a-time never finds (one of the
+    // three gated instances stops 23 % off its KKT). Taking the KKT certificate's
+    // residual as a descent step from such a stop was tried (2026-09-24) and cycled
+    // elsewhere: 11 of 200 constructed degenerate vertices ran to the cap, and the
+    // certificate's own NNLS cycled in bvls_solve on one instance -- the same class in
+    // the sibling. The certificate stays what it is in the gates: the oracle.
     std::vector<bool> pinned(ni, false);
     size_t last_dropped = ni;
     size_t used = 0;
