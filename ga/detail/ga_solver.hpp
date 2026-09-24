@@ -588,6 +588,90 @@ size_t matrix_rank(std::vector<T> const& A, size_t rows, size_t ncols,
 // configuration: the solve returns a finite, continuous answer instead of throwing or
 // inflating. Returns x (length ncols); writes the rank if `rank_out` is non-null.
 /////////////////////////////////////////////////////////////////////////////////////////
+namespace detail {
+
+// The complete orthogonal decomposition the three functions below share: the pivoted
+// QR of A and, at a rank drop, the second QR of [R11 R12]^T. Factored ONCE, it answers
+// A^+ b for any number of right-hand sides (cod_solve) and yields the null space; the
+// column-by-column pseudo-inverse used to pay the whole factorization per column.
+struct cod_factor {
+    qr_factor f; // A P = Q R
+    qr_factor g; // [R11 R12]^T = Q_g R_g, present only when 0 < rank < n
+    size_t m{0}, n{0};
+};
+
+inline cod_factor cod_decomp(std::vector<double> a, size_t m, size_t n, double rtol)
+{
+    cod_factor c;
+    c.m = m;
+    c.n = n;
+    c.f = qr_decomp(std::move(a), m, n, rtol);
+    size_t const r = c.f.rank;
+    if (r > 0 && r < n) {
+        // T = [R11 R12] (r x n); factor T^T = Z L^T
+        std::vector<double> Tt(n * r, 0.0); // n x r row-major
+        for (size_t i = 0; i < r; ++i)
+            for (size_t j = i; j < n; ++j)
+                Tt[j * r + i] = c.f.qr[i * n + j];
+        c.g = qr_decomp(std::move(Tt), n, r, 0.0);
+    }
+    return c;
+}
+
+// A^+ b for one right-hand side (length m), in the original column order
+inline std::vector<double> cod_solve(cod_factor const& c, std::vector<double> bb)
+{
+    size_t const r = c.f.rank, ncols = c.n;
+    std::vector<double> x(ncols, 0.0);
+    if (r == 0) return x;
+
+    qr_apply_q(c.f, bb, true);         // c = Q^T b; only the first r entries matter
+    std::vector<double> y(ncols, 0.0); // the solution in the permuted column order
+
+    if (r == ncols) {
+        // full column rank: back-substitute R11 y = c
+        for (size_t i = r; i-- > 0;) {
+            double s = bb[i];
+            for (size_t j = i + 1; j < r; ++j)
+                s -= c.f.qr[i * ncols + j] * y[j];
+            y[i] = s / c.f.qr[i * ncols + i];
+        }
+    }
+    else {
+        // rank-deficient / underdetermined, through the second factorization. T has
+        // full row rank r, so the threshold 0 keeps every column -- but qr_decomp
+        // still PIVOTS them: T^T P = Q R, column i of T^T P being column perm[i] of T^T.
+        // Hence T = P R^T Q^T, and T y = c becomes R^T w = P^T c with w = (Q^T y)_{1:r},
+        // where (P^T c)_i = c_{perm[i]}: the right-hand side is read in the PIVOTED order
+        // (forward substitution on the transposed upper factor). The inverse reading,
+        // c_{perm[i]} = bb_i, agrees only when the permutation is its own inverse (the
+        // identity, one swap) and otherwise returns a y that does not solve T y = c.
+        qr_factor const& g = c.g;
+        std::vector<double> cc(r);
+        for (size_t i = 0; i < r; ++i)
+            cc[i] = bb[g.perm[i]];
+        std::vector<double> w(r, 0.0);
+        for (size_t i = 0; i < r; ++i) {
+            double s = cc[i];
+            for (size_t j = 0; j < i; ++j)
+                s -= g.qr[j * r + i] * w[j];
+            w[i] = s / g.qr[i * r + i];
+        }
+        // y = Z w = Q_g [w; 0]  (Q_g is ncols x ncols, Z its first r columns)
+        std::vector<double> yy(ncols, 0.0);
+        for (size_t i = 0; i < r; ++i)
+            yy[i] = w[i];
+        qr_apply_q(g, yy, false);
+        y = yy;
+    }
+    // undo the column permutation of the first factorization
+    for (size_t k = 0; k < ncols; ++k)
+        x[c.f.perm[k]] = y[k];
+    return x;
+}
+
+} // namespace detail
+
 template <typename T>
 std::vector<T> minnorm_solve(std::vector<T> const& A, std::vector<T> const& b,
                              size_t ncols, size_t* rank_out = nullptr,
@@ -604,59 +688,44 @@ std::vector<T> minnorm_solve(std::vector<T> const& A, std::vector<T> const& b,
     for (size_t i = 0; i < m; ++i)
         bb[i] = static_cast<double>(b[i]);
 
-    detail::qr_factor const f = detail::qr_decomp(std::move(a), m, ncols, rtol);
-    size_t const r = f.rank;
-    if (rank_out) *rank_out = r;
+    detail::cod_factor const c = detail::cod_decomp(std::move(a), m, ncols, rtol);
+    if (rank_out) *rank_out = c.f.rank;
+    auto const y = detail::cod_solve(c, std::move(bb));
     std::vector<T> x(ncols, T(0));
-    if (r == 0) return x;
-
-    detail::qr_apply_q(f, bb, true);   // c = Q^T b; only the first r entries matter
-    std::vector<double> y(ncols, 0.0); // the solution in the permuted column order
-
-    if (r == ncols) {
-        // full column rank: back-substitute R11 y = c
-        for (size_t i = r; i-- > 0;) {
-            double s = bb[i];
-            for (size_t j = i + 1; j < r; ++j)
-                s -= f.qr[i * ncols + j] * y[j];
-            y[i] = s / f.qr[i * ncols + i];
-        }
-    }
-    else {
-        // rank-deficient / underdetermined: T = [R11 R12] (r x ncols); factor T^T = Z L^T
-        std::vector<double> Tt(ncols * r, 0.0); // ncols x r row-major
-        for (size_t i = 0; i < r; ++i)
-            for (size_t j = i; j < ncols; ++j)
-                Tt[j * r + i] = f.qr[i * ncols + j];
-        detail::qr_factor const g = detail::qr_decomp(std::move(Tt), ncols, r, 0.0);
-        // T has full row rank r, so the threshold 0 keeps every column -- but qr_decomp
-        // still PIVOTS them: T^T P = Q R, column i of T^T P being column perm[i] of T^T.
-        // Hence T = P R^T Q^T, and T y = c becomes R^T w = P^T c with w = (Q^T y)_{1:r},
-        // where (P^T c)_i = c_{perm[i]}: the right-hand side is read in the PIVOTED order
-        // (forward substitution on the transposed upper factor). The inverse reading,
-        // c_{perm[i]} = bb_i, agrees only when the permutation is its own inverse (the
-        // identity, one swap) and otherwise returns a y that does not solve T y = c.
-        std::vector<double> c(r);
-        for (size_t i = 0; i < r; ++i)
-            c[i] = bb[g.perm[i]];
-        std::vector<double> w(r, 0.0);
-        for (size_t i = 0; i < r; ++i) {
-            double s = c[i];
-            for (size_t j = 0; j < i; ++j)
-                s -= g.qr[j * r + i] * w[j];
-            w[i] = s / g.qr[i * r + i];
-        }
-        // y = Z w = Q_g [w; 0]  (Q_g is ncols x ncols, Z its first r columns)
-        std::vector<double> yy(ncols, 0.0);
-        for (size_t i = 0; i < r; ++i)
-            yy[i] = w[i];
-        detail::qr_apply_q(g, yy, false);
-        y = yy;
-    }
-    // undo the column permutation of the first factorization
     for (size_t k = 0; k < ncols; ++k)
-        x[f.perm[k]] = static_cast<T>(y[k]);
+        x[k] = static_cast<T>(y[k]);
     return x;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// The Moore-Penrose pseudo-inverse A^+ of an m x ncols matrix (flat ROW-MAJOR), as an
+// ncols x m matrix, from ONE complete orthogonal decomposition: column i of A^+ is
+// minnorm_solve(A, e_i), bit for bit, at a single factorization instead of m of them.
+// For the map that a controller inverts every tick (a torque -> acceleration matrix, a
+// Jacobian) that is the difference between m QR factorizations and one. Writes the
+// rank if `rank_out` is non-null.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> pseudo_inverse(std::vector<T> const& A, size_t rows, size_t ncols,
+                              size_t* rank_out = nullptr, double rtol = 1.0e-12)
+{
+    if (A.size() != rows * ncols) {
+        throw Solver_error("hd::ga::pseudo_inverse: A must have rows * ncols entries.");
+    }
+    std::vector<double> a(rows * ncols);
+    for (size_t i = 0; i < rows * ncols; ++i)
+        a[i] = static_cast<double>(A[i]);
+    detail::cod_factor const c = detail::cod_decomp(std::move(a), rows, ncols, rtol);
+    if (rank_out) *rank_out = c.f.rank;
+    std::vector<T> P(ncols * rows, T(0));
+    for (size_t i = 0; i < rows; ++i) {
+        std::vector<double> e(rows, 0.0);
+        e[i] = 1.0;
+        auto const x = detail::cod_solve(c, std::move(e));
+        for (size_t k = 0; k < ncols; ++k)
+            P[k * rows + i] = static_cast<T>(x[k]);
+    }
+    return P;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -675,27 +744,21 @@ std::vector<T> nullspace_basis(std::vector<T> const& A, size_t rows, size_t ncol
     std::vector<double> a(rows * ncols);
     for (size_t i = 0; i < rows * ncols; ++i)
         a[i] = static_cast<double>(A[i]);
-    detail::qr_factor const f = detail::qr_decomp(std::move(a), rows, ncols, rtol);
-    size_t const r = f.rank;
+    detail::cod_factor const cod = detail::cod_decomp(std::move(a), rows, ncols, rtol);
+    size_t const r = cod.f.rank;
     if (rank_out) *rank_out = r;
     size_t const k = ncols - r;
     std::vector<T> N(ncols * k, T(0));
     if (k == 0) return N;
-    // T = [R11 R12] (r x ncols), factor T^T; the null space of T is spanned by the last
-    // ncols - r columns of Q_g (r == 0: every unit vector)
-    std::vector<double> Tt(ncols * std::max<size_t>(r, 1), 0.0);
-    for (size_t i = 0; i < r; ++i)
-        for (size_t j = i; j < ncols; ++j)
-            Tt[j * r + i] = f.qr[i * ncols + j];
+    // the null space of T = [R11 R12] is spanned by the last ncols - r columns of Q_g
+    // (r == 0: every unit vector). The second factorization is made once, in
+    // cod_decomp -- until 2026-09-23 it was redone for every basis vector.
     for (size_t c = 0; c < k; ++c) {
         std::vector<double> e(ncols, 0.0);
         e[r + c] = 1.0;
-        if (r > 0) {
-            detail::qr_factor const g = detail::qr_decomp(Tt, ncols, r, 0.0);
-            detail::qr_apply_q(g, e, false);
-        }
+        if (r > 0) detail::qr_apply_q(cod.g, e, false);
         for (size_t j = 0; j < ncols; ++j)
-            N[f.perm[j] * k + c] = static_cast<T>(e[j]);
+            N[cod.f.perm[j] * k + c] = static_cast<T>(e[j]);
     }
     return N;
 }
@@ -1073,22 +1136,33 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
     for (size_t i = 0; i < ni; ++i)
         active[i] = std::abs(dotx(in[i].a, x) - in[i].rhs) <= T(tol) * scale();
 
-    size_t used = 0;
-    for (; used < max_iter; ++used) {
-        // the working set as an equality block
-        std::vector<size_t> wi;
-        for (size_t i = 0; i < ni; ++i)
-            if (active[i]) wi.push_back(i);
-        size_t const kw = q + wi.size();
-        std::vector<T> Ew(kw * n, T(0));
+    // the equalities' null space ONCE: every working set's affine set lies inside it,
+    // so an iteration factors only the active rows RESTRICTED to it -- a |W| x k0
+    // matrix, not the (q + |W|) x n stack (which it was until 2026-09-23: on a
+    // 15-variable stack with a dozen frozen rows that QR was most of the solver)
+    std::vector<T> Z; // n x k0, orthonormal columns; empty when q == 0 (Z = I)
+    size_t k0 = n;
+    double const rank_tol = 1.0e-12; // nullspace_basis's own default, named here
+    std::vector<T> ecol(n, T(0));    // E's column norms squared, for the scale below
+    if (q > 0) {
+        size_t rq = 0;
+        Z = nullspace_basis(E, q, n, &rq, rank_tol);
+        k0 = n - rq;
         for (size_t i = 0; i < q; ++i)
             for (size_t j = 0; j < n; ++j)
-                Ew[i * n + j] = E[i * n + j];
-        for (size_t w = 0; w < wi.size(); ++w)
-            for (size_t j = 0; j < n; ++j)
-                Ew[(q + w) * n + j] = in[wi[w]].a[j];
+                ecol[j] += E[i * n + j] * E[i * n + j];
+    }
+    auto Zat = [&](size_t j, size_t c) {
+        return q > 0 ? Z[j * k0 + c] : (j == c ? T(1) : T(0));
+    };
 
-        // the step on W's affine set: p = N z
+    size_t used = 0;
+    for (; used < max_iter; ++used) {
+        std::vector<size_t> wi; // the working set
+        for (size_t i = 0; i < ni; ++i)
+            if (active[i]) wi.push_back(i);
+
+        // the step on W's affine set: p = N z, N = Z null(W Z)
         std::vector<T> resid(p);
         for (size_t i = 0; i < p; ++i) {
             T s = b[i];
@@ -1097,28 +1171,73 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             resid[i] = s;
         }
         std::vector<T> step(n, T(0));
-        size_t k = n;
-        std::vector<T> N;
-        if (kw > 0) {
-            size_t rk = 0;
-            N = nullspace_basis(Ew, kw, n, &rk);
-            k = n - rk;
+        size_t k = k0;
+        std::vector<T> N; // n x k; empty means the identity (no constraint at all)
+        bool have_N = q > 0;
+        if (!wi.empty() && k0 > 0) {
+            std::vector<T> WZ(wi.size() * k0, T(0));
+            for (size_t w = 0; w < wi.size(); ++w)
+                for (size_t c = 0; c < k0; ++c) {
+                    T s = T(0);
+                    for (size_t j = 0; j < n; ++j)
+                        s += in[wi[w]].a[j] * Zat(j, c);
+                    WZ[w * k0 + c] = s;
+                }
+            // The rank of W Z is judged at the STACK's scale, not at W Z's own: a row
+            // that is numerically dependent on the equalities (a box face on a variable
+            // the equalities already fix) restricts to ~1e-13 of its size, and relative
+            // to that matrix alone it would count as independent, cost a direction, and
+            // leave the solve stationary at a worse point with every multiplier "right"
+            // -- which is what the stacked factorization never did, its threshold being
+            // relative to the largest column of [E; W].
+            T sfull = T(0), swz = T(0);
+            for (size_t j = 0; j < n; ++j) {
+                T c = ecol[j];
+                for (size_t w = 0; w < wi.size(); ++w)
+                    c += in[wi[w]].a[j] * in[wi[w]].a[j];
+                sfull = std::max(sfull, c);
+            }
+            for (size_t c = 0; c < k0; ++c) {
+                T cc = T(0);
+                for (size_t w = 0; w < wi.size(); ++w)
+                    cc += WZ[w * k0 + c] * WZ[w * k0 + c];
+                swz = std::max(swz, cc);
+            }
+            double const tol_wz =
+                swz > T(0) ? rank_tol * std::sqrt(double(sfull / swz)) : rank_tol;
+            size_t rw = 0;
+            auto const Nz =
+                nullspace_basis(WZ, wi.size(), k0, &rw, tol_wz); // k0 x (k0 - rw)
+            k = k0 - rw;
+            N.assign(n * k, T(0));
+            for (size_t j = 0; j < n; ++j)
+                for (size_t c = 0; c < k; ++c) {
+                    T s = T(0);
+                    for (size_t i = 0; i < k0; ++i)
+                        s += Zat(j, i) * Nz[i * k + c];
+                    N[j * k + c] = s;
+                }
+            have_N = true;
         }
+        else if (q > 0) N = Z;
+        if (k0 == 0) k = 0;
+        auto Nat = [&](size_t j, size_t c) {
+            return have_N ? N[j * k + c] : (j == c ? T(1) : T(0));
+        };
         if (k > 0) {
             std::vector<T> AN(p * k, T(0));
             for (size_t i = 0; i < p; ++i)
                 for (size_t c = 0; c < k; ++c) {
                     T s = T(0);
                     for (size_t j = 0; j < n; ++j)
-                        s += A[i * n + j] *
-                             (kw > 0 ? N[j * k + c] : (j == c ? T(1) : T(0)));
+                        s += A[i * n + j] * Nat(j, c);
                     AN[i * k + c] = s;
                 }
             auto const z = lstsq_solve(AN, resid, k);
             for (size_t j = 0; j < n; ++j) {
                 T s = T(0);
                 for (size_t c = 0; c < k; ++c)
-                    s += (kw > 0 ? N[j * k + c] : (j == c ? T(1) : T(0))) * z[c];
+                    s += Nat(j, c) * z[c];
                 step[j] = s;
             }
         }
@@ -1129,6 +1248,15 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         if (pn <= T(tol) * scale()) {
             // stationary on W: the multipliers decide whether to release or to stop
             if (wi.empty()) break;
+            // the working set as an equality block, for the multipliers
+            size_t const kw = q + wi.size();
+            std::vector<T> Ew(kw * n, T(0));
+            for (size_t i = 0; i < q; ++i)
+                for (size_t j = 0; j < n; ++j)
+                    Ew[i * n + j] = E[i * n + j];
+            for (size_t w = 0; w < wi.size(); ++w)
+                for (size_t j = 0; j < n; ++j)
+                    Ew[(q + w) * n + j] = in[wi[w]].a[j];
             std::vector<T> g(n, T(0)); // A^T (A x - b) = -A^T resid
             for (size_t j = 0; j < n; ++j) {
                 T s = T(0);

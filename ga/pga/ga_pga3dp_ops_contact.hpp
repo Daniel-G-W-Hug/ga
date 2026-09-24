@@ -417,6 +417,14 @@ class ground_contact3dp {
     {
         std::vector<value_t> lam;
         cl_->joint_accelerations(&lam);
+        read_reactions(lam);
+    }
+
+    // the same, from the multipliers of a solve the caller already holds (the
+    // lambda of joint_accelerations / sync_accelerations at the current state) --
+    // no second solve
+    void read_reactions(std::vector<value_t> const& lam)
+    {
         size_t r = 0;
         for (size_t k = 0; k < cl_->loop_count(); ++k) {
             if (!cl_->loop_active(k)) continue;

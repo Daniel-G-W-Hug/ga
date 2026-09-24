@@ -517,11 +517,13 @@ class closed_loop_system3dp {
     // dynamics, which for a mechanism standing on two closed contacts is a different
     // problem with a different answer. Call it before reading any acceleration field
     // -- for visualisation, and for a controller that measures a task's response
-    // rather than differentiating a Jacobian for it.
-    std::vector<value_t> sync_accelerations()
+    // rather than differentiating a Jacobian for it. Writes lambda if requested (as
+    // joint_accelerations does), so a caller that also needs the constraint forces
+    // of this same solve does not run it a second time.
+    std::vector<value_t> sync_accelerations(std::vector<value_t>* lambda_out = nullptr)
     {
         auto const rc = tree_.dof_coords();
-        auto const qdd = joint_accelerations();
+        auto const qdd = joint_accelerations(lambda_out);
         for (auto const& c : rc)
             tree_.set_accel_twist(c.frame, twist3dp{});
         for (size_t c = 0; c < rc.size(); ++c)

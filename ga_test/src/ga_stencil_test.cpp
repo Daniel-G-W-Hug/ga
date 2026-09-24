@@ -1871,4 +1871,107 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                         Solver_error); // lo > hi
         fmt::println("");
     }
+
+    TEST_CASE("qp_ls_solve: an active row dependent on the equalities does not cost a "
+              "direction")
+    {
+        fmt::println(
+            "qp_ls_solve: a box face numerically inside the equalities' row space");
+        // x0 is fixed by an equality whose row leans 1e-13 out of the x0 axis, and the
+        // box face x0 >= 1 is tight at the start -- the two rows are dependent at the
+        // solver's rank tolerance (the face restricted to the equality's null space is
+        // 1e-13 against rows of size 1). The objective pulls x1 and x2 to 5; nothing
+        // constrains them, so the answer is (1, 5, 5). Judging the face's rank against
+        // ITS OWN scale instead of the stack's counted it as independent, lost a free
+        // direction, and stopped at a worse point with every multiplier "right"
+        // (2026-09-24: 30 of 360 last-level solves on a walking biped, the sole load
+        // jittering by 50 N while every acceleration was unchanged).
+        value_t const inf = std::numeric_limits<value_t>::infinity();
+        std::vector<value_t> const A{1, 0, 0, 0, 1, 0, 0, 0, 1};
+        std::vector<value_t> const b{1.0, 5.0, 5.0};
+        std::vector<value_t> const E{1.0, 1.0e-13, 0.0};
+        std::vector<value_t> const e{1.0};
+        std::vector<value_t> const C, d;
+        std::vector<value_t> const lo{1.0, -inf, -inf}, hi{inf, inf, inf};
+        std::vector<value_t> x{1.0, 0.0, 0.0};
+        size_t it = 0;
+        qp_ls_solve(A, b, 3, E, e, C, d, lo, hi, x, &it);
+        CHECK(x[0] == doctest::Approx(1.0).epsilon(1e-9));
+        CHECK(x[1] == doctest::Approx(5.0).epsilon(1e-9));
+        CHECK(x[2] == doctest::Approx(5.0).epsilon(1e-9));
+        fmt::println("  x = ({:.6f}, {:.6f}, {:.6f}) in {} iterations", x[0], x[1], x[2],
+                     it);
+        fmt::println("");
+    }
+
+    TEST_CASE("pseudo_inverse: one decomposition, the columns of minnorm_solve")
+    {
+        fmt::println("pseudo_inverse: A^+ from one factorization, at every rank");
+
+        // seeded shapes: tall, wide, square, and rank-deficient by construction
+        // (A = U V^T with r columns), each checked three ways -- every column of A^+ is
+        // minnorm_solve(A, e_i) BIT FOR BIT (the same decomposition, applied), the two
+        // Penrose identities A A^+ A = A and A^+ A A^+ = A^+ hold, and the rank is the
+        // rank
+        struct shape {
+            size_t m, nc, r;
+        };
+        std::vector<shape> const shapes{{5, 3, 3}, {3, 5, 3}, {6, 6, 6}, {6, 6, 2},
+                                        {4, 7, 2}, {7, 4, 1}, {5, 5, 0}};
+        std::mt19937 rng(20260923u);
+        std::uniform_real_distribution<double> uni(-1.0, 1.0);
+        size_t checked = 0;
+        double worst = 0.0;
+        for (auto const& sh : shapes) {
+            for (int trial = 0; trial < 20; ++trial) {
+                std::vector<double> U(sh.m * sh.r), V(sh.nc * sh.r);
+                for (auto& v : U)
+                    v = uni(rng);
+                for (auto& v : V)
+                    v = uni(rng);
+                std::vector<double> A(sh.m * sh.nc, 0.0);
+                for (size_t i = 0; i < sh.m; ++i)
+                    for (size_t j = 0; j < sh.nc; ++j)
+                        for (size_t k = 0; k < sh.r; ++k)
+                            A[i * sh.nc + j] += U[i * sh.r + k] * V[j * sh.r + k];
+                size_t rk = 99;
+                auto const P = pseudo_inverse(A, sh.m, sh.nc, &rk);
+                CHECK(rk == sh.r);
+                CHECK(P.size() == sh.nc * sh.m);
+                for (size_t i = 0; i < sh.m; ++i) {
+                    std::vector<double> e(sh.m, 0.0);
+                    e[i] = 1.0;
+                    auto const x = minnorm_solve(A, e, sh.nc);
+                    for (size_t k = 0; k < sh.nc; ++k)
+                        CHECK(P[k * sh.m + i] == x[k]); // exact
+                }
+                // A A^+ A == A and A^+ A A^+ == A^+
+                auto mul = [](std::vector<double> const& X, size_t xm, size_t xn,
+                              std::vector<double> const& Y, size_t yn) {
+                    std::vector<double> Z(xm * yn, 0.0);
+                    for (size_t i = 0; i < xm; ++i)
+                        for (size_t j = 0; j < yn; ++j)
+                            for (size_t k = 0; k < xn; ++k)
+                                Z[i * yn + j] += X[i * xn + k] * Y[k * yn + j];
+                    return Z;
+                };
+                auto const AP = mul(A, sh.m, sh.nc, P, sh.m);
+                auto const APA = mul(AP, sh.m, sh.m, A, sh.nc);
+                auto const PA = mul(P, sh.nc, sh.m, A, sh.nc);
+                auto const PAP = mul(PA, sh.nc, sh.nc, P, sh.m);
+                for (size_t i = 0; i < A.size(); ++i)
+                    worst = std::max(worst, std::abs(APA[i] - A[i]));
+                for (size_t i = 0; i < P.size(); ++i)
+                    worst = std::max(worst, std::abs(PAP[i] - P[i]));
+                ++checked;
+            }
+        }
+        CHECK(worst < 1.0e-10);
+        fmt::println("  {} matrices over {} shapes: columns == minnorm_solve exactly, "
+                     "Penrose residual {:.1e}",
+                     checked, shapes.size(), worst);
+        CHECK_THROWS_AS(pseudo_inverse(std::vector<double>{1.0, 2.0}, 2, 2),
+                        Solver_error); // size mismatch
+        fmt::println("");
+    }
 }
