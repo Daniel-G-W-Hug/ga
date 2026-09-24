@@ -1049,9 +1049,9 @@ std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size
 // first); when none is, the KKT conditions hold and x is the constrained optimum --
 // global, since the objective is convex. Every iterate is feasible. A blocking
 // constraint met at zero step length is added without moving, so the working set
-// grows and a degenerate vertex is left in finitely many steps; `max_iter` (default
-// 20 * (ncols + q + r + 1)) guards a pathological cycle, and `iters_out` reports what
-// it took.
+// grows and a degenerate vertex is left in finitely many steps; `max_iter`
+// (default 20 * (ncols + q + r + 1)) guards a pathological cycle, and `iters_out` reports
+// what it took.
 //
 // WHAT IT DOES NOT DO: it is not a general QP with an arbitrary Hessian (the objective
 // is a least-squares residual, which is what every use here has), it does not scale
@@ -1156,6 +1156,21 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         return q > 0 ? Z[j * k0 + c] : (j == c ? T(1) : T(0));
     };
 
+    // ANTI-CYCLING AT A DEGENERATE VERTEX. A lexicographic level's objective
+    // |A x - b|^2 is singular whenever it has fewer independent rows than the freedom
+    // left -- the rule, not the exception -- and the active-set inference "a negative
+    // multiplier means the step leaves that row" presumes strict convexity. Measured
+    // (2026-09-24, a consumer's instances): a row released on a multiplier of -2.05
+    // blocked the very next step at alpha 0, re-entered, was released again, 520
+    // times. So a row that re-blocks at zero step right after its release is PINNED --
+    // it re-enters and the multipliers may not release it -- until x moves, which
+    // clears every pin. Each iteration then moves x (the objective strictly
+    // decreases), grows the working set, pins a row, or stops: all finite. A stop
+    // with pinned rows is optimal on its face: the least-squares minimizer of the
+    // face without the pinned row lies ACROSS that row, so no release lowers the
+    // objective -- the negative multiplier was the singularity's artefact.
+    std::vector<bool> pinned(ni, false);
+    size_t last_dropped = ni;
     size_t used = 0;
     for (; used < max_iter; ++used) {
         std::vector<size_t> wi; // the working set
@@ -1174,8 +1189,11 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         size_t k = k0;
         std::vector<T> N; // n x k; empty means the identity (no constraint at all)
         bool have_N = q > 0;
+        size_t rw = 0;            // the rank of W Z, when it was factored
+        std::vector<T> WZ;        // W Z itself, |W| x k0
+        double tol_wz = rank_tol; // its rank tolerance, at the stack's scale
         if (!wi.empty() && k0 > 0) {
-            std::vector<T> WZ(wi.size() * k0, T(0));
+            WZ.assign(wi.size() * k0, T(0));
             for (size_t w = 0; w < wi.size(); ++w)
                 for (size_t c = 0; c < k0; ++c) {
                     T s = T(0);
@@ -1203,9 +1221,7 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
                     cc += WZ[w * k0 + c] * WZ[w * k0 + c];
                 swz = std::max(swz, cc);
             }
-            double const tol_wz =
-                swz > T(0) ? rank_tol * std::sqrt(double(sfull / swz)) : rank_tol;
-            size_t rw = 0;
+            tol_wz = swz > T(0) ? rank_tol * std::sqrt(double(sfull / swz)) : rank_tol;
             auto const Nz =
                 nullspace_basis(WZ, wi.size(), k0, &rw, tol_wz); // k0 x (k0 - rw)
             k = k0 - rw;
@@ -1233,12 +1249,29 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
                         s += A[i * n + j] * Nat(j, c);
                     AN[i * k + c] = s;
                 }
-            auto const z = lstsq_solve(AN, resid, k);
-            for (size_t j = 0; j < n; ++j) {
-                T s = T(0);
-                for (size_t c = 0; c < k; ++c)
-                    s += Nat(j, c) * z[c];
-                step[j] = s;
+            // The step's least squares judges A N's rank at A's OWN scale, not at
+            // A N's: restricted to the working set's null space a level may keep only
+            // a numerically null trace of itself (a direction it barely sees), and
+            // relative to that matrix alone the trace reads as full rank -- the step is
+            // then the residual divided by ~1e-16, blocked at zero by the row just
+            // released, which re-enters: a cycle at a degenerate vertex (measured on
+            // a consumer's closed-loop instance, 2026-09-24: |step| 2e16, 660
+            // iterations, returned silently).
+            T sA = T(0), sAN = T(0);
+            for (auto v : A)
+                sA = std::max(sA, std::abs(v));
+            for (auto v : AN)
+                sAN = std::max(sAN, std::abs(v));
+            T const tol_abs = T(rank_tol) * std::max(sA, T(1));
+            if (sAN > tol_abs) {
+                auto const z =
+                    minnorm_solve(AN, resid, k, nullptr, double(tol_abs / sAN));
+                for (size_t j = 0; j < n; ++j) {
+                    T s = T(0);
+                    for (size_t c = 0; c < k; ++c)
+                        s += Nat(j, c) * z[c];
+                    step[j] = s;
+                }
             }
         }
         T pn = T(0);
@@ -1275,10 +1308,11 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             size_t worst = ni;
             T most = -T(tol) * gscale;
             for (size_t w = 0; w < wi.size(); ++w)
-                if (lambda[q + w] < most) {
+                if (!pinned[wi[w]] && lambda[q + w] < most) {
                     most = lambda[q + w];
                     worst = wi[w];
                 }
+            last_dropped = worst;
             if (worst == ni) break; // KKT: every active inequality pushes the right way
             active[worst] = false;
             continue;
@@ -1297,6 +1331,13 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
                 alpha = a_i;
                 block = i;
             }
+        }
+        if (alpha * pn > T(tol) * scale()) { // x moves: every pin is released
+            std::fill(pinned.begin(), pinned.end(), false);
+            last_dropped = ni;
+        }
+        else if (block < ni && block == last_dropped) {
+            pinned[block] = true; // released, and back at zero step: not again
         }
         for (size_t j = 0; j < n; ++j)
             x[j] += alpha * step[j];

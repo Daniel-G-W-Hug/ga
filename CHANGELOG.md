@@ -361,3 +361,24 @@
            stays in the prelude is the other kind: the 16 bulk/weight contractions and
            expansions plus the two sta expansions, each a one-line composition of bound
            primitives that cannot drift and covers every grade pair it accepts
+
+- 2026/09: qp_ls_solve no longer cycles at a degenerate vertex. Two defects, found by a
+           consumer counting the levels that ran to max_iter and were returned silently
+           (every one a true cycle: 50x the cap, the point unmoved). The step's least
+           squares judged A N's rank at A N's own scale, so a direction a level barely
+           sees read as full rank and the step was the residual over ~1e-16 (2e16),
+           blocked at zero by the row just released, which re-entered -- 660 iterations;
+           it is judged at A's scale now, as solve_hierarchy and the working-set
+           factorization already did. And a row released on a negative multiplier
+           re-blocked the very next step at zero length forever: a lexicographic level's
+           objective is singular whenever it has fewer independent rows than the freedom
+           left, and the multiplier's sign then means nothing -- such a row is PINNED
+           until x moves, which clears every pin (each iteration moves x, grows the
+           working set, pins a row, or stops: all finite; a stop with pinned rows is
+           optimal on its face). Three measured remedies were rejected first -- a
+           dependent active row dropped before the multipliers decide, a relative
+           approach test in the ratio step, a proximal damping of the step -- each fixed
+           one instance and cycled on another. Gated by the three instances in
+           ga_stencil_test (7 / 9 / 7 iterations, feasible, the objective not above its
+           start); the 200-system sweep and every consumer unmoved. max_iter exhaustion
+           is still silent: iters_out reports it, nothing checks
