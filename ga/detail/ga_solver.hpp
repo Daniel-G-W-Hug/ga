@@ -869,8 +869,10 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
 // is inside, read the gradient g = A^T (A x - b) and RELEASE any held variable whose
 // gradient says the residual would fall if it came off its bound. Each step either
 // holds or releases one variable and strictly decreases the residual, so it terminates;
-// `max_iter` is a guard against a pathological cycle, not part of the method, and
-// `iters_out` reports what it actually took.
+// `max_iter` is a guard against a pathological cycle, not part of the method,
+// `iters_out` reports what it actually took, and EXHAUSTING it throws: a point the
+// iteration did not settle on is not an answer, and returned silently it reads as one
+// (2026-09-24: seven levels of a consumer's stack ran to the cap unnoticed).
 //
 // WHAT IT DOES NOT DO, so the boundary is known in advance: the box is on the VARIABLES.
 // A constraint that couples them -- a friction cone, a centre-of-pressure polygon, a
@@ -1007,6 +1009,11 @@ std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size
         st[best] = state::free_var;
     }
     if (iters_out) *iters_out = used;
+    if (used >= max_iter)
+        throw Solver_error("hd::ga::bvls_solve: no convergence within max_iter = " +
+                           std::to_string(max_iter) +
+                           " iterations -- a cycle, or a cap too small for the "
+                           "instance; `iters_out` holds the count");
     return x;
 }
 
@@ -1050,8 +1057,8 @@ std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size
 // global, since the objective is convex. Every iterate is feasible. A blocking
 // constraint met at zero step length is added without moving, so the working set
 // grows and a degenerate vertex is left in finitely many steps; `max_iter`
-// (default 20 * (ncols + q + r + 1)) guards a pathological cycle, and `iters_out` reports
-// what it took.
+// (default 20 * (ncols + q + r + 1)) guards a pathological cycle, `iters_out` reports
+// what it took, and exhausting the cap THROWS -- see bvls_solve.
 //
 // WHAT IT DOES NOT DO: it is not a general QP with an arbitrary Hessian (the objective
 // is a least-squares residual, which is what every use here has), it does not scale
@@ -1356,6 +1363,12 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         }
     }
     if (iters_out) *iters_out = used;
+    if (used >= max_iter)
+        throw Solver_error("hd::ga::qp_ls_solve: no convergence within max_iter = " +
+                           std::to_string(max_iter) +
+                           " iterations -- a cycle the anti-cycling rule did not "
+                           "catch, or a cap too small for the instance; `iters_out` "
+                           "holds the count");
     return x;
 }
 

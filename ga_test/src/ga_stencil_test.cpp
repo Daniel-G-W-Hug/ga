@@ -1791,6 +1791,13 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             size_t iters = 0;
             auto const x = bvls_solve(A, b, n, lo, hi, &iters);
             worst_iters = std::max(worst_iters, iters);
+            // a cap this system cannot meet THROWS (it returned the point it stopped at
+            // silently until 2026-09-24), with the count reported first
+            if (iters > 1) {
+                size_t it1 = 0;
+                CHECK_THROWS_AS(bvls_solve(A, b, n, lo, hi, &it1, 1), Solver_error);
+                CHECK(it1 == 1);
+            }
 
             for (size_t j = 0; j < n; ++j) { // FEASIBLE, always
                 CHECK(x[j] >= lo[j] - 1.0e-9);
@@ -2271,6 +2278,16 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                 "  n {} q {} p {} r {}: {} iterations, |Ax - b| {:.6g} -> {:.6g}, "
                 "max|x| {:.4g} ({})",
                 c.n, c.q, c.p, c.r, it, r0, r1, scale, c.note);
+            // ... and a cap the instance cannot meet THROWS instead of returning the
+            // point it stopped at, as these did before, with the count reported first
+            if (it > 2) {
+                std::vector<value_t> x2 = c.x;
+                size_t it2 = 0;
+                CHECK_THROWS_AS(qp_ls_solve(c.A, c.b, c.n, c.E, c.e, c.C, c.d, c.lo, c.hi,
+                                            x2, &it2, 2),
+                                Solver_error);
+                CHECK(it2 == 2);
+            }
         }
         fmt::println("");
     }

@@ -380,5 +380,7 @@
            approach test in the ratio step, a proximal damping of the step -- each fixed
            one instance and cycled on another. Gated by the three instances in
            ga_stencil_test (7 / 9 / 7 iterations, feasible, the objective not above its
-           start); the 200-system sweep and every consumer unmoved. max_iter exhaustion
-           is still silent: iters_out reports it, nothing checks
+           start); the 200-system sweep and every consumer unmoved. And exhausting
+           max_iter THROWS now, in qp_ls_solve and bvls_solve alike (iters_out is set
+           first): a point the iteration did not settle on is not an answer, and
+           returned silently it read as one
