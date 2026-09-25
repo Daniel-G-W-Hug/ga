@@ -392,3 +392,12 @@
            descent needs two dependent rows released together. Gated as the known
            failing stop it is; the certificate as an in-loop escape was tried and
            cycled elsewhere
+- 2026/09: the robotics chapter of ga_docu states the actuation layer that the library
+           carries: a joint's range and drive as its own specification with a neutral
+           value; the prioritized stack under the drives' box -- the clipped torque solve,
+           the acceleration-level box with no joint ever passive, and the least-squares
+           program both are special cases of -- with what a saturated joint means in each;
+           a demand refused with the number, the reachable part of a task row as the
+           torque box's support function; and the solver's guarantees in one paragraph.
+           The generic PDF is refreshed.
+
