@@ -4,35 +4,126 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Small dense linear-system solver used by GA physics modelling.
+// Small dense linear-algebra solvers used by GA physics modelling.
 //
-// LU decomposition with partial pivoting plus back-substitution, and a
-// matrix determinant built on top. Sized for the small inertia matrices
-// produced by PGA rigid-body dynamics (3x3 in 2D, 6x6 in 3D), where
-// pulling in a full BLAS/LAPACK stack would be excessive.
+// Sized for the small systems the physics poses -- the inertia matrices of PGA
+// rigid-body dynamics (3x3 in 2D, 6x6 in 3D), the Jacobian stacks of a task
+// hierarchy, the constraint blocks of a closed loop -- where pulling in a full
+// BLAS/LAPACK stack would be excessive. Everything is dense, flat ROW-MAJOR
+// std::vector<T> unless an mdspan overload is named, templated on T, and
+// domain-agnostic: no GA and no physics knowledge anywhere in this file.
 //
-// Usage:
+// Every entry point throws Solver_error rather than returning a silently wrong
+// answer. Trailing `*_out` pointers default to nullptr and are computed only when
+// asked -- see "Optional out-parameters" in the project guide.
 //
-//   1.) LU decomposition of matrix A:
-//       hd::ga::lu_decomp(A, perm);
+// INDEX -- pick by the SHAPE of the problem, not by the size of the matrix.
 //
-//   2.) Solve A*x = b by back-substitution; the solution overwrites b
-//       (can be repeated cheaply for many right-hand sides on the same A):
-//       hd::ga::lu_backsubs(A, perm, b);
+// 1.) SQUARE, one right-hand side: A x = b, A (n x n). LU with partial pivoting.
 //
-//   3.) Matrix determinant via LU factorization:
-//       T d = hd::ga::det(A);
+//       auto x = hd::ga::lu_solve(A, b, n);              // throws if singular
 //
-//   4.) Tridiagonal systems (compact/Pade finite differences, 1d diffusion) do NOT
-//       need any of the above -- they are solved in O(n) without forming a matrix:
+//     For many right-hand sides on the SAME A, factor once and back-substitute
+//     repeatedly -- the solution overwrites b:
+//
+//       hd::ga::lu_decomp(A, perm);                      // in place, mdspan
+//       hd::ga::lu_backsubs(A, perm, b);                 // per right-hand side
+//
+//     and the determinant comes off the same factorization:
+//
+//       T const d = hd::ga::det(A);                      // mdspan
+//
+//     (`lu_solve_guarded` sits beside these but is NOT public API: it is the same
+//     solve refusing a numerically rank-deficient matrix, used by lstsq_solve for
+//     its normal-equation route. lu_decomp substitutes a tiny pivot rather than
+//     raising, so a caller who believes it asked for a pseudo-inverse would get an
+//     answer scaled by that pivot's reciprocal -- reach for minnorm_solve instead.)
+//
+// 2.) TRIDIAGONAL: the systems compact/Pade finite differences and 1d operators
+//     produce. Solved in O(n) by the Thomas algorithm, matrix-free -- the general
+//     solver would be O(n^3) on them. `a`, `b`, `c` are the sub-, main and
+//     super-diagonal, `d` the right-hand side:
+//
 //       auto x = hd::ga::tridiag_solve(a, b, c, d);
 //
-// Adapted from the hd utility library and made internal to the ga library
-// so the physics ops carry no external dependency.
+//     The four routes for the BOUNDARY rows (Dirichlet as an identity row or by
+//     elimination into the rhs, Neumann restored to the band, BC-aware stencils) are
+//     worked through at the function itself.
+//
+// 3.) ANY SHAPE, ANY RANK: the Moore-Penrose solution A^+ b, through a
+//     rank-revealing pivoted Householder QR and a complete orthogonal decomposition.
+//     Least squares when the system is over-determined, minimum norm when it is
+//     under-determined, and both at once when the rank drops:
+//
+//       auto x = hd::ga::minnorm_solve(A, b, ncols);           // A^+ b
+//       auto x = hd::ga::minnorm_solve(A, b, ncols, &rank);    // ... and the rank
+//       auto x = hd::ga::lstsq_solve(A, b, ncols);             // the same function
+//       auto x = hd::ga::lstsq_solve(A, b, ncols, 1.0e-6);     // Tikhonov instead
+//
+//     `lstsq_solve` IS `minnorm_solve` at damping 0; a positive `damping` selects the
+//     Tikhonov normal-equation route, which trades exactness for a bounded answer
+//     near a singularity. The same factorization answers the questions ABOUT A:
+//
+//       size_t const r = hd::ga::matrix_rank(A, rows, ncols);
+//       auto const Ap  = hd::ga::pseudo_inverse(A, rows, ncols);  // A^+ itself
+//       auto const N   = hd::ga::nullspace_basis(A, rows, ncols); // orthonormal
+//       auto const vn  = hd::ga::nullspace_project(A, v, rows, ncols);
+//
+//     Reach for `pseudo_inverse` only when A^+ is wanted as a MATRIX -- for a single
+//     right-hand side `minnorm_solve` is the same answer without forming it.
+//     `nullspace_project` removes from v everything A can see, which is how a task
+//     hierarchy passes the freedom it did not spend down to the next level.
+//
+// 4.) EQUALITY-CONSTRAINED, the saddle point of rigid-body dynamics:
+//
+//       M qdd + G^T lambda = f ,    G qdd = g
+//
+//     with M (n x n), G (m x n), returning qdd and, on request, the multipliers:
+//
+//       auto qdd = hd::ga::kkt_solve(M, G, f, g, n, m, &lambda, &rank);
+//
+//     At full row rank of G this is one LU of the bordered system. At a RANK DROP --
+//     a redundantly constrained mechanism, a closed loop pinned twice the same way --
+//     it solves the reduced bordered system of a maximal independent row subset, so
+//     qdd stays unique, and reports lambda for all rows as the minimum-norm solution
+//     of G^T lambda = f - M qdd. It is deliberately NOT a minimum-norm solve of the
+//     whole singular system: that minimizes |(qdd, lambda)| jointly and returns
+//     motion for a mechanism that cannot move.
+//
+// 5.) BOX-CONSTRAINED least squares -- the bound is on the VARIABLES themselves:
+//
+//       minimize |A x - b|^2   subject to   lo <= x <= hi
+//
+//       auto x = hd::ga::bvls_solve(A, b, ncols, lo, hi);
+//       auto x = hd::ga::bvls_solve(A, b, ncols, lo, hi, &iters);
+//
+//     Use it wherever an actuator has a limit: the answer is the constrained optimum,
+//     not a least-squares answer afterwards clamped into the box, and for a box those
+//     differ. Stark & Parker's active set, finite by construction; `max_iter` is a
+//     guard and exhausting it THROWS, because a point the iteration did not settle on
+//     is not an answer and returned silently it reads as one.
+//
+// 6.) GENERAL POLYTOPE -- when a constraint COUPLES the variables and a box cannot
+//     state it (a friction cone, a centre-of-pressure polygon, a limit expressed in
+//     other coordinates than the objective):
+//
+//       minimize 1/2 |A x - b|^2  subject to  E x = e,  C x >= d,  lo <= x <= hi
+//
+//       auto& x = hd::ga::qp_ls_solve(A, b, ncols, E, e, C, d, lo, hi, x, &iters);
+//
+//     `x` carries a FEASIBLE starting point IN and the answer OUT (pass empty E/e or
+//     C/d for none). A caller always has such a point: the box's point nearest zero
+//     when E and C are empty, or the previous level's solution in a hierarchy whose
+//     next level only adds constraints that solution already meets. With E and C
+//     empty this is bvls_solve's problem and returns its answer.
+//
+// Adapted from the hd utility library and made internal to the ga library so the
+// physics ops carry no external dependency.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm> // std::min, std::max, std::swap
 #include <cmath>     // std::abs
+#include <limits>    // std::numeric_limits
 #include <mdspan>    // std::mdspan, std::dextents, std::extents
 #include <stdexcept> // std::runtime_error, std::invalid_argument
 #include <string>    // std::string
@@ -983,13 +1074,43 @@ std::vector<T> bvls_solve(std::vector<T> const& A, std::vector<T> const& b, size
         // (measured: every system in the seeded sweep hit `max_iter`, while still
         // returning the optimum, before this floor was added).
         std::vector<T> const r = residual(x);
-        T scale = T(0); // the gradient's own magnitude, so the floor is relative
-        for (size_t i = 0; i < m; ++i)
-            scale = std::max(scale, std::abs(r[i]));
+        // The floor has to describe the rounding carried by g = A^T r, and that is set
+        // by the magnitudes that CANCELLED to form r -- |A x| and |b| -- not by |r|
+        // itself. The difference only shows when the target is exactly REACHABLE: r is
+        // then ~0, a floor derived from it underestimates its own noise by orders of
+        // magnitude, and a held variable is released on pure rounding. The next free
+        // solve puts it straight back with a zero-length step, so x never moves and the
+        // iteration alternates forever -- the `max_iter` guard below then fires on an
+        // instance that HAS a clean answer, and raising the cap does not help.
+        // Measured on a 2x3 instance whose exact fit leaves |r| ~ 1e-14 while
+        // |A| ~ 181: the noise in g was 2.7e-12 against a floor of 1e-12.
+        //
+        // The other repair -- PINNING a variable that is released and comes straight
+        // back at a zero-length step, the way qp_ls_solve pins a row -- was tried and
+        // REJECTED here. It stops the cycle, but it inherits that sibling's known
+        // trade-off: a stop with something pinned can be off the optimum, and this
+        // solver is the one the other's KKT certificate is computed with. Measured:
+        // 2 of the 200 seeded degenerate vertices then failed their certificate, with
+        // a KKT residual of 9.1e-01. Correcting the floor removes the CAUSE -- the
+        // spurious release -- so nothing has to be pinned, and exhausting `max_iter`
+        // stays what it was: a throw, not a quietly non-optimal answer.
+        T scale = T(0);
+        for (size_t i = 0; i < m; ++i) {
+            T ax = T(0);
+            for (size_t j = 0; j < ncols; ++j)
+                ax += std::abs(A[i * ncols + j] * x[j]);
+            scale = std::max(scale, std::max(ax, std::abs(b[i])));
+        }
         T gscale = T(0);
         for (size_t i = 0; i < m * ncols; ++i)
             gscale = std::max(gscale, std::abs(A[i]));
-        T const gtol = T(1.0e-12) * std::max(T(1), scale * gscale * T(m));
+        // the constant is a small multiple of the MACHINE epsilon, not a literal
+        // 1e-12: the floor has to track the rounding of the product above, and
+        // 1e-12 is ~4500 machine epsilons, which overshoots it far enough to stop
+        // a legitimate release (measured: it left an NNLS certificate short of its
+        // optimum on 2 of 200 degenerate vertices)
+        T const gtol = T(32) * std::numeric_limits<T>::epsilon() *
+                       std::max(T(1), scale * gscale * T(m));
         size_t best = ncols;
         T best_g = gtol;
         for (size_t j = 0; j < ncols; ++j) {
