@@ -119,6 +119,9 @@ void register_functions_top(nb::module_& m)
           [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
     m.def("smoother_step",
           [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
+    m.def("stopping_accel_bound", [](double a0, double a1, double a2, double a3) {
+        return stopping_accel_bound(a0, a1, a2, a3);
+    });
     m.def("to_geo_pos",
           [](geo_pos_dms const& a0, double a1) { return to_geo_pos(a0, a1); });
     m.def("to_geo_pos",

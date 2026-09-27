@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-20T11:32:47+00:00",
+  "generated_at": "2026-09-27T06:06:53+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -8909,6 +8909,26 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "bvls_solve",
+      "overloads": [
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t *",
+            "size_t"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 978
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
       "name": "central_scheme",
       "overloads": [
         {
@@ -8947,7 +8967,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 50
+          "source_line": 79
         }
       ]
     },
@@ -8991,7 +9011,7 @@
             "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 948
+          "source_line": 1660
         }
       ]
     },
@@ -9946,7 +9966,7 @@
             "double"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 583
+          "source_line": 641
         }
       ]
     },
@@ -9960,7 +9980,7 @@
             "T"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 163
+          "source_line": 221
         }
       ]
     },
@@ -9974,7 +9994,7 @@
             "T"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 170
+          "source_line": 228
         }
       ]
     },
@@ -9995,7 +10015,7 @@
             "size_t *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 854
+          "source_line": 1566
         }
       ]
     },
@@ -10011,7 +10031,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 82
+          "source_line": 140
         }
       ]
     },
@@ -10028,7 +10048,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 729
+          "source_line": 883
         }
       ]
     },
@@ -10044,7 +10064,7 @@
             "std::mdspan<double, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 143
+          "source_line": 234
         }
       ]
     },
@@ -10059,7 +10079,7 @@
             "std::mdspan<int, std::dextents<size_t, 1>>"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 64
+          "source_line": 155
         }
       ]
     },
@@ -10075,7 +10095,7 @@
             "size_t"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 189
+          "source_line": 280
         }
       ]
     },
@@ -10093,7 +10113,7 @@
             "const char *"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 228
+          "source_line": 319
         }
       ]
     },
@@ -10128,7 +10148,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 567
+          "source_line": 658
         }
       ]
     },
@@ -10144,7 +10164,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 69
+          "source_line": 99
         }
       ]
     },
@@ -10162,7 +10182,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 592
+          "source_line": 767
         }
       ]
     },
@@ -10180,7 +10200,7 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 672
+          "source_line": 832
         }
       ]
     },
@@ -10198,7 +10218,51 @@
             "double"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 804
+          "source_line": 1516
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "pseudo_inverse",
+      "overloads": [
+        {
+          "return_type": "std::vector<T>",
+          "param_types": [
+            "const std::vector<T> &",
+            "size_t",
+            "size_t",
+            "size_t *",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 800
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "qp_ls_solve",
+      "overloads": [
+        {
+          "return_type": "std::vector<T> &",
+          "param_types": [
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "size_t",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "const std::vector<T> &",
+            "std::vector<T> &",
+            "size_t *",
+            "size_t",
+            "double"
+          ],
+          "source_file": "ga/detail/ga_solver.hpp",
+          "source_line": 1194
         }
       ]
     },
@@ -10438,7 +10502,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 240
+          "source_line": 298
         }
       ]
     },
@@ -10456,7 +10520,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 265
+          "source_line": 323
         },
         {
           "return_type": "std::pair<std::vector<VecType>, std::array<std::vector<VecType>, 2>>",
@@ -10468,7 +10532,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 339
+          "source_line": 397
         }
       ]
     },
@@ -10514,7 +10578,7 @@
             "T"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 118
+          "source_line": 176
         },
         {
           "return_type": "T",
@@ -10522,7 +10586,7 @@
             "Scalar_t<T, Tag>"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 129
+          "source_line": 187
         }
       ]
     },
@@ -10536,7 +10600,7 @@
             "T"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 141
+          "source_line": 199
         },
         {
           "return_type": "T",
@@ -10544,7 +10608,7 @@
             "Scalar_t<T, Tag>"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 155
+          "source_line": 213
         }
       ]
     },
@@ -10560,7 +10624,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 93
+          "source_line": 151
         }
       ]
     },
@@ -10576,7 +10640,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 105
+          "source_line": 163
         }
       ]
     },
@@ -10630,7 +10694,7 @@
             "double"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 416
+          "source_line": 474
         },
         {
           "return_type": "double",
@@ -10641,7 +10705,7 @@
             "double"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 460
+          "source_line": 518
         },
         {
           "return_type": "double",
@@ -10654,7 +10718,24 @@
             "double"
           ],
           "source_file": "ga/ga_usr_utilities.hpp",
-          "source_line": 530
+          "source_line": 588
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "stopping_accel_bound",
+      "overloads": [
+        {
+          "return_type": "value_t",
+          "param_types": [
+            "value_t",
+            "value_t",
+            "value_t",
+            "value_t"
+          ],
+          "source_file": "ga/ga_usr_utilities.hpp",
+          "source_line": 125
         }
       ]
     },
@@ -10823,7 +10904,7 @@
             "const std::vector<T> &"
           ],
           "source_file": "ga/detail/ga_solver.hpp",
-          "source_line": 381
+          "source_line": 472
         }
       ]
     },
