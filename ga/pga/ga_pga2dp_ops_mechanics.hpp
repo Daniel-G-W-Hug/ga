@@ -125,7 +125,7 @@ constexpr BiVec2dp<T> moment_about(Vec2dp<T> const& R, BiVec2dp<T> const& F)
 // Used for rigid body dynamics in PGA2DP. The inertia map I[Omega] maps the
 // rate of change Omega (a Vec2dp) to the momentum (a BiVec2dp).
 //
-// From ga_docu/5_ga_modelling_mechanics.tex eq. 539-546:
+// From ga_docu.pdf, "Modelling linear and angular momentum" (the component form):
 // I_2D = m * [  0        Xz^2      -Xy*Xz    ]
 //            [ -Xz^2      0         Xx*Xz    ]
 //            [ -Xx*Xz    -Xy*Xz    Xx^2+Xy^2 ]
@@ -878,7 +878,7 @@ class kinematic_system2dp : public static_system2dp {
 
     // Velocity field of a twist V at point X -- the PGA rate of change of a point:
     //
-    //   Xdot = rcmt(V, X)        (ga_docu/3_ga_modelling_motion.tex, eq:rcmt_pga_world)
+    //   Xdot = rcmt(V, X)        (ga_docu.pdf, "Motion in PGA")
     //
     // In 2D PGA the twist is a vector (twist2dp) and rcmt(vec, vec) -> vec; the argument
     // ORDER matters: rcmt(V, X) == -rcmt(X, V).

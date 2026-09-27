@@ -8,8 +8,8 @@
 // ga_pga2dp_ops_mechanics.hpp and pays no complexity. closed_loop_system2dp HAS-A
 // dynamic_system2dp (composition) as its spanning tree and closes kinematic loops by
 // registering loop-closure constraints between existing tree frames, then solving the
-// resulting constrained problem. (Background: ga_docu/5_ga_modelling_mechanics.tex,
-// "Reduced vs. maximal coordinates".)
+// resulting constrained problem. (Background: ga_docu.pdf, "Reduced vs. maximal
+// coordinates".)
 //
 // Everything is built on the constraint residual g(q) (the closure error) and its
 // Jacobian G = dg/dq, whose columns are the spatial-Jacobian partial velocities

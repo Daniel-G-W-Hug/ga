@@ -125,7 +125,7 @@ constexpr BiVec3dp<T> moment_about(Vec3dp<T> const& R, BiVec3dp<T> const& F)
 // Used for rigid body dynamics in PGA3DP. The inertia map I[Omega] maps the
 // rate of change Omega (a BiVec3dp) to momentum (also a BiVec3dp).
 //
-// From ga_docu/5_ga_modelling_mechanics.tex eq. 604-611:
+// From ga_docu.pdf, "Modelling linear and angular momentum" (the component form):
 // I_3D = m * [  0              Xz*Xw       -Xy*Xw        Xw^2     0        0       ]
 //            [ -Xz*Xw          0            Xx*Xw        0        Xw^2     0       ]
 //            [  Xy*Xw         -Xx*Xw        0            0        0        Xw^2    ]

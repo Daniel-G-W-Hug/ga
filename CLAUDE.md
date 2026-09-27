@@ -1653,7 +1653,7 @@ Three consequences that bite in code:
   flips at grades 2 and 3.
 
 Reader-facing statement with the derivation and the per-algebra table: the "Central
-element" and "Duality rotation" entries in `ga_docu/8_ga_glossary.tex`.
+element" and "Duality rotation" entries in the glossary of `ga_docu.pdf`.
 
 ### Supported Algebra Types
 
