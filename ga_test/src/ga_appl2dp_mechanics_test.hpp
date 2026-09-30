@@ -6350,6 +6350,72 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    // L2: the recursive assembly (composite rigid body algorithm for the mass matrix,
+    // the Newton-Euler backward pass for the bias) against the direct one -- the 3D
+    // gate's twin: every planar joint family, a branching tree, a DRIVEN joint (a
+    // moving base) with a dof joint below it, the force elements, every rate nonzero
+    TEST_CASE("pga2dp: the recursive assembly equals the direct one")
+    {
+        fmt::println("pga2dp: mass_bias_recursive() against mass_bias()");
+        dynamic_system2dp s;
+        s.set_gravity(vec2dp{0.0, -9.81, 0.0});
+        s.add_frame(static_frame2dp("W"));
+        s.add_body(static_frame2dp("base", vec2dp{0.0, 1.0, 1.0}, 0.2),
+                   make_plate_body(5.0, 0.3, 0.2), kin_state2dp{}, s.index_of("W"));
+        s.add_revolute_body(static_frame2dp("arm", vec2dp{0.3, 0.0, 1.0}),
+                            make_plate_body(2.0, 0.3, 0.05), vec2dp{-0.15, 0.0, 1.0}, 0.4,
+                            0.0, s.index_of("base"));
+        s.add_prismatic_body(static_frame2dp("slide", vec2dp{0.2, 0.0, 1.0}),
+                             make_plate_body(1.0, 0.1, 0.1), vec2dp{1.0, 0.0, 0.0}, 0.05,
+                             0.0, s.index_of("arm"));
+        s.add_revolute_body(static_frame2dp("rotor", vec2dp{-0.3, 0.0, 1.0}),
+                            make_disc_body(0.6, 0.1), O_2dp, 0.0, 0.0,
+                            s.index_of("base"));
+        s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
+        s.add_revolute_body(static_frame2dp("blade", vec2dp{0.0, 0.2, 1.0}),
+                            make_plate_body(0.3, 0.05, 0.2), vec2dp{0.0, -0.1, 1.0}, 0.3,
+                            0.0, s.index_of("rotor"));
+        s.add_body(static_frame2dp("float", vec2dp{0.0, -0.4, 1.0}),
+                   make_plate_body(0.9, 0.2, 0.1), kin_state2dp{}, s.index_of("slide"));
+        s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
+        s.set_applied_wrench(s.index_of("blade"), [](value_t) {
+            return wdg(vec2dp{0.1, 0.2, 1.0}, vec2dp{1.0, -2.0, 0.0});
+        });
+        s.add_grounded_spring(s.index_of("slide"), vec2dp{0.0, 0.0, 1.0},
+                              vec2dp{40.0, 20.0, 0.0}, 0.3);
+        value_t r = 0.37;
+        for (size_t f : s.dof_joints()) {
+            auto const& js = s.joint_props(f);
+            if (js.screws.empty()) s.set_joint_rate(f, r);
+            else {
+                std::vector<value_t> v(js.screws.size());
+                for (auto& x : v)
+                    x = (r = std::fmod(r * 7.3 + 0.61, 3.0) - 1.5);
+                s.set_joint_rates(f, v);
+            }
+            r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
+        }
+        auto const [M0, R0] = s.mass_bias();
+        auto const [M1, R1] = s.mass_bias_recursive();
+        REQUIRE(M0.size() == M1.size());
+        REQUIRE(R0.size() == R1.size());
+        value_t dm = 0.0, sm = 0.0, dr = 0.0, sr = 0.0;
+        for (size_t i = 0; i < M0.size(); ++i) {
+            dm = std::max(dm, std::abs(M0[i] - M1[i]));
+            sm = std::max(sm, std::abs(M0[i]));
+        }
+        for (size_t i = 0; i < R0.size(); ++i) {
+            dr = std::max(dr, std::abs(R0[i] - R1[i]));
+            sr = std::max(sr, std::abs(R0[i]));
+        }
+        CHECK(dm <= 1.0e-12 * std::max(value_t(1.0), sm));
+        CHECK(dr <= 1.0e-12 * std::max(value_t(1.0), sr));
+        fmt::println("  {} coordinates, every joint family, a moving base, the force "
+                     "elements: |dM| {:.1e} of |M| {:.2f}, |dRHS| {:.1e} of |RHS| {:.2f}",
+                     R0.size(), dm, sm, dr, sr);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
 
 /////////////////////////////////////////////////////////////////////////////////////////

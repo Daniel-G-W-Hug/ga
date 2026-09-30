@@ -1990,6 +1990,13 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         return assemble_mass_bias(dof_coords(), /*with_joint_torques=*/false);
     }
+    // the same {M, RHS} by the recursive assembly (composite inertias, the Newton-Euler
+    // backward pass) -- equal to mass_bias() to rounding, O(n^2) where it is O(n^3)
+    // (see the 3D assembly for a measurement)
+    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias_recursive()
+    {
+        return assemble_mass_bias_recursive(dof_coords(), /*with_joint_torques=*/false);
+    }
 
   private:
 
@@ -2327,6 +2334,20 @@ class dynamic_system2dp : public kinematic_system2dp {
             }
         }
 
+        add_generalized_forces(rc, S, Mmat, RHS, with_joint_torques);
+        return {std::move(Mmat), std::move(RHS)};
+    }
+
+    // The terms BOTH assemblies add after the inertial ones -- the reflected inertia on
+    // the diagonal, the joints' springs, dampers and stops, the actuator torques, and
+    // every external wrench (applied, grounded springs) projected onto the world screws
+    // S of the coordinates `rc` -- shared so the direct and the recursive assembly cannot
+    // drift apart in anything but the inertial sums.
+    void add_generalized_forces(std::vector<coord> const& rc,
+                                std::vector<vec2dp> const& S, std::vector<value_t>& Mmat,
+                                std::vector<value_t>& RHS, bool with_joint_torques)
+    {
+        size_t const n = rc.size();
         // REFLECTED INERTIA (the actuator's rotor seen through its gear, N^2 I_rotor):
         // not a bound but a mass, so its place is the mass matrix's own DIAGONAL at
         // assembly -- the idiom the established libraries share, and the reason a geared
@@ -2405,6 +2426,104 @@ class dynamic_system2dp : public kinematic_system2dp {
                     if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
             }
         }
+    }
+
+    // THE RECURSIVE ASSEMBLY (O(n) bias, O(n^2) mass matrix; the composite rigid body
+    // algorithm and the Newton-Euler backward pass), the same {M, RHS} as
+    // assemble_mass_bias to rounding -- the 3D assembly's construction, see there:
+    // body i contributes to coordinate j exactly when it lies in the SUBTREE of j's
+    // frame, so per frame
+    //
+    //     I_c(f) = sum of the world inertia maps of the bodies in f's subtree
+    //     F_c(f) = sum of their force lines wdg(c_i, m_i (g - a_i))
+    //
+    // accumulated once from the leaves up, and M[j][k] = <S_j, I_c(f) S_k> with f the
+    // deeper of the two frames (0 when neither is an ancestor of the other), RHS[j] =
+    // <S_j, F_c(frame j)>. In the plane the velocity-product bias is the centre of
+    // mass's bias acceleration a_i alone -- angular velocities add, so there is no
+    // gyroscopic term -- which is why F_c is a sum of force lines.
+    std::pair<std::vector<value_t>, std::vector<value_t>>
+    assemble_mass_bias_recursive(std::vector<coord> const& rc,
+                                 bool with_joint_torques = true)
+    {
+        size_t const n = rc.size();
+        for (size_t c = 0; c < n; ++c)
+            set_accel_twist(rc[c].frame, twist2dp{0.0, 0.0, 0.0});
+
+        // ONE FORWARD PASS, parents first (see the 3D assembly): every frame's world
+        // motor, velocity and bias acceleration twist by world_VA's own update
+        size_t const nf = size();
+        std::vector<mvec2dp_u> Mw(nf);
+        std::vector<twist2dp> Vw(nf, twist2dp{0.0, 0.0, 0.0}),
+            Aw(nf, twist2dp{0.0, 0.0, 0.0});
+        for (size_t f = 0; f < nf; ++f) {
+            size_t const p = parent(f);
+            if (p == f) {
+                Mw[f] = get_pos_trafo(f, 0);
+                continue;
+            }
+            Mw[f] = rgpr(Mw[p], rrev(step_pos_trafo(f)));
+            twist2dp const zeta = move2dp(relative_twist(f), Mw[f]);
+            twist2dp const zetadot = move2dp(relative_accel_twist(f), Mw[f]);
+            Vw[f] = Vw[p] + zeta;
+            Aw[f] = Aw[p] + zetadot + rcmt(Vw[f], zeta);
+        }
+        std::vector<vec2dp> S(n);
+        for (size_t c = 0; c < n; ++c)
+            S[c] = move2dp(screw_of(rc[c]), Mw[rc[c].frame]);
+
+        std::vector<size_t> bl = dof_joints();
+        for (auto const& [idx, d] : driven_)
+            bl.push_back(idx);
+
+        std::vector<Inertia2dp<value_t>> Ic(nf);
+        std::vector<bivec2dp> Fc(nf, bivec2dp{0.0, 0.0, 0.0});
+        twist2dp const basis[3] = {twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0},
+                                   twist2dp{0.0, 0.0, 1.0}};
+        for (size_t fb : bl) {
+            auto const M = Mw[fb];
+            auto const Minv = rrev(M);
+            auto const& I = body[fb].I;
+            auto v = Ic[fb].view();
+            for (size_t c = 0; c < 3; ++c) {
+                bivec2dp const w = move2dp(I(move2dp(basis[c], Minv)), M);
+                v[0, c] += w.x;
+                v[1, c] += w.y;
+                v[2, c] += w.z;
+            }
+            vec2dp const cm = move2dp(O_2dp, M);
+            vec2dp const acm = accel_field(Vw[fb], Aw[fb], cm); // bias (rel_atwist = 0)
+            value_t const m = body[fb].mass;
+            Fc[fb] += wdg(cm, vec2dp{m * (grav.x - acm.x), m * (grav.y - acm.y), 0.0});
+        }
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p == f) continue;
+            Ic[p] += Ic[f];
+            Fc[p] += Fc[f];
+        }
+
+        // the mass matrix by the composite rigid body algorithm (see the 3D assembly)
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
+        std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
+        for (size_t k = 0; k < n; ++k) {
+            size_t const fk = rc[k].frame;
+            bivec2dp const F = Ic[fk](S[k]);
+            for (size_t j : at[fk])
+                Mmat[j * n + k] = spatial_dot(S[j], F);
+            for (size_t f = fk; parent(f) != f;) {
+                f = parent(f);
+                for (size_t j : at[f]) {
+                    value_t const m = spatial_dot(S[j], F);
+                    Mmat[j * n + k] = m;
+                    Mmat[k * n + j] = m;
+                }
+            }
+            RHS[k] = spatial_dot(S[k], Fc[fk]);
+        }
+        add_generalized_forces(rc, S, Mmat, RHS, with_joint_torques);
         return {std::move(Mmat), std::move(RHS)};
     }
 
