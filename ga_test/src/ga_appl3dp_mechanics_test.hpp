@@ -3286,7 +3286,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
 {
     TEST_CASE("pga3dp: the recursive assembly equals the direct one")
     {
-        fmt::println("pga3dp: mass_bias_recursive() against mass_bias()");
+        fmt::println("pga3dp: mass_bias() against the direct mass_bias_direct()");
         // ONE tree carrying every joint family and every force element: a free root, a
         // revolute arm with a prismatic slider and a spherical joint carrying a
         // cylindrical one, a helical branch carrying a DRIVEN joint (a moving base) with
@@ -3342,8 +3342,8 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
             }
             r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
         }
-        auto const [M0, R0] = s.mass_bias();
-        auto const [M1, R1] = s.mass_bias_recursive();
+        auto const [M0, R0] = s.mass_bias_direct(); // the reference
+        auto const [M1, R1] = s.mass_bias();        // the recursive assembly
         REQUIRE(M0.size() == M1.size());
         REQUIRE(R0.size() == R1.size());
         value_t dm = 0.0, sm = 0.0, dr = 0.0, sr = 0.0;

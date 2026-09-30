@@ -1990,12 +1990,13 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         return assemble_mass_bias(dof_coords(), /*with_joint_torques=*/false);
     }
-    // the same {M, RHS} by the recursive assembly (composite inertias, the Newton-Euler
-    // backward pass) -- equal to mass_bias() to rounding, O(n^2) where it is O(n^3)
-    // (see the 3D assembly for a measurement)
-    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias_recursive()
+    // the same {M, RHS} by the DIRECT assembly -- the virtual-work sum over every body
+    // and every pair of coordinates, O(n^3) -- kept as the reference the recursive
+    // assembly behind mass_bias() is gated against (equal to rounding); nothing in the
+    // dynamics calls it
+    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias_direct()
     {
-        return assemble_mass_bias_recursive(dof_coords(), /*with_joint_torques=*/false);
+        return assemble_mass_bias_direct(dof_coords(), /*with_joint_torques=*/false);
     }
 
   private:
@@ -2250,8 +2251,10 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
     }
 
-    // Assemble the joint-space mass matrix M(q) and the generalised-force RHS for the
-    // 1-DOF joint chain `rj`, by virtual work over the bodies (all quantities GA-native):
+    // THE DIRECT ASSEMBLY (the reference behind mass_bias_direct(); the dynamics run on
+    // the recursive assemble_mass_bias below, which is gated equal to this to rounding).
+    // The joint-space mass matrix M(q) and the generalised-force RHS for the coordinates
+    // `rc`, by virtual work over the bodies (all quantities GA-native):
     //
     //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )  over bodies i
     //             having BOTH joints j,k as ancestors  (the spatial inertia-map form);
@@ -2266,20 +2269,11 @@ class dynamic_system2dp : public kinematic_system2dp {
     // (Coriolis/centripetal) cm acceleration at q-ddot = 0. Pre: the joint state (phi,
     // omega) is already applied to the base pose + relative twist.
     //
-    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
-    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
-    //
-    // Split out of forward_dynamics() as the reuse seam for the closed-loop layer
-    // (ga_pga2dp_ops_constraints.hpp): the same spatial-Jacobian columns (velocity_field)
-    // that build M and RHS also build the loop-closure constraint Jacobian, so the
-    // constrained KKT solver assembles on top of this without duplicating the inertia-map
-    // assembly. Private (the public read-only view is mass_bias()); the closed-loop
-    // layer reaches it through friendship (see the forward declaration above). Returns {
-    // Mmat (n*n, row-major), RHS (n) }. with_joint_torques = false skips the
-    // set_joint_torque fold (the mass_bias() accessor: a feedback law reading the
-    // assembly must not see its own torque).
+    // SIDE EFFECT: as the recursive assembly's, the bias pass zeroes the chain's relative
+    // accel twists (rel_atwist).
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias(std::vector<coord> const& rc, bool with_joint_torques = true)
+    assemble_mass_bias_direct(std::vector<coord> const& rc,
+                              bool with_joint_torques = true)
     {
         size_t const n = rc.size();
 
@@ -2430,7 +2424,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // THE RECURSIVE ASSEMBLY (O(n) bias, O(n^2) mass matrix; the composite rigid body
     // algorithm and the Newton-Euler backward pass), the same {M, RHS} as
-    // assemble_mass_bias to rounding -- the 3D assembly's construction, see there:
+    // assemble_mass_bias_direct to rounding -- the 3D assembly's construction, see there:
     // body i contributes to coordinate j exactly when it lies in the SUBTREE of j's
     // frame, so per frame
     //
@@ -2442,9 +2436,19 @@ class dynamic_system2dp : public kinematic_system2dp {
     // <S_j, F_c(frame j)>. In the plane the velocity-product bias is the centre of
     // mass's bias acceleration a_i alone -- angular velocities add, so there is no
     // gyroscopic term -- which is why F_c is a sum of force lines.
+    //
+    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
+    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
+    //
+    // Split out of forward_dynamics() as the reuse seam for the closed-loop layer
+    // (ga_pga2dp_ops_constraints.hpp): the constrained KKT solver assembles on top of
+    // this without duplicating the inertia-map assembly. Private (the public read-only
+    // view is mass_bias()); the closed-loop layer reaches it through friendship (see the
+    // forward declaration above). Returns { Mmat (n*n, row-major), RHS (n) }.
+    // with_joint_torques = false skips the set_joint_torque fold (the mass_bias()
+    // accessor: a feedback law reading the assembly must not see its own torque).
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias_recursive(std::vector<coord> const& rc,
-                                 bool with_joint_torques = true)
+    assemble_mass_bias(std::vector<coord> const& rc, bool with_joint_torques = true)
     {
         size_t const n = rc.size();
         for (size_t c = 0; c < n; ++c)

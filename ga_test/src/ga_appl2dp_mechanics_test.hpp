@@ -6356,7 +6356,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     // moving base) with a dof joint below it, the force elements, every rate nonzero
     TEST_CASE("pga2dp: the recursive assembly equals the direct one")
     {
-        fmt::println("pga2dp: mass_bias_recursive() against mass_bias()");
+        fmt::println("pga2dp: mass_bias() against the direct mass_bias_direct()");
         dynamic_system2dp s;
         s.set_gravity(vec2dp{0.0, -9.81, 0.0});
         s.add_frame(static_frame2dp("W"));
@@ -6395,8 +6395,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             }
             r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
         }
-        auto const [M0, R0] = s.mass_bias();
-        auto const [M1, R1] = s.mass_bias_recursive();
+        auto const [M0, R0] = s.mass_bias_direct(); // the reference
+        auto const [M1, R1] = s.mass_bias();        // the recursive assembly
         REQUIRE(M0.size() == M1.size());
         REQUIRE(R0.size() == R1.size());
         value_t dm = 0.0, sm = 0.0, dr = 0.0, sr = 0.0;

@@ -406,3 +406,14 @@
            the deliverable fraction, its velocity and acceleration fed forward exactly by
            the chain rule -- and a refusal with the number only for a shortfall that
            persists at the slowest pace. The generic PDF is refreshed.
+
+- 2026/10: the joint-space equation of motion of dynamic_system{2,3}dp is assembled
+           RECURSIVELY: one forward pass for every frame's world motor, velocity and
+           bias acceleration, composite inertias and wrenches accumulated from the leaves
+           up (the composite rigid body algorithm and the Newton-Euler backward pass),
+           each column of M walked up its coordinate's ancestors -- O(n^2) for M where
+           the virtual-work sum over bodies and coordinate pairs was O(n^3). On a serial
+           chain of 96 revolutes 40 us against 31 ms. The direct sum stays as
+           mass_bias_direct(), the reference the recursive one is gated against to 1e-12
+           on a tree carrying every joint family, a driven moving base and every force
+           element.

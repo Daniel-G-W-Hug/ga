@@ -2170,12 +2170,13 @@ class dynamic_system3dp : public kinematic_system3dp {
     {
         return assemble_mass_bias(dof_coords(), /*with_joint_torques=*/false);
     }
-    // the same {M, RHS} by the recursive assembly (composite inertias, the Newton-Euler
-    // backward pass) -- equal to mass_bias() to rounding, O(n^2) where it is O(n^3):
-    // on a serial chain of 96 revolutes 40 us against 31 ms (-O2, 2026-10-01)
-    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias_recursive()
+    // the same {M, RHS} by the DIRECT assembly -- the virtual-work sum over every body
+    // and every pair of coordinates, O(n^3) -- kept as the reference the recursive
+    // assembly behind mass_bias() is gated against (equal to rounding); nothing in the
+    // dynamics calls it. On a serial chain of 96 revolutes 31 ms against 40 us (-O2).
+    std::pair<std::vector<value_t>, std::vector<value_t>> mass_bias_direct()
     {
-        return assemble_mass_bias_recursive(dof_coords(), /*with_joint_torques=*/false);
+        return assemble_mass_bias_direct(dof_coords(), /*with_joint_torques=*/false);
     }
 
   private:
@@ -2459,9 +2460,11 @@ class dynamic_system3dp : public kinematic_system3dp {
         }
     }
 
-    // Assemble the joint-space mass matrix M(q) and the generalised-force RHS for the
-    // 1-DOF joint chain `rj`, by virtual work over the bodies in the dimension-agnostic
-    // SPATIAL (screw) form:
+    // THE DIRECT ASSEMBLY (the reference behind mass_bias_direct(); the dynamics run on
+    // the recursive assemble_mass_bias below, which is gated equal to this to rounding).
+    // The joint-space mass matrix M(q) and the generalised-force RHS for the coordinates
+    // `rc`, by virtual work over the bodies in the dimension-agnostic SPATIAL (screw)
+    // form:
     //
     //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )      (mass matrix)
     //   RHS[j]  = sum_i [ m_i vcm_i(S_j).g  -  spatial_dot( S_j^body_i, F_bias_i ) ]
@@ -2482,20 +2485,11 @@ class dynamic_system3dp : public kinematic_system3dp {
     // angular bias + gyroscopic terms are non-zero and required. Pre: the joint state
     // (phi, omega) is already applied.
     //
-    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
-    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
-    //
-    // Split out of forward_dynamics() as the reuse seam for the closed-loop layer
-    // (ga_pga3dp_ops_constraints.hpp): the same spatial-Jacobian columns (velocity_field)
-    // that build M and RHS also build the loop-closure constraint Jacobian, so the
-    // constrained KKT solver assembles on top of this without duplicating the inertia-map
-    // assembly. Private (the public read-only view is mass_bias()); the closed-loop
-    // layer reaches it through friendship (see the forward declaration above). Returns {
-    // Mmat (n*n, row-major), RHS (n) }. with_joint_torques = false skips the
-    // set_joint_torque fold (the mass_bias() accessor: a feedback law reading the
-    // assembly must not see its own torque).
+    // SIDE EFFECT: as the recursive assembly's, the bias pass zeroes the chain's relative
+    // accel twists (rel_atwist).
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias(std::vector<coord> const& rc, bool with_joint_torques = true)
+    assemble_mass_bias_direct(std::vector<coord> const& rc,
+                              bool with_joint_torques = true)
     {
         size_t const n = rc.size();
 
@@ -2664,9 +2658,10 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     // THE RECURSIVE ASSEMBLY (O(n) bias, O(n^2) mass matrix; Featherstone's composite
     // rigid body algorithm and the backward pass of the recursive Newton-Euler
-    // algorithm), the same {M, RHS} as assemble_mass_bias to rounding. The observation
-    // both rest on: body i contributes to coordinate j exactly when j's frame is on i's
-    // path to the root, i.e. when i lies in the SUBTREE of j's frame. So per frame
+    // algorithm), the same {M, RHS} as assemble_mass_bias_direct to rounding. The
+    // observation both rest on: body i contributes to coordinate j exactly when j's frame
+    // is on i's path to the root, i.e. when i lies in the SUBTREE of j's frame. So per
+    // frame
     //
     //     I_c(f) = sum of the world inertia maps of the bodies in f's subtree
     //     F_c(f) = sum of their world wrenches: gravity wdg(c_i, m_i g) minus the
@@ -2686,9 +2681,19 @@ class dynamic_system3dp : public kinematic_system3dp {
     // inertia-bearing bodies are the same as the direct assembly's (dof and driven
     // joints: the moving base); the terms after the inertial sums are shared
     // (add_generalized_forces).
+    //
+    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
+    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
+    //
+    // Split out of forward_dynamics() as the reuse seam for the closed-loop layer
+    // (ga_pga3dp_ops_constraints.hpp): the constrained KKT solver assembles on top of
+    // this without duplicating the inertia-map assembly. Private (the public read-only
+    // view is mass_bias()); the closed-loop layer reaches it through friendship (see the
+    // forward declaration above). Returns { Mmat (n*n, row-major), RHS (n) }.
+    // with_joint_torques = false skips the set_joint_torque fold (the mass_bias()
+    // accessor: a feedback law reading the assembly must not see its own torque).
     std::pair<std::vector<value_t>, std::vector<value_t>>
-    assemble_mass_bias_recursive(std::vector<coord> const& rc,
-                                 bool with_joint_torques = true)
+    assemble_mass_bias(std::vector<coord> const& rc, bool with_joint_torques = true)
     {
         size_t const n = rc.size();
         for (size_t c = 0; c < n; ++c)
