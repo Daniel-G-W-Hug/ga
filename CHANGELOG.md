@@ -401,3 +401,8 @@
            torque box's support function; and the solver's guarantees in one paragraph.
            The generic PDF is refreshed.
 
+- 2026/09: the robotics chapter of ga_docu states how a demand the drives cannot deliver
+           is answered: first by TIME -- the reference runs on its own clock, slowed by
+           the deliverable fraction, its velocity and acceleration fed forward exactly by
+           the chain rule -- and a refusal with the number only for a shortfall that
+           persists at the slowest pace. The generic PDF is refreshed.
