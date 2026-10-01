@@ -794,11 +794,14 @@ std::vector<T> minnorm_solve(std::vector<T> const& A, std::vector<T> const& b,
 // minnorm_solve(A, e_i), bit for bit, at a single factorization instead of m of them.
 // For the map that a controller inverts every tick (a torque -> acceleration matrix, a
 // Jacobian) that is the difference between m QR factorizations and one. Writes the
-// rank if `rank_out` is non-null.
+// rank if `rank_out` is non-null, and the null space of A -- nullspace_basis's answer,
+// from the same decomposition -- if `nullspace_out` is: a caller that needs both asks
+// here and factors once.
 /////////////////////////////////////////////////////////////////////////////////////////
 template <typename T>
 std::vector<T> pseudo_inverse(std::vector<T> const& A, size_t rows, size_t ncols,
-                              size_t* rank_out = nullptr, double rtol = 1.0e-12)
+                              size_t* rank_out = nullptr, double rtol = 1.0e-12,
+                              std::vector<T>* nullspace_out = nullptr)
 {
     if (A.size() != rows * ncols) {
         throw Solver_error("hd::ga::pseudo_inverse: A must have rows * ncols entries.");
@@ -815,6 +818,19 @@ std::vector<T> pseudo_inverse(std::vector<T> const& A, size_t rows, size_t ncols
         auto const x = detail::cod_solve(c, std::move(e));
         for (size_t k = 0; k < ncols; ++k)
             P[k * rows + i] = static_cast<T>(x[k]);
+    }
+    // the null space of the SAME decomposition, on request: what nullspace_basis(A,
+    // rows, ncols, nullptr, rtol) returns, bit for bit, without factoring A again
+    if (nullspace_out) {
+        size_t const r = c.f.rank, k = ncols - r;
+        nullspace_out->assign(ncols * k, T(0));
+        for (size_t cc = 0; cc < k; ++cc) {
+            std::vector<double> e(ncols, 0.0);
+            e[r + cc] = 1.0;
+            if (r > 0) detail::qr_apply_q(c.g, e, false);
+            for (size_t j = 0; j < ncols; ++j)
+                (*nullspace_out)[c.f.perm[j] * k + cc] = static_cast<T>(e[j]);
+        }
     }
     return P;
 }
@@ -1195,7 +1211,7 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             std::vector<T> const& E, std::vector<T> const& e, std::vector<T> const& C,
             std::vector<T> const& d, std::vector<T> const& lo, std::vector<T> const& hi,
             std::vector<T>& x, size_t* iters_out = nullptr, size_t max_iter = 0,
-            double tol = 1.0e-10)
+            double tol = 1.0e-10, std::vector<T> const* null_E = nullptr)
 {
     size_t const n = ncols, p = b.size(), q = e.size(), r = d.size();
     if (A.size() != p * n || E.size() != q * n || C.size() != r * n) {
@@ -1283,9 +1299,20 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
     double const rank_tol = 1.0e-12; // nullspace_basis's own default, named here
     std::vector<T> ecol(n, T(0));    // E's column norms squared, for the scale below
     if (q > 0) {
-        size_t rq = 0;
-        Z = nullspace_basis(E, q, n, &rq, rank_tol);
-        k0 = n - rq;
+        // a caller that has factored E already hands its null space in (null_E: what
+        // nullspace_basis(E, q, n) returns, n x k0) -- a stack of levels computes it
+        // for each level's rank before it calls, and it was factored again here
+        if (null_E) {
+            if (null_E->size() % n != 0)
+                throw Solver_error("hd::ga::qp_ls_solve: null_E must have ncols rows.");
+            Z = *null_E;
+            k0 = Z.size() / n;
+        }
+        else {
+            size_t rq = 0;
+            Z = nullspace_basis(E, q, n, &rq, rank_tol);
+            k0 = n - rq;
+        }
         for (size_t i = 0; i < q; ++i)
             for (size_t j = 0; j < n; ++j)
                 ecol[j] += E[i * n + j] * E[i * n + j];

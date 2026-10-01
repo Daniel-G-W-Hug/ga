@@ -1810,6 +1810,31 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             CHECK_THROWS_AS(qp_ls_solve(A, b, 2, E, e, {}, {}, lo, hi, y), Solver_error);
             fmt::println("  a feasible start is judged at its row's scale");
         }
+
+        // 6. the equalities' null space handed in (null_E) is the one the solver would
+        //    compute: the same answer, bit for bit, in the same number of iterations
+        {
+            std::vector<value_t> const A{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+            std::vector<value_t> const b{2.0, -1.0, 0.5};
+            std::vector<value_t> const E{1.0, 1.0, 1.0}, e{1.0};
+            std::vector<value_t> const C{1.0, -1.0, 0.0}, d{0.5};
+            std::vector<value_t> const lo{-inf, -0.25, -inf}, hi{inf, inf, 0.2};
+            std::vector<value_t> x1{0.9, 0.0, 0.1}, x2 = x1;
+            size_t it1 = 0, it2 = 0;
+            qp_ls_solve(A, b, 3, E, e, C, d, lo, hi, x1, &it1);
+            auto const Z = nullspace_basis(E, 1, 3);
+            qp_ls_solve(A, b, 3, E, e, C, d, lo, hi, x2, &it2, 0, 1.0e-10, &Z);
+            CHECK(x1 == x2);
+            CHECK(it1 == it2);
+            CHECK(std::abs(x1[0] + x1[1] + x1[2] - 1.0) < 1.0e-12); // on the equality
+            std::vector<value_t> const bad{1.0, 0.0}; // not a multiple of ncols
+            std::vector<value_t> x3{0.9, 0.0, 0.1};
+            CHECK_THROWS_AS(
+                qp_ls_solve(A, b, 3, E, e, C, d, lo, hi, x3, nullptr, 0, 1.0e-10, &bad),
+                Solver_error);
+            fmt::println("  a null space handed in gives the same answer ({} iterations)",
+                         it1);
+        }
         fmt::println("");
     }
 
@@ -2576,6 +2601,15 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
                     auto const x = minnorm_solve(A, e, sh.nc);
                     for (size_t k = 0; k < sh.nc; ++k)
                         CHECK(P[k * sh.m + i] == x[k]); // exact
+                }
+                // ...and the null space it hands out on request is nullspace_basis's,
+                // bit for bit, with the pseudo-inverse itself unchanged by the request
+                {
+                    std::vector<double> Nout{1.0}; // stale content must be replaced
+                    auto const P2 =
+                        pseudo_inverse(A, sh.m, sh.nc, nullptr, 1.0e-12, &Nout);
+                    CHECK(P2 == P);
+                    CHECK(Nout == nullspace_basis(A, sh.m, sh.nc));
                 }
                 // A A^+ A == A and A^+ A A^+ == A^+
                 auto mul = [](std::vector<double> const& X, size_t xm, size_t xn,
