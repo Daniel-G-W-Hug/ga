@@ -1792,6 +1792,24 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             CHECK_THROWS_AS(qp_ls_solve(A, b, 2, {}, {}, C, d, lo, hi, x), Solver_error);
             fmt::println("  an infeasible start throws");
         }
+
+        // 5. ...and the refusal is judged at the ROW's scale, not at |x|'s. The equality
+        //    1e8 * x0 = 100 has terms of order 100 while x is of order 1e-6: a start
+        //    off by 3e-10 RELATIVE leaves a residual of 3e-8, which is ten digits of
+        //    agreement and must be accepted (judged against max(|x|, 1) = 1 it was a
+        //    violation); a start off by 1e-6 relative must still be refused.
+        {
+            std::vector<value_t> const A{1.0, 0.0, 0.0, 1.0}, b{0.0, 0.0};
+            std::vector<value_t> const E{1.0e8, 0.0}, e{100.0};
+            std::vector<value_t> const lo(2, -inf), hi(2, inf);
+            std::vector<value_t> x{1.0e-6 * (1.0 + 3.0e-10), 0.0};
+            CHECK_NOTHROW(qp_ls_solve(A, b, 2, E, e, {}, {}, lo, hi, x));
+            CHECK(std::abs(x[0] - 1.0e-6) < 1.0e-14);
+            CHECK(std::abs(x[1]) < 1.0e-14);
+            std::vector<value_t> y{1.0e-6 * (1.0 + 1.0e-6), 0.0};
+            CHECK_THROWS_AS(qp_ls_solve(A, b, 2, E, e, {}, {}, lo, hi, y), Solver_error);
+            fmt::println("  a feasible start is judged at its row's scale");
+        }
         fmt::println("");
     }
 

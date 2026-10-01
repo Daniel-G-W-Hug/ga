@@ -1244,19 +1244,29 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             s += a[j] * v[j];
         return s;
     };
-    // the start must be feasible
+    // the start must be feasible -- each row judged at ITS OWN scale: the larger of
+    // |x|, its right-hand side and the terms it sums. Judged against |x| alone, a row
+    // whose terms cancel to a small value is refused for its rounding: with x of order
+    // 1e-6 and a right-hand side of order 100, a residual of 1e-8 -- eleven digits of
+    // agreement -- read as a violation.
     {
-        T const feas = T(tol) * scale();
+        T const xs = scale();
+        auto row_scale = [&](T const* a, T rhs) {
+            T s = std::max(xs, std::abs(rhs));
+            for (size_t j = 0; j < n; ++j)
+                s = std::max(s, std::abs(a[j] * x[j]));
+            return s;
+        };
         for (size_t i = 0; i < q; ++i) {
             T s = -e[i];
             for (size_t j = 0; j < n; ++j)
                 s += E[i * n + j] * x[j];
-            if (std::abs(s) > feas * T(100))
+            if (std::abs(s) > T(tol) * T(100) * row_scale(&E[i * n], e[i]))
                 throw Solver_error("hd::ga::qp_ls_solve: the starting point violates an "
                                    "equality constraint.");
         }
         for (auto const& c : in)
-            if (dotx(c.a, x) < c.rhs - feas * T(100))
+            if (dotx(c.a, x) < c.rhs - T(tol) * T(100) * row_scale(c.a.data(), c.rhs))
                 throw Solver_error("hd::ga::qp_ls_solve: the starting point violates an "
                                    "inequality constraint or the box.");
     }
