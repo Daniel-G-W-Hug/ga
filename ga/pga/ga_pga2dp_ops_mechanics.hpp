@@ -73,6 +73,7 @@
 // - mass_bias_direct()             -> the same, by the O(n^3) reference sum
 // - joint_accelerations()          -> forward dynamics, articulated-body algorithm
 // - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
+// - coriolis_matrix()              -> C(q, qdot), Mdot - 2C skew
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
 // validate, and set_joint() clamps into the range.
@@ -1942,28 +1943,44 @@ class dynamic_system2dp : public kinematic_system2dp {
         return J;
     }
 
+    // The joint-space mass matrix over dof_coords() (n x n, row-major) of the dof joints'
+    // bodies -- a DRIVEN joint's body is left out, which is where it differs from
+    // mass_bias()'s M -- plus the actuators' reflected inertia on the diagonal. The
+    // composite rigid body algorithm, as the recursive assembly: composite world inertias
+    // from the leaves up, each column walked up its coordinate's ancestors, O(n^2). No
+    // side effect.
     std::vector<value_t> mass_matrix()
     {
         auto const rc = dof_coords();
         size_t const n = rc.size();
-        std::vector<twist2dp> S(n); // world coordinate screws (unit rate)
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<twist2dp> S(n);
         for (size_t c = 0; c < n; ++c)
-            S[c] = world_screw(rc[c]);
-        // the inertia-bearing bodies: the dynamic joints' frames (each once)
-        auto const rj = dof_joints();
+            S[c] = move2dp(screw_of(rc[c]), w.M[rc[c].frame]);
+        std::vector<Inertia2dp<value_t>> Ic(nf);
+        for (size_t const fb : dof_joints())
+            add_world_inertia(Ic[fb], fb, w.M[fb]);
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p == f) continue;
+            Ic[p] += Ic[f];
+        }
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
         std::vector<value_t> Mmat(n * n, 0.0);
-        for (size_t const fb : rj) {
-            auto const& I = body[fb].I; // inertia map about the body's cm (body frame)
-            mvec2dp_u const Minv = rrev(get_pos_trafo(fb, 0)); // world -> body
-            for (size_t j = 0; j < n; ++j) {
-                if (!is_ancestor(rc[j].frame, fb)) continue;
-                twist2dp const xj = move2dp(S[j], Minv); // coordinate-j screw in the body
-                for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rc[k].frame, fb)) continue;
-                    twist2dp const xk = move2dp(S[k], Minv);
-                    // inertia-map quadratic form: carries mass + angular term uniformly
-                    // (no S.z split), and is the form that lifts unchanged to 3D.
-                    Mmat[j * n + k] += spatial_dot(xj, I(xk));
+        for (size_t k = 0; k < n; ++k) {
+            size_t const fk = rc[k].frame;
+            bivec2dp const F = Ic[fk](S[k]);
+            for (size_t j : at[fk])
+                Mmat[j * n + k] = spatial_dot(S[j], F);
+            for (size_t f = fk; parent(f) != f;) {
+                f = parent(f);
+                for (size_t j : at[f]) {
+                    value_t const m = spatial_dot(S[j], F);
+                    Mmat[j * n + k] = m;
+                    Mmat[k * n + j] = m;
                 }
             }
         }
@@ -2052,6 +2069,71 @@ class dynamic_system2dp : public kinematic_system2dp {
             tau[c] = spatial_dot(S[c], F[rc[c].frame]) +
                      joint[rc[c].frame].drive.armature * qdd[c] - Q[c];
         return tau;
+    }
+
+    // THE CORIOLIS MATRIX C(q, q-dot), n x n row-major over dof_coords(): the
+    // Christoffel-consistent factorization of the velocity-product forces, Mdot - 2C
+    // skew. The 3D twin's construction (see there) on the plane's 3 x 3 maps,
+    //
+    //     C = sum_i J_i^T ( I_i Jdot_i + B_i(v_i) J_i )
+    //     B(v) x = 1/2 ( [v, I x] - I [v, x] + [x, I v] )        ([a, b] = rcmt(a, b))
+    //
+    // C q-dot is the velocity-product part of the bias where nothing moves but the
+    // coordinates; Mdot - 2C stays skew with a driven joint too. O(n^2). Inertia2dp
+    // serves as the 3 x 3 map B.
+    std::vector<value_t> coriolis_matrix()
+    {
+        auto const rc = dof_coords();
+        size_t const n = rc.size();
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<twist2dp> S(n), Sd(n);
+        for (size_t c = 0; c < n; ++c) {
+            S[c] = move2dp(screw_of(rc[c]), w.M[rc[c].frame]);
+            Sd[c] = rcmt(w.V[rc[c].frame], S[c]);
+        }
+        static twist2dp const basis[3] = {
+            twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0}, twist2dp{0.0, 0.0, 1.0}};
+        std::vector<Inertia2dp<value_t>> Ic(nf), Bc(nf);
+        for (size_t fb : inertia_bodies()) {
+            Inertia2dp<value_t> Ib;
+            add_world_inertia(Ib, fb, w.M[fb]);
+            twist2dp const v = w.V[fb];
+            bivec2dp const h = Ib(v);
+            auto bv = Bc[fb].view();
+            for (size_t cc = 0; cc < 3; ++cc) {
+                twist2dp const& x = basis[cc];
+                bivec2dp const b = 0.5 * (rcmt(v, Ib(x)) - Ib(rcmt(v, x)) + rcmt(x, h));
+                bv[0, cc] += b.x;
+                bv[1, cc] += b.y;
+                bv[2, cc] += b.z;
+            }
+            Ic[fb] += Ib;
+        }
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p == f) continue;
+            Ic[p] += Ic[f];
+            Bc[p] += Bc[f];
+        }
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
+        std::vector<value_t> C(n * n, 0.0);
+        for (size_t k = 0; k < n; ++k) {
+            size_t const fk = rc[k].frame;
+            bivec2dp const Fk = Ic[fk](Sd[k]) + Bc[fk](S[k]);
+            for (size_t j : at[fk])
+                C[j * n + k] = spatial_dot(S[j], Fk);
+            for (size_t f = fk; parent(f) != f;) {
+                f = parent(f);
+                for (size_t j : at[f]) {
+                    C[j * n + k] = spatial_dot(S[j], Fk);
+                    C[k * n + j] = spatial_dot(S[k], Ic[fk](Sd[j]) + Bc[fk](S[j]));
+                }
+            }
+        }
+        return C;
     }
 
   private:

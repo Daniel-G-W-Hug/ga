@@ -425,3 +425,7 @@
            trip. ABA's residual is the smaller one at every size measured; on a
            192-revolute chain it takes 73 us where the LU solve took 1.7 ms. The
            closed-loop KKT layer still solves with M, which it needs.
+           coriolis_matrix() is the Christoffel-consistent C(q, qdot) (per body
+           J^T (I Jdot + B(v) J), O(n^2)): C qdot is the velocity-product bias and
+           Mdot - 2C is skew, gated against the bias and against M differentiated
+           along the motion. mass_matrix() runs on the same composite walk.

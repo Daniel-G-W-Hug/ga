@@ -75,6 +75,7 @@
 // - mass_bias_direct()             -> the same, by the O(n^3) reference sum
 // - joint_accelerations()          -> forward dynamics, articulated-body algorithm
 // - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
+// - coriolis_matrix()              -> C(q, qdot), Mdot - 2C skew
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
 // validate, and set_joint() clamps into the range.
@@ -2123,26 +2124,44 @@ class dynamic_system3dp : public kinematic_system3dp {
         return J;
     }
 
+    // The joint-space mass matrix over dof_coords() (n x n, row-major) of the dof joints'
+    // bodies -- a DRIVEN joint's body is left out, which is where it differs from
+    // mass_bias()'s M -- plus the actuators' reflected inertia on the diagonal. The
+    // composite rigid body algorithm, as the recursive assembly: composite world inertias
+    // from the leaves up, each column walked up its coordinate's ancestors, O(n^2). No
+    // side effect.
     std::vector<value_t> mass_matrix()
     {
         auto const rc = dof_coords();
         size_t const n = rc.size();
-        std::vector<twist3dp> S(n); // world coordinate screws (unit rate)
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<twist3dp> S(n);
         for (size_t c = 0; c < n; ++c)
-            S[c] = world_screw(rc[c]);
-        // the inertia-bearing bodies: the dynamic joints' frames (each once)
-        auto const rj = dof_joints();
+            S[c] = move3dp(screw_of(rc[c]), w.M[rc[c].frame]);
+        std::vector<Inertia3dp<value_t>> Ic(nf);
+        for (size_t const fb : dof_joints())
+            add_world_inertia(Ic[fb], fb, w.M[fb]);
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p == f) continue;
+            Ic[p] += Ic[f];
+        }
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
         std::vector<value_t> Mmat(n * n, 0.0);
-        for (size_t const fb : rj) {
-            auto const& I = body[fb].I; // inertia map about the body's cm (body frame)
-            mvec3dp_e const Minv = rrev(get_pos_trafo(fb, 0)); // world -> body
-            for (size_t j = 0; j < n; ++j) {
-                if (!is_ancestor(rc[j].frame, fb)) continue;
-                twist3dp const xj = move3dp(S[j], Minv); // coordinate-j screw in the body
-                for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rc[k].frame, fb)) continue;
-                    twist3dp const xk = move3dp(S[k], Minv);
-                    Mmat[j * n + k] += spatial_dot(xj, I(xk));
+        for (size_t k = 0; k < n; ++k) {
+            size_t const fk = rc[k].frame;
+            bivec3dp const F = Ic[fk](S[k]);
+            for (size_t j : at[fk])
+                Mmat[j * n + k] = spatial_dot(S[j], F);
+            for (size_t f = fk; parent(f) != f;) {
+                f = parent(f);
+                for (size_t j : at[f]) {
+                    value_t const m = spatial_dot(S[j], F);
+                    Mmat[j * n + k] = m;
+                    Mmat[k * n + j] = m;
                 }
             }
         }
@@ -2237,6 +2256,85 @@ class dynamic_system3dp : public kinematic_system3dp {
             tau[c] = spatial_dot(S[c], F[rc[c].frame]) +
                      joint[rc[c].frame].drive.armature * qdd[c] - Q[c];
         return tau;
+    }
+
+    // THE CORIOLIS MATRIX C(q, q-dot), n x n row-major over dof_coords(): the
+    // Christoffel-consistent factorization of the velocity-product forces, the one for
+    // which Mdot - 2C is skew-symmetric (the passivity property a controller's stability
+    // argument rests on). Per body, in the world,
+    //
+    //     C = sum_i J_i^T ( I_i Jdot_i + B_i(v_i) J_i )
+    //     B(v) x = 1/2 ( [v, I x] - I [v, x] + [x, I v] )        ([a, b] = rcmt(a, b))
+    //
+    // with J_i's columns the world screws S_k of body i's ancestor coordinates and
+    // Jdot_i's their rates [V_k, S_k] (a screw is fixed in its child frame). B + B^T is
+    // Idot and B(v) v = [v, I v], the gyroscopic wrench, so C + C^T = Mdot and C q-dot
+    // is the velocity-product part of the bias -- where nothing moves but the
+    // coordinates: a DRIVEN joint or a prescribed frame adds a moving-base term to the
+    // bias that C q-dot does not carry, while Mdot - 2C stays skew. Summed per subtree
+    // as the recursive assembly sums M, O(n^2). Inertia3dp serves as the 6 x 6 map B.
+    std::vector<value_t> coriolis_matrix()
+    {
+        auto const rc = dof_coords();
+        size_t const n = rc.size();
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<twist3dp> S(n), Sd(n);
+        for (size_t c = 0; c < n; ++c) {
+            S[c] = move3dp(screw_of(rc[c]), w.M[rc[c].frame]);
+            Sd[c] = rcmt(w.V[rc[c].frame], S[c]);
+        }
+        static twist3dp const basis[6] = {twist3dp{1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                                          twist3dp{0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+                                          twist3dp{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+                                          twist3dp{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+                                          twist3dp{0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+                                          twist3dp{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}};
+        std::vector<Inertia3dp<value_t>> Ic(nf), Bc(nf);
+        for (size_t fb : inertia_bodies()) {
+            Inertia3dp<value_t> Ib;
+            add_world_inertia(Ib, fb, w.M[fb]);
+            twist3dp const v = w.V[fb];
+            bivec3dp const h = Ib(v);
+            auto bv = Bc[fb].view();
+            for (size_t cc = 0; cc < 6; ++cc) {
+                twist3dp const& x = basis[cc];
+                bivec3dp const b = 0.5 * (rcmt(v, Ib(x)) - Ib(rcmt(v, x)) + rcmt(x, h));
+                bv[0, cc] += b.vx;
+                bv[1, cc] += b.vy;
+                bv[2, cc] += b.vz;
+                bv[3, cc] += b.mx;
+                bv[4, cc] += b.my;
+                bv[5, cc] += b.mz;
+            }
+            Ic[fb] += Ib;
+        }
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p == f) continue;
+            Ic[p] += Ic[f];
+            Bc[p] += Bc[f];
+        }
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
+        // the bodies in both j's and k's subtree are the deeper frame's: walk up from
+        // each coordinate k, the deeper one is always k's own frame
+        std::vector<value_t> C(n * n, 0.0);
+        for (size_t k = 0; k < n; ++k) {
+            size_t const fk = rc[k].frame;
+            bivec3dp const Fk = Ic[fk](Sd[k]) + Bc[fk](S[k]);
+            for (size_t j : at[fk])
+                C[j * n + k] = spatial_dot(S[j], Fk);
+            for (size_t f = fk; parent(f) != f;) {
+                f = parent(f);
+                for (size_t j : at[f]) {
+                    C[j * n + k] = spatial_dot(S[j], Fk);
+                    C[k * n + j] = spatial_dot(S[k], Ic[fk](Sd[j]) + Bc[fk](S[j]));
+                }
+            }
+        }
+        return C;
     }
 
   private:

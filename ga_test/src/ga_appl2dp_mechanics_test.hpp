@@ -504,8 +504,10 @@ TEST_SUITE("PGA2DP: physics tests prep")
 
 // ONE planar tree carrying every joint family and the force elements: a free root, a
 // revolute arm with a prismatic slider, a DRIVEN rotor (a moving base) with a dof joint
-// below it, a free body hung below the slider. Every dof rate seeded nonzero.
-inline void l2_tree2dp(dynamic_system2dp& s)
+// below it, a free body hung below the slider. Every dof rate seeded nonzero. still =
+// true seeds no rate; scleronomic = true leaves out the driven joint (the rotor is then
+// an ordinary dof joint) and the force elements.
+inline void l2_tree2dp(dynamic_system2dp& s, bool scleronomic = false, bool still = false)
 {
     s.set_gravity(vec2dp{0.0, -9.81, 0.0});
     s.add_frame(static_frame2dp("W"));
@@ -519,18 +521,21 @@ inline void l2_tree2dp(dynamic_system2dp& s)
                          s.index_of("arm"));
     s.add_revolute_body(static_frame2dp("rotor", vec2dp{-0.3, 0.0, 1.0}),
                         make_disc_body(0.6, 0.1), O_2dp, 0.0, 0.0, s.index_of("base"));
-    s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
+    if (!scleronomic) s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
     s.add_revolute_body(static_frame2dp("blade", vec2dp{0.0, 0.2, 1.0}),
                         make_plate_body(0.3, 0.05, 0.2), vec2dp{0.0, -0.1, 1.0}, 0.3, 0.0,
                         s.index_of("rotor"));
     s.add_body(static_frame2dp("float", vec2dp{0.0, -0.4, 1.0}),
                make_plate_body(0.9, 0.2, 0.1), kin_state2dp{}, s.index_of("slide"));
-    s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
-    s.set_applied_wrench(s.index_of("blade"), [](value_t) {
-        return wdg(vec2dp{0.1, 0.2, 1.0}, vec2dp{1.0, -2.0, 0.0});
-    });
-    s.add_grounded_spring(s.index_of("slide"), vec2dp{0.0, 0.0, 1.0},
-                          vec2dp{40.0, 20.0, 0.0}, 0.3);
+    if (!scleronomic) {
+        s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
+        s.set_applied_wrench(s.index_of("blade"), [](value_t) {
+            return wdg(vec2dp{0.1, 0.2, 1.0}, vec2dp{1.0, -2.0, 0.0});
+        });
+        s.add_grounded_spring(s.index_of("slide"), vec2dp{0.0, 0.0, 1.0},
+                              vec2dp{40.0, 20.0, 0.0}, 0.3);
+    }
+    if (still) return;
     value_t r = 0.37;
     for (size_t f : s.dof_joints()) {
         auto const& js = s.joint_props(f);
@@ -6494,6 +6499,110 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  {} coordinates: ABA vs LU {:.1e}, RNEA vs M qdd - RHS {:.1e}, "
                      "RNEA(ABA(tau)) vs tau {:.1e} (relative)",
                      n, e1, e2, e3);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: mass_matrix() -- the dof joints' bodies, by the composite walk")
+    {
+        fmt::println("pga2dp: mass_matrix() against its definition");
+        // the full tree, a DRIVEN rotor included, plus armature on one joint; the
+        // reference is the definition read through public API alone: the body Jacobian
+        // of every dof joint's body paired through its inertia, sum_b J_b^T I_b J_b, plus
+        // the armature on the diagonal -- the driven rotor's body is not in the sum
+        dynamic_system2dp s;
+        l2_tree2dp(s);
+        joint_drive2dp dr{};
+        dr.armature = 0.05;
+        s.set_joint_drive(s.index_of("arm"), dr);
+        auto const rc = s.dof_coords();
+        size_t const n = rc.size();
+        std::vector<value_t> ref(n * n, 0.0);
+        for (size_t const fb : s.dof_joints()) {
+            auto const J = s.jacobian_columns(fb, /*body_form=*/true);
+            auto const& I = s.body_props(fb).I;
+            for (size_t j = 0; j < n; ++j)
+                for (size_t k = 0; k < n; ++k)
+                    ref[j * n + k] += -value_t(rwdg(J[j], I(J[k])));
+        }
+        for (size_t j = 0; j < n; ++j)
+            ref[j * n + j] += s.joint_props(rc[j].frame).drive.armature;
+        auto const M = s.mass_matrix();
+        auto const Mb = s.mass_bias().first; // the driven rotor's body included
+        value_t d = 0.0, sc = 0.0, db = 0.0;
+        for (size_t i = 0; i < n * n; ++i) {
+            d = std::max(d, std::abs(M[i] - ref[i]));
+            sc = std::max(sc, std::abs(ref[i]));
+            db = std::max(db, std::abs(M[i] - Mb[i]));
+        }
+        CHECK(d <= 1.0e-12 * std::max(value_t(1.0), sc));
+        CHECK(db > 1.0e-3); // the rotor's body is the difference to mass_bias()'s M
+        fmt::println("  {} coordinates: |M - definition| {:.1e} of {:.2f}; differs "
+                     "from mass_bias()'s M by {:.3f} (the driven rotor's body)",
+                     n, d, sc, db);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: the Coriolis matrix -- C qdot is the bias, Mdot - 2C is skew")
+    {
+        fmt::println("pga2dp: coriolis_matrix()");
+        auto rates = [](dynamic_system2dp& s) {
+            std::vector<value_t> qd;
+            for (auto const& c : s.dof_coords()) {
+                auto const& js = s.joint_props(c.frame);
+                qd.push_back(js.screws.empty() ? js.omega : js.rate[c.k]);
+            }
+            return qd;
+        };
+
+        // (1) C q-dot is the velocity-product part of the bias -- here against the
+        // planar model's force line through the centre of mass, a different expression
+        dynamic_system2dp s, s0;
+        l2_tree2dp(s, /*scleronomic=*/true);
+        l2_tree2dp(s0, /*scleronomic=*/true, /*still=*/true);
+        auto const qd = rates(s);
+        size_t const n = qd.size();
+        auto const C = s.coriolis_matrix();
+        auto const R = s.mass_bias().second, R0 = s0.mass_bias().second;
+        value_t e1 = 0.0, b1 = 0.0;
+        for (size_t j = 0; j < n; ++j) {
+            value_t cq = 0.0;
+            for (size_t k = 0; k < n; ++k)
+                cq += C[j * n + k] * qd[k];
+            e1 = std::max(e1, std::abs(cq - (R0[j] - R[j])));
+            b1 = std::max(b1, std::abs(R0[j] - R[j]));
+        }
+        CHECK(e1 <= 1.0e-12 * std::max(value_t(1.0), b1));
+
+        // (2) Mdot - 2C is skew on the full tree, Mdot by central differences along the
+        // motion: the skew part must vanish as eps^2
+        dynamic_system2dp f;
+        l2_tree2dp(f);
+        auto const Cf = f.coriolis_matrix();
+        size_t const m = rates(f).size();
+        auto skew = [&](value_t eps) {
+            dynamic_system2dp sp = f, sm = f;
+            sp.step(eps);
+            sm.step(-eps);
+            auto const Mp = sp.mass_bias().first, Mm = sm.mass_bias().first;
+            value_t e = 0.0, sc = 0.0;
+            for (size_t j = 0; j < m; ++j)
+                for (size_t k = 0; k < m; ++k) {
+                    value_t const md = (Mp[j * m + k] - Mm[j * m + k]) / (2.0 * eps);
+                    value_t const mdt = (Mp[k * m + j] - Mm[k * m + j]) / (2.0 * eps);
+                    e = std::max(
+                        e, std::abs(md + mdt - 2.0 * (Cf[j * m + k] + Cf[k * m + j])));
+                    sc = std::max(sc, std::abs(md));
+                }
+            return e / std::max(value_t(1.0), sc);
+        };
+        value_t const ea = skew(1.0e-3), eb = skew(0.5e-3);
+        CHECK(ea < 1.0e-3); // the O(eps^2) truncation; the ratio below is the gate
+        CHECK(ea / eb > 3.5);
+        CHECK(ea / eb < 4.5);
+        fmt::println("  {} coordinates: |C qdot - bias| {:.1e} of {:.2f}; with a moving "
+                     "base, |(Mdot - 2C) + (Mdot - 2C)^T| {:.1e} at eps 1e-3, {:.1e} at "
+                     "5e-4 (ratio {:.2f}, second order)",
+                     n, e1, b1, ea, eb, ea / eb);
         fmt::println("");
     }
 
