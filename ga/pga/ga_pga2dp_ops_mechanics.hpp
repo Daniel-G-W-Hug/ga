@@ -15,6 +15,7 @@
 #include <functional> // std::function (time-varying applied wrench)
 #include <limits>     // std::numeric_limits
 #include <mdspan>
+#include <span> // std::span (per-frame coordinate lists)
 #include <stdexcept>
 #include <string>
 #include <unordered_map> // std::unordered_map (frame name -> index)
@@ -650,6 +651,19 @@ class static_system2dp {
         // identity transformation (M is the pseudoscalar, the neutral element of rgpr())
         if (from_idx == to_idx) return I_2dp_mv_u; // unit pseudoscalar = identity trafo
 
+        // `to` a ROOT -- the commonest call, a frame's pose in the world: from's chain
+        // reaches it, so walk straight up; the same steps in the same order as below,
+        // without building the ancestor chain (an allocation on every call)
+        if (parent_of[to_idx] == to_idx) {
+            mvec2dp_u M_up = I_2dp_mv_u;
+            size_t node = from_idx;
+            while (node != to_idx && parent_of[node] != node) {
+                M_up = rgpr(rrev(step_pos_trafo(node)), M_up);
+                node = parent_of[node];
+            }
+            if (node == to_idx) return rgpr(mvec2dp_u(I_2dp_mv_u), M_up);
+        }
+
         // ancestor chain of `to` (incl. to and the root); used to locate the LCA
         auto const to_chain = ancestor_chain(to_idx); // [to, parent(to), ..., root]
 
@@ -1058,25 +1072,18 @@ class kinematic_system2dp : public static_system2dp {
 
     world_va2dp world_VA(size_t idx)
     {
-        // build the path root -> idx
-        std::vector<size_t> path;
-        for (size_t n = idx;; n = parent(n)) {
-            path.push_back(n);
-            if (parent(n) == n) break; // reached the root (self-parent)
-        }
-        std::reverse(path.begin(), path.end());
-
-        twist2dp V{0.0, 0.0, 0.0};
-        twist2dp A{0.0, 0.0, 0.0};
-        for (size_t n : path) {
-            if (parent(n) == n) continue; // root contributes nothing
-            auto const M = get_pos_trafo(n, 0);
-            auto const zeta = move2dp(rel_vtwist[n], M);    // Ad(xi_n)     world rel. vel
-            auto const zetadot = move2dp(rel_atwist[n], M); // Ad(xidot_n)  world rel. acc
-            V = V + zeta;
-            A = A + zetadot + rcmt(V, zeta);
-        }
-        return {V, A};
+        // root -> idx by recursion on the parent: the operations of a walk along the
+        // path in the same order, without building the path (an allocation per call)
+        if (parent(idx) == idx)
+            return {twist2dp{0.0, 0.0, 0.0},
+                    twist2dp{0.0, 0.0, 0.0}}; // the root contributes nothing
+        world_va2dp va = world_VA(parent(idx));
+        auto const M = get_pos_trafo(idx, 0);
+        auto const zeta = move2dp(rel_vtwist[idx], M);    // Ad(xi_n)     world rel. vel
+        auto const zetadot = move2dp(rel_atwist[idx], M); // Ad(xidot_n)  world rel. acc
+        va.V = va.V + zeta;
+        va.A = va.A + zetadot + rcmt(va.V, zeta); // rcmt: the twist Lie bracket [V, zeta]
+        return va;
     }
 };
 
@@ -1558,6 +1565,10 @@ class dynamic_system2dp : public kinematic_system2dp {
     std::vector<coord> dof_coords() const
     {
         std::vector<coord> rc;
+        size_t count = 0;
+        for (size_t i = 1; i < size(); ++i)
+            count += joint_dof(i);
+        rc.reserve(count); // one allocation, not one per doubling
         for (size_t i = 1; i < size(); ++i)
             for (size_t k = 0, n = joint_dof(i); k < n; ++k)
                 rc.push_back(coord{i, k});
@@ -1568,6 +1579,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     std::vector<size_t> dof_joints() const
     {
         std::vector<size_t> rj;
+        rj.reserve(size()); // one allocation, not one per doubling
         for (size_t i = 1; i < size(); ++i)
             if (joint_dof(i) > 0) rj.push_back(i);
         return rj;
@@ -1967,18 +1979,16 @@ class dynamic_system2dp : public kinematic_system2dp {
             if (p == f) continue;
             Ic[p] += Ic[f];
         }
-        std::vector<std::vector<size_t>> at(nf);
-        for (size_t c = 0; c < n; ++c)
-            at[rc[c].frame].push_back(c);
+        auto const fc = group_by_frame(rc, nf);
         std::vector<value_t> Mmat(n * n, 0.0);
         for (size_t k = 0; k < n; ++k) {
             size_t const fk = rc[k].frame;
             bivec2dp const F = Ic[fk](S[k]);
-            for (size_t j : at[fk])
+            for (size_t j : fc.of(fk))
                 Mmat[j * n + k] = spatial_dot(S[j], F);
             for (size_t f = fk; parent(f) != f;) {
                 f = parent(f);
-                for (size_t j : at[f]) {
+                for (size_t j : fc.of(f)) {
                     value_t const m = spatial_dot(S[j], F);
                     Mmat[j * n + k] = m;
                     Mmat[k * n + j] = m;
@@ -2129,18 +2139,16 @@ class dynamic_system2dp : public kinematic_system2dp {
             Ic[p] += Ic[f];
             Bc[p] += Bc[f];
         }
-        std::vector<std::vector<size_t>> at(nf);
-        for (size_t c = 0; c < n; ++c)
-            at[rc[c].frame].push_back(c);
+        auto const fc = group_by_frame(rc, nf);
         std::vector<value_t> C(n * n, 0.0);
         for (size_t k = 0; k < n; ++k) {
             size_t const fk = rc[k].frame;
             bivec2dp const Fk = Ic[fk](Sd[k]) + Bc[fk](S[k]);
-            for (size_t j : at[fk])
+            for (size_t j : fc.of(fk))
                 C[j * n + k] = spatial_dot(S[j], Fk);
             for (size_t f = fk; parent(f) != f;) {
                 f = parent(f);
-                for (size_t j : at[f]) {
+                for (size_t j : fc.of(f)) {
                     C[j * n + k] = spatial_dot(S[j], Fk);
                     C[k * n + j] = spatial_dot(S[k], Ic[fk](Sd[j]) + Bc[fk](S[j]));
                 }
@@ -2654,18 +2662,16 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
 
         // the mass matrix by the composite rigid body algorithm (see the 3D assembly)
-        std::vector<std::vector<size_t>> at(nf);
-        for (size_t c = 0; c < n; ++c)
-            at[rc[c].frame].push_back(c);
+        auto const fc = group_by_frame(rc, nf);
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
         for (size_t k = 0; k < n; ++k) {
             size_t const fk = rc[k].frame;
             bivec2dp const F = Ic[fk](S[k]);
-            for (size_t j : at[fk])
+            for (size_t j : fc.of(fk))
                 Mmat[j * n + k] = spatial_dot(S[j], F);
             for (size_t f = fk; parent(f) != f;) {
                 f = parent(f);
-                for (size_t j : at[f]) {
+                for (size_t j : fc.of(f)) {
                     value_t const m = spatial_dot(S[j], F);
                     Mmat[j * n + k] = m;
                     Mmat[k * n + j] = m;
@@ -2705,6 +2711,31 @@ class dynamic_system2dp : public kinematic_system2dp {
             w.c[f] = zetadot + rcmt(w.V[f], zeta);
         }
         return w;
+    }
+
+    // each frame's coordinates in rc (ascending, as rc lists them), flat: frame f's are
+    // of(f) -- the per-frame lists the recursions walk, in two allocations rather than
+    // one per frame
+    struct frame_coords {
+        std::vector<size_t> off, idx;
+        std::span<size_t const> of(size_t f) const
+        {
+            return {idx.data() + off[f], off[f + 1] - off[f]};
+        }
+    };
+    static frame_coords group_by_frame(std::vector<coord> const& rc, size_t nf)
+    {
+        frame_coords g;
+        g.off.assign(nf + 1, 0);
+        for (auto const& c : rc)
+            ++g.off[c.frame + 1];
+        for (size_t f = 0; f < nf; ++f)
+            g.off[f + 1] += g.off[f];
+        g.idx.resize(rc.size());
+        std::vector<size_t> fill(g.off.begin(), g.off.end() - 1);
+        for (size_t c = 0; c < rc.size(); ++c)
+            g.idx[fill[rc[c].frame]++] = c;
+        return g;
     }
 
     // the inertia-bearing bodies: the dof joints' frames AND the driven joints'
@@ -2761,9 +2792,7 @@ class dynamic_system2dp : public kinematic_system2dp {
             set_accel_twist(rc[c].frame, z);
         auto const w = world_forward_pass();
         size_t const nf = size();
-        std::vector<std::vector<size_t>> at(nf);
-        for (size_t c = 0; c < n; ++c)
-            at[rc[c].frame].push_back(c);
+        auto const fc = group_by_frame(rc, nf);
         std::vector<twist2dp> S(n);
         for (size_t c = 0; c < n; ++c)
             S[c] = move2dp(screw_of(rc[c]), w.M[rc[c].frame]);
@@ -2793,7 +2822,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         std::vector<art> ar(nf);
         for (size_t f = nf; f-- > 0;) {
             size_t const p = parent(f);
-            auto const& cs = at[f];
+            auto const cs = fc.of(f);
             size_t const k = cs.size();
             Inertia2dp<value_t> Ia = IA[f];
             bivec2dp pa = pA[f];
@@ -2864,7 +2893,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         for (size_t f = 0; f < nf; ++f) {
             size_t const p = parent(f);
             twist2dp a = ((p == f) ? z : A[p]) + w.c[f];
-            auto const& cs = at[f];
+            auto const cs = fc.of(f);
             size_t const k = cs.size();
             if (k > 0) {
                 auto const& ra = ar[f];
