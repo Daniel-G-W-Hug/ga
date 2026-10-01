@@ -90,6 +90,8 @@
 // - joint_accelerations() -> the KKT accelerations, optionally with the multipliers
 // - sync_accelerations()  -> write them into the per-frame accel twists, so
 //                           point_acceleration() reports the CONSTRAINED dynamics
+// - dynamics_response()  -> the same KKT system factored once: q-ddot, lambda, and
+//                           delta(dtau), a force change's response by back-substitution
 // - step()                -> one integration step of the constrained system
 // - impact(e) / activate_loop_with_impact(c, e) -> the impulsive velocity jump a newly
 //                           active constraint demands
@@ -559,6 +561,46 @@ class closed_loop_system2dp {
             tree_.set_accel_twist(rc[c].frame, tree_.relative_accel_twist(rc[c].frame) +
                                                    qdd[c] * tree_.screw_of(rc[c]));
         return qdd;
+    }
+
+    // THE CONSTRAINED RESPONSE at the current state, FACTORED ONCE: the KKT system of
+    // joint_accelerations() -- M, G and the constraint bias at this configuration and
+    // velocity -- factored by kkt_factorize, with its solution at the present forces.
+    // q-ddot and lambda equal joint_accelerations(&lambda) bit for bit. delta(dtau)
+    // answers what a CHANGE of the generalised forces (dof_coords() order) changes,
+    // by back-substitution alone -- linear in dtau, since the constraint rows' right-hand
+    // side does not depend on it; the multipliers' change too if asked for. This is
+    // the read a controller needs when it probes how each actuator moves each task:
+    // one factorization and a back-substitution per column, where re-solving the
+    // dynamics per column repeats the assembly, G, the bias and the factorization.
+    // Same bias-pass side effect as joint_accelerations().
+    struct response {
+        std::vector<value_t> qdd;    // the joint accelerations at the present forces
+        std::vector<value_t> lambda; // their multipliers (joint_accelerations' layout)
+        kkt_factor<value_t> kkt;     // the factored system
+
+        std::vector<value_t> delta(std::vector<value_t> const& dtau,
+                                   std::vector<value_t>* dlambda = nullptr) const
+        {
+            std::vector<value_t> const g(kkt.m, value_t(0.0));
+            return kkt.solve(dtau, g, dlambda);
+        }
+    };
+    response dynamics_response()
+    {
+        auto const rc = tree_.dof_coords();
+        size_t const n = rc.size();
+        size_t const m = constraint_rows();
+        auto const mb = tree_.assemble_mass_bias(rc);
+        std::vector<value_t> const G = constraint_jacobian(rc);
+        std::vector<value_t> const gd = constraint_bias();
+        std::vector<value_t> gbias(m);
+        for (size_t c = 0; c < m; ++c)
+            gbias[c] = -gd[c];
+        response r;
+        r.kkt = hd::ga::kkt_factorize(mb.first, G, n, m, /*multipliers=*/true);
+        r.qdd = r.kkt.solve(mb.second, gbias, &r.lambda);
+        return r;
     }
 
     // Advance the closed-loop system by dt. The coupled coordinate state (read_state /

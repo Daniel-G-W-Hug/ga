@@ -429,3 +429,9 @@
            J^T (I Jdot + B(v) J), O(n^2)): C qdot is the velocity-product bias and
            Mdot - 2C is skew, gated against the bias and against M differentiated
            along the motion. mass_matrix() runs on the same composite walk.
+           kkt_solve is kkt_factorize and one solve, bit for bit: the bordered system
+           of either route (full row rank, or the reduced system of independent rows
+           with minimum-norm multipliers) held as a kkt_factor that back-substitutes
+           further right-hand sides. closed_loop_system{2,3}dp::dynamics_response()
+           returns the constrained dynamics factored once, with delta(dtau): the
+           response to a change of the generalised forces without a new solve.

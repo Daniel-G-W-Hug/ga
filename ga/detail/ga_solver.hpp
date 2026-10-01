@@ -1562,89 +1562,147 @@ std::vector<T> nullspace_project(std::vector<T> const& A, std::vector<T> const& 
 // generalised force tau, g = -G-dot q-dot, to get the joint accelerations x = q-ddot and
 // the constraint forces l. Carries no GA or physics knowledge.
 /////////////////////////////////////////////////////////////////////////////////////////
+// The bordered system FACTORED ONCE: kkt_solve's two routes split into the
+// factorization and a solve that only back-substitutes -- at full row rank of G the LU of
+// the whole bordered matrix; at a rank drop the LU of the reduced bordered system of a
+// maximal independent row subset, and (when the multipliers are wanted) the complete
+// orthogonal decomposition of G^T for their minimum-norm recovery. A caller who needs
+// the response to many right-hand sides at one state -- a controller probing how each
+// actuator moves each task, one generalised force column at a time -- pays the
+// factorization once. kkt_solve is kkt_factorize and one solve, bit for bit.
+template <typename T> struct kkt_factor {
+    size_t n{0}, m{0}, rank{0};
+    std::vector<size_t> keep; // the rows of G the LU carries (all m at full rank)
+    std::vector<double> lu;   // the (n + keep.size())^2 bordered matrix, LU-factored
+    std::vector<int> perm;    // its row permutation
+    std::vector<T> M;         // M, for the multipliers at a rank drop (f - M q-ddot)
+    detail::cod_factor gt;    // G^T's decomposition, at a rank drop when asked for
+    bool multipliers{false};  // whether the factorization can give lambda
+
+    // x (length n) for the right-hand sides f (n) and g (m); the multipliers l (m) into
+    // lambda_out if non-null -- which needs the factorization made with multipliers
+    std::vector<T> solve(std::vector<T> const& f, std::vector<T> const& g,
+                         std::vector<T>* lambda_out = nullptr) const
+    {
+        size_t const rk = keep.size(), Nk = n + rk;
+        std::vector<double> b(Nk, 0.0);
+        for (size_t i = 0; i < n; ++i)
+            b[i] = static_cast<double>(f[i]);
+        for (size_t c = 0; c < rk; ++c)
+            b[n + c] = static_cast<double>(g[keep[c]]);
+        if (Nk > 0) {
+            std::mdspan<double const, std::dextents<size_t, 2>> ac(lu.data(), Nk, Nk);
+            std::mdspan<int const, std::dextents<size_t, 1>> pc(perm.data(), Nk);
+            std::mdspan<double, std::dextents<size_t, 1>> bm(b.data(), Nk);
+            lu_backsubs(ac, pc, bm);
+        }
+        std::vector<T> x(n);
+        for (size_t i = 0; i < n; ++i)
+            x[i] = static_cast<T>(b[i]);
+        if (lambda_out) {
+            if (!multipliers)
+                throw Solver_error("hd::ga::kkt_factor::solve: the multipliers were "
+                                   "asked for, but the factorization was made without");
+            if (rank == m) {
+                lambda_out->resize(m);
+                for (size_t c = 0; c < m; ++c)
+                    (*lambda_out)[c] = static_cast<T>(b[n + c]);
+            }
+            else {
+                // G^T lambda = f - M q-ddot, minimum-norm lambda over all m rows
+                std::vector<double> rhs_l(n);
+                for (size_t i = 0; i < n; ++i) {
+                    T acc = f[i];
+                    for (size_t j = 0; j < n; ++j)
+                        acc -= M[i * n + j] * x[j];
+                    rhs_l[i] = static_cast<double>(acc);
+                }
+                auto const y = detail::cod_solve(gt, std::move(rhs_l));
+                lambda_out->resize(m);
+                for (size_t c = 0; c < m; ++c)
+                    (*lambda_out)[c] = static_cast<T>(y[c]);
+            }
+        }
+        return x;
+    }
+};
+
+template <typename T>
+kkt_factor<T> kkt_factorize(std::vector<T> const& M, std::vector<T> const& G, size_t n,
+                            size_t m, bool multipliers = true)
+{
+    kkt_factor<T> F;
+    F.n = n;
+    F.m = m;
+    F.multipliers = multipliers;
+    F.rank = (m > 0) ? matrix_rank(G, m, n) : 0;
+
+    // full row rank: every row; a rank drop: a maximal independent subset (greedy: a row
+    // is kept when it raises the rank) -- see kkt_solve for why
+    if (F.rank == m) {
+        F.keep.resize(m);
+        for (size_t c = 0; c < m; ++c)
+            F.keep[c] = c;
+    }
+    else {
+        std::vector<T> Gk; // the kept rows
+        for (size_t c = 0; c < m && F.keep.size() < F.rank; ++c) {
+            std::vector<T> trial = Gk;
+            trial.insert(trial.end(), G.begin() + c * n, G.begin() + (c + 1) * n);
+            if (matrix_rank(trial, F.keep.size() + 1, n) > F.keep.size()) {
+                F.keep.push_back(c);
+                Gk = std::move(trial);
+            }
+        }
+    }
+    size_t const rk = F.keep.size(), Nk = n + rk;
+    F.lu.assign(Nk * Nk, 0.0);
+    for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j)
+            F.lu[i * Nk + j] = static_cast<double>(M[i * n + j]);
+    for (size_t c = 0; c < rk; ++c)
+        for (size_t j = 0; j < n; ++j) {
+            double const gv = static_cast<double>(G[F.keep[c] * n + j]);
+            F.lu[j * Nk + (n + c)] = gv;
+            F.lu[(n + c) * Nk + j] = gv;
+        }
+    F.perm.assign(Nk, 0);
+    if (Nk > 0) {
+        std::mdspan<double, std::dextents<size_t, 2>> am(F.lu.data(), Nk, Nk);
+        std::mdspan<int, std::dextents<size_t, 1>> pm(F.perm.data(), Nk);
+        lu_decomp(am, pm);
+    }
+    if (F.rank < m && multipliers) {
+        F.M = M;
+        std::vector<double> GT(n * m);
+        for (size_t c = 0; c < m; ++c)
+            for (size_t j = 0; j < n; ++j)
+                GT[j * m + c] = static_cast<double>(G[c * n + j]);
+        F.gt = detail::cod_decomp(std::move(GT), n, m, 1.0e-12);
+    }
+    return F;
+}
+
 template <typename T>
 std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
                          std::vector<T> const& f, std::vector<T> const& g, size_t n,
                          size_t m, std::vector<T>* lambda_out = nullptr,
                          size_t* rank_out = nullptr)
 {
-    size_t const N = n + m;
-    size_t const r = (m > 0) ? matrix_rank(G, m, n) : 0;
-    if (rank_out) *rank_out = r;
-    std::vector<T> K(N * N, T(0)), rhs(N, T(0));
-    for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < n; ++j)
-            K[i * N + j] = M[i * n + j]; // M block (top-left)
-    for (size_t c = 0; c < m; ++c)
-        for (size_t j = 0; j < n; ++j) {
-            K[j * N + (n + c)] = G[c * n + j]; // G^T block (top-right)
-            K[(n + c) * N + j] = G[c * n + j]; // G  block (bottom-left)
-        }
-    for (size_t i = 0; i < n; ++i)
-        rhs[i] = f[i];
-    for (size_t c = 0; c < m; ++c)
-        rhs[n + c] = g[c];
-
-    // full row rank: the bordered matrix is regular, the shared LU is exact and cheap
-    if (r == m) {
-        std::vector<T> const sol = lu_solve(K, rhs, N);
-        if (lambda_out) lambda_out->assign(sol.begin() + n, sol.end());
-        return std::vector<T>(sol.begin(), sol.begin() + n);
-    }
-
+    // full row rank: the bordered matrix is regular, the shared LU is exact and cheap.
     // A rank drop: some rows of G are dependent (a knee lock, a body resting on two
     // pins, an over-constrained loop). q-ddot is still unique when the independent
     // rows constrain the coordinates consistently, so solve the REDUCED bordered
-    // system built from a maximal independent subset of the rows (greedy: a row is
-    // kept when it raises the rank) by LU; then recover the multipliers of ALL rows
-    // as the minimum-norm solution of Gᵀ λ = f - M q-ddot -- the constraint force is
-    // determined, its split over dependent rows is not, and the least-norm split is
-    // the convention. (A minimum-norm solve of the whole singular bordered matrix,
-    // the earlier route, is WRONG here: it minimises the joint norm of (q-ddot,
-    // lambda) and returns accelerations for a system that cannot move.)
-    std::vector<size_t> keep;
-    std::vector<T> Gk; // the kept rows, r x n
-    for (size_t c = 0; c < m && keep.size() < r; ++c) {
-        std::vector<T> trial = Gk;
-        trial.insert(trial.end(), G.begin() + c * n, G.begin() + (c + 1) * n);
-        if (matrix_rank(trial, keep.size() + 1, n) > keep.size()) {
-            keep.push_back(c);
-            Gk = std::move(trial);
-        }
-    }
-    size_t const rk = keep.size();
-    size_t const Nk = n + rk;
-    std::vector<T> Kk(Nk * Nk, T(0)), rk_rhs(Nk, T(0));
-    for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < n; ++j)
-            Kk[i * Nk + j] = M[i * n + j];
-    for (size_t c = 0; c < rk; ++c)
-        for (size_t j = 0; j < n; ++j) {
-            Kk[j * Nk + (n + c)] = Gk[c * n + j];
-            Kk[(n + c) * Nk + j] = Gk[c * n + j];
-        }
-    for (size_t i = 0; i < n; ++i)
-        rk_rhs[i] = f[i];
-    for (size_t c = 0; c < rk; ++c)
-        rk_rhs[n + c] = g[keep[c]];
-    std::vector<T> const solk =
-        (rk + n > 0) ? lu_solve(Kk, rk_rhs, Nk) : std::vector<T>{};
-    std::vector<T> qdd(solk.begin(), solk.begin() + n);
-    if (lambda_out) {
-        // Gᵀ (n x m) λ = f - M q-ddot, minimum-norm λ over all m rows
-        std::vector<T> GT(n * m), rhs_l(n);
-        for (size_t c = 0; c < m; ++c)
-            for (size_t j = 0; j < n; ++j)
-                GT[j * m + c] = G[c * n + j];
-        for (size_t i = 0; i < n; ++i) {
-            T acc = f[i];
-            for (size_t j = 0; j < n; ++j)
-                acc -= M[i * n + j] * qdd[j];
-            rhs_l[i] = acc;
-        }
-        *lambda_out = minnorm_solve(GT, rhs_l, m);
-    }
-    return qdd;
+    // system built from a maximal independent subset of the rows by LU; then recover
+    // the multipliers of ALL rows as the minimum-norm solution of Gᵀ λ = f - M q-ddot --
+    // the constraint force is determined, its split over dependent rows is not, and
+    // the least-norm split is the convention. (A minimum-norm solve of the whole
+    // singular bordered matrix, the earlier route, is WRONG here: it minimises the
+    // joint norm of (q-ddot, lambda) and returns accelerations for a system that
+    // cannot move.) Factored once by kkt_factorize -- see there.
+    kkt_factor<T> const F = kkt_factorize(M, G, n, m, lambda_out != nullptr);
+    if (rank_out) *rank_out = F.rank;
+    return F.solve(f, g, lambda_out);
 }
 
 

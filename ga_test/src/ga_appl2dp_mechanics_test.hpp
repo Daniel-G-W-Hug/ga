@@ -4515,6 +4515,75 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: closed_loop_system2dp - the factored response (L2b C1)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - dynamics_response()");
+        // a chain of four revolute links whose tip is pinned to the world where it is,
+        // every rate nonzero; `redundant` registers the pin twice -- four rows of rank
+        // two
+        auto make = [](bool redundant) {
+            closed_loop_system2dp cl;
+            cl.system().set_gravity(vec2dp{0.0, -9.81, 0.0});
+            cl.add_frame(static_frame2dp("W"));
+            auto const link = make_plate_body(1.0, 0.3, 0.05);
+            size_t par = cl.index_of("W");
+            for (int i = 0; i < 4; ++i) {
+                std::string const nm = "L" + std::to_string(i);
+                cl.add_revolute_body(static_frame2dp(nm, vec2dp{0.3, 0.0, 1.0}, 0.0),
+                                     link, vec2dp{-0.15, 0.0, 1.0}, 0.3 + 0.2 * i,
+                                     0.4 - 0.3 * i, par);
+                par = cl.index_of(nm);
+            }
+            vec2dp const tip{0.15, 0.0, 1.0};
+            vec2dp const P = unitize(move2dp(tip, cl.system().get_pos_trafo(par, 0)));
+            loop_constraint2dp const pin{par, tip, cl.index_of("W"), P,
+                                         constraint2dp::coincidence};
+            cl.add_loop_constraint(pin);
+            if (redundant) cl.add_loop_constraint(pin);
+            return cl;
+        };
+        for (bool const redundant : {false, true}) {
+            auto cl = make(redundant);
+            auto const rc = cl.system().dof_coords();
+            size_t const n = rc.size();
+            std::vector<value_t> lam0;
+            auto const q0 = cl.joint_accelerations(&lam0);
+            auto const r = cl.dynamics_response();
+            CHECK(r.qdd == q0);
+            CHECK(r.lambda == lam0);
+            CHECK(r.kkt.rank == 2);
+            CHECK(r.kkt.m == (redundant ? 4u : 2u));
+            value_t eq = 0.0, el = 0.0, sq = 0.0, sl = 0.0;
+            for (size_t c = 0; c < n; ++c) {
+                auto c2 = cl;
+                c2.system().set_joint_torque(rc[c].frame,
+                                             [](value_t) { return value_t(1.0); });
+                std::vector<value_t> lam1;
+                auto const q1 = c2.joint_accelerations(&lam1);
+                std::vector<value_t> dtau(n, 0.0), dl;
+                dtau[c] = 1.0;
+                auto const dq = r.delta(dtau, &dl);
+                for (size_t k = 0; k < n; ++k) {
+                    eq = std::max(eq, std::abs(dq[k] - (q1[k] - q0[k])));
+                    sq = std::max(sq, std::abs(q1[k]));
+                }
+                for (size_t k = 0; k < dl.size(); ++k) {
+                    el = std::max(el, std::abs(dl[k] - (lam1[k] - lam0[k])));
+                    sl = std::max(sl, std::abs(lam1[k]));
+                }
+            }
+            CHECK(eq <= 1.0e-12 * std::max(value_t(1.0), sq));
+            CHECK(el <= 1.0e-12 * std::max(value_t(1.0), sl));
+            fmt::println(
+                "  {}: {} coordinates, {} rows of rank {}; the response to a unit "
+                "torque per joint against a re-solve: |dqdd| {:.1e} of {:.1f}, "
+                "|dlambda| {:.1e} of {:.1f}",
+                redundant ? "the pin twice" : "one pin", n, r.kkt.m, r.kkt.rank, eq, sq,
+                el, sl);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: closed_loop_system2dp - two arms welded hand to hand (D1)")
     {
         fmt::println("pga2dp: closed_loop_system2dp - weld between two MOVING frames");

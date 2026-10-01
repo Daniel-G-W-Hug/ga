@@ -4030,6 +4030,80 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: closed_loop_system3dp - the factored response (L2b C1)")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp - dynamics_response()");
+        // a chain of five revolute links whose tip is pinned to the world where it is
+        // (closed by construction), every rate nonzero; `redundant` registers the pin
+        // twice -- six rows of rank three, the reduced route of kkt_solve
+        auto make = [](bool redundant) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            auto const link = make_cuboid_body(1.0, 0.3, 0.05, 0.05);
+            vec3dp const ax[3] = {vec3dp{0.0, 0.0, 1.0, 0.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                                  vec3dp{1.0, 0.0, 0.0, 0.0}};
+            size_t par = cl.index_of("W");
+            for (int i = 0; i < 5; ++i) {
+                std::string const nm = "L" + std::to_string(i);
+                cl.add_revolute_body(static_frame3dp(nm, vec3dp{0.3, 0.0, 0.0, 1.0}),
+                                     link, vec3dp{-0.15, 0.0, 0.0, 1.0}, ax[i % 3],
+                                     0.3 + 0.2 * i, 0.4 - 0.3 * i, par);
+                par = cl.index_of(nm);
+            }
+            vec3dp const tip{0.15, 0.0, 0.0, 1.0};
+            vec3dp const P = unitize(move3dp(tip, cl.system().get_pos_trafo(par, 0)));
+            loop_constraint3dp const pin{par, tip, cl.index_of("W"), P,
+                                         constraint3dp::coincidence};
+            cl.add_loop_constraint(pin);
+            if (redundant) cl.add_loop_constraint(pin);
+            return cl;
+        };
+        for (bool const redundant : {false, true}) {
+            auto cl = make(redundant);
+            auto const rc = cl.system().dof_coords();
+            size_t const n = rc.size();
+            std::vector<value_t> lam0;
+            auto const q0 = cl.joint_accelerations(&lam0);
+            auto const r = cl.dynamics_response();
+            // the same system, the same arithmetic: bit for bit
+            CHECK(r.qdd == q0);
+            CHECK(r.lambda == lam0);
+            CHECK(r.kkt.rank == 3);
+            CHECK(r.kkt.m == (redundant ? 6u : 3u));
+            // a unit torque on each joint in turn: the back-substitution against a full
+            // re-solve with the torque registered
+            value_t eq = 0.0, el = 0.0, sq = 0.0, sl = 0.0;
+            for (size_t c = 0; c < n; ++c) {
+                auto c2 = cl;
+                c2.system().set_joint_torque(rc[c].frame,
+                                             [](value_t) { return value_t(1.0); });
+                std::vector<value_t> lam1;
+                auto const q1 = c2.joint_accelerations(&lam1);
+                std::vector<value_t> dtau(n, 0.0), dl;
+                dtau[c] = 1.0;
+                auto const dq = r.delta(dtau, &dl);
+                for (size_t k = 0; k < n; ++k) {
+                    eq = std::max(eq, std::abs(dq[k] - (q1[k] - q0[k])));
+                    sq = std::max(sq, std::abs(q1[k]));
+                }
+                for (size_t k = 0; k < dl.size(); ++k) {
+                    el = std::max(el, std::abs(dl[k] - (lam1[k] - lam0[k])));
+                    sl = std::max(sl, std::abs(lam1[k]));
+                }
+            }
+            CHECK(eq <= 1.0e-12 * std::max(value_t(1.0), sq));
+            CHECK(el <= 1.0e-12 * std::max(value_t(1.0), sl));
+            fmt::println(
+                "  {}: {} coordinates, {} rows of rank {}; the response to a unit "
+                "torque per joint against a re-solve: |dqdd| {:.1e} of {:.1f}, "
+                "|dlambda| {:.1e} of {:.1f}",
+                redundant ? "the pin twice" : "one pin", n, r.kkt.m, r.kkt.rank, eq, sq,
+                el, sl);
+        }
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: closed_loop_system3dp")
 
 TEST_SUITE("PGA3DP: coordinate transformation")
