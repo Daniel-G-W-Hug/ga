@@ -435,3 +435,6 @@
            further right-hand sides. closed_loop_system{2,3}dp::dynamics_response()
            returns the constrained dynamics factored once, with delta(dtau): the
            response to a change of the generalised forces without a new solve.
+           joint_torques() reads the registered actuator torques back per coordinate
+           and set_accelerations(qdd) writes given accelerations into the frames --
+           the two seams a controller needs to probe its plant on that response.

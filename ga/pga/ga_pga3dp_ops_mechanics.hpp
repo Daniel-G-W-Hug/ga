@@ -76,6 +76,7 @@
 // - joint_accelerations()          -> forward dynamics, articulated-body algorithm
 // - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
 // - coriolis_matrix()              -> C(q, qdot), Mdot - 2C skew
+// - joint_torques()                -> the registered actuator torques, per coordinate
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
 // validate, and set_joint() clamps into the range.
@@ -2201,6 +2202,18 @@ class dynamic_system3dp : public kinematic_system3dp {
         return assemble_mass_bias_direct(dof_coords(), /*with_joint_torques=*/false);
     }
 
+    // the registered actuator torques (set_joint_torque) at the current clock, one entry
+    // per dof coordinate (dof_coords() order) -- what the actuators add to the right-hand
+    // side of M q-ddot = RHS + tau, and what mass_bias() leaves out. A controller that
+    // probes its plant by setting a torque reads here what the setting changed.
+    std::vector<value_t> joint_torques() const
+    {
+        auto const rc = dof_coords();
+        std::vector<value_t> tau(rc.size(), value_t(0.0));
+        add_joint_torques(rc, tau);
+        return tau;
+    }
+
     // INVERSE DYNAMICS by the recursive Newton-Euler algorithm (O(n), no mass matrix
     // formed): the generalised forces tau that give the dof coordinates (dof_coords()
     // order) the accelerations qdd, in mass_bias()'s convention M q-ddot = RHS + tau --
@@ -2778,18 +2791,25 @@ class dynamic_system3dp : public kinematic_system3dp {
         // clock time_): a coordinate joint's scalar, a motor joint's per-screw vector.
         // Zero unless a torque was attached via set_joint_torque. Skipped for the
         // mass_bias() accessor (with_joint_torques = false).
-        if (with_joint_torques && (!torque_.empty() || !torque_v_.empty()))
-            for (size_t j = 0; j < n; ++j) {
-                if (auto const it = torque_.find(rc[j].frame);
-                    it != torque_.end() && it->second &&
-                    joint[rc[j].frame].screws.empty())
-                    RHS[j] += it->second(time_);
-                if (auto const it = torque_v_.find(rc[j].frame);
-                    it != torque_v_.end() && it->second) {
-                    auto const tv = it->second(time_);
-                    if (rc[j].k < tv.size()) RHS[j] += tv[rc[j].k];
-                }
+        if (with_joint_torques) add_joint_torques(rc, RHS);
+    }
+
+    // the registered actuator torques (set_joint_torque, evaluated at the current clock
+    // time_) added onto RHS, one entry per coordinate of rc: a coordinate joint's
+    // scalar, a motor joint's per-screw vector
+    void add_joint_torques(std::vector<coord> const& rc, std::vector<value_t>& RHS) const
+    {
+        if (torque_.empty() && torque_v_.empty()) return;
+        for (size_t j = 0; j < rc.size(); ++j) {
+            if (auto const it = torque_.find(rc[j].frame);
+                it != torque_.end() && it->second && joint[rc[j].frame].screws.empty())
+                RHS[j] += it->second(time_);
+            if (auto const it = torque_v_.find(rc[j].frame);
+                it != torque_v_.end() && it->second) {
+                auto const tv = it->second(time_);
+                if (rc[j].k < tv.size()) RHS[j] += tv[rc[j].k];
             }
+        }
     }
 
     // The external wrenches acting on frames, world frame, in a fixed order: the applied

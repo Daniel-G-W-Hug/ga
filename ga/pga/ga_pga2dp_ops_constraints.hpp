@@ -90,6 +90,7 @@
 // - joint_accelerations() -> the KKT accelerations, optionally with the multipliers
 // - sync_accelerations()  -> write them into the per-frame accel twists, so
 //                           point_acceleration() reports the CONSTRAINED dynamics
+// - set_accelerations()  -> write given accelerations into the accel twists
 // - dynamics_response()  -> the same KKT system factored once: q-ddot, lambda, and
 //                           delta(dtau), a force change's response by back-substitution
 // - step()                -> one integration step of the constrained system
@@ -553,14 +554,23 @@ class closed_loop_system2dp {
     // of this same solve does not run it a second time.
     std::vector<value_t> sync_accelerations(std::vector<value_t>* lambda_out = nullptr)
     {
-        auto const rc = tree_.dof_coords();
         auto const qdd = joint_accelerations(lambda_out);
+        set_accelerations(qdd);
+        return qdd;
+    }
+
+    // sync_accelerations' write half: given joint accelerations (dof_coords() order)
+    // written into the per-frame relative acceleration twists, so the acceleration
+    // fields read them -- for an answer the caller already has, such as
+    // dynamics_response().qdd plus a delta, without solving again
+    void set_accelerations(std::vector<value_t> const& qdd)
+    {
+        auto const rc = tree_.dof_coords();
         for (auto const& c : rc)
-            tree_.set_accel_twist(c.frame, twist2dp{});
+            tree_.set_accel_twist(c.frame, twist2dp{0.0, 0.0, 0.0});
         for (size_t c = 0; c < rc.size(); ++c)
             tree_.set_accel_twist(rc[c].frame, tree_.relative_accel_twist(rc[c].frame) +
                                                    qdd[c] * tree_.screw_of(rc[c]));
-        return qdd;
     }
 
     // THE CONSTRAINED RESPONSE at the current state, FACTORED ONCE: the KKT system of
