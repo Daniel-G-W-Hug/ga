@@ -438,3 +438,9 @@
            joint_torques() reads the registered actuator torques back per coordinate
            and set_accelerations(qdd) writes given accelerations into the frames --
            the two seams a controller needs to probe its plant on that response.
+           The closed-loop quantities read one forward pass instead of walking each
+           anchor, coordinate or body to the root again: the constraint Jacobian and
+           its velocity-product term, and the centre of mass's velocity and
+           acceleration. get_pos_trafo to a root and world_VA no longer allocate, and
+           the recursions group coordinates by frame in two allocations instead of
+           one per frame -- those changes byte-identical.

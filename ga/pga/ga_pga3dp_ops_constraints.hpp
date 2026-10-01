@@ -776,13 +776,18 @@ class closed_loop_system3dp {
     std::vector<value_t> relative_accelerations()
     {
         std::vector<value_t> gd(constraint_rows(), 0.0);
+        // one forward pass for every frame's world motor and twists (a point query per
+        // anchor walked to the root again)
+        auto const w = tree_.world_forward_pass();
         size_t r = 0;
         for (auto const& lc : loops_) {
             if (!lc.active) continue;
-            vec3dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
-            vec3dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
-            vec3dp const aa = tree_.point_acceleration(Pa, lc.frame_a);
-            vec3dp const ab = tree_.point_acceleration(Pb, lc.frame_b);
+            vec3dp const Pa = unitize(move3dp(lc.anchor_a, w.M[lc.frame_a]));
+            vec3dp const Pb = unitize(move3dp(lc.anchor_b, w.M[lc.frame_b]));
+            vec3dp const aa =
+                dynamic_system3dp::accel_field(w.V[lc.frame_a], w.A[lc.frame_a], Pa);
+            vec3dp const ab =
+                dynamic_system3dp::accel_field(w.V[lc.frame_b], w.A[lc.frame_b], Pb);
             switch (lc.type) {
                 case constraint3dp::coincidence:
                     gd[r++] = aa.x - ab.x;
@@ -792,8 +797,10 @@ class closed_loop_system3dp {
                 case constraint3dp::distance: {
                     vec3dp const n = rod_axis(Pa, Pb);
                     value_t const L = separation(Pa, Pb);
-                    vec3dp const va = tree_.point_velocity(Pa, lc.frame_a);
-                    vec3dp const vb = tree_.point_velocity(Pb, lc.frame_b);
+                    vec3dp const va =
+                        dynamic_system3dp::velocity_field(w.V[lc.frame_a], Pa);
+                    vec3dp const vb =
+                        dynamic_system3dp::velocity_field(w.V[lc.frame_b], Pb);
                     value_t const vx = va.x - vb.x, vy = va.y - vb.y, vz = va.z - vb.z;
                     value_t const vn = n.x * vx + n.y * vy + n.z * vz;
                     gd[r++] = n.x * (aa.x - ab.x) + n.y * (aa.y - ab.y) +
@@ -805,8 +812,8 @@ class closed_loop_system3dp {
                     gd[r++] = aa.x - ab.x;
                     gd[r++] = aa.y - ab.y;
                     gd[r++] = aa.z - ab.z;
-                    twist3dp const Aa = tree_.accel_twist_world(lc.frame_a);
-                    twist3dp const Ab = tree_.accel_twist_world(lc.frame_b);
+                    twist3dp const Aa = w.A[lc.frame_a];
+                    twist3dp const Ab = w.A[lc.frame_b];
                     gd[r++] = Aa.vx - Ab.vx;
                     gd[r++] = Aa.vy - Ab.vy;
                     gd[r++] = Aa.vz - Ab.vz;
@@ -884,15 +891,18 @@ class closed_loop_system3dp {
         size_t const ndep = dep.size();
         std::vector<value_t> G(m * ndep, 0.0);
 
+        // one forward pass for every frame's world motor (world_screw and anchor_world
+        // walked each coordinate's and each anchor's frame to the root again)
+        auto const w = tree_.world_forward_pass();
         std::vector<twist3dp> S(ndep);
         for (size_t k = 0; k < ndep; ++k)
-            S[k] = tree_.world_screw(dep[k]);
+            S[k] = move3dp(tree_.screw_of(dep[k]), w.M[dep[k].frame]);
 
         size_t r = 0;
         for (auto const& lc : loops_) {
             if (!lc.active) continue;
-            vec3dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
-            vec3dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
+            vec3dp const Pa = unitize(move3dp(lc.anchor_a, w.M[lc.frame_a]));
+            vec3dp const Pb = unitize(move3dp(lc.anchor_b, w.M[lc.frame_b]));
             vec3dp const n =
                 (lc.type == constraint3dp::distance) ? rod_axis(Pa, Pb) : vec3dp{};
             for (size_t k = 0; k < ndep; ++k) {

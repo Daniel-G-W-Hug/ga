@@ -4030,6 +4030,81 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: closed_loop_system3dp - one forward pass (L2b C3)")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp - quantities on one forward pass");
+        // the chain pinned at its tip, every rate nonzero. Each quantity that now reads
+        // one forward pass is held against the same quantity through the public per-point
+        // queries, which walk each frame to the root on their own
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        auto const link = make_cuboid_body(1.0, 0.3, 0.05, 0.05);
+        vec3dp const ax[3] = {vec3dp{0.0, 0.0, 1.0, 0.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                              vec3dp{1.0, 0.0, 0.0, 0.0}};
+        size_t par = cl.index_of("W");
+        for (int i = 0; i < 5; ++i) {
+            std::string const nm = "L" + std::to_string(i);
+            cl.add_revolute_body(static_frame3dp(nm, vec3dp{0.3, 0.0, 0.0, 1.0}), link,
+                                 vec3dp{-0.15, 0.0, 0.0, 1.0}, ax[i % 3], 0.3 + 0.2 * i,
+                                 0.4 - 0.3 * i, par);
+            par = cl.index_of(nm);
+        }
+        vec3dp const tip{0.15, 0.0, 0.0, 1.0};
+        vec3dp const P = unitize(move3dp(tip, cl.system().get_pos_trafo(par, 0)));
+        cl.add_loop_constraint(loop_constraint3dp{par, tip, cl.index_of("W"), P,
+                                                  constraint3dp::coincidence});
+        auto& sys = cl.system();
+        auto const rc = sys.dof_coords();
+        size_t const n = rc.size();
+
+        // (1) the centre of mass's acceleration and velocity: sum_i m_i a_i / M
+        sys.sync_accelerations(); // a nonzero relative acceleration to read
+        vec3dp aref{}, vref{};
+        value_t Mt = 0.0;
+        for (size_t i = 0; i < sys.size(); ++i) {
+            value_t const mi = sys.body_props(i).mass;
+            if (mi <= 0.0) continue;
+            vec3dp const C = unitize(move3dp(O_3dp, sys.get_pos_trafo(i, 0)));
+            aref = aref + mi * sys.point_acceleration(C, i);
+            vref = vref + mi * sys.point_velocity(C, i);
+            Mt += mi;
+        }
+        aref = aref / Mt;
+        vref = vref / Mt;
+        vec3dp const a = sys.centre_of_mass_acceleration(),
+                     v = sys.centre_of_mass_velocity();
+        value_t const e1 = std::abs(a.x - aref.x) + std::abs(a.y - aref.y) +
+                           std::abs(a.z - aref.z) + std::abs(v.x - vref.x) +
+                           std::abs(v.y - vref.y) + std::abs(v.z - vref.z);
+        CHECK(e1 < 1.0e-12);
+
+        // (2) the pin's rows of G: the tip's world velocity per unit rate of each
+        // coordinate (the world screw where the coordinate supports the tip, else 0)
+        auto const G = cl.constraint_jacobian();
+        auto const cols = sys.jacobian_columns(par, /*body_form=*/false);
+        value_t e2 = 0.0;
+        for (size_t k = 0; k < n; ++k) {
+            vec3dp const u = dynamic_system3dp::velocity_field(cols[k], P);
+            e2 = std::max(e2, std::abs(G[0 * n + k] - u.x));
+            e2 = std::max(e2, std::abs(G[1 * n + k] - u.y));
+            e2 = std::max(e2, std::abs(G[2 * n + k] - u.z));
+        }
+        CHECK(e2 < 1.0e-12);
+
+        // (3) Gdot qdot through the physics: with the constrained accelerations synced,
+        // the pinned tip does not accelerate -- read by the per-point query
+        cl.sync_accelerations();
+        vec3dp const at = sys.point_acceleration(P, par);
+        value_t const e3 = std::abs(at.x) + std::abs(at.y) + std::abs(at.z);
+        CHECK(e3 < 1.0e-10);
+        fmt::println(
+            "  centre of mass |a - ref| + |v - ref| {:.1e}; |G - its definition| "
+            "{:.1e}; the pinned tip's acceleration {:.1e}",
+            e1, e2, e3);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: closed_loop_system3dp - the factored response (L2b C1)")
     {
         fmt::println("pga3dp: closed_loop_system3dp - dynamics_response()");

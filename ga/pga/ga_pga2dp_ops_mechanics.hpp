@@ -1786,10 +1786,13 @@ class dynamic_system2dp : public kinematic_system2dp {
         vec2dp v{};
         value_t const M = total_mass();
         if (M <= 0.0) return v;
+        // one forward pass for every frame's world motor and twists -- a point_velocity
+        // per body walked each body to the root again
+        auto const w = world_forward_pass();
         for (size_t i = 0; i < size(); ++i) {
             if (body[i].mass <= 0.0) continue;
-            vec2dp const C = unitize(move2dp(O_2dp, get_pos_trafo(i, 0)));
-            v = v + body[i].mass * point_velocity(C, i);
+            vec2dp const C = unitize(move2dp(O_2dp, w.M[i]));
+            v = v + body[i].mass * velocity_field(w.V[i], C);
         }
         return v / M;
     }
@@ -1799,10 +1802,13 @@ class dynamic_system2dp : public kinematic_system2dp {
         vec2dp a{};
         value_t const M = total_mass();
         if (M <= 0.0) return a;
+        // one forward pass for every frame's world motor and twists -- a
+        // point_acceleration per body walked each body to the root again
+        auto const w = world_forward_pass();
         for (size_t i = 0; i < size(); ++i) {
             if (body[i].mass <= 0.0) continue;
-            vec2dp const C = unitize(move2dp(O_2dp, get_pos_trafo(i, 0)));
-            a = a + body[i].mass * point_acceleration(C, i);
+            vec2dp const C = unitize(move2dp(O_2dp, w.M[i]));
+            a = a + body[i].mass * accel_field(w.V[i], w.A[i], C);
         }
         return a / M;
     }
