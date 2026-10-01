@@ -3366,7 +3366,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
 
     TEST_CASE("pga3dp: the articulated-body algorithm and inverse dynamics")
     {
-        fmt::println("pga3dp: joint_accelerations_aba() and inverse_dynamics()");
+        fmt::println("pga3dp: joint_accelerations() (ABA) and inverse_dynamics()");
         // the same tree, plus what only the joint-space terms carry: armature on a
         // revolute and on the spherical joint, and registered torques on both (the
         // spherical joint's per screw)
@@ -3391,9 +3391,23 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
             return d / std::max(value_t(1.0), m);
         };
 
-        // (1) ABA against the LU solve of the assembled M (registered torques included)
-        auto const qdd_lu = s.joint_accelerations();
-        auto const qdd_aba = s.joint_accelerations_aba();
+        // the registered torques per coordinate: 1.3 on the arm, (0.2, -0.4, 0.1) on the
+        // ball, 0 elsewhere
+        std::vector<value_t> tau_reg(n, 0.0);
+        for (size_t c = 0; c < n; ++c) {
+            if (rc[c].frame == s.index_of("arm")) tau_reg[c] = 1.3;
+            if (rc[c].frame == s.index_of("ball"))
+                tau_reg[c] = std::vector<value_t>{0.2, -0.4, 0.1}[rc[c].k];
+        }
+
+        // (1) ABA against the LU solve of the assembled M, M^-1 (RHS + tau) -- the solve
+        // forward dynamics ran on until the switch, kept here as the reference
+        auto const [M0, R0] = s.mass_bias();
+        std::vector<value_t> rhs(n);
+        for (size_t j = 0; j < n; ++j)
+            rhs[j] = R0[j] + tau_reg[j];
+        auto const qdd_lu = hd::ga::lu_solve(M0, rhs, n);
+        auto const qdd_aba = s.joint_accelerations();
         REQUIRE(qdd_aba.size() == n);
         value_t const e1 = rel(qdd_aba, qdd_lu);
         CHECK(e1 < 1.0e-12);
@@ -3417,12 +3431,6 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
         // (3) the round trip: the forces that produce ABA's accelerations ARE the
         // registered torques -- 1.3 on the arm, (0.2, -0.4, 0.1) on the ball, 0 elsewhere
         auto const tau_rt = s.inverse_dynamics(qdd_aba);
-        std::vector<value_t> tau_reg(n, 0.0);
-        for (size_t c = 0; c < n; ++c) {
-            if (rc[c].frame == s.index_of("arm")) tau_reg[c] = 1.3;
-            if (rc[c].frame == s.index_of("ball"))
-                tau_reg[c] = std::vector<value_t>{0.2, -0.4, 0.1}[rc[c].k];
-        }
         value_t const e3 = rel(tau_rt, tau_reg);
         CHECK(e3 < 1.0e-12);
         fmt::println("  {} coordinates: ABA vs LU {:.1e}, RNEA vs M qdd - RHS {:.1e}, "

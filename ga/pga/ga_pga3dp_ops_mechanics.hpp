@@ -73,7 +73,7 @@
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
 // - mass_bias_direct()             -> the same, by the O(n^3) reference sum
-// - joint_accelerations_aba()      -> forward dynamics, articulated-body algorithm
+// - joint_accelerations()          -> forward dynamics, articulated-body algorithm
 // - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
@@ -2182,14 +2182,6 @@ class dynamic_system3dp : public kinematic_system3dp {
         return assemble_mass_bias_direct(dof_coords(), /*with_joint_torques=*/false);
     }
 
-    // all generalised accelerations of the dof coordinates by the articulated-body
-    // algorithm (O(n), no mass matrix formed): equal to joint_accelerations(), which
-    // solves the assembled M, to rounding. Same bias-pass side effect.
-    std::vector<value_t> joint_accelerations_aba()
-    {
-        return forward_dynamics_aba(dof_coords());
-    }
-
     // INVERSE DYNAMICS by the recursive Newton-Euler algorithm (O(n), no mass matrix
     // formed): the generalised forces tau that give the dof coordinates (dof_coords()
     // order) the accelerations qdd, in mass_bias()'s convention M q-ddot = RHS + tau --
@@ -2920,11 +2912,15 @@ class dynamic_system3dp : public kinematic_system3dp {
                wdg(cm, vec3dp{m * grav.x, m * grav.y, m * grav.z, 0.0});
     }
 
-    // THE ARTICULATED-BODY ALGORITHM (Featherstone, O(n) forward dynamics): the joint
-    // accelerations of the dof coordinates rc without forming M. From the leaves up,
-    // each frame's ARTICULATED inertia I^A and bias wrench p^A (the wrench its subtree
-    // needs at zero acceleration of the frame), with U = I^A S over the frame's own
-    // coordinates and Q their springs, stops and torques,
+    // JOINT-SPACE FORWARD DYNAMICS by THE ARTICULATED-BODY ALGORITHM (Featherstone,
+    // O(n)): the joint accelerations of the dof coordinates rc solving
+    // M q-ddot = RHS + tau, without forming M -- behind the RK4 / ABM2 step,
+    // joint_accelerations() and sync_accelerations() (until 2026-10-01 it solved the
+    // assembled M by LU, which the gate still uses as the reference; level at 6
+    // coordinates, 24x slower at 192, and the larger residual at every size). From the
+    // leaves up, each frame's ARTICULATED inertia I^A and bias wrench p^A (the wrench its
+    // subtree needs at zero acceleration of the frame), with U = I^A S over the frame's
+    // own coordinates and Q their springs, stops and torques,
     //
     //     D   = S^T U + armature,          u   = Q - S^T p^A
     //     I^a = I^A - U D^-1 U^T,          p^a = p^A + I^a c + U D^-1 u
@@ -2937,8 +2933,12 @@ class dynamic_system3dp : public kinematic_system3dp {
     // S^T X is the reciprocal pairing spatial_dot, D is k x k for a frame with k
     // coordinates (a motor joint's screws together). Each body starts with I^A = its
     // world inertia and p^A = body_bias_wrench minus the frame wrenches, so the result is
-    // the assembly's M^-1 (RHS + tau) to rounding. Same bias-pass side effect.
-    std::vector<value_t> forward_dynamics_aba(std::vector<coord> const& rc)
+    // the assembly's M^-1 (RHS + tau) to rounding. Same bias-pass side effect. A
+    // coordinate whose D vanishes moves no inertia and the open chain is singular:
+    // refused with the cause rather than answered with a meaningless acceleration
+    // (closed loops do not pass through here -- their constraint rows may make such a
+    // joint determinate).
+    std::vector<value_t> forward_dynamics(std::vector<coord> const& rc)
     {
         size_t const n = rc.size();
         for (size_t c = 0; c < n; ++c)
@@ -3074,31 +3074,6 @@ class dynamic_system3dp : public kinematic_system3dp {
             A[f] = a;
         }
         return qdd;
-    }
-
-    // Joint-space forward dynamics for the chain `rj`: returns the joint accelerations
-    // q-ddot solving  M(q) q-ddot = RHS(q, q-dot). Thin wrapper over assemble_mass_bias()
-    // (see there for the assembly and its bias-pass side effect) plus the shared LU
-    // solve.
-    std::vector<value_t> forward_dynamics(std::vector<coord> const& rc)
-    {
-        auto const [Mmat, RHS] = assemble_mass_bias(rc);
-        // A dof joint that moves no inertia -- every body it carries is massless, or
-        // their mass sits on its axis -- has an identically zero mass-matrix diagonal
-        // (the kinetic energy at unit rate), so the open chain is singular. Refuse it
-        // with the cause rather than let the LU substitute a tiny pivot and return a
-        // finite, meaningless acceleration. Closed loops do not pass through here: their
-        // constraint rows may well make such a joint determinate (a massless coupler).
-        size_t const n = rc.size();
-        for (size_t j = 0; j < n; ++j)
-            if (Mmat[j * n + j] == value_t(0.0))
-                throw std::runtime_error(
-                    std::string("dynamic_system3dp: joint '") +
-                    frame(rc[j].frame).get_name() +
-                    "' moves no inertia (every body it carries is massless, or their "
-                    "mass sits on its axis), so the mass matrix is singular. Give a link "
-                    "below it a mass, or drive the joint (set_driven_rate).");
-        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU (detail/ga_solver.hpp)
     }
 
     // Integrate the coupled coordinates `rc` over dt via the shared rk4_step (or ABM2).

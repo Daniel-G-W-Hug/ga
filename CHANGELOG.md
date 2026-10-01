@@ -417,9 +417,11 @@
            mass_bias_direct(), the reference the recursive one is gated against to 1e-12
            on a tree carrying every joint family, a driven moving base and every force
            element.
-           Beside it, O(n) forward and inverse dynamics without forming M:
-           joint_accelerations_aba() (the articulated-body algorithm, a joint's
-           coordinates as one block) and inverse_dynamics(qdd) (the recursive
-           Newton-Euler algorithm), gated against the LU solve and M qdd - RHS and by
-           their round trip. ABA's residual is the smaller one at every size measured;
-           on a 192-revolute chain it takes 73 us against 1.7 ms.
+           Forward dynamics -- joint_accelerations(), sync_accelerations() and the
+           open-chain RK4 / ABM2 step -- runs on the articulated-body algorithm, O(n)
+           with M never formed (a joint's coordinates as one block), and
+           inverse_dynamics(qdd) is the recursive Newton-Euler algorithm; gated
+           against the LU solve of the assembled M and M qdd - RHS and by their round
+           trip. ABA's residual is the smaller one at every size measured; on a
+           192-revolute chain it takes 73 us where the LU solve took 1.7 ms. The
+           closed-loop KKT layer still solves with M, which it needs.
