@@ -70,6 +70,9 @@
 // - total_momentum()    -> the whole mechanism's momentum as ONE bivector
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
+// - mass_bias_direct()             -> the same, by the O(n^3) reference sum
+// - joint_accelerations_aba()      -> forward dynamics, articulated-body algorithm
+// - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
 // validate, and set_joint() clamps into the range.
@@ -1999,6 +2002,66 @@ class dynamic_system2dp : public kinematic_system2dp {
         return assemble_mass_bias_direct(dof_coords(), /*with_joint_torques=*/false);
     }
 
+    // all generalised accelerations of the dof coordinates by the articulated-body
+    // algorithm (O(n), no mass matrix formed): equal to joint_accelerations(), which
+    // solves the assembled M, to rounding. Same bias-pass side effect.
+    std::vector<value_t> joint_accelerations_aba()
+    {
+        return forward_dynamics_aba(dof_coords());
+    }
+
+    // INVERSE DYNAMICS by the recursive Newton-Euler algorithm (O(n), no mass matrix
+    // formed): the generalised forces tau that give the dof coordinates (dof_coords()
+    // order) the accelerations qdd, in mass_bias()'s convention M q-ddot = RHS + tau --
+    // the registered actuator torques EXCLUDED, as there. The 3D twin's recursion (see
+    // there) with the planar body wrench of body_bias_wrench. Same bias-pass side
+    // effect as the assembly.
+    std::vector<value_t> inverse_dynamics(std::vector<value_t> const& qdd)
+    {
+        auto const rc = dof_coords();
+        size_t const n = rc.size();
+        if (qdd.size() != n)
+            throw std::invalid_argument(
+                "dynamic_system2dp::inverse_dynamics: qdd needs one entry per dof "
+                "coordinate (" +
+                std::to_string(n) + "), got " + std::to_string(qdd.size()));
+        twist2dp const z{0.0, 0.0, 0.0};
+        for (size_t c = 0; c < n; ++c)
+            set_accel_twist(rc[c].frame, z);
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<twist2dp> S(n);
+        for (size_t c = 0; c < n; ++c)
+            S[c] = move2dp(screw_of(rc[c]), w.M[rc[c].frame]);
+        std::vector<twist2dp> Aq(nf, z); // each frame's own S q-ddot
+        for (size_t c = 0; c < n; ++c)
+            Aq[rc[c].frame] += qdd[c] * S[c];
+        std::vector<twist2dp> A(nf, z);
+        for (size_t f = 0; f < nf; ++f) {
+            size_t const p = parent(f);
+            A[f] = ((p == f) ? z : A[p]) + w.c[f] + Aq[f];
+        }
+        std::vector<bivec2dp> F(nf, bivec2dp{0.0, 0.0, 0.0});
+        for (size_t fb : inertia_bodies()) {
+            auto const M = w.M[fb];
+            F[fb] +=
+                move2dp(body[fb].I(move2dp(A[fb], rrev(M))), M) + body_bias_wrench(fb, w);
+        }
+        for (auto const& [fi, W] : frame_wrenches())
+            F[fi] -= W;
+        for (size_t f = nf; f-- > 1;) {
+            size_t const p = parent(f);
+            if (p != f) F[p] += F[f];
+        }
+        std::vector<value_t> Q(n, 0.0);
+        add_joint_forces(rc, Q, /*with_joint_torques=*/false);
+        std::vector<value_t> tau(n);
+        for (size_t c = 0; c < n; ++c)
+            tau[c] = spatial_dot(S[c], F[rc[c].frame]) +
+                     joint[rc[c].frame].drive.armature * qdd[c] - Q[c];
+        return tau;
+    }
+
   private:
 
     // Spatial (reciprocal / Klein) pairing of a velocity twist with a momentum or
@@ -2350,6 +2413,25 @@ class dynamic_system2dp : public kinematic_system2dp {
         for (size_t j = 0; j < n; ++j)
             Mmat[j * n + j] += joint[rc[j].frame].drive.armature;
 
+        add_joint_forces(rc, RHS, with_joint_torques);
+
+        // the external wrenches: W on frame fi contributes the generalised force
+        // spatial_dot(S_j, W) to every coordinate j that supports fi (j's frame an
+        // ancestor of fi) -- the rate of work of W under unit joint rate, the pairing
+        // that yields the gravity term too
+        for (auto const& [fi, W] : frame_wrenches())
+            for (size_t j = 0; j < n; ++j)
+                if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
+    }
+
+    // The generalised forces that act on the coordinates themselves, added onto RHS (one
+    // entry per coordinate of rc): each joint's spring/damper and stop, and -- unless
+    // with_joint_torques is false -- its actuator torques. Shared by the assemblies and
+    // the articulated-body recursion.
+    void add_joint_forces(std::vector<coord> const& rc, std::vector<value_t>& RHS,
+                          bool with_joint_torques)
+    {
+        size_t const n = rc.size();
         // linear spring/damper generalised forces on each joint coordinate (additive,
         // diagonal in joint space): tau_j += -k_j (q_j - q0_j) - c_j q-dot_j. Zero unless
         // a spring/damper was attached via set_joint_spring_damper.
@@ -2389,24 +2471,22 @@ class dynamic_system2dp : public kinematic_system2dp {
                     if (rc[j].k < tv.size()) RHS[j] += tv[rc[j].k];
                 }
             }
+    }
 
-        // applied external wrenches (world frame, evaluated at the current clock time_):
-        // an applied wrench W on frame fi contributes the generalised force
-        // spatial_dot(S_j, W) to every joint j that supports fi (j ancestor of fi). The
-        // reciprocal pairing is the rate of work of W under unit joint rate -- the same
-        // pairing that yields the gravity term. Zero unless a wrench was attached.
-        for (auto const& [fi, fn] : wrench_) {
-            if (!fn) continue;
-            bivec2dp const W = fn(time_);
-            for (size_t j = 0; j < n; ++j)
-                if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
-        }
-
+    // The external wrenches acting on frames, world frame, in a fixed order: the applied
+    // wrenches (evaluated at the current clock time_), the grounded springs/dampers
+    // (recomputed from the live state, not a function of time).
+    // Shared by the assemblies (projected onto the supporting coordinates) and the
+    // articulated-body recursion (applied to the frame's body).
+    std::vector<std::pair<size_t, bivec2dp>> frame_wrenches()
+    {
+        std::vector<std::pair<size_t, bivec2dp>> out;
+        for (auto const& [fi, fn] : wrench_)
+            if (fn) out.emplace_back(fi, fn(time_));
         // grounded spatial springs/dampers: for each spring on frame fi, the live world
         // attachment point P and its velocity v_P give the restoring force F (world-axis
         // anisotropic stiffness + isotropic damping); the force line wdg(P, F) is the
-        // wrench, projected onto every supporting joint screw. Recomputed from state here
-        // (not a function of time) -- the configuration-dependent path.
+        // wrench
         for (auto const& [fi, sps] : springs_) {
             auto const M = get_pos_trafo(fi, 0);
             twist2dp const Vw = twist_world(fi); // world velocity twist of frame fi
@@ -2415,11 +2495,10 @@ class dynamic_system2dp : public kinematic_system2dp {
                 vec2dp const v = velocity_field(Vw, P);            // world point velocity
                 vec2dp const F{-sp.k.x * (P.x - sp.p0_world.x) - sp.c * v.x,
                                -sp.k.y * (P.y - sp.p0_world.y) - sp.c * v.y, 0.0};
-                bivec2dp const W = wdg(P, F);
-                for (size_t j = 0; j < n; ++j)
-                    if (is_ancestor(rc[j].frame, fi)) RHS[j] += spatial_dot(S[j], W);
+                out.emplace_back(fi, wdg(P, F));
             }
         }
+        return out;
     }
 
     // THE RECURSIVE ASSEMBLY (O(n) bias, O(n^2) mass matrix; the composite rigid body
@@ -2454,47 +2533,20 @@ class dynamic_system2dp : public kinematic_system2dp {
         for (size_t c = 0; c < n; ++c)
             set_accel_twist(rc[c].frame, twist2dp{0.0, 0.0, 0.0});
 
-        // ONE FORWARD PASS, parents first (see the 3D assembly): every frame's world
-        // motor, velocity and bias acceleration twist by world_VA's own update
         size_t const nf = size();
-        std::vector<mvec2dp_u> Mw(nf);
-        std::vector<twist2dp> Vw(nf, twist2dp{0.0, 0.0, 0.0}),
-            Aw(nf, twist2dp{0.0, 0.0, 0.0});
-        for (size_t f = 0; f < nf; ++f) {
-            size_t const p = parent(f);
-            if (p == f) {
-                Mw[f] = get_pos_trafo(f, 0);
-                continue;
-            }
-            Mw[f] = rgpr(Mw[p], rrev(step_pos_trafo(f)));
-            twist2dp const zeta = move2dp(relative_twist(f), Mw[f]);
-            twist2dp const zetadot = move2dp(relative_accel_twist(f), Mw[f]);
-            Vw[f] = Vw[p] + zeta;
-            Aw[f] = Aw[p] + zetadot + rcmt(Vw[f], zeta);
-        }
+        auto const wp = world_forward_pass();
+        auto const& Mw = wp.M;
+        auto const& Vw = wp.V;
+        auto const& Aw = wp.A;
         std::vector<vec2dp> S(n);
         for (size_t c = 0; c < n; ++c)
             S[c] = move2dp(screw_of(rc[c]), Mw[rc[c].frame]);
 
-        std::vector<size_t> bl = dof_joints();
-        for (auto const& [idx, d] : driven_)
-            bl.push_back(idx);
-
         std::vector<Inertia2dp<value_t>> Ic(nf);
         std::vector<bivec2dp> Fc(nf, bivec2dp{0.0, 0.0, 0.0});
-        twist2dp const basis[3] = {twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0},
-                                   twist2dp{0.0, 0.0, 1.0}};
-        for (size_t fb : bl) {
+        for (size_t fb : inertia_bodies()) {
             auto const M = Mw[fb];
-            auto const Minv = rrev(M);
-            auto const& I = body[fb].I;
-            auto v = Ic[fb].view();
-            for (size_t c = 0; c < 3; ++c) {
-                bivec2dp const w = move2dp(I(move2dp(basis[c], Minv)), M);
-                v[0, c] += w.x;
-                v[1, c] += w.y;
-                v[2, c] += w.z;
-            }
+            add_world_inertia(Ic[fb], fb, M);
             vec2dp const cm = move2dp(O_2dp, M);
             vec2dp const acm = accel_field(Vw[fb], Aw[fb], cm); // bias (rel_atwist = 0)
             value_t const m = body[fb].mass;
@@ -2529,6 +2581,213 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
         add_generalized_forces(rc, S, Mmat, RHS, with_joint_torques);
         return {std::move(Mmat), std::move(RHS)};
+    }
+
+    // ONE FORWARD PASS, parents first (see the 3D twin): every frame's world motor M,
+    // velocity V and acceleration A by world_VA's own update, plus c, the part of A a
+    // frame adds over its parent's that its own coordinates' accelerations do not carry.
+    // Roots contribute nothing (V = A = c = 0).
+    struct world_pass {
+        std::vector<mvec2dp_u> M;
+        std::vector<twist2dp> V, A, c;
+    };
+    world_pass world_forward_pass()
+    {
+        size_t const nf = size();
+        twist2dp const z{0.0, 0.0, 0.0};
+        world_pass w{std::vector<mvec2dp_u>(nf), std::vector<twist2dp>(nf, z),
+                     std::vector<twist2dp>(nf, z), std::vector<twist2dp>(nf, z)};
+        for (size_t f = 0; f < nf; ++f) {
+            size_t const p = parent(f);
+            if (p == f) {
+                w.M[f] = get_pos_trafo(f, 0);
+                continue;
+            }
+            w.M[f] = rgpr(w.M[p], rrev(step_pos_trafo(f)));
+            twist2dp const zeta = move2dp(relative_twist(f), w.M[f]);
+            twist2dp const zetadot = move2dp(relative_accel_twist(f), w.M[f]);
+            w.V[f] = w.V[p] + zeta;
+            w.A[f] = w.A[p] + zetadot + rcmt(w.V[f], zeta);
+            w.c[f] = zetadot + rcmt(w.V[f], zeta);
+        }
+        return w;
+    }
+
+    // the inertia-bearing bodies: the dof joints' frames AND the driven joints'
+    std::vector<size_t> inertia_bodies() const
+    {
+        std::vector<size_t> bl = dof_joints();
+        for (auto const& [idx, d] : driven_)
+            bl.push_back(idx);
+        return bl;
+    }
+
+    // add body fb's inertia map, carried to the world by its motor M, onto Iw: the 3x3
+    // on the bivector basis, column c = move(I(move(e_c, M^-1)), M)
+    void add_world_inertia(Inertia2dp<value_t>& Iw, size_t fb, mvec2dp_u const& M) const
+    {
+        static twist2dp const basis[3] = {
+            twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0}, twist2dp{0.0, 0.0, 1.0}};
+        auto const Minv = rrev(M);
+        auto const& I = body[fb].I;
+        auto v = Iw.view();
+        for (size_t c = 0; c < 3; ++c) {
+            bivec2dp const w = move2dp(I(move2dp(basis[c], Minv)), M);
+            v[0, c] += w.x;
+            v[1, c] += w.y;
+            v[2, c] += w.z;
+        }
+    }
+
+    // body fb's wrench equation in the world is f = I_w A + p. The planar model keeps
+    // the assembly's: the velocity-product part of the net wrench is the force line
+    // through the centre of mass carrying m times its bias acceleration (angular
+    // velocities add in the plane), so p = wdg(c, m (a_c - g)) - I_w A_bias, which makes
+    // f = I_w (A - A_bias) + wdg(c, m (a_c - g))
+    bivec2dp body_bias_wrench(size_t fb, world_pass const& w) const
+    {
+        auto const M = w.M[fb];
+        auto const& I = body[fb].I;
+        vec2dp const cm = move2dp(O_2dp, M);
+        vec2dp const acm = accel_field(w.V[fb], w.A[fb], cm);
+        value_t const m = body[fb].mass;
+        return wdg(cm, vec2dp{m * (acm.x - grav.x), m * (acm.y - grav.y), 0.0}) -
+               move2dp(I(move2dp(w.A[fb], rrev(M))), M);
+    }
+
+    // THE ARTICULATED-BODY ALGORITHM (O(n) forward dynamics), the 3D twin's recursion
+    // on the plane's 3x3 inertia maps -- see there for the formulas. The result is the
+    // assembly's M^-1 (RHS + tau) to rounding. Same bias-pass side effect.
+    std::vector<value_t> forward_dynamics_aba(std::vector<coord> const& rc)
+    {
+        size_t const n = rc.size();
+        twist2dp const z{0.0, 0.0, 0.0};
+        for (size_t c = 0; c < n; ++c)
+            set_accel_twist(rc[c].frame, z);
+        auto const w = world_forward_pass();
+        size_t const nf = size();
+        std::vector<std::vector<size_t>> at(nf);
+        for (size_t c = 0; c < n; ++c)
+            at[rc[c].frame].push_back(c);
+        std::vector<twist2dp> S(n);
+        for (size_t c = 0; c < n; ++c)
+            S[c] = move2dp(screw_of(rc[c]), w.M[rc[c].frame]);
+        std::vector<value_t> Q(n, 0.0);
+        add_joint_forces(rc, Q, /*with_joint_torques=*/true);
+
+        std::vector<Inertia2dp<value_t>> IA(nf);
+        std::vector<bivec2dp> pA(nf, bivec2dp{0.0, 0.0, 0.0});
+        for (size_t fb : inertia_bodies()) {
+            add_world_inertia(IA[fb], fb, w.M[fb]);
+            pA[fb] += body_bias_wrench(fb, w);
+        }
+        for (auto const& [fi, W] : frame_wrenches())
+            pA[fi] -= W;
+
+        static twist2dp const basis[3] = {
+            twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0}, twist2dp{0.0, 0.0, 1.0}};
+        // per frame: its coordinates' U = I^A S, W_a = sum_b D^-1_ab U_b, D^-1 and u, in
+        // fixed storage (k <= 3) -- the recursion allocates nothing for a frame whose
+        // joint has one coordinate, and inverts its D by one division
+        struct art {
+            std::array<bivec2dp, 3> U{};
+            std::array<bivec2dp, 3> W{};
+            std::array<value_t, 9> Dinv{};
+            std::array<value_t, 3> u{};
+        };
+        std::vector<art> ar(nf);
+        for (size_t f = nf; f-- > 0;) {
+            size_t const p = parent(f);
+            auto const& cs = at[f];
+            size_t const k = cs.size();
+            Inertia2dp<value_t> Ia = IA[f];
+            bivec2dp pa = pA[f];
+            if (k > 0) {
+                auto& ra = ar[f];
+                std::array<value_t, 9> D{};
+                for (size_t a = 0; a < k; ++a)
+                    ra.U[a] = IA[f](S[cs[a]]);
+                for (size_t a = 0; a < k; ++a) {
+                    for (size_t b = 0; b < k; ++b)
+                        D[a * k + b] = spatial_dot(S[cs[a]], ra.U[b]);
+                    D[a * k + a] += joint[f].drive.armature;
+                    ra.u[a] = Q[cs[a]] - spatial_dot(S[cs[a]], pA[f]);
+                    if (D[a * k + a] == value_t(0.0))
+                        throw std::runtime_error(
+                            std::string("dynamic_system2dp: joint '") +
+                            frame(f).get_name() +
+                            "' moves no inertia (every body it carries is massless, or "
+                            "their mass sits on its axis), so the mass matrix is "
+                            "singular. Give a link below it a mass, or drive the joint "
+                            "(set_driven_rate).");
+                }
+                if (k == 1) ra.Dinv[0] = value_t(1.0) / D[0];
+                else {
+                    std::vector<value_t> const Dv(D.begin(), D.begin() + k * k);
+                    for (size_t b = 0; b < k; ++b) {
+                        std::vector<value_t> e(k, 0.0);
+                        e[b] = 1.0;
+                        auto const col = hd::ga::lu_solve(Dv, e, k);
+                        for (size_t a = 0; a < k; ++a)
+                            ra.Dinv[a * k + b] = col[a];
+                    }
+                }
+                for (size_t a = 0; a < k; ++a) {
+                    bivec2dp Wa = bivec2dp{0.0, 0.0, 0.0};
+                    for (size_t b = 0; b < k; ++b)
+                        Wa += ra.Dinv[a * k + b] * ra.U[b];
+                    ra.W[a] = Wa;
+                }
+                // I^a = I^A - sum_a U_a <., W_a>, column by column on the twist basis
+                auto v = Ia.view();
+                for (size_t cc = 0; cc < 3; ++cc) {
+                    bivec2dp d = bivec2dp{0.0, 0.0, 0.0};
+                    for (size_t a = 0; a < k; ++a)
+                        d += spatial_dot(basis[cc], ra.W[a]) * ra.U[a];
+                    v[0, cc] -= d.x;
+                    v[1, cc] -= d.y;
+                    v[2, cc] -= d.z;
+                }
+                pa += Ia(w.c[f]);
+                for (size_t a = 0; a < k; ++a) {
+                    value_t s = 0.0;
+                    for (size_t b = 0; b < k; ++b)
+                        s += ra.Dinv[a * k + b] * ra.u[b];
+                    pa += s * ra.U[a];
+                }
+            }
+            else {
+                pa += IA[f](w.c[f]);
+            }
+            if (p == f) continue; // a root hands on nothing
+            IA[p] += Ia;
+            pA[p] += pa;
+        }
+
+        std::vector<twist2dp> A(nf, z);
+        std::vector<value_t> qdd(n, 0.0);
+        for (size_t f = 0; f < nf; ++f) {
+            size_t const p = parent(f);
+            twist2dp a = ((p == f) ? z : A[p]) + w.c[f];
+            auto const& cs = at[f];
+            size_t const k = cs.size();
+            if (k > 0) {
+                auto const& ra = ar[f];
+                std::array<value_t, 3> rr{};
+                for (size_t b = 0; b < k; ++b)
+                    rr[b] = ra.u[b] - spatial_dot(a, ra.U[b]);
+                for (size_t ai = 0; ai < k; ++ai) {
+                    value_t s = 0.0;
+                    for (size_t b = 0; b < k; ++b)
+                        s += ra.Dinv[ai * k + b] * rr[b];
+                    qdd[cs[ai]] = s;
+                }
+                for (size_t ai = 0; ai < k; ++ai)
+                    a += qdd[cs[ai]] * S[cs[ai]];
+            }
+            A[f] = a;
+        }
+        return qdd;
     }
 
     // Joint-space forward dynamics for the chain `rj`: returns the joint accelerations

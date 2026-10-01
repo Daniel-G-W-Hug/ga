@@ -3282,66 +3282,67 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
 // Newton-Euler backward pass for the bias) against the direct one
 ////////////////////////////////////////////////////////////////////////////////
 
+// ONE tree carrying every joint family and every force element: a free root, a revolute
+// arm with a prismatic slider and a spherical joint carrying a cylindrical one, a helical
+// branch carrying a DRIVEN joint (a moving base) with a dof joint below it, a planar
+// branch. Every dof rate seeded nonzero, so the velocity-product bias is exercised, not
+// only gravity.
+inline void l2_tree3dp(dynamic_system3dp& s)
+{
+    s.set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+    s.add_frame(static_frame3dp("W"));
+    auto bb = [](value_t m) { return make_cuboid_body(m, 0.2, 0.1, 0.3); };
+    vec3dp const ex{1.0, 0.0, 0.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0}, ez{0.0, 0.0, 1.0, 0.0};
+    s.add_body(
+        static_frame3dp("base", vec3dp{0.0, 0.0, 1.0, 1.0}, vec3dp{0.1, -0.2, 0.3, 0.0}),
+        bb(5.0), kin_state3dp{}, s.index_of("W"));
+    s.add_revolute_body(static_frame3dp("arm", vec3dp{0.3, 0.0, 0.0, 1.0}), bb(2.0),
+                        vec3dp{-0.15, 0.0, 0.0, 1.0}, ey, 0.4, 0.0, s.index_of("base"));
+    s.add_prismatic_body(static_frame3dp("slide", vec3dp{0.2, 0.0, 0.0, 1.0}), bb(1.0),
+                         ex, 0.05, 0.0, s.index_of("arm"));
+    s.add_spherical_body(static_frame3dp("ball", vec3dp{0.0, 0.3, 0.0, 1.0}), bb(1.5),
+                         vec3dp{0.0, -0.1, 0.0, 1.0}, s.index_of("arm"));
+    s.add_cylindrical_body(static_frame3dp("cyl", vec3dp{0.0, 0.0, -0.3, 1.0}), bb(0.8),
+                           vec3dp{0.0, 0.0, 0.1, 1.0}, ez, s.index_of("ball"));
+    s.add_helical_body(static_frame3dp("screw", vec3dp{-0.3, 0.0, 0.0, 1.0}), bb(1.2),
+                       vec3dp{0.1, 0.0, 0.0, 1.0}, ex, 0.02, 0.2, 0.0,
+                       s.index_of("base"));
+    s.add_revolute_body(static_frame3dp("rotor", vec3dp{-0.2, 0.0, 0.0, 1.0}), bb(0.6),
+                        O_3dp, ex, 0.0, 0.0, s.index_of("screw"));
+    s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
+    s.add_revolute_body(static_frame3dp("blade", vec3dp{0.0, 0.2, 0.0, 1.0}), bb(0.3),
+                        vec3dp{0.0, -0.1, 0.0, 1.0}, ez, 0.3, 0.0, s.index_of("rotor"));
+    s.add_planar_body(static_frame3dp("sled", vec3dp{0.0, -0.3, 0.0, 1.0}), bb(0.9),
+                      vec3dp{0.0, 0.1, 0.0, 1.0}, ey, s.index_of("base"));
+    // the force elements: a joint spring-damper, an applied wrench, a grounded spring
+    s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
+    s.set_applied_wrench(s.index_of("cyl"), [](value_t) {
+        return wdg(vec3dp{0.1, 0.2, 0.3, 1.0}, vec3dp{1.0, -2.0, 0.5, 0.0});
+    });
+    s.add_grounded_spring(s.index_of("slide"), vec3dp{0.0, 0.0, 0.0, 1.0},
+                          vec3dp{40.0, 20.0, 10.0, 0.0}, 0.3);
+    // every dof rate nonzero
+    value_t r = 0.37;
+    for (size_t f : s.dof_joints()) {
+        auto const& js = s.joint_props(f);
+        if (js.screws.empty()) s.set_joint_rate(f, r);
+        else {
+            std::vector<value_t> v(js.screws.size());
+            for (auto& x : v)
+                x = (r = std::fmod(r * 7.3 + 0.61, 3.0) - 1.5);
+            s.set_joint_rates(f, v);
+        }
+        r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
+    }
+}
+
 TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
 {
     TEST_CASE("pga3dp: the recursive assembly equals the direct one")
     {
         fmt::println("pga3dp: mass_bias() against the direct mass_bias_direct()");
-        // ONE tree carrying every joint family and every force element: a free root, a
-        // revolute arm with a prismatic slider and a spherical joint carrying a
-        // cylindrical one, a helical branch carrying a DRIVEN joint (a moving base) with
-        // a dof joint below it, a planar branch. Every dof rate seeded nonzero, so the
-        // velocity-product bias is exercised, not only gravity.
         dynamic_system3dp s;
-        s.set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
-        s.add_frame(static_frame3dp("W"));
-        auto bb = [](value_t m) { return make_cuboid_body(m, 0.2, 0.1, 0.3); };
-        vec3dp const ex{1.0, 0.0, 0.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0},
-            ez{0.0, 0.0, 1.0, 0.0};
-        s.add_body(static_frame3dp("base", vec3dp{0.0, 0.0, 1.0, 1.0},
-                                   vec3dp{0.1, -0.2, 0.3, 0.0}),
-                   bb(5.0), kin_state3dp{}, s.index_of("W"));
-        s.add_revolute_body(static_frame3dp("arm", vec3dp{0.3, 0.0, 0.0, 1.0}), bb(2.0),
-                            vec3dp{-0.15, 0.0, 0.0, 1.0}, ey, 0.4, 0.0,
-                            s.index_of("base"));
-        s.add_prismatic_body(static_frame3dp("slide", vec3dp{0.2, 0.0, 0.0, 1.0}),
-                             bb(1.0), ex, 0.05, 0.0, s.index_of("arm"));
-        s.add_spherical_body(static_frame3dp("ball", vec3dp{0.0, 0.3, 0.0, 1.0}), bb(1.5),
-                             vec3dp{0.0, -0.1, 0.0, 1.0}, s.index_of("arm"));
-        s.add_cylindrical_body(static_frame3dp("cyl", vec3dp{0.0, 0.0, -0.3, 1.0}),
-                               bb(0.8), vec3dp{0.0, 0.0, 0.1, 1.0}, ez,
-                               s.index_of("ball"));
-        s.add_helical_body(static_frame3dp("screw", vec3dp{-0.3, 0.0, 0.0, 1.0}), bb(1.2),
-                           vec3dp{0.1, 0.0, 0.0, 1.0}, ex, 0.02, 0.2, 0.0,
-                           s.index_of("base"));
-        s.add_revolute_body(static_frame3dp("rotor", vec3dp{-0.2, 0.0, 0.0, 1.0}),
-                            bb(0.6), O_3dp, ex, 0.0, 0.0, s.index_of("screw"));
-        s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
-        s.add_revolute_body(static_frame3dp("blade", vec3dp{0.0, 0.2, 0.0, 1.0}), bb(0.3),
-                            vec3dp{0.0, -0.1, 0.0, 1.0}, ez, 0.3, 0.0,
-                            s.index_of("rotor"));
-        s.add_planar_body(static_frame3dp("sled", vec3dp{0.0, -0.3, 0.0, 1.0}), bb(0.9),
-                          vec3dp{0.0, 0.1, 0.0, 1.0}, ey, s.index_of("base"));
-        // the force elements: a joint spring-damper, an applied wrench, a grounded spring
-        s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
-        s.set_applied_wrench(s.index_of("cyl"), [](value_t) {
-            return wdg(vec3dp{0.1, 0.2, 0.3, 1.0}, vec3dp{1.0, -2.0, 0.5, 0.0});
-        });
-        s.add_grounded_spring(s.index_of("slide"), vec3dp{0.0, 0.0, 0.0, 1.0},
-                              vec3dp{40.0, 20.0, 10.0, 0.0}, 0.3);
-        // every dof rate nonzero
-        value_t r = 0.37;
-        for (size_t f : s.dof_joints()) {
-            auto const& js = s.joint_props(f);
-            if (js.screws.empty()) s.set_joint_rate(f, r);
-            else {
-                std::vector<value_t> v(js.screws.size());
-                for (auto& x : v)
-                    x = (r = std::fmod(r * 7.3 + 0.61, 3.0) - 1.5);
-                s.set_joint_rates(f, v);
-            }
-            r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
-        }
+        l2_tree3dp(s);
         auto const [M0, R0] = s.mass_bias_direct(); // the reference
         auto const [M1, R1] = s.mass_bias();        // the recursive assembly
         REQUIRE(M0.size() == M1.size());
@@ -3360,6 +3361,73 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
         fmt::println("  {} coordinates, every joint family, a moving base, three force "
                      "elements: |dM| {:.1e} of |M| {:.2f}, |dRHS| {:.1e} of |RHS| {:.2f}",
                      R0.size(), dm, sm, dr, sr);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: the articulated-body algorithm and inverse dynamics")
+    {
+        fmt::println("pga3dp: joint_accelerations_aba() and inverse_dynamics()");
+        // the same tree, plus what only the joint-space terms carry: armature on a
+        // revolute and on the spherical joint, and registered torques on both (the
+        // spherical joint's per screw)
+        dynamic_system3dp s;
+        l2_tree3dp(s);
+        joint_drive3dp dr{};
+        dr.armature = 0.05;
+        s.set_joint_drive(s.index_of("arm"), dr);
+        dr.armature = 0.02;
+        s.set_joint_drive(s.index_of("ball"), dr);
+        s.set_joint_torque(s.index_of("arm"), [](value_t) { return value_t(1.3); });
+        s.set_joint_torque(s.index_of("ball"),
+                           [](value_t) { return std::vector<value_t>{0.2, -0.4, 0.1}; });
+        auto const rc = s.dof_coords();
+        size_t const n = rc.size();
+        auto rel = [](std::vector<value_t> const& x, std::vector<value_t> const& y) {
+            value_t d = 0.0, m = 0.0;
+            for (size_t i = 0; i < x.size(); ++i) {
+                d = std::max(d, std::abs(x[i] - y[i]));
+                m = std::max(m, std::abs(y[i]));
+            }
+            return d / std::max(value_t(1.0), m);
+        };
+
+        // (1) ABA against the LU solve of the assembled M (registered torques included)
+        auto const qdd_lu = s.joint_accelerations();
+        auto const qdd_aba = s.joint_accelerations_aba();
+        REQUIRE(qdd_aba.size() == n);
+        value_t const e1 = rel(qdd_aba, qdd_lu);
+        CHECK(e1 < 1.0e-12);
+
+        // (2) RNEA against M q-ddot - RHS for an arbitrary q-ddot (torques excluded)
+        std::vector<value_t> qdd(n);
+        value_t r = 0.71;
+        for (auto& x : qdd)
+            x = (r = std::fmod(r * 6.7 + 0.43, 4.0) - 2.0);
+        auto const tau = s.inverse_dynamics(qdd);
+        auto const [M, RHS] = s.mass_bias();
+        std::vector<value_t> tau_ref(n);
+        for (size_t j = 0; j < n; ++j) {
+            tau_ref[j] = -RHS[j];
+            for (size_t k = 0; k < n; ++k)
+                tau_ref[j] += M[j * n + k] * qdd[k];
+        }
+        value_t const e2 = rel(tau, tau_ref);
+        CHECK(e2 < 1.0e-12);
+
+        // (3) the round trip: the forces that produce ABA's accelerations ARE the
+        // registered torques -- 1.3 on the arm, (0.2, -0.4, 0.1) on the ball, 0 elsewhere
+        auto const tau_rt = s.inverse_dynamics(qdd_aba);
+        std::vector<value_t> tau_reg(n, 0.0);
+        for (size_t c = 0; c < n; ++c) {
+            if (rc[c].frame == s.index_of("arm")) tau_reg[c] = 1.3;
+            if (rc[c].frame == s.index_of("ball"))
+                tau_reg[c] = std::vector<value_t>{0.2, -0.4, 0.1}[rc[c].k];
+        }
+        value_t const e3 = rel(tau_rt, tau_reg);
+        CHECK(e3 < 1.0e-12);
+        fmt::println("  {} coordinates: ABA vs LU {:.1e}, RNEA vs M qdd - RHS {:.1e}, "
+                     "RNEA(ABA(tau)) vs tau {:.1e} (relative)",
+                     n, e1, e2, e3);
         fmt::println("");
     }
 

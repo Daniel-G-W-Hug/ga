@@ -502,6 +502,49 @@ TEST_SUITE("PGA2DP: physics tests prep")
 // PGA2DP physics implementation
 /////////////////////////////////////////////////////////////////////////////////////////
 
+// ONE planar tree carrying every joint family and the force elements: a free root, a
+// revolute arm with a prismatic slider, a DRIVEN rotor (a moving base) with a dof joint
+// below it, a free body hung below the slider. Every dof rate seeded nonzero.
+inline void l2_tree2dp(dynamic_system2dp& s)
+{
+    s.set_gravity(vec2dp{0.0, -9.81, 0.0});
+    s.add_frame(static_frame2dp("W"));
+    s.add_body(static_frame2dp("base", vec2dp{0.0, 1.0, 1.0}, 0.2),
+               make_plate_body(5.0, 0.3, 0.2), kin_state2dp{}, s.index_of("W"));
+    s.add_revolute_body(static_frame2dp("arm", vec2dp{0.3, 0.0, 1.0}),
+                        make_plate_body(2.0, 0.3, 0.05), vec2dp{-0.15, 0.0, 1.0}, 0.4,
+                        0.0, s.index_of("base"));
+    s.add_prismatic_body(static_frame2dp("slide", vec2dp{0.2, 0.0, 1.0}),
+                         make_plate_body(1.0, 0.1, 0.1), vec2dp{1.0, 0.0, 0.0}, 0.05, 0.0,
+                         s.index_of("arm"));
+    s.add_revolute_body(static_frame2dp("rotor", vec2dp{-0.3, 0.0, 1.0}),
+                        make_disc_body(0.6, 0.1), O_2dp, 0.0, 0.0, s.index_of("base"));
+    s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
+    s.add_revolute_body(static_frame2dp("blade", vec2dp{0.0, 0.2, 1.0}),
+                        make_plate_body(0.3, 0.05, 0.2), vec2dp{0.0, -0.1, 1.0}, 0.3, 0.0,
+                        s.index_of("rotor"));
+    s.add_body(static_frame2dp("float", vec2dp{0.0, -0.4, 1.0}),
+               make_plate_body(0.9, 0.2, 0.1), kin_state2dp{}, s.index_of("slide"));
+    s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
+    s.set_applied_wrench(s.index_of("blade"), [](value_t) {
+        return wdg(vec2dp{0.1, 0.2, 1.0}, vec2dp{1.0, -2.0, 0.0});
+    });
+    s.add_grounded_spring(s.index_of("slide"), vec2dp{0.0, 0.0, 1.0},
+                          vec2dp{40.0, 20.0, 0.0}, 0.3);
+    value_t r = 0.37;
+    for (size_t f : s.dof_joints()) {
+        auto const& js = s.joint_props(f);
+        if (js.screws.empty()) s.set_joint_rate(f, r);
+        else {
+            std::vector<value_t> v(js.screws.size());
+            for (auto& x : v)
+                x = (r = std::fmod(r * 7.3 + 0.61, 3.0) - 1.5);
+            s.set_joint_rates(f, v);
+        }
+        r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
+    }
+}
+
 TEST_SUITE("PGA2DP: physics tests implementation")
 {
 
@@ -6358,43 +6401,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     {
         fmt::println("pga2dp: mass_bias() against the direct mass_bias_direct()");
         dynamic_system2dp s;
-        s.set_gravity(vec2dp{0.0, -9.81, 0.0});
-        s.add_frame(static_frame2dp("W"));
-        s.add_body(static_frame2dp("base", vec2dp{0.0, 1.0, 1.0}, 0.2),
-                   make_plate_body(5.0, 0.3, 0.2), kin_state2dp{}, s.index_of("W"));
-        s.add_revolute_body(static_frame2dp("arm", vec2dp{0.3, 0.0, 1.0}),
-                            make_plate_body(2.0, 0.3, 0.05), vec2dp{-0.15, 0.0, 1.0}, 0.4,
-                            0.0, s.index_of("base"));
-        s.add_prismatic_body(static_frame2dp("slide", vec2dp{0.2, 0.0, 1.0}),
-                             make_plate_body(1.0, 0.1, 0.1), vec2dp{1.0, 0.0, 0.0}, 0.05,
-                             0.0, s.index_of("arm"));
-        s.add_revolute_body(static_frame2dp("rotor", vec2dp{-0.3, 0.0, 1.0}),
-                            make_disc_body(0.6, 0.1), O_2dp, 0.0, 0.0,
-                            s.index_of("base"));
-        s.set_driven_rate(s.index_of("rotor"), 7.0); // the moving base
-        s.add_revolute_body(static_frame2dp("blade", vec2dp{0.0, 0.2, 1.0}),
-                            make_plate_body(0.3, 0.05, 0.2), vec2dp{0.0, -0.1, 1.0}, 0.3,
-                            0.0, s.index_of("rotor"));
-        s.add_body(static_frame2dp("float", vec2dp{0.0, -0.4, 1.0}),
-                   make_plate_body(0.9, 0.2, 0.1), kin_state2dp{}, s.index_of("slide"));
-        s.set_joint_spring_damper(s.index_of("arm"), 30.0, 0.5, 0.1);
-        s.set_applied_wrench(s.index_of("blade"), [](value_t) {
-            return wdg(vec2dp{0.1, 0.2, 1.0}, vec2dp{1.0, -2.0, 0.0});
-        });
-        s.add_grounded_spring(s.index_of("slide"), vec2dp{0.0, 0.0, 1.0},
-                              vec2dp{40.0, 20.0, 0.0}, 0.3);
-        value_t r = 0.37;
-        for (size_t f : s.dof_joints()) {
-            auto const& js = s.joint_props(f);
-            if (js.screws.empty()) s.set_joint_rate(f, r);
-            else {
-                std::vector<value_t> v(js.screws.size());
-                for (auto& x : v)
-                    x = (r = std::fmod(r * 7.3 + 0.61, 3.0) - 1.5);
-                s.set_joint_rates(f, v);
-            }
-            r = std::fmod(r * 5.1 + 0.29, 3.0) - 1.5;
-        }
+        l2_tree2dp(s);
         auto const [M0, R0] = s.mass_bias_direct(); // the reference
         auto const [M1, R1] = s.mass_bias();        // the recursive assembly
         REQUIRE(M0.size() == M1.size());
@@ -6413,6 +6420,72 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  {} coordinates, every joint family, a moving base, the force "
                      "elements: |dM| {:.1e} of |M| {:.2f}, |dRHS| {:.1e} of |RHS| {:.2f}",
                      R0.size(), dm, sm, dr, sr);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: the articulated-body algorithm and inverse dynamics")
+    {
+        fmt::println("pga2dp: joint_accelerations_aba() and inverse_dynamics()");
+        // the same tree, plus armature on a revolute and on the free body, and
+        // registered torques on both (the free body's per screw)
+        dynamic_system2dp s;
+        l2_tree2dp(s);
+        joint_drive2dp dr{};
+        dr.armature = 0.05;
+        s.set_joint_drive(s.index_of("arm"), dr);
+        dr.armature = 0.02;
+        s.set_joint_drive(s.index_of("float"), dr);
+        s.set_joint_torque(s.index_of("arm"), [](value_t) { return value_t(1.3); });
+        s.set_joint_torque(s.index_of("float"),
+                           [](value_t) { return std::vector<value_t>{0.2, -0.4, 0.1}; });
+        auto const rc = s.dof_coords();
+        size_t const n = rc.size();
+        auto rel = [](std::vector<value_t> const& x, std::vector<value_t> const& y) {
+            value_t d = 0.0, m = 0.0;
+            for (size_t i = 0; i < x.size(); ++i) {
+                d = std::max(d, std::abs(x[i] - y[i]));
+                m = std::max(m, std::abs(y[i]));
+            }
+            return d / std::max(value_t(1.0), m);
+        };
+
+        // (1) ABA against the LU solve of the assembled M (registered torques included)
+        auto const qdd_lu = s.joint_accelerations();
+        auto const qdd_aba = s.joint_accelerations_aba();
+        REQUIRE(qdd_aba.size() == n);
+        value_t const e1 = rel(qdd_aba, qdd_lu);
+        CHECK(e1 < 1.0e-12);
+
+        // (2) RNEA against M q-ddot - RHS for an arbitrary q-ddot (torques excluded)
+        std::vector<value_t> qdd(n);
+        value_t r = 0.71;
+        for (auto& x : qdd)
+            x = (r = std::fmod(r * 6.7 + 0.43, 4.0) - 2.0);
+        auto const tau = s.inverse_dynamics(qdd);
+        auto const [M, RHS] = s.mass_bias();
+        std::vector<value_t> tau_ref(n);
+        for (size_t j = 0; j < n; ++j) {
+            tau_ref[j] = -RHS[j];
+            for (size_t k = 0; k < n; ++k)
+                tau_ref[j] += M[j * n + k] * qdd[k];
+        }
+        value_t const e2 = rel(tau, tau_ref);
+        CHECK(e2 < 1.0e-12);
+
+        // (3) the round trip: the forces that produce ABA's accelerations ARE the
+        // registered torques -- 1.3 on the arm, (0.2, -0.4, 0.1) on the free body
+        auto const tau_rt = s.inverse_dynamics(qdd_aba);
+        std::vector<value_t> tau_reg(n, 0.0);
+        for (size_t c = 0; c < n; ++c) {
+            if (rc[c].frame == s.index_of("arm")) tau_reg[c] = 1.3;
+            if (rc[c].frame == s.index_of("float"))
+                tau_reg[c] = std::vector<value_t>{0.2, -0.4, 0.1}[rc[c].k];
+        }
+        value_t const e3 = rel(tau_rt, tau_reg);
+        CHECK(e3 < 1.0e-12);
+        fmt::println("  {} coordinates: ABA vs LU {:.1e}, RNEA vs M qdd - RHS {:.1e}, "
+                     "RNEA(ABA(tau)) vs tau {:.1e} (relative)",
+                     n, e1, e2, e3);
         fmt::println("");
     }
 
