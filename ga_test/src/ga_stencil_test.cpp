@@ -2098,7 +2098,7 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             {"one row in seven variables, six equalities, twelve rows -- the degenerate "
              "vertex: a row released on a multiplier of -2.05 re-blocked at zero length "
              "520 times",
-             false,
+             true,
              7,
              6,
              1,
@@ -2422,14 +2422,16 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
             CHECK(r1 <= r0 + 1.0e-9 * (1.0 + r0));
             // ... and OPTIMAL, by the KKT certificate -- which is what the iteration
             // bound and the feasibility cannot say about a stop with pinned rows. The
-            // first instance is the KNOWN exception, pinned as failing: its stop is
-            // 23 % off its KKT (the descent needs two dependent rows released together;
-            // the solver's anti-cycling note records the remedy that was tried). A fix
-            // must move this check, not silently pass it.
+            // first instance was the KNOWN exception until 2026-10-02, pinned as
+            // failing at 23 % off its KKT and blamed on the pins. Its cause was E's
+            // rank: a projector of rank 1 whose second pivot sat at 1.3e-12 of the
+            // first, counted as a second equality at the 1e-12 the null space was
+            // taken at. Judged at the solver's own tolerance it has rank 1, and the
+            // instance goes from |Ax - b| 19.99 to 1e-13 in five iterations.
             qp_gate::problem const P{c.n, c.A, c.b, c.E, c.e, c.C, c.d, c.lo, c.hi};
             value_t const cert = qp_gate::kkt_residual(P, x);
-            if (c.optimal) CHECK(cert <= 1.0e-7);
-            else CHECK(cert > 1.0e-2); // OPEN: a known non-optimal degenerate stop
+            CHECK(c.optimal); // no instance is a known non-optimal stop any more
+            CHECK(cert <= 1.0e-7);
             for (size_t i = 0; i < c.q; ++i) {
                 value_t s = -c.e[i];
                 for (size_t j = 0; j < c.n; ++j)

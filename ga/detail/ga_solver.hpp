@@ -1309,8 +1309,16 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             k0 = Z.size() / n;
         }
         else {
+            // E's rank is judged at the solver's OWN tolerance, not at rank_tol: a
+            // direction of E below `tol` of its largest cannot be told from zero by the
+            // feasibility test either, and counting it as an equality takes a real
+            // degree of freedom away. Measured on a consumer's instance (a projector
+            // I - P P^+ of rank 1 whose second pivot was 8.3e-13 against 0.62, a ratio
+            // of 1.3e-12): judged at 1e-12 it had rank 2, the corner the solve started
+            // on was then fully constrained one row early, and the solve stopped 20
+            // from an optimum of 0 it reaches in five iterations at rank 1.
             size_t rq = 0;
-            Z = nullspace_basis(E, q, n, &rq, rank_tol);
+            Z = nullspace_basis(E, q, n, &rq, std::max(rank_tol, tol));
             k0 = n - rq;
         }
         for (size_t i = 0; i < q; ++i)
@@ -1330,14 +1338,15 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
     // times. So a row that re-blocks at zero step right after its release is PINNED --
     // it re-enters and the multipliers may not release it -- until x moves, which
     // clears every pin. Each iteration then moves x (the objective strictly
-    // decreases), grows the working set, pins a row, or stops: all finite. KNOWN AND
-    // GATED: a stop with pinned rows can be OFF the optimum -- the descent may need two
-    // dependent rows released TOGETHER, which one-at-a-time never finds (one of the
-    // three gated instances stops 23 % off its KKT). Taking the KKT certificate's
-    // residual as a descent step from such a stop was tried (2026-09-24) and cycled
-    // elsewhere: 11 of 200 constructed degenerate vertices ran to the cap, and the
-    // certificate's own NNLS cycled in bvls_solve on one instance -- the same class in
-    // the sibling. The certificate stays what it is in the gates: the oracle.
+    // decreases), grows the working set, pins a row, or stops: all finite.
+    // (One gated instance stopped 23 % off its KKT with three rows pinned, and until
+    // 2026-10-02 this note blamed the pins: "the descent needs two dependent rows
+    // released together". It did not. The instance's E had rank 1 and was judged rank
+    // 2 -- see the null space of E above -- so the corner was fully constrained one row
+    // early and every release re-blocked at zero; at the right rank it reaches its
+    // optimum in five iterations, pinning nothing. The remedy tried against the wrong
+    // cause -- the KKT certificate's residual as a descent step from a pinned stop --
+    // cycled elsewhere and stays out. All three gated instances certify.)
     std::vector<bool> pinned(ni, false);
     size_t last_dropped = ni;
     size_t used = 0;
