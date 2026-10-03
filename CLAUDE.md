@@ -726,7 +726,7 @@ include path and anything added later. A target that instead adds
 gates that existed the day someone typed them. That is how the Python extension came to
 have the division guard (copied) and not the blade-target guard (added later, never
 copied): `project_onto(point, non_blade)` returned a plausible wrong answer through the
-bindings while throwing in C++, for months. `ga_lua` and `ga_view` link the target and
+bindings while throwing in C++, for months. `ga_lua` links the target and
 always had both. The check is one line per target:
 
 ```bash
