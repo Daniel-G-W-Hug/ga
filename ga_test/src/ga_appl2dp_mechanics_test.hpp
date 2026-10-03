@@ -6719,16 +6719,16 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         l2_tree2dp(f);
         auto const Cf = f.coriolis_matrix();
         size_t const m = rates(f).size();
-        auto skew = [&](value_t eps) {
+        auto skew = [&](value_t h) {
             dynamic_system2dp sp = f, sm = f;
-            sp.step(eps);
-            sm.step(-eps);
+            sp.step(h);
+            sm.step(-h);
             auto const Mp = sp.mass_bias().first, Mm = sm.mass_bias().first;
             value_t e = 0.0, sc = 0.0;
             for (size_t j = 0; j < m; ++j)
                 for (size_t k = 0; k < m; ++k) {
-                    value_t const md = (Mp[j * m + k] - Mm[j * m + k]) / (2.0 * eps);
-                    value_t const mdt = (Mp[k * m + j] - Mm[k * m + j]) / (2.0 * eps);
+                    value_t const md = (Mp[j * m + k] - Mm[j * m + k]) / (2.0 * h);
+                    value_t const mdt = (Mp[k * m + j] - Mm[k * m + j]) / (2.0 * h);
                     e = std::max(
                         e, std::abs(md + mdt - 2.0 * (Cf[j * m + k] + Cf[k * m + j])));
                     sc = std::max(sc, std::abs(md));
