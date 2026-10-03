@@ -1350,10 +1350,33 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
     std::vector<bool> pinned(ni, false);
     size_t last_dropped = ni;
     size_t used = 0;
+    // THE WORKING SET'S FACTORIZATION IS KEPT WHILE THE WORKING SET STANDS (2026-10-03).
+    // Everything the step needs that does not depend on x -- N = Z null(W Z), A N, its
+    // scale and its complete orthogonal decomposition -- is a function of W alone, and
+    // an iteration that neither adds nor releases a row (the stationarity check after
+    // an unblocked full step: about 30 % of all iterations on the lexicographic stacks
+    // that call this, at 1.5 iterations a call) used to rebuild and refactor all of it.
+    // Reused, the step is the same factors applied to the new residual: bit for bit
+    // what the rebuild gave (measured: every consumer gate byte-identical), for 1 - 3 %
+    // of their control tick -- the build and the factorization are not the bulk of an
+    // iteration.
+    bool have_cache = false;      // (an empty `active` must not read as a match)
+    std::vector<bool> cached_for; // the working set the cache belongs to
+    size_t ck = k0;
+    std::vector<T> cN;
+    bool chave_N = q > 0;
+    size_t crw = 0;
+    std::vector<T> cWZ;
+    double ctol_wz = rank_tol;
+    std::vector<T> cAN;
+    T csAN = T(0);
+    bool chave_cod = false;
+    detail::cod_factor ccod;
     for (; used < max_iter; ++used) {
         std::vector<size_t> wi; // the working set
         for (size_t i = 0; i < ni; ++i)
             if (active[i]) wi.push_back(i);
+        bool const reuse = have_cache && cached_for == active;
 
         // the step on W's affine set: p = N z, N = Z null(W Z)
         std::vector<T> resid(p);
@@ -1370,7 +1393,15 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         size_t rw = 0;            // the rank of W Z, when it was factored
         std::vector<T> WZ;        // W Z itself, |W| x k0
         double tol_wz = rank_tol; // its rank tolerance, at the stack's scale
-        if (!wi.empty() && k0 > 0) {
+        if (reuse) {
+            k = ck;
+            N = cN;
+            have_N = chave_N;
+            rw = crw;
+            WZ = cWZ;
+            tol_wz = ctol_wz;
+        }
+        else if (!wi.empty() && k0 > 0) {
             WZ.assign(wi.size() * k0, T(0));
             for (size_t w = 0; w < wi.size(); ++w)
                 for (size_t c = 0; c < k0; ++c) {
@@ -1418,15 +1449,31 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
         auto Nat = [&](size_t j, size_t c) {
             return have_N ? N[j * k + c] : (j == c ? T(1) : T(0));
         };
+        if (!reuse) { // the cache now belongs to this working set
+            have_cache = true;
+            cached_for = active;
+            ck = k;
+            cN = N;
+            chave_N = have_N;
+            crw = rw;
+            cWZ = WZ;
+            ctol_wz = tol_wz;
+            cAN.clear();
+            csAN = T(0);
+            chave_cod = false;
+        }
         if (k > 0) {
-            std::vector<T> AN(p * k, T(0));
-            for (size_t i = 0; i < p; ++i)
-                for (size_t c = 0; c < k; ++c) {
-                    T s = T(0);
-                    for (size_t j = 0; j < n; ++j)
-                        s += A[i * n + j] * Nat(j, c);
-                    AN[i * k + c] = s;
-                }
+            if (!reuse) {
+                cAN.assign(p * k, T(0));
+                for (size_t i = 0; i < p; ++i)
+                    for (size_t c = 0; c < k; ++c) {
+                        T s = T(0);
+                        for (size_t j = 0; j < n; ++j)
+                            s += A[i * n + j] * Nat(j, c);
+                        cAN[i * k + c] = s;
+                    }
+            }
+            std::vector<T> const& AN = cAN;
             // The step's least squares judges A N's rank at A's OWN scale, not at
             // A N's: restricted to the working set's null space a level may keep only
             // a numerically null trace of itself (a direction it barely sees), and
@@ -1435,15 +1482,33 @@ qp_ls_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols,
             // released, which re-enters: a cycle at a degenerate vertex (measured on
             // a consumer's closed-loop instance, 2026-09-24: |step| 2e16, 660
             // iterations, returned silently).
-            T sA = T(0), sAN = T(0);
+            T sA = T(0);
             for (auto v : A)
                 sA = std::max(sA, std::abs(v));
-            for (auto v : AN)
-                sAN = std::max(sAN, std::abs(v));
+            if (!reuse) {
+                csAN = T(0);
+                for (auto v : AN)
+                    csAN = std::max(csAN, std::abs(v));
+            }
+            T const sAN = csAN;
             T const tol_abs = T(rank_tol) * std::max(sA, T(1));
             if (sAN > tol_abs) {
-                auto const z =
-                    minnorm_solve(AN, resid, k, nullptr, double(tol_abs / sAN));
+                // minnorm_solve(AN, resid, k, nullptr, tol_abs / sAN), its factorization
+                // kept across the iterations that share this working set
+                if (!chave_cod) {
+                    std::vector<double> a(p * k);
+                    for (size_t i = 0; i < p * k; ++i)
+                        a[i] = static_cast<double>(AN[i]);
+                    ccod = detail::cod_decomp(std::move(a), p, k, double(tol_abs / sAN));
+                    chave_cod = true;
+                }
+                std::vector<double> bb(p);
+                for (size_t i = 0; i < p; ++i)
+                    bb[i] = static_cast<double>(resid[i]);
+                auto const yz = detail::cod_solve(ccod, std::move(bb));
+                std::vector<T> z(k, T(0));
+                for (size_t c = 0; c < k; ++c)
+                    z[c] = static_cast<T>(yz[c]);
                 for (size_t j = 0; j < n; ++j) {
                     T s = T(0);
                     for (size_t c = 0; c < k; ++c)
