@@ -161,7 +161,7 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2
 
 
 // return the angle between of a vector and a bivector
-// range of angle: 0 <= angle <= pi
+// range of angle: 0 <= angle <= pi/2 (the line-plane angle)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
@@ -177,7 +177,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
 }
 
 // return the angle between of a bivector and a vector
-// range of angle: 0 <= angle <= pi
+// range of angle: 0 <= angle <= pi/2 (the line-plane angle)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)

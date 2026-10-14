@@ -438,3 +438,5 @@ TEST_SUITE("usr_utilities: step functions")
     }
 
 } // TEST_SUITE("usr_utilities: step functions")
+#include "ga_utilities_contract_test.hpp"
+#include "ga_utilities_preconditions_test.hpp"

@@ -449,16 +449,34 @@ Inertia3dp<T> get_disc_inertia(T m, T r, T t, BiVec3dp<T> const& L_pivot = BiVec
 
 // Get inverse of inertia matrix using LU decomposition
 // Solves I * I_inv = Identity by back-substitution for each column
-// Throws std::invalid_argument if inertia matrix is singular (det = 0)
+//
+// Throws std::invalid_argument if the inertia matrix is numerically singular:
+//
+//     |det(I)| <= 1e3 * eps * prod_i |row_i(I)|
+//
+// i.e. relative to Hadamard's bound, the largest |det| rows of these lengths can have.
+// The test is scale-free (the same for any mass or length unit) and equals 1 for a
+// diagonal inertia however unequal its entries, so a thin body is never refused -- only
+// nearly dependent rows are. An exact zero cannot be asked for: the LU behind det()
+// substitutes a tiny pivot, so a singular map (one point mass) returns ~1e-75, not 0.
 template <typename T>
     requires(std::floating_point<T>)
 Inertia3dp<T> get_inertia_inverse(Inertia3dp<T> const& I)
 {
-    // Check determinant before attempting inversion
-    T const d = hd::ga::det(I.view());
-    if (d == T{0}) {
+    auto const v = I.view();
+    T const d = hd::ga::det(v);
+    T hadamard = T(1);
+    for (size_t i = 0; i < 6; ++i) {
+        T row_sq = T(0);
+        for (size_t j = 0; j < 6; ++j)
+            row_sq += v[i, j] * v[i, j];
+        hadamard *= std::sqrt(row_sq);
+    }
+    // the negated comparison also refuses a NaN
+    if (!(std::abs(d) > T(1.0e3) * std::numeric_limits<T>::epsilon() * hadamard)) {
         throw std::invalid_argument(
-            "get_inertia_inverse: singular inertia matrix (determinant is zero)");
+            "get_inertia_inverse: singular inertia matrix (|det| within 1e3 eps of "
+            "Hadamard's bound)");
     }
 
     // Copy data for LU decomposition (modifies in place)
@@ -992,19 +1010,20 @@ class kinematic_system3dp : public static_system3dp {
         return relative_accel_twist(index_of(frame_name));
     }
 
-    // Velocity field of a twist V at point X -- the PGA rate of change of a point:
+    // Velocity field of a twist V at point X -- the PGA rate of change of a point
+    // (ga_docu.pdf, "Motion in PGA"):
     //
-    //   Xdot = rcmt(V, X)      (3_ga_modelling_motion.tex). In 3D the twist is a bivector
+    //   Xdot = rcmt(V, X)
     //
-    // (twist3dp) and rcmt(bivec, vec) -> vec; argument ORDER matters:
-    // rcmt(V,X)==-rcmt(X,V).
+    // In 3D the twist is a bivector (twist3dp) and rcmt(bivec, vec) -> vec; argument
+    // ORDER matters: rcmt(V, X) == -rcmt(X, V).
     static vec3dp velocity_field(twist3dp const& V, vec3dp const& X)
     {
         return rcmt(V, X);
     }
 
     // Acceleration field at point X of a rigid body with velocity twist V and
-    // acceleration twist A (5_ga_modelling_mechanics.tex, "Moving coordinate systems"):
+    // acceleration twist A (ga_docu.pdf, "Moving coordinate systems"):
     //
     //   a(X) = rcmt(A, X)            [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))   [centripetal]

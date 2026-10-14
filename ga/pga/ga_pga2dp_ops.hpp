@@ -51,7 +51,7 @@ namespace hd::ga::pga {
 ////////////////////////////////////////////////////////////////////////////////
 
 // return the angle between of two vectors, i.e. directions to points at infinity
-// range of angle: -pi <= angle <= pi
+// range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
@@ -696,7 +696,8 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 {
-    return BiVec2dp<T>(T(0.0), T(0.0), T(ps));
+    // rwdg(ps, H_2dp) = ps * H_2dp, and H_2dp = -e12_2dp
+    return BiVec2dp<T>(T(0.0), T(0.0), -T(ps));
 }
 
 

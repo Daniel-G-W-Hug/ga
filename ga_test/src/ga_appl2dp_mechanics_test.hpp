@@ -44,7 +44,8 @@ TEST_SUITE("PGA2DP: physics tests prep")
         auto I = get_point_inertia(m, X);
         auto v = I.view();
 
-        // Expected matrix from tex eq. 539-546:
+        // Expected matrix (ga_docu.pdf, "Modelling linear and angular momentum", the 2D
+        // inertia map):
         // m * [  0     Xz^2   -Xy*Xz  ]     [  0    1   -2 ]
         //     [ -Xz^2  0       Xx*Xz  ]  =  [ -1    0    1 ] * 3
         //     [ -Xx*Xz -Xy*Xz  Xx^2+Xy^2]   [ -1   -2    5 ]

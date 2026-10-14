@@ -1228,18 +1228,20 @@ inline bool is_degenerate(TriVec2dc<T> const& t, value_t rel_tol = eps_congruent
     return w_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
-// scale a round object so its round weight norm becomes one (sign preserved;
-// throws for flat objects)
+// scale a round object so its round weight becomes one (throws for flat objects).
+// Where the round weight is a SINGLE coefficient (round point, sphere, 2dc circle) it
+// is divided out signed, so the result has round weight +1 whatever the sign it came
+// with; where it has several (dipole, 3dc circle) its norm becomes one and the
+// object's orientation is kept -- there is no sign to divide by.
 // HINT: unitize() cannot be constexpr due to the checks for division by zero
 //       which might throw
 template <typename T>
     requires(numeric_type<T>)
 inline Vec2dc<T> unitize(Vec2dc<T> const& v)
 {
-    T const wn = round_weight_nrm(v);
-    hd::ga::detail::check_unitization<T>(wn, "round point (round weight)");
-    T const inv = T(1.0) / wn;
-    return Vec2dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
+    hd::ga::detail::check_unitization<T>(std::abs(v.z), "round point (round weight)");
+    T const inv = T(1.0) / v.z; // the round weight, signed
+    return Vec2dc<T>(v.x * inv, v.y * inv, T(1.0), v.w * inv);
 }
 template <typename T>
     requires(numeric_type<T>)
@@ -1255,10 +1257,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline TriVec2dc<T> unitize(TriVec2dc<T> const& t)
 {
-    T const wn = round_weight_nrm(t);
-    hd::ga::detail::check_unitization<T>(wn, "circle (round weight)");
-    T const inv = T(1.0) / wn;
-    return TriVec2dc<T>(t.x * inv, t.y * inv, t.z * inv, t.w * inv);
+    hd::ga::detail::check_unitization<T>(std::abs(t.w), "circle (round weight)");
+    T const inv = T(1.0) / t.w; // the round weight, signed
+    return TriVec2dc<T>(t.x * inv, t.y * inv, t.z * inv, T(1.0));
 }
 
 

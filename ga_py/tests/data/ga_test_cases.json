@@ -972,7 +972,7 @@
       "args": [
         {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
       ],
-      "expected": {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]},
+      "expected": {"type": "quadvec3dc", "fields": [-3, -4, -0, 10.5, 1]},
       "tolerance": 1e-12
     },
     {
@@ -980,8 +980,8 @@
       "submodule": "cga",
       "op": "dot",
       "args": [
-        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]},
-        {"type": "quadvec3dc", "fields": [3, 4, 0, -10.5, -1]}
+        {"type": "quadvec3dc", "fields": [-3, -4, -0, 10.5, 1]},
+        {"type": "quadvec3dc", "fields": [-3, -4, -0, 10.5, 1]}
       ],
       "expected": {"type": "scalar3dc", "fields": [-4]},
       "tolerance": 1e-12
@@ -1395,7 +1395,7 @@
       "args": [
         {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]}
       ],
-      "expected": {"type": "trivec2dc", "fields": [0, -3, -2.5, -1]},
+      "expected": {"type": "trivec2dc", "fields": [-0, 3, 2.5, 1]},
       "tolerance": 1e-12
     },
     {

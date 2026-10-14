@@ -10,7 +10,12 @@
 // in alphabetical order to preserve the intended test execution sequence:
 //   ga_appl3dp_3d_cmp_test.hpp   ('3' < 'a') -> comparison tests first
 //   ga_appl3dp_appl_test.hpp     ('a' < 'p') -> application tests second
-//   ga_appl3dp_mechanics_test.hpp              -> physics tests last
+//   ga_appl3dp_mechanics_test.hpp              -> physics tests
+// The API, formatting and preconditions headers ('api', 'fmt', 'preconditions')
+// test independent accessors and refusals and need no particular position.
 #include "ga_appl3dp_3d_cmp_test.hpp"
+#include "ga_appl3dp_api_test.hpp"
 #include "ga_appl3dp_appl_test.hpp"
+#include "ga_appl3dp_fmt_test.hpp"
 #include "ga_appl3dp_mechanics_test.hpp"
+#include "ga_appl3dp_preconditions_test.hpp"

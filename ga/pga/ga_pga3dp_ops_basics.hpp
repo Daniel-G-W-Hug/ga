@@ -1181,10 +1181,10 @@ template <typename T>
     requires(numeric_type<T>)
 inline PScalar3dp<T> unitize(PScalar3dp<T> ps)
 {
-    T n = T(weight_nrm(ps));
-    hd::ga::detail::check_unitization<T>(n, "pseudoscalar (3dp)");
-    T scale = T(1.0) / n; // for multiplication with inverse of norm
-    return PScalar3dp<T>(scale * T(ps));
+    // the weight is the single coefficient itself: divided by it SIGNED, the result has
+    // weight +1 (by its unsigned norm, a negative pseudoscalar would come back as -1)
+    hd::ga::detail::check_unitization<T>(std::abs(T(ps)), "pseudoscalar (3dp)");
+    return PScalar3dp<T>(T(1.0));
 }
 
 template <typename T>
@@ -1295,7 +1295,8 @@ inline Vec3dp<T> try_unitize(Vec3dp<T> const& v, bool* unitized_out = nullptr)
     T const wsq = T(weight_nrm_sq(v));
     bool const weighted = hd::ga::detail::has_weight(wsq);
     if (unitized_out) *unitized_out = weighted;
-    if (weighted && (wsq != T(1.0))) return unitize(v);
+    // the weight is one signed coefficient: a weight of -1 is NOT unitized
+    if (weighted && (v.w != T(1.0))) return unitize(v);
     return v;
 }
 
@@ -1328,7 +1329,8 @@ inline Point3dp<T> try_unitize(Point3dp<T> const& p, bool* unitized_out = nullpt
     T const wsq = T(weight_nrm_sq(p));
     bool const weighted = hd::ga::detail::has_weight(wsq);
     if (unitized_out) *unitized_out = weighted;
-    if (weighted && (wsq != T(1.0))) return unitize(p);
+    // the weight is one signed coefficient: a weight of -1 is NOT unitized
+    if (weighted && (p.w != T(1.0))) return unitize(p);
     return p;
 }
 

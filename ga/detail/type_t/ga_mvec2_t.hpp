@@ -30,13 +30,11 @@ struct MVec2_t {
     // conversions)
     constexpr MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
-    template <typename Tag_S, typename Tag_PS>
-        requires(numeric_type<T> && same_base_class<Tag_S, Tag_PS> &&
-                 !std::same_as<Tag_S, Tag_PS>)
-    constexpr MVec2_t(Scalar_t<T, Tag_S> const& s, Scalar_t<T, Tag_PS> const& ps) :
-        c0(T(s)), c1(T(ps))
-    {
-    }
+    // NO generic (Scalar_t, Scalar_t) ctor here: the specializations inherit this
+    // base's ctors, and a template accepting any two scalar tags of one family was
+    // chosen for every WRONG call -- arguments swapped (pseudoscalar first) or taken
+    // from another algebra -- while each specialization declares its own exact
+    // (Scalar, PScalar) ctor for the right one.
 
     // cp & mv ctor
     MVec2_t(MVec2_t const&) = default;
@@ -70,42 +68,9 @@ struct MVec2_t {
     T c0{}; // scalar component
     T c1{}; // bivector component (2d pseudoscalar)
 
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec2_t& operator+=(MVec2_t<U, Tag> const& v) noexcept
-    {
-        c0 += v.c0;
-        c1 += v.c1;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec2_t& operator-=(MVec2_t<U, Tag> const& v) noexcept
-    {
-        c0 -= v.c0;
-        c1 -= v.c1;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec2_t& operator*=(U s) noexcept
-    {
-        c0 *= s;
-        c1 *= s;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec2_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
-    {
-        detail::check_division_by_zero<T, U>(s, "multivector division 2 comp.");
-        c0 /= s;
-        c1 /= s;
-        return (*this);
-    }
+    // No compound assignments here: every multivector type is a specialization that
+    // defines its own += -= *= /= (which would hide these), so the base's were
+    // unreachable.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

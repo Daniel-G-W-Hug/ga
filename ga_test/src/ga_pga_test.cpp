@@ -23,5 +23,10 @@ using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
 // Include dimension-specific test files
+#include "ga_pga2dp_crosscheck_test.hpp"
 #include "ga_pga2dp_test.hpp"
+#include "ga_pga3dp_crosscheck_test.hpp"
 #include "ga_pga3dp_test.hpp"
+#include "ga_pga_contract_test.hpp"
+#include "ga_pga_fmt_test.hpp"
+#include "ga_pga_preconditions_test.hpp"

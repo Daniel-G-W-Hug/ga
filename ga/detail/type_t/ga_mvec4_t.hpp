@@ -65,50 +65,9 @@ struct MVec4_t {
     T c2{}; // e2        // e3^e1 = e31 = zy       // e3
     T c3{}; // e12       // e1^e2 = e12 = xy       // e123 (pseudoscalar)
 
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec4_t& operator+=(MVec4_t<U, Tag> const& v) noexcept
-    {
-        c0 += v.c0;
-        c1 += v.c1;
-        c2 += v.c2;
-        c3 += v.c3;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec4_t& operator-=(MVec4_t<U, Tag> const& v) noexcept
-    {
-        c0 -= v.c0;
-        c1 -= v.c1;
-        c2 -= v.c2;
-        c3 -= v.c3;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec4_t& operator*=(U s) noexcept
-    {
-        c0 *= s;
-        c1 *= s;
-        c2 *= s;
-        c3 *= s;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec4_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
-    {
-        detail::check_division_by_zero<T, U>(s, "multivector division 4 comp.");
-        c0 /= s;
-        c1 /= s;
-        c2 /= s;
-        c3 /= s;
-        return (*this);
-    }
+    // No compound assignments here: every multivector type is a specialization that
+    // defines its own += -= *= /= (which would hide these), so the base's were
+    // unreachable.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

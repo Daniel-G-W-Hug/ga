@@ -667,9 +667,12 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(dot(c, c) == scalar2dc(-1.0));
         CHECK(radius_nrm_sq(point2dc(3.0, 4.0)) == 0.0); // null point
 
-        // unitize: round weight norm becomes one, sign preserved
+        // unitize: the circle's round weight is one coefficient, divided out signed --
+        // the result has round weight +1 (c itself carries -1, so it comes back negated)
         auto c3 = trivec2dc(3.0 * c.x, 3.0 * c.y, 3.0 * c.z, 3.0 * c.w);
-        CHECK(unitize(c3) == c);
+        CHECK(c.w == -1.0);
+        CHECK(unitize(c3).w == 1.0);
+        CHECK(unitize(c3) == -c);
         CHECK_THROWS(unitize(fp)); // flat objects have no round weight
     }
 

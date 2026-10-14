@@ -16,5 +16,10 @@ using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::cga; // use specific operations of CGA (Conformal Algebra)
 
 // Include dimension-specific test files
+#include "ga_cga2dc_crosscheck_test.hpp"
 #include "ga_cga2dc_test.hpp"
+#include "ga_cga3dc_crosscheck_test.hpp"
 #include "ga_cga3dc_test.hpp"
+#include "ga_cga_contract_test.hpp"
+#include "ga_cga_fmt_test.hpp"
+#include "ga_cga_preconditions_test.hpp"

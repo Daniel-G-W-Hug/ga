@@ -21,7 +21,7 @@
 //
 // 1.) SQUARE, one right-hand side: A x = b, A (n x n). LU with partial pivoting.
 //
-//       auto x = hd::ga::lu_solve(A, b, n);              // throws if singular
+//       auto x = hd::ga::lu_solve(A, b, n);              // see lu_solve: singular?
 //
 //     For many right-hand sides on the SAME A, factor once and back-substitute
 //     repeatedly -- the solution overwrites b:
@@ -33,11 +33,9 @@
 //
 //       T const d = hd::ga::det(A);                      // mdspan
 //
-//     (`lu_solve_guarded` sits beside these but is NOT public API: it is the same
-//     solve refusing a numerically rank-deficient matrix, used by lstsq_solve for
-//     its normal-equation route. lu_decomp substitutes a tiny pivot rather than
-//     raising, so a caller who believes it asked for a pseudo-inverse would get an
-//     answer scaled by that pivot's reciprocal -- reach for minnorm_solve instead.)
+//     (For a system that may be rank-deficient, reach for minnorm_solve: lu_decomp
+//     substitutes a tiny pivot rather than raising, so lu_solve would return an
+//     answer scaled by that pivot's reciprocal.)
 //
 // 2.) TRIDIAGONAL: the systems compact/Pade finite differences and 1d operators
 //     produce. Solved in O(n) by the Thomas algorithm, matrix-free -- the general
@@ -133,11 +131,13 @@
 namespace hd::ga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Solver_error: thrown by lu_decomp on a singular or malformed input.
+// Solver_error: thrown on a malformed input (mismatched sizes), and by lu_decomp for a
+// matrix with an all-zero ROW. Nothing else about singularity raises it: see lu_decomp.
 //
-// Caught locally in det() (singular matrix → returns 0). Higher-level
-// physics callers (e.g. get_inertia_inverse) detect singularity by
-// checking the determinant first and never let this exception escape.
+// Caught locally in det() (a zero row -> returns 0). Callers that must refuse a
+// numerically singular matrix test it themselves, RELATIVELY -- get_inertia_inverse
+// compares |det| against Hadamard's bound -- because no single threshold inside the LU
+// separates a singular system from a well-posed but ill-scaled or nearly dependent one.
 /////////////////////////////////////////////////////////////////////////////////////////
 struct Solver_error : std::runtime_error {
     explicit Solver_error(char const* msg) : std::runtime_error(msg) {}
@@ -151,6 +151,19 @@ struct Solver_error : std::runtime_error {
 //   a    - n×n matrix; on exit, contains L (below diag, unit diagonal implicit)
 //          and U (on/above diag) packed in place.
 //   perm - length-n permutation vector recording row swaps.
+//
+// SINGULAR INPUT: throws Solver_error only for an all-zero row. A pivot that vanishes
+// during the elimination is replaced by 1e-20 and the factorization goes on, so a
+// singular matrix yields a factorization -- and lu_solve a solution scaled by that
+// pivot's reciprocal (measured: [[1,1],[1,1]] x = [1,2] gives x = [1e20, -1e20]).
+// This is deliberate and relied upon: a legitimately tiny pivot looks the same as a
+// substituted one to any fixed threshold, and the library hands the LU such systems
+// on purpose -- a contact impact map whose two constraint rows differ by 2e-10 has a
+// pivot of (2e-10)^2 and a correct solution, and a stencil matrix with columns scaled
+// by its node spacing has pivot ratios down to 1e-49 and correct weights.
+// (Measured over the test suites, 2026-10-15: well-posed solves keep
+// min|U_ii|/max|U_ii| above 1e-9; the near-dependent and scaled ones fall to
+// 1e-17..1e-49, interleaved with the truly singular ones.)
 /////////////////////////////////////////////////////////////////////////////////////////
 inline void lu_decomp(std::mdspan<double, std::dextents<size_t, 2>> a,
                       std::mdspan<int, std::dextents<size_t, 1>> perm)
@@ -274,7 +287,9 @@ inline void lu_backsubs(std::mdspan<double const, std::dextents<size_t, 2>> a,
 // (A has n*n entries, b has n). Wraps lu_decomp + lu_backsubs -- the factorization is
 // done in double, then cast back to T -- so the solver lives in ONE place for both 2D and
 // 3D rigid-body physics (the joint-space mass matrix in forward dynamics). Returns x.
-// Throws Solver_error on a singular matrix.
+// Throws Solver_error only for an all-zero row; any other singular matrix returns a
+// solution scaled by the reciprocal of a tiny pivot (see lu_decomp). A caller that must
+// refuse such a system tests it relatively before or after the solve.
 /////////////////////////////////////////////////////////////////////////////////////////
 template <typename T>
 std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, size_t n)
@@ -289,61 +304,6 @@ std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, 
     std::mdspan<double, std::dextents<size_t, 2>> am(a.data(), n, n);
     std::mdspan<int, std::dextents<size_t, 1>> pm(perm.data(), n);
     lu_decomp(am, pm);
-
-    std::mdspan<double const, std::dextents<size_t, 2>> ac(a.data(), n, n);
-    std::mdspan<int const, std::dextents<size_t, 1>> pc(perm.data(), n);
-    std::mdspan<double, std::dextents<size_t, 1>> bm(b.data(), n);
-    lu_backsubs(ac, pc, bm);
-
-    std::vector<T> x(n);
-    for (size_t i = 0; i < n; ++i)
-        x[i] = static_cast<T>(b[i]);
-    return x;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Guarded dense solve: lu_decomp + lu_backsubs, but REFUSING a numerically rank-deficient
-// matrix instead of returning a silently inflated answer.
-//
-// lu_decomp substitutes TINY (1e-20) for a vanishing pivot, so a singular system does not
-// raise -- it produces a solution scaled by that pivot's reciprocal. That is the right
-// behaviour for a solver that must never abort mid-iteration, and the wrong behaviour for
-// a caller that believes it asked for a pseudo-inverse. This wrapper compares the
-// smallest and largest |U_ii| after factorization (a reciprocal condition estimate) and
-// throws when the ratio falls below `rcond_min`.
-//
-// Used by lstsq_solve for the normal-equation solves; not part of the public solver API.
-/////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-std::vector<T> lu_solve_guarded(std::vector<T> const& A_in, std::vector<T> const& b_in,
-                                size_t n, double rcond_min, char const* what)
-{
-    std::vector<double> a(n * n), b(n);
-    for (size_t i = 0; i < n * n; ++i)
-        a[i] = static_cast<double>(A_in[i]);
-    for (size_t i = 0; i < n; ++i)
-        b[i] = static_cast<double>(b_in[i]);
-
-    std::vector<int> perm(n);
-    std::mdspan<double, std::dextents<size_t, 2>> am(a.data(), n, n);
-    std::mdspan<int, std::dextents<size_t, 1>> pm(perm.data(), n);
-    lu_decomp(am, pm);
-
-    // reciprocal condition estimate from the U diagonal
-    double umin = std::abs(a[0]), umax = std::abs(a[0]);
-    for (size_t i = 1; i < n; ++i) {
-        double const u = std::abs(a[i * n + i]);
-        if (u < umin) umin = u;
-        if (u > umax) umax = u;
-    }
-    if (umax == 0.0 || umin <= rcond_min * umax) {
-        throw Solver_error(std::string("hd::ga::") + what +
-                           ": matrix is numerically rank-deficient (reciprocal condition "
-                           "estimate below tolerance); the normal-equation route cannot "
-                           "form a pseudo-inverse here -- pass a damping factor, or "
-                           "reformulate.");
-    }
 
     std::mdspan<double const, std::dextents<size_t, 2>> ac(a.data(), n, n);
     std::mdspan<int const, std::dextents<size_t, 1>> pc(perm.data(), n);
@@ -911,7 +871,8 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
         for (size_t i = 0; i < n; ++i)
             G[i * n + i] += lam2;
     };
-    double const rcond_min = 0.0; // regularizing IS the answer to rank deficiency
+    // no rank test is needed below: with damping > 0 the regularized Gram matrix is
+    // positive definite, and an A of zeros has zero rows, which lu_decomp refuses
 
     if (ncols == m) {
         // square A: no Gram matrix is formed, so damping does not apply
@@ -928,7 +889,7 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
                 AAt[i * m + j] = s;
             }
         regularize(AAt, m);
-        std::vector<T> const y = lu_solve_guarded(AAt, b, m, rcond_min, "lstsq_solve");
+        std::vector<T> const y = lu_solve(AAt, b, m);
         std::vector<T> x(ncols, T(0));
         for (size_t k = 0; k < ncols; ++k) {
             T s = T(0);
@@ -951,7 +912,7 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
         }
     }
     regularize(AtA, ncols);
-    return lu_solve_guarded(AtA, Atb, ncols, rcond_min, "lstsq_solve");
+    return lu_solve(AtA, Atb, ncols);
 }
 
 
@@ -1821,9 +1782,12 @@ std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
 // Determinant of a square matrix via the LU factorization.
 //
 // The input span is not modified; data is copied into a local scratch
-// buffer first. Returns T(0) for a singular matrix (rather than
-// propagating Solver_error), which is the convention physics callers
-// rely on for "is this inertia tensor invertible?" checks.
+// buffer first. Returns T(0) for a matrix with an all-zero row (rather than
+// propagating Solver_error). Any other singular matrix returns the computed value,
+// which is a rounding-level number, NOT zero (measured: det([[1,1],[1,1]]) = -1e-20; a
+// single point mass's 3x3 inertia gives 9e-20, its 6x6 one 1.9e-75). So never test
+// `det == 0`: compare |det| against a scale, as get_inertia_inverse does against
+// Hadamard's bound.
 /////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
 T det(std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy> A)

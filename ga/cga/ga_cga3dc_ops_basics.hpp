@@ -1216,8 +1216,11 @@ inline bool is_degenerate(QuadVec3dc<T> const& Q, value_t rel_tol = eps_congruen
     return w_sq <= T(rel_tol) * T(rel_tol) * total_sq;
 }
 
-// scale a round object so its round weight norm becomes one (sign preserved;
-// throws for flat objects)
+// scale a round object so its round weight becomes one (throws for flat objects).
+// Where the round weight is a SINGLE coefficient (round point, sphere, 2dc circle) it
+// is divided out signed, so the result has round weight +1 whatever the sign it came
+// with; where it has several (dipole, 3dc circle) its norm becomes one and the
+// object's orientation is kept -- there is no sign to divide by.
 // HINT: unitize() cannot be constexpr due to the checks for division by zero
 //       which might throw
 
@@ -1225,10 +1228,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline Vec3dc<T> unitize(Vec3dc<T> const& v)
 {
-    T const wn = round_weight_nrm(v);
-    hd::ga::detail::check_unitization<T>(wn, "round point (round weight)");
-    T const inv = T(1.0) / wn;
-    return Vec3dc<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv, v.u * inv);
+    hd::ga::detail::check_unitization<T>(std::abs(v.w), "round point (round weight)");
+    T const inv = T(1.0) / v.w; // the round weight, signed
+    return Vec3dc<T>(v.x * inv, v.y * inv, v.z * inv, T(1.0), v.u * inv);
 }
 template <typename T>
     requires(numeric_type<T>)
@@ -1254,10 +1256,9 @@ template <typename T>
     requires(numeric_type<T>)
 inline QuadVec3dc<T> unitize(QuadVec3dc<T> const& Q)
 {
-    T const wn = round_weight_nrm(Q);
-    hd::ga::detail::check_unitization<T>(wn, "sphere (round weight)");
-    T const inv = T(1.0) / wn;
-    return QuadVec3dc<T>(Q.x * inv, Q.y * inv, Q.z * inv, Q.w * inv, Q.u * inv);
+    hd::ga::detail::check_unitization<T>(std::abs(Q.u), "sphere (round weight)");
+    T const inv = T(1.0) / Q.u; // the round weight, signed
+    return QuadVec3dc<T>(Q.x * inv, Q.y * inv, Q.z * inv, Q.w * inv, T(1.0));
 }
 
 

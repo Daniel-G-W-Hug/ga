@@ -76,66 +76,9 @@ struct MVec8_t {
     T c6{}; // bivector 3d, 3rd component (xy) - maps to basis bivector  e1^e2
     T c7{}; // trivector 3d = 3d pseudoscalar  - maps to basis trivector e1^e2^e3
 
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec8_t& operator+=(MVec8_t<U, Tag> const& v) noexcept
-    {
-        c0 += v.c0;
-        c1 += v.c1;
-        c2 += v.c2;
-        c3 += v.c3;
-        c4 += v.c4;
-        c5 += v.c5;
-        c6 += v.c6;
-        c7 += v.c7;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec8_t& operator-=(MVec8_t<U, Tag> const& v) noexcept
-    {
-        c0 -= v.c0;
-        c1 -= v.c1;
-        c2 -= v.c2;
-        c3 -= v.c3;
-        c4 -= v.c4;
-        c5 -= v.c5;
-        c6 -= v.c6;
-        c7 -= v.c7;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec8_t& operator*=(U s) noexcept
-    {
-        c0 *= s;
-        c1 *= s;
-        c2 *= s;
-        c3 *= s;
-        c4 *= s;
-        c5 *= s;
-        c6 *= s;
-        c7 *= s;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(numeric_type<U>)
-    MVec8_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
-    {
-        detail::check_division_by_zero<T, U>(s, "multivector division 8 comp.");
-        c0 /= s;
-        c1 /= s;
-        c2 /= s;
-        c3 /= s;
-        c4 /= s;
-        c5 /= s;
-        c6 /= s;
-        c7 /= s;
-        return (*this);
-    }
+    // No compound assignments here: every multivector type is a specialization that
+    // defines its own += -= *= /= (which would hide these), so the base's were
+    // unreachable.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

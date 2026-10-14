@@ -2643,3 +2643,4 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 }
+#include "ga_numerics_preconditions_test.hpp"

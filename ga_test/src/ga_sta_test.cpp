@@ -16,4 +16,7 @@ using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::sta; // use specific operations of STA (Space-Time Algebra)
 
 // Include dimension-specific test files (just prepared, not yet included)
+#include "ga_sta4ds_crosscheck_test.hpp"
 #include "ga_sta4ds_test.hpp"
+#include "ga_sta_contract_test.hpp"
+#include "ga_sta_fmt_test.hpp"

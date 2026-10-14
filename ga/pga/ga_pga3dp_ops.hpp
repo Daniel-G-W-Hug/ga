@@ -55,7 +55,7 @@ namespace hd::ga::pga {
 ////////////////////////////////////////////////////////////////////////////////
 
 // return the angle between of two vectors, i.e. directions to points at infinity
-// range of angle: -pi <= angle <= pi
+// range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
