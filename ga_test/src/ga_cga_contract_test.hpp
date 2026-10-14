@@ -215,4 +215,32 @@ TEST_SUITE("CGA contracts")
         CHECK(is_close(u, u * (1.0 + 1.0e-14)));
         CHECK_FALSE(is_close(u, -u));
     }
+
+    TEST_CASE(
+        "cga2dc / cga3dc: the zero translation, an imaginary radius, zero congruence")
+    {
+        // a translation by nothing leaves a point where it is
+        auto const T0 = get_translation(0.0, 0.0, 0.0);
+        auto const p = round_point3dc(1.0, 2.0, 3.0, 0.0);
+        CHECK(is_congruent(transform(p, T0), p));
+
+        // a round point's partner has the negated radius squared: no real radius
+        auto const r3 = par(round_point3dc(1.0, 2.0, 3.0, 0.5));
+        CHECK(radius_sq(r3) == doctest::Approx(-0.25));
+        CHECK_THROWS_WITH_AS((void)radius(r3), doctest::Contains("imaginary radius"),
+                             std::runtime_error);
+        auto const r2 = par(round_point2dc(1.0, 2.0, 0.5));
+        CHECK_THROWS_WITH_AS((void)radius(r2), doctest::Contains("imaginary radius"),
+                             std::runtime_error);
+
+        // two zeros span the same (empty) subspace; a zero and a non-zero do not
+        CHECK(is_congruent(scalar2dc(0.0), scalar2dc(0.0)));
+        CHECK_FALSE(is_congruent(scalar2dc(0.0), scalar2dc(2.0)));
+        CHECK(is_congruent(pscalar2dc(0.0), pscalar2dc(0.0)));
+        CHECK_FALSE(is_congruent(pscalar2dc(3.0), pscalar2dc(0.0)));
+        CHECK(is_congruent(scalar3dc(0.0), scalar3dc(0.0)));
+        CHECK_FALSE(is_congruent(scalar3dc(0.0), scalar3dc(2.0)));
+        CHECK(is_congruent(pscalar3dc(0.0), pscalar3dc(0.0)));
+        CHECK_FALSE(is_congruent(pscalar3dc(3.0), pscalar3dc(0.0)));
+    }
 }

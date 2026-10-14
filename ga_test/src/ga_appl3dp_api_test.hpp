@@ -7,7 +7,9 @@
 // its index twin, an exact answer, or its documented default
 /////////////////////////////////////////////////////////////////////////////////////////
 
+#include <algorithm>
 #include <cmath>
+#include <functional>
 #include <vector>
 
 TEST_SUITE("PGA3DP mechanics API")
@@ -270,5 +272,224 @@ TEST_SUITE("PGA3DP mechanics API")
         CHECK_FALSE(gc.active(c));
         CHECK(cl.constraint_rows() == 0);
         CHECK(gc.count() == 1);
+    }
+
+    TEST_CASE("pga3dp: a joint stop bounces the joint back elastically, and never pulls")
+    {
+        // the lower stop: a hinge spinning at -omega0 runs into lo; without damping it
+        // penetrates by omega0 sqrt(I / k) and leaves at +omega0
+        value_t const lo = -0.3, k = 400.0, omega0 = 1.0, dt = 1.0e-4;
+        auto build = [&](value_t c_stop) {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0)); // the default gravity is on
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(
+                static_frame3dp("P"), make_cuboid_body(1.0, 1.0, 0.1, 0.1),
+                vec3dp(-0.5, 0.0, 0.0, 1.0), vec3dp(0.0, 0.0, 1.0, 0.0), 0.0, -omega0);
+            s.set_joint_range(s.index_of("P"), joint_range3dp{lo, -lo, k, c_stop});
+            return s;
+        };
+        auto bounce = [&](dynamic_system3dp& s, value_t& min_q) {
+            size_t const P = s.index_of("P");
+            min_q = s.joint_phi(P);
+            for (int n = 0; n < 40000 && !(s.joint_phi(P) > lo && s.joint_omega(P) > 0.0);
+                 ++n) {
+                s.step(dt);
+                min_q = std::min(min_q, s.joint_phi(P));
+            }
+            return s.joint_omega(P);
+        };
+        auto elastic = build(0.0);
+        value_t const I = elastic.mass_matrix()[0];
+        value_t min_q = 0.0;
+        CHECK(bounce(elastic, min_q) == doctest::Approx(omega0).epsilon(1.0e-3));
+        CHECK(lo - min_q == doctest::Approx(omega0 * std::sqrt(I / k)).epsilon(1.0e-2));
+
+        auto damped = build(3.0 * 2.0 * std::sqrt(k * I));
+        value_t min_qd = 0.0;
+        value_t const omega_d = bounce(damped, min_qd);
+        CHECK(damped.joint_phi(damped.index_of("P")) > lo); // it leaves: never pulled
+        CHECK(omega_d > 0.0);
+        CHECK(omega_d < omega0);
+    }
+
+    TEST_CASE("pga3dp: a disc's inertia about an offset pivot line follows Steiner")
+    {
+        // a pivot line parallel to e3 at distance d along e1: the moments about e2 and e3
+        // gain m d^2, the one about e1 nothing -- the parallel-axis theorem
+        value_t const m = 2.0, r = 0.5, t = 0.1, d = 0.75;
+        auto const I0 = get_disc_inertia(m, r, t);
+        auto const Id = get_disc_inertia(
+            m, r, t, join(vec3dp(d, 0.0, 0.0, 1.0), vec3dp(d, 0.0, 1.0, 1.0)));
+        auto const a = I0.view();
+        auto const b = Id.view();
+        CHECK(b[3, 0] == doctest::Approx(a[3, 0]));
+        CHECK(b[4, 1] == doctest::Approx(a[4, 1] + m * d * d));
+        CHECK(b[5, 2] == doctest::Approx(a[5, 2] + m * d * d));
+        // the linear block is the mass however the pivot lies
+        CHECK(b[0, 3] == doctest::Approx(m));
+    }
+
+    TEST_CASE("pga3dp: a subclass adds its own force elements through extra_wrenches()")
+    {
+        // the extension seam: a subclass contributes world wrenches the base knows
+        // nothing about. A constant force F through a free body's centre of mass: x = F
+        // t^2 / 2m
+        struct pushed : dynamic_system3dp {
+            bivec3dp W{};
+
+          protected:
+
+            std::vector<std::pair<size_t, bivec3dp>> extra_wrenches() override
+            {
+                return {{1, W}};
+            }
+        };
+        value_t const m = 2.0, F = 3.0, T = 0.5;
+        pushed s;
+        s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0));
+        s.add_frame(static_frame3dp("W"));
+        s.add_body(static_frame3dp("B"), make_cuboid_body(m, 0.2, 0.2, 0.2));
+        s.W = wdg(vec3dp(0.0, 0.0, 0.0, 1.0), vec3dp(F, 0.0, 0.0, 0.0)); // through the cm
+        for (int n = 0; n < 500; ++n)
+            s.step(T / 500.0);
+        vec3dp const C = unitize(move3dp(O_3dp, s.get_pos_trafo(1, 0)));
+        CHECK(C.x == doctest::Approx(F * T * T / (2.0 * m)).epsilon(1.0e-9));
+        CHECK(std::abs(C.y) < 1.0e-12);
+        CHECK(std::abs(C.z) < 1.0e-12);
+    }
+
+    TEST_CASE("pga3dp: frames without a coordinate, and clearing a motor joint's torque")
+    {
+        dynamic_system3dp s;
+        s.add_frame(static_frame3dp("W"));
+        s.add_body(static_frame3dp("B"), make_cuboid_body(1.0, 0.2, 0.2, 0.2));
+        s.add_frame(static_frame3dp("tip", vec3dp(1.0, 0.0, 0.0, 1.0))); // rigid on B
+        CHECK(s.joint_accel(s.index_of("W")) == 0.0);
+        CHECK(s.joint_accel(s.index_of("tip")) == 0.0);
+
+        size_t const B = s.index_of("B");
+        s.set_joint_torque(B, [](value_t) {
+            return std::vector<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, -1.0};
+        });
+        value_t sum = 0.0;
+        for (auto x : s.joint_torques())
+            sum += std::abs(x);
+        CHECK(sum == doctest::Approx(2.0));
+        s.set_joint_torque(B, std::function<std::vector<value_t>(value_t)>{});
+        for (auto x : s.joint_torques())
+            CHECK(x == 0.0);
+    }
+
+    TEST_CASE("dynamic_system3dp: an empty function clears a wrench or a joint torque")
+    {
+        // a hinge about e3 without gravity: a torque or a wrench speeds it up, and once
+        // cleared it spins on at a constant rate
+        auto build = [] {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0)); // the default gravity is on
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(
+                static_frame3dp("P"), make_cuboid_body(1.0, 1.0, 0.1, 0.1),
+                vec3dp(-0.5, 0.0, 0.0, 1.0), vec3dp(0.0, 0.0, 1.0, 0.0), 0.0, 0.0);
+            return s;
+        };
+        auto gain = [](dynamic_system3dp& s) {
+            size_t const P = s.index_of("P");
+            value_t const before = s.joint_omega(P);
+            for (int i = 0; i < 10; ++i)
+                s.step(1.0e-3);
+            return s.joint_omega(P) - before;
+        };
+        {
+            auto s = build();
+            size_t const P = s.index_of("P");
+            s.set_joint_torque(P, [](value_t) { return 2.0; });
+            CHECK(gain(s) > 0.0);
+            s.set_joint_torque(P, std::function<value_t(value_t)>{});
+            CHECK(std::abs(gain(s)) < 1.0e-12);
+        }
+        {
+            auto s = build();
+            size_t const P = s.index_of("P");
+            // a force along e2 at the body's far end: a moment about the hinge
+            s.set_applied_wrench(P, [](value_t) {
+                return wdg(vec3dp(1.0, 0.0, 0.0, 1.0), vec3dp(0.0, 1.0, 0.0, 0.0));
+            });
+            CHECK(std::abs(gain(s)) > 1.0e-3);
+            s.set_applied_wrench(P, std::function<bivec3dp(value_t)>{});
+            CHECK(std::abs(gain(s)) < 1.0e-12);
+        }
+    }
+
+    TEST_CASE("ground_contact3dp: a point contact promoted to a flat foot")
+    {
+        value_t const g = 9.81;
+        auto const floor = ground_contact3dp::ground_plane(vec3dp(0.0, 0.0, 0.0, 1.0),
+                                                           vec3dp(1.0, 0.0, 0.0, 1.0),
+                                                           vec3dp(0.0, 1.0, 0.0, 1.0));
+        auto build = [&](closed_loop_system3dp& cl, value_t th) {
+            cl.system().set_gravity(vec3dp(0.0, 0.0, -g, 0.0));
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("box", vec3dp(0.0, 0.0, 0.2, 1.0),
+                                        vec3dp(0.0, th, 0.0, 0.0)),
+                        make_cuboid_body(2.0, 1.0, 0.4, 0.02));
+        };
+        // the mechanism's whole momentum: zero once the weld has absorbed the motion
+        auto at_rest = [](closed_loop_system3dp& cl) {
+            bivec3dp const P = cl.system().total_momentum();
+            return std::max({std::abs(P.vx), std::abs(P.vy), std::abs(P.vz),
+                             std::abs(P.mx), std::abs(P.my), std::abs(P.mz)});
+        };
+
+        { // a flat foot placed where it stands: engage() welds it without an impact,
+          // and the body stays put
+            closed_loop_system3dp cl;
+            build(cl, 0.0);
+            ground_contact3dp gc(cl, floor);
+            ground_contact3dp::spec s{cl.index_of("box"), vec3dp(0.0, 0.0, -0.2, 1.0)};
+            s.kind = contact_kind3dp::flat;
+            s.half_length = 0.5;
+            s.half_width = 0.2;
+            size_t const c = gc.add(s);
+            gc.engage(c);
+            REQUIRE(gc.active(c));
+            CHECK(cl.constraint_rows() == 6);
+            REQUIRE(gc.events().size() == 1);
+            CHECK(gc.events()[0].impulse.empty());
+            for (int i = 0; i < 200; ++i)
+                gc.step(1.0e-3);
+            CHECK(gc.active(c));
+            CHECK(at_rest(cl) < 1.0e-9);
+        }
+        { // promoted in the air: the weld is made on demand and engages at touchdown
+            closed_loop_system3dp cl;
+            build(cl, 0.0);
+            ground_contact3dp gc(cl, floor);
+            size_t const c = gc.add({cl.index_of("box"), vec3dp(0.0, 0.0, 0.0, 1.0)});
+            gc.set_kind(c, contact_kind3dp::flat);
+            CHECK(gc.kind(c) == contact_kind3dp::flat);
+            for (int i = 0; i < 1000 && !gc.active(c); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(cl.constraint_rows() == 6);
+            CHECK(at_rest(cl) < 1.0e-9);
+        }
+        { // promoted after landing as a pin: the switch stops all motion; back to a point
+          // leaves only the pin's rows
+            closed_loop_system3dp cl;
+            build(cl, -0.1);
+            ground_contact3dp gc(cl, floor);
+            size_t const c = gc.add({cl.index_of("box"), vec3dp(-0.5, 0.0, 0.0, 1.0)});
+            for (int i = 0; i < 1000 && !gc.active(c); ++i)
+                gc.step(1.0e-3);
+            REQUIRE(gc.active(c));
+            CHECK(cl.constraint_rows() == 3);
+            gc.set_kind(c, contact_kind3dp::flat);
+            CHECK(cl.constraint_rows() == 6);
+            CHECK(at_rest(cl) < 1.0e-9);
+            gc.set_kind(c, contact_kind3dp::point);
+            CHECK(cl.constraint_rows() == 3);
+        }
     }
 }

@@ -489,4 +489,54 @@ TEST_SUITE("PGA contracts")
               trivec3dp(0.0, 0.0, 0.0, 2.0));
         CHECK_FALSE(unitized);
     }
+
+    TEST_CASE(
+        "pga2dp / pga3dp: try_unitize leaves an ideal point, line or plane as it is")
+    {
+        bool unitized = true;
+        CHECK(try_unitize(point2dp(vec2dp(2.0, 4.0, 0.0)), &unitized) ==
+              vec2dp(2.0, 4.0, 0.0));
+        CHECK_FALSE(unitized);
+        CHECK(try_unitize(line2d(0.0, 0.0, 3.0), &unitized) == bivec2dp(0.0, 0.0, 3.0));
+        CHECK_FALSE(unitized);
+        CHECK(try_unitize(point3dp(vec3dp(1.0, 2.0, 3.0, 0.0)), &unitized) ==
+              vec3dp(1.0, 2.0, 3.0, 0.0));
+        CHECK_FALSE(unitized);
+        CHECK(try_unitize(line3d(0.0, 0.0, 0.0, 1.0, 2.0, 3.0), &unitized) ==
+              bivec3dp(0.0, 0.0, 0.0, 1.0, 2.0, 3.0));
+        CHECK_FALSE(unitized);
+        CHECK(try_unitize(plane3d(trivec3dp(0.0, 0.0, 0.0, 2.0)), &unitized) ==
+              trivec3dp(0.0, 0.0, 0.0, 2.0));
+        CHECK_FALSE(unitized);
+    }
+
+    TEST_CASE("pga3dp: get_motor_from_lines carries l1 onto l2, whatever their scale")
+    {
+        // documented: the motor that moves line l1 to line l2. It used to unitize copies
+        // of its arguments and then use the originals, so only unit lines worked.
+        bivec3dp const l1 =
+            unitize(join(vec3dp(0.0, 0.0, 0.0, 1.0), vec3dp(1.0, 0.0, 0.0, 1.0)));
+        bivec3dp const l2 =
+            unitize(join(vec3dp(0.0, 1.0, 1.0, 1.0), vec3dp(0.0, 1.0, 2.0, 1.0)));
+        auto const M = get_motor_from_lines(l1, l2);
+        CHECK(is_close(unitize(move3dp(l1, M)), l2));
+        for (value_t const k1 : {2.0, 0.25})
+            for (value_t const k2 : {3.0, 0.5})
+                CHECK(is_same_motion(get_motor_from_lines(k1 * l1, k2 * l2), M));
+    }
+
+    TEST_CASE("pga2dp: get_motor_from_lines is the product of the two reflections")
+    {
+        // documented: reflect across B1, then across B2 -- a rotation about their
+        // intersection by TWICE the angle between them. The x axis and the 45 deg line
+        // through (0, 1) meet at (-1, 0): a point on the x axis turns by 90 deg there.
+        bivec2dp const m1 = unitize(join(vec2dp(0.0, 0.0, 1.0), vec2dp(1.0, 0.0, 1.0)));
+        bivec2dp const m2 = unitize(join(vec2dp(0.0, 1.0, 1.0), vec2dp(1.0, 2.0, 1.0)));
+        auto const M = get_motor_from_lines(m1, m2);
+        CHECK(unitize(move2dp(vec2dp(0.5, 0.0, 1.0), M)) == vec2dp(-1.0, 1.5, 1.0));
+        CHECK(unitize(move2dp(vec2dp(-1.0, 0.0, 1.0), M)) ==
+              vec2dp(-1.0, 0.0, 1.0)); // fixed
+        // scaled lines give the same motion
+        CHECK(is_same_motion(get_motor_from_lines(2.0 * m1, 0.5 * m2), M));
+    }
 }

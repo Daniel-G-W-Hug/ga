@@ -82,14 +82,12 @@ constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1, BiVec3dp<U> cons
     ctype contr = ctype(r_weight_contract3dp(B1, B2));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(B1) * ctype(weight_nrm(B2)));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    // an ideal (zero-weight) line has no angle: refused, not pi/2
+    ctype const w1 = ctype(weight_nrm(B1));
+    ctype const w2 = ctype(weight_nrm(B2));
+    hd::ga::detail::check_unitization(w1, "angle: line");
+    hd::ga::detail::check_unitization(w2, "angle: line");
+    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
 // return the angle between a trivector and a bivector, i.e. a plane and a line
@@ -102,14 +100,12 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t, BiVec3dp<U> cons
     ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    // an ideal (zero-weight) plane or line has no angle: refused, not pi/2
+    ctype const w1 = ctype(weight_nrm(t));
+    ctype const w2 = ctype(weight_nrm(B));
+    hd::ga::detail::check_unitization(w1, "angle: plane");
+    hd::ga::detail::check_unitization(w2, "angle: line");
+    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
 // return the angle between a trivector and a bivector, i.e. a plane and a line
@@ -122,14 +118,12 @@ constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B, TriVec3dp<U> cons
     ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    // an ideal (zero-weight) line or plane has no angle: refused, not pi/2
+    ctype const w1 = ctype(weight_nrm(B));
+    ctype const w2 = ctype(weight_nrm(t));
+    hd::ga::detail::check_unitization(w1, "angle: line");
+    hd::ga::detail::check_unitization(w2, "angle: plane");
+    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
 // return the angle between two trivectors, i.e. two planes
@@ -142,14 +136,12 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
     ctype contr = ctype(r_weight_contract3dp(t1, t2));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t1)) * ctype(weight_nrm(t2));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    // an ideal (zero-weight) plane has no angle: refused, not pi/2
+    ctype const w1 = ctype(weight_nrm(t1));
+    ctype const w2 = ctype(weight_nrm(t2));
+    hd::ga::detail::check_unitization(w1, "angle: plane");
+    hd::ga::detail::check_unitization(w2, "angle: plane");
+    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
 
@@ -434,7 +426,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     }
 
     // the resulting motor must be unitized to avoid surprises
-    auto M{rsqrt(rgpr(l2, rrev(l1)))};
+    auto M{rsqrt(rgpr(lu2, rrev(lu1)))}; // the UNITIZED lines (see above)
     w_nrm_sq = weight_nrm_sq(M);
     if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         M = unitize(M);

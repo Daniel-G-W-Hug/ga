@@ -93,4 +93,35 @@ TEST_SUITE("PGA2DP mechanics formatting")
         CHECK(bs.find("2.000") != std::string::npos);
         same_at_runtime(b);
     }
+
+    TEST_CASE("pga2dp: a numeric spec reaches every field of a joint's range and drive")
+    {
+        joint_range2dp r;
+        r.lo = -1.5;
+        r.hi = 2.25;
+        r.k_stop = 100.0;
+        r.c_stop = 0.5;
+        CHECK(fmt::format("{:.2f}", r) == "joint_range2dp(lo = -1.50, hi = 2.25, "
+                                          "k_stop = 100.00, c_stop = 0.50)");
+        same_at_runtime(r);
+
+        joint_drive2dp dr;
+        dr.tau_max = 3.0;
+        dr.qd_max = 4.5;
+        dr.qdd_max = 6.0;
+        dr.armature = 0.125;
+        dr.actuated = false;
+        CHECK(fmt::format("{:.1f}", dr) ==
+              "joint_drive2dp(tau_max = 3.0, qd_max = 4.5, qdd_max = 6.0, "
+              "armature = 0.1, actuated = false)");
+        same_at_runtime(dr);
+
+        geo_pos_dms const g{"52°31'12\"N", "13°24'36\"E", 34.5};
+        CHECK(fmt::format("{:.2f}", g) ==
+              "geo_pos_dms(lat = 52°31'12\"N, lon = 13°24'36\"E, height = 34.50 m)");
+        same_at_runtime(g);
+        geo_pos_dms2dp const g2{"52°31'12\"N", 34.5};
+        CHECK(fmt::format("{:.1f}", g2).ends_with("height = 34.5 m)"));
+        same_at_runtime(g2);
+    }
 }

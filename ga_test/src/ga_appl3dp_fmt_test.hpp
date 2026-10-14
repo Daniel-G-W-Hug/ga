@@ -138,4 +138,27 @@ TEST_SUITE("PGA3DP mechanics formatting")
         CHECK(s.ends_with("\n)"));
         same_at_runtime(ks);
     }
+
+    TEST_CASE("pga3dp: a numeric spec reaches every field of a joint's range and drive")
+    {
+        joint_range3dp r;
+        r.lo = -1.5;
+        r.hi = 2.25;
+        r.k_stop = 100.0;
+        r.c_stop = 0.5;
+        CHECK(fmt::format("{:.2f}", r) == "joint_range3dp(lo = -1.50, hi = 2.25, "
+                                          "k_stop = 100.00, c_stop = 0.50)");
+        same_at_runtime(r);
+
+        joint_drive3dp dr;
+        dr.tau_max = 3.0;
+        dr.qd_max = 4.5;
+        dr.qdd_max = 6.0;
+        dr.armature = 0.125;
+        dr.actuated = false;
+        CHECK(fmt::format("{:.1f}", dr) ==
+              "joint_drive3dp(tau_max = 3.0, qd_max = 4.5, qdd_max = 6.0, "
+              "armature = 0.1, actuated = false)");
+        same_at_runtime(dr);
+    }
 }

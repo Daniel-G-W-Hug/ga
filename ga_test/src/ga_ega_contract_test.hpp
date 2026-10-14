@@ -130,4 +130,16 @@ TEST_SUITE("EGA contracts")
         auto const g = nabla(wave, r0, t0, 1.0e-5);
         CHECK(nrm(mvec2d(g) - mvec2d(-std::sin(ph) * k)) < 1.0e-8);
     }
+
+    TEST_CASE("ega: exp, log and sqrt at the identity")
+    {
+        // a zero angle or a zero plane is no rotation; log of no rotation is zero; and
+        // the square root of the 2 pi rotor (-1, the identity rotation) is the identity
+        mvec3d_e const id3(scalar3d(1.0), bivec3d(0.0, 0.0, 0.0));
+        CHECK(exp(e12_3d, 0.0) == id3);
+        CHECK(exp(bivec3d(0.0, 0.0, 0.0), 1.2) == id3);
+        CHECK(log(id3) == bivec3d(0.0, 0.0, 0.0));
+        CHECK(sqrt(mvec3d_e(-1.0, 0.0, 0.0, 0.0)) == id3);
+        CHECK(sqrt(mvec2d_e(-1.0, 0.0)) == mvec2d_e(1.0, 0.0));
+    }
 }

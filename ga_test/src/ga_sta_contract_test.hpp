@@ -91,4 +91,12 @@ TEST_SUITE("STA contracts")
         CHECK(is_close(pscalar4ds(0.5), pscalar4ds(0.5 + 1.0e-15)));
         CHECK_FALSE(is_close(pscalar4ds(0.5), pscalar4ds(0.6)));
     }
+
+    TEST_CASE("sta4ds: is_congruent with a zero scalar or pseudoscalar")
+    {
+        CHECK(is_congruent(scalar4ds(0.0), scalar4ds(0.0)));
+        CHECK_FALSE(is_congruent(scalar4ds(0.0), scalar4ds(2.0)));
+        CHECK(is_congruent(pscalar4ds(0.0), pscalar4ds(0.0)));
+        CHECK_FALSE(is_congruent(pscalar4ds(3.0), pscalar4ds(0.0)));
+    }
 }

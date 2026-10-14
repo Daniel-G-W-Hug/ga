@@ -148,4 +148,16 @@ TEST_SUITE("numerics: preconditions")
                              doctest::Contains("interior node"), std::invalid_argument);
         CHECK_NOTHROW((void)scheme_at(x, 2, 1, fd_kind::compact_fd));
     }
+
+    TEST_CASE("dense solver: a damped lstsq_solve of a SQUARE system ignores the damping")
+    {
+        // no Gram matrix is formed for a square A, so there is nothing to regularize:
+        // the answer is the plain solution
+        std::vector<double> const A{4.0, 1.0, 1.0, 3.0};
+        std::vector<double> const b{1.0, 2.0};
+        auto const x = lstsq_solve(A, b, 2, 0.5);
+        auto const ref = lu_solve(A, b, 2);
+        CHECK(x[0] == doctest::Approx(ref[0]));
+        CHECK(x[1] == doctest::Approx(ref[1]));
+    }
 }

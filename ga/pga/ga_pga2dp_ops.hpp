@@ -19,8 +19,7 @@
 // - rsqrt(M)                            -> sqrt of a motor (w.r.t. rgpr)
 //
 // - get_motor()                         -> provide a motor from (point, phi), or (delta),
-// - get_motor_from_lines()              -> provide a motor from (from two lines moved
-//                                                                into each other)
+// - get_motor_from_lines()              -> provide a motor (from two line reflections)
 // - move2dp(), move2dp_opt()            -> move object with motor
 //
 // - project_onto(), reject_from()       -> simple projection and rejection
@@ -80,13 +79,12 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
     // hint: weight_nrm returns a pscalar2dp! ctype() required around each single result,
     // otherwise geometric product between pseudoscalars evaluated, which evaluates to
     // zero
-    ctype nrm_prod = ctype(weight_nrm(B1)) * ctype(weight_nrm(B2));
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    // an ideal (zero-weight) line has no angle: refused, not pi/2
+    ctype const w1 = ctype(weight_nrm(B1));
+    ctype const w2 = ctype(weight_nrm(B2));
+    hd::ga::detail::check_unitization(w1, "angle: line");
+    hd::ga::detail::check_unitization(w2, "angle: line");
+    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
 
