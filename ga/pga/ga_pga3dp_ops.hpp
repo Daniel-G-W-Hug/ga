@@ -90,40 +90,47 @@ constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1, BiVec3dp<U> cons
     return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
 }
 
-// return the angle between a trivector and a bivector, i.e. a plane and a line
-// range of angle: 0 <= angle <= pi/2
+// return the signed angle between a trivector and a bivector, i.e. a plane and a line
+// range of angle: -pi/2 <= angle <= pi/2
+//
+//     angle = pi/2 - angle(to_vec3d(B), to_vec3d(t))     [line direction, plane normal]
+//
+// 0 means the line lies in (or parallel to) the plane; positive means the line points
+// into the half-space the normal points into (+pi/2 along it), negative into the other
+// one (-pi/2 against it). Only directions enter, not positions: which side of the plane
+// the line lies on does not matter. Reversing the line or the plane flips the sign;
+// the magnitude is the unsigned line-plane angle. Same value in both argument orders.
+//
+// cosine: the magnitude of the weight contraction (a magnitude only -- the plane holds
+// no preferred direction to compare against); sine: the weight of the meet rwdg(B, t),
+// whose sign is the side -- negated, because the meet's weight is -dot(direction,
+// normal). atan2 needs no normalization and stays accurate near 0 and +-pi/2.
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t, BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
     // an ideal (zero-weight) plane or line has no angle: refused, not pi/2
-    ctype const w1 = ctype(weight_nrm(t));
-    ctype const w2 = ctype(weight_nrm(B));
-    hd::ga::detail::check_unitization(w1, "angle: plane");
-    hd::ga::detail::check_unitization(w2, "angle: line");
-    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
+    hd::ga::detail::check_unitization(ctype(weight_nrm(t)), "angle: plane");
+    hd::ga::detail::check_unitization(ctype(weight_nrm(B)), "angle: line");
+    ctype const cos_part = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
+    ctype const sin_part = -ctype(rwdg(B, t).w);
+    return std::atan2(sin_part, cos_part);
 }
 
-// return the angle between a trivector and a bivector, i.e. a plane and a line
-// range of angle: 0 <= angle <= pi/2
+// return the signed angle between a bivector and a trivector, i.e. a line and a plane
+// range of angle: -pi/2 <= angle <= pi/2 (see angle(TriVec3dp, BiVec3dp): same value)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B, TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
     // an ideal (zero-weight) line or plane has no angle: refused, not pi/2
-    ctype const w1 = ctype(weight_nrm(B));
-    ctype const w2 = ctype(weight_nrm(t));
-    hd::ga::detail::check_unitization(w1, "angle: line");
-    hd::ga::detail::check_unitization(w2, "angle: plane");
-    return std::acos(std::clamp(contr / (w1 * w2), ctype(-1.0), ctype(1.0)));
+    hd::ga::detail::check_unitization(ctype(weight_nrm(B)), "angle: line");
+    hd::ga::detail::check_unitization(ctype(weight_nrm(t)), "angle: plane");
+    ctype const cos_part = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
+    ctype const sin_part = -ctype(rwdg(B, t).w);
+    return std::atan2(sin_part, cos_part);
 }
 
 // return the angle between two trivectors, i.e. two planes

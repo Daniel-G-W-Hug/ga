@@ -160,8 +160,19 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2
 }
 
 
-// return the angle between of a vector and a bivector
-// range of angle: 0 <= angle <= pi/2 (the line-plane angle)
+// return the signed angle between a vector and a bivector, i.e. a line and a plane
+// range of angle: -pi/2 <= angle <= pi/2
+//
+//     angle = pi/2 - angle(v, n),    n = cmpl(B) the plane's normal (e12 -> e3)
+//
+// 0 means v lies in (or parallel to) the plane; positive means v points into the
+// half-space n points into (+pi/2 along n), negative into the other one (-pi/2
+// against n). Reversing v or B flips the sign; the magnitude is the unsigned
+// line-plane angle. Same value in both argument orders.
+//
+// cosine: the projection's magnitude |v << B| (a magnitude only -- the plane holds no
+// preferred direction to compare the projection against); sine: wdg(v, B), whose sign
+// is the side. atan2 needs no normalization and stays accurate near 0 and +-pi/2.
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
@@ -169,15 +180,11 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v) * nrm(B);
     hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
-    // std::clamp must be used to take care of numerical inaccuracies
-    // return std::acos(
-    //     std::clamp(ctype(nrm(dot(v, B))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-    return std::acos(
-        std::clamp(ctype(nrm((v << B))) / nrm_prod, ctype(-1.0), ctype(1.0)));
+    return std::atan2(ctype(wdg(v, B)), ctype(nrm((v << B))));
 }
 
-// return the angle between of a bivector and a vector
-// range of angle: 0 <= angle <= pi/2 (the line-plane angle)
+// return the signed angle between a bivector and a vector, i.e. a plane and a line
+// range of angle: -pi/2 <= angle <= pi/2 (see angle(Vec3d, BiVec3d): same value)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
@@ -185,12 +192,7 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(B) * nrm(v);
     hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
-
-    // std::clamp must be used to take care of numerical inaccuracies
-    // return std::acos(
-    //     std::clamp(ctype(nrm(dot(B, v))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-    return std::acos(
-        std::clamp(ctype(nrm((B >> v))) / nrm_prod, ctype(-1.0), ctype(1.0)));
+    return std::atan2(ctype(wdg(B, v)), ctype(nrm((B >> v))));
 }
 
 

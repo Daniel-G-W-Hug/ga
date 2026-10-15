@@ -210,6 +210,40 @@ TEST_SUITE("PGA contracts")
               doctest::Approx(pi / 2));
     }
 
+    TEST_CASE("pga3dp: the angle between a line and a plane is signed, in [-pi/2, pi/2]")
+    {
+        // 0 in the plane, +pi/2 along its normal, -pi/2 against it; the same in both
+        // argument orders; reversing the line or the plane flips the sign
+        value_t const a = deg2rad(30.0);
+        trivec3dp const pl(0.0, 0.0, 1.0, -3.0); // z == 3, normal +z
+        vec3dp const u(std::cos(a), 0.0, std::sin(a), 0.0);
+        bivec3dp const L = wdg(vec3dp(1.0, 2.0, 5.0, 1.0), u); // above the plane
+        CHECK(angle(L, pl) == doctest::Approx(a));
+        CHECK(angle(pl, L) == doctest::Approx(a));
+        CHECK(angle(-L, pl) == doctest::Approx(-a));
+        CHECK(angle(pl, -L) == doctest::Approx(-a));
+        CHECK(angle(L, -pl) == doctest::Approx(-a));
+        CHECK(angle(wdg(O_3dp, e3_3dp), pl) == doctest::Approx(pi / 2));
+        CHECK(angle(wdg(O_3dp, -e3_3dp), pl) == doctest::Approx(-pi / 2));
+        CHECK(angle(wdg(O_3dp, e1_3dp), pl) == doctest::Approx(0.0));
+
+        // only directions enter: the same direction below the plane gives the same
+        // angle, and the weights of line and plane divide out
+        CHECK(angle(wdg(vec3dp(-4.0, 0.5, -2.0, 1.0), u), pl) == doctest::Approx(a));
+        CHECK(angle(7.0 * L, 0.5 * pl) == doctest::Approx(a));
+
+        // pi/2 minus the angle between the line's direction and the plane's normal
+        bivec3dp const L2 =
+            wdg(vec3dp(0.3, -1.2, 0.7, 1.0), vec3dp(-0.4, 1.3, -0.9, 0.0));
+        trivec3dp const pl2(0.6, -0.2, 0.8, 1.5);
+        // (both lifted back as ideal vectors, i.e. directions)
+        vec3dp const n2(to_vec3d(pl2), 0.0);
+        CHECK(angle(L2, pl2) ==
+              doctest::Approx(pi / 2 - angle(vec3dp(to_vec3d(L2), 0.0), n2)));
+        CHECK(angle(-L2, pl2) ==
+              doctest::Approx(pi / 2 - angle(vec3dp(to_vec3d(-L2), 0.0), n2)));
+    }
+
     TEST_CASE("pga2dp / pga3dp: the regressive grade complements the grade")
     {
         // rgr(x) = n - gr(x): the grade of the complement

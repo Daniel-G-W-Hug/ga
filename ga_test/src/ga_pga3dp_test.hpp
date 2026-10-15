@@ -3745,7 +3745,8 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(apl07 == apl70);
         CHECK(a21 == a12);
         CHECK(a29 == a92);
-        CHECK(a67 - apl07 < eps);
+        // signed: ln07 points along +y, to the side of e431's normal
+        CHECK(apl07 == doctest::Approx(a67));
         CHECK(rad2deg(apl02) == 135);
         CHECK(a256 == a12);
     }

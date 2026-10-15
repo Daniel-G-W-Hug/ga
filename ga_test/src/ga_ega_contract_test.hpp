@@ -58,15 +58,25 @@ TEST_SUITE("EGA contracts")
         CHECK(angle(e12_3d, tilted) == doctest::Approx(a));
         CHECK(angle(e12_3d, e12_3d) == doctest::Approx(0.0));
 
-        // a vector against a plane: the angle between the line and the plane, the same
-        // in both argument orders -- 0 in the plane, pi/2 along its normal, so the range
-        // is [0, pi/2] (the contraction's magnitude carries no sign)
+        // a vector against a plane: the SIGNED angle between the line and the plane, the
+        // same in both argument orders -- 0 in the plane, +pi/2 along its normal
+        // cmpl(e12) = e3, -pi/2 against it, so the range is [-pi/2, pi/2]; reversing
+        // the vector or the plane flips the sign
         vec3d const v(std::cos(a), 0.0, std::sin(a)); // 30 deg out of the e12 plane
         CHECK(angle(v, e12_3d) == doctest::Approx(a));
         CHECK(angle(e12_3d, v) == doctest::Approx(a));
-        CHECK(angle(-v, e12_3d) == doctest::Approx(a));
+        CHECK(angle(-v, e12_3d) == doctest::Approx(-a));
+        CHECK(angle(e12_3d, -v) == doctest::Approx(-a));
+        CHECK(angle(v, -e12_3d) == doctest::Approx(-a));
         CHECK(angle(e3_3d, e12_3d) == doctest::Approx(pi / 2));
+        CHECK(angle(-e3_3d, e12_3d) == doctest::Approx(-pi / 2));
         CHECK(angle(e1_3d, e12_3d) == doctest::Approx(0.0));
+        // scale-free, and pi/2 minus the angle to the plane's normal for every pair
+        CHECK(angle(5.0 * v, 0.25 * e12_3d) == doctest::Approx(a));
+        vec3d const w(0.3, -1.7, -0.6);
+        bivec3d const B(-0.8, 0.4, 1.1);
+        CHECK(angle(w, B) == doctest::Approx(pi / 2 - angle(w, vec3d(cmpl(B)))));
+        CHECK(angle(-w, B) == doctest::Approx(pi / 2 - angle(-w, vec3d(cmpl(B)))));
     }
 
     TEST_CASE("ega3d: rotate_opt on a batch of bivectors is rotate, element-wise")
