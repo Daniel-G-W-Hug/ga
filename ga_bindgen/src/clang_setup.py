@@ -197,13 +197,9 @@ def compile_args() -> list[str]:
             args += ["-isystem", p]
 
     if system == "Darwin":
-        for sdk_root in (
-            "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk",
-            "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
-        ):
-            if Path(sdk_root).exists():
-                args += ["-isysroot", sdk_root]
-                break
+        sdk_root = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+        if Path(sdk_root).exists():
+            args += ["-isysroot", sdk_root]
 
     return args
 
