@@ -10,6 +10,8 @@
 #include <cstdlib>   // std::strtod
 #include <stdexcept> // std::invalid_argument
 #include <string>    // std::string
+#include <utility>   // std::swap
+#include <vector>    // std::vector (densify)
 
 #include "ega/ga_ega2d_ops.hpp"  // normalize, operator*(vec, I_2d), ... for the 2D frame
 #include "ega/ga_ega3d_ops.hpp"  // wdg, dual, normalize, ... for the direction frame
@@ -64,6 +66,7 @@
 // - deg2dms() / rad2dms()     : the inverse -- write an angle back out in dms
 //                               notation, closing the parser's round trip
 // - to_geo_pos()              : geo_pos_dms -> geo_pos (the explicit conversion above)
+// - densify()                 : intermediate positions on an edge straight in (lat, lon)
 // - distance_from_geocenter() : the position's "total radius" [m], derived
 // - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
 //                               to_geo_pos() and distance_from_geocenter() overload on
@@ -85,6 +88,20 @@
 // - enu_to_ecef_motor()  : motor taking ENU coordinates to ECEF coordinates (its rrev is
 //                          the ECEF -> ENU direction)
 // - enu_motor_at()       : the same motor for a station given as an ECEF point
+// - azimuthal            : the projections onto the tangent plane -- orthographic,
+//                          gnomonic, stereographic, perspective (what each preserves and
+//                          what it is used for is stated at the enum)
+// - azimuthal_options    : the per-kind settings (viewpoint height, drawable radius)
+// - azimuthal_map        : one projection at one station, built by make_azimuthal_map()
+// - to_local()           : an ECEF point in the map's local frame
+// - is_drawable()        : inside the map's drawable region (visible, for the horizon
+// kinds)
+// - project()            : local point (or geo_pos) -> map coordinates [m], the meet of
+//                          the line from the projection centre with the tangent plane
+// - clip_at()            : where a segment crosses a plane -- cutting an outline at the
+//                          map's limit
+// - unproject()          : map coordinates -> the position on the ellipsoid
+// - limit_outline()      : points around the edge of the drawable region (the horizon)
 //
 // and the two-dimensional counterparts, for a position in the meridian section:
 //
@@ -620,6 +637,42 @@ inline geo_pos to_geo_pos(geo_pos_dms const& p, value_t geoid_undulation = 0.0)
                    dms2rad(p.lon, geo_angle::longitude), p.height + geoid_undulation};
 }
 
+// Intermediate positions on an edge that is straight in (lat, lon) -- the convention of
+// most border data sets, whose vertices are joined by straight lines in a plate carree.
+// Projected onto a plane such an edge is a curve, and drawing only its end points
+// replaces it by a chord, visibly so for a long edge such as a border along a parallel.
+//
+// Returns the positions strictly between a and b, spaced so that neither angle changes
+// by more than max_step [rad] between neighbours; the height is interpolated alike. The
+// longitude difference is taken the short way round, so an edge across the 180-degree
+// meridian is not walked around the globe; the longitudes returned may then run past
+// +-180 deg, which geo_to_ecef accepts.
+inline std::vector<geo_pos> densify(geo_pos const& a, geo_pos const& b, value_t max_step)
+{
+    if (!(max_step > 0.0)) {
+        throw std::invalid_argument("densify: max_step must be positive");
+    }
+
+    value_t dlon = b.lon - a.lon;
+    if (dlon > pi) dlon -= 2.0 * pi;
+    else if (dlon < -pi) dlon += 2.0 * pi;
+    value_t const dlat = b.lat - a.lat;
+    value_t const dh = b.height - a.height;
+
+    value_t const span = std::max(std::abs(dlat), std::abs(dlon));
+    auto const n = static_cast<size_t>(std::ceil(span / max_step)); // segments
+
+    std::vector<geo_pos> out;
+    if (n > 1) {
+        out.reserve(n - 1);
+        for (size_t i = 1; i < n; ++i) {
+            value_t const f = static_cast<value_t>(i) / static_cast<value_t>(n);
+            out.push_back(geo_pos{a.lat + f * dlat, a.lon + f * dlon, a.height + f * dh});
+        }
+    }
+    return out;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // the two-dimensional case: a position in the meridian section
@@ -893,6 +946,372 @@ inline mvec3dp_e enu_motor_at(vec3dp const& P, ellipsoid const& el = wgs84)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// projections onto the tangent plane (the azimuthal projections)
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// A map of a region of the ellipsoid onto the plane that touches it at one point, the
+// STATION. In the station's local frame (east, north, up -- see enu_to_ecef_motor) that
+// plane is U = 0, i.e. xy_3dp, and every projection of this family is ONE construction:
+// the line from a projection centre C through the point P, met with the plane,
+//
+//     X = rwdg(wdg(C, P), xy_3dp)
+//
+// The kinds below differ only in where C sits, and that choice decides what the map
+// preserves. Cartography calls them the azimuthal projections: on a sphere each of them
+// shows the true direction (azimuth) from the station to every point, and they differ in
+// how distance from the station is scaled. Map coordinates are metres in the plane,
+// x towards east and y towards north at the station.
+//
+// They are taken on the REAL ellipsoid: the plane touches the ellipsoid, and the centres
+// are placed relative to it. On a sphere they reduce to the textbook forms (Snyder, "Map
+// Projections -- A Working Manual", USGS 1987, sections 20-23), which the tests check.
+// On the earth two of them ARE the EPSG ellipsoidal methods, which define them by this
+// construction: the orthographic (EPSG 9840) and the vertical perspective (EPSG 9838)
+// agree with it to 2e-9 m (tested). The EPSG oblique stereographic (9809) does not: it
+// routes through a conformal sphere to stay exactly conformal on the ellipsoid, and the
+// stereographic map here, conformal only on a sphere, differs from it by up to 3.2e-4 of
+// the distance from the station -- 1.4 km across Europe seen from Berlin (measured). EPSG
+// has no gnomonic method.
+//
+// Using one: make_azimuthal_map() once per station, then per point to_local(),
+// is_drawable() and project(). The two steps are separate because a drawing pipeline
+// needs the local point twice -- to decide whether it is drawable, and to project it --
+// and because an outline that leaves the drawable region is cut there with clip_at(),
+// which needs the local points too.
+
+// which projection: where the centre C sits, and what that gives the map
+enum class azimuthal {
+
+    // C at infinity along up: every point drops perpendicularly onto the plane.
+    //
+    // The earth as it looks from very far away. Near the station the scale is close to
+    // true; towards the limb features are compressed radially, to zero at the limb.
+    // Neither
+    // conformal nor equal-area. Only the near half is drawable, bounded by the limb.
+    //
+    // Used for pictorial views of the globe (the earth or a planet seen from space), for
+    // showing which hemisphere faces a point, and wherever a map should look like a globe
+    // rather than measure on it.
+    orthographic,
+
+    // C at the geocentre: every point is projected from the earth's centre.
+    //
+    // Every great circle lies in a plane through the centre, so it maps to a STRAIGHT
+    // LINE -- the defining property. Scale grows fast away from the station (on a sphere
+    // radially as 1/cos^2 of the angular distance: x4 at 60 deg), and less than a
+    // hemisphere can be shown at all: the edge of the hemisphere maps to infinity.
+    //
+    // Used for great-circle routes in navigation (a straight line on the chart is the
+    // shortest route, to be transferred to a conformal chart for steering), seismic and
+    // radio wave paths, meteor trails, and the faces of cube-shaped global grids.
+    gnomonic,
+
+    // C at the other end of the normal chord through the station (on a sphere: the
+    // antipode).
+    //
+    // On a sphere CONFORMAL: angles and small shapes are true and circles map to circles
+    // (on the ellipsoid nearly so; see the EPSG note above).
+    // Scale grows slowly away from the station (on a sphere radially as 1/cos^2 of half
+    // the angular distance: x2 at 90 deg), so a large region keeps recognisable shapes.
+    //
+    // Used for maps of a region around a point where shapes must be right: polar maps,
+    // national grids built on the oblique stereographic (the Netherlands, Romania),
+    // weather charts, and outside geodesy the celestial sphere and crystallography.
+    stereographic,
+
+    // C at a finite height above the station (azimuthal_options::height).
+    //
+    // What a camera at that height sees, drawn in the tangent plane: the vertical
+    // perspective. Only the part of the earth visible from C is drawable, bounded by the
+    // horizon as seen from there; the higher C, the closer the map comes to the
+    // orthographic one, which is its limit at infinite height.
+    //
+    // Used for views from orbit or from an aircraft -- the earth as seen from a
+    // geostationary satellite, the ISS or a balloon -- and for matching satellite images.
+    perspective
+};
+
+// the per-kind settings; each applies to some kinds only and is ignored by the others
+struct azimuthal_options {
+
+    // perspective: height of the viewpoint above the station [m], must be positive. The
+    // default is the geostationary altitude.
+    value_t height{35786.0e3};
+
+    // gnomonic, stereographic: the radius of the drawable region around the station, as
+    // an angular distance [rad]; 0 selects the kind's default (60 deg / 90 deg). These
+    // two have no horizon of their own -- the gnomonic map runs to infinity at 90 deg,
+    // the stereographic one at 180 deg -- so where to stop is a choice, not a property.
+    // The orthographic and perspective maps stop at their horizon.
+    value_t max_angle{0.0};
+};
+
+// A projection onto the tangent plane at one station, ready to use. Built by
+// make_azimuthal_map(); all its geometry is in the station's local frame.
+struct azimuthal_map {
+
+    geo_pos station; // the tangent point, on the ellipsoid (height 0)
+    ellipsoid el;    // the ellipsoid the plane touches
+    azimuthal kind;  // which projection
+    mvec3dp_e M;     // local (east, north, up) -> ECEF; rrev(M) is ECEF -> local
+    vec3dp C;        // the projection centre, local (an ideal point for orthographic)
+    trivec3dp limit; // bounds the drawable region, local; wdg(P, limit) > 0 inside
+};
+
+namespace detail {
+
+// The parameters t at which the line p + t d meets the ellipsoid surface
+//
+//     x^2/a^2 + y^2/a^2 + z^2/b^2 = 1
+//
+// for a point p and a direction d, both ECEF. A quadric is not a blade, so the algebra
+// has no meet for it; this is the plain quadratic. Lengths are taken in units of a, so
+// every term is of order one. Returns false when the line misses the ellipsoid, and
+// otherwise the two roots with t1 <= t2 (equal for a tangent line).
+inline bool line_meets_ellipsoid(vec3d const& p, vec3d const& d, ellipsoid const& el,
+                                 value_t& t1, value_t& t2)
+{
+    value_t const a = el.r_equator;
+    value_t const q = (a / el.r_pole) * (a / el.r_pole); // a^2/b^2 on the z terms
+
+    vec3d const ps{p.x / a, p.y / a, p.z / a};
+    vec3d const ds{d.x / a, d.y / a, d.z / a};
+
+    // A t^2 + 2 B t + c = 0
+    value_t const A = ds.x * ds.x + ds.y * ds.y + q * ds.z * ds.z;
+    value_t const B = ps.x * ds.x + ps.y * ds.y + q * ps.z * ds.z;
+    value_t const c = ps.x * ps.x + ps.y * ps.y + q * ps.z * ps.z - 1.0;
+
+    value_t const disc = B * B - A * c;
+    if (!(A > 0.0) || disc < 0.0) return false;
+
+    // the cancellation-free pair of roots: the larger one from -(B + sign(B) sqrt), the
+    // other from the product of the roots, c/A
+    value_t const s = std::sqrt(disc);
+    value_t const k = -(B + ((B >= 0.0) ? s : -s));
+
+    value_t r1 = k / A;
+    value_t r2 = (k != 0.0) ? c / k : r1;
+    if (r1 > r2) std::swap(r1, r2);
+
+    t1 = r1;
+    t2 = r2;
+    return true;
+}
+
+} // namespace detail
+
+// The projection of the given kind onto the plane tangent to the ellipsoid at the
+// station. The station's height is ignored: the plane touches the ellipsoid.
+//
+// The drawable region is bounded by a plane, `limit`:
+//
+// - orthographic and perspective: the POLAR PLANE of C with respect to the ellipsoid,
+//   which meets the ellipsoid exactly in the horizon seen from C. For a point C = (c, w)
+//   it is the set of x with x^T G c = w, G = diag(1/a^2, 1/a^2, 1/b^2), and a point P on
+//   the ellipsoid is visible from C (C lies on the outer side of P's tangent plane)
+//   exactly when P^T G c > w. One rule covers both kinds: for the orthographic map C is
+//   ideal, w = 0, and the polar plane is the diametral plane conjugate to up.
+//
+// - gnomonic and stereographic: the plane U = -R (1 - cos(max_angle)) with R the
+//   ellipsoid's radius at the station, i.e. the depth below the tangent plane of a point
+//   at that angular distance on a sphere of that radius. It is a cut at a chosen radius,
+//   approximate by design.
+inline azimuthal_map make_azimuthal_map(geo_pos const& station, azimuthal kind,
+                                        ellipsoid const& el = wgs84,
+                                        azimuthal_options const& opt = {})
+{
+    geo_pos const s{station.lat, station.lon, 0.0};
+    auto const M = enu_to_ecef_motor(s, el);
+    auto const Mr = rrev(M);
+
+    vec3dp C{};
+    switch (kind) {
+        case azimuthal::orthographic:
+            C = e3_3dp; // the ideal point along up
+            break;
+        case azimuthal::gnomonic:
+            C = move3dp(O_3dp, Mr); // the geocentre, read in the local frame
+            break;
+        case azimuthal::stereographic: {
+            // the second point where the normal through the station meets the ellipsoid
+            // (the first is the station itself, t = 0)
+            auto const S = geo_to_ecef(s, el);
+            auto const u = enu_at(s, el).up;
+            value_t t1{}, t2{};
+            detail::line_meets_ellipsoid(vec3d{S.x, S.y, S.z}, vec3d{u.x, u.y, u.z}, el,
+                                         t1, t2);
+            C = vec3dp{0.0, 0.0, (std::abs(t1) > std::abs(t2)) ? t1 : t2, 1.0};
+            break;
+        }
+        case azimuthal::perspective:
+            if (!(opt.height > 0.0)) {
+                throw std::invalid_argument("make_azimuthal_map: the perspective "
+                                            "viewpoint needs a positive height");
+            }
+            C = vec3dp{0.0, 0.0, opt.height, 1.0};
+            break;
+    }
+
+    trivec3dp limit{};
+    if (kind == azimuthal::orthographic || kind == azimuthal::perspective) {
+        // the polar plane of C, built in ECEF and read in the local frame. Multiplied by
+        // a^2, so that its normal carries the size of c and its offset the size of a^2 w
+        auto const c = move3dp(C, M);
+        value_t const a = el.r_equator;
+        value_t const q = (a / el.r_pole) * (a / el.r_pole);
+        limit = move3dp(trivec3dp{c.x, c.y, q * c.z, -a * a * c.w}, Mr);
+    }
+    else {
+        bool const gn = (kind == azimuthal::gnomonic);
+        value_t const alpha =
+            (opt.max_angle > 0.0) ? opt.max_angle : deg2rad(gn ? 60.0 : 90.0);
+        if (alpha >= (gn ? 0.5 * pi : pi)) {
+            throw std::invalid_argument(
+                gn ? "make_azimuthal_map: the gnomonic max_angle must stay below 90 deg"
+                   : "make_azimuthal_map: the stereographic max_angle must stay below "
+                     "180 deg");
+        }
+        value_t const depth = el.radius(s.lat) * (1.0 - std::cos(alpha));
+        limit = trivec3dp{0.0, 0.0, 1.0, depth}; // the plane U = -depth
+    }
+
+    // orient the limit so that the station, the local origin, is on its positive side
+    if (value_t(wdg(O_3dp, limit)) < 0.0) limit = -limit;
+
+    return azimuthal_map{s, el, kind, M, C, limit};
+}
+
+// an ECEF point read in the map's local frame (east, north, up at the station)
+inline vec3dp to_local(azimuthal_map const& m, vec3dp const& P)
+{
+    return move3dp(P, rrev(m.M));
+}
+
+// Is the local point inside the drawable region, i.e. on the station's side of the
+// limit? For the orthographic and perspective maps and a point on the ellipsoid this is
+// exactly "visible from C". The point must carry a positive weight, as every point from
+// geo_to_ecef does.
+inline bool is_drawable(azimuthal_map const& m, vec3dp const& P_local)
+{
+    return value_t(wdg(P_local, m.limit)) > 0.0;
+}
+
+// The map coordinates [m] of a local point: x towards east, y towards north at the
+// station. The point must be drawable (is_drawable); outside the region the line from C
+// may meet the plane on the far side, or not at all, and then unitize() throws.
+inline vec2d project(azimuthal_map const& m, vec3dp const& P_local)
+{
+    auto const X = unitize(rwdg(wdg(m.C, P_local), xy_3dp));
+    return vec2d{X.x, X.y};
+}
+
+// The same for a geodetic position, for single points (labels, markers). A pipeline
+// over many points should call to_local() and is_drawable() itself, see above.
+inline vec2d project(azimuthal_map const& m, geo_pos const& p)
+{
+    return project(m, to_local(m, geo_to_ecef(p, m.el)));
+}
+
+// The point where the segment A-B crosses the plane t -- the cut, when an outline leaves
+// the drawable region (t = the map's limit). Only the line through A and B enters, so
+// call it for a segment whose ends lie on opposite sides of t.
+inline vec3dp clip_at(vec3dp const& A, vec3dp const& B, trivec3dp const& t)
+{
+    return unitize(rwdg(wdg(A, B), t));
+}
+
+// The inverse: the position on the ellipsoid that maps to the map coordinates x -- for a
+// cursor readout, or to re-centre a map on a point picked in it.
+//
+// It is the line from C through the image point, met with the ellipsoid. Of the two
+// crossings the one the projection uses is taken: the nearer to C when C is outside the
+// ellipsoid (orthographic, perspective -- the visible side), the one on the image side of
+// C when C is inside or on it (gnomonic, stereographic).
+//
+// Map coordinates outside the image of the ellipsoid (beyond the limb of an orthographic
+// or perspective map) have no position. With hit_out given, *hit_out reports whether
+// there is one and a default geo_pos is returned when not; without it, a miss throws.
+inline geo_pos unproject(azimuthal_map const& m, vec2d const& x, bool* hit_out = nullptr)
+{
+    auto const X = vec3dp{x.x, x.y, 0.0, 1.0};
+    // the direction from C towards X, as an ideal point: w_C (X - c) for a finite C,
+    // -C for the ideal one
+    auto const d = X * m.C.w - m.C;
+
+    auto const Xe = move3dp(X, m.M);
+    auto const de = move3dp(vec3dp{d.x, d.y, d.z, 0.0}, m.M);
+
+    value_t t1{}, t2{};
+    bool const hit = detail::line_meets_ellipsoid(vec3d{Xe.x, Xe.y, Xe.z},
+                                                  vec3d{de.x, de.y, de.z}, m.el, t1, t2);
+    if (hit_out) *hit_out = hit;
+    if (!hit) {
+        if (hit_out) return geo_pos{};
+        throw std::domain_error(
+            "unproject: these map coordinates are outside the image of the ellipsoid");
+    }
+
+    bool const c_outside =
+        (m.kind == azimuthal::orthographic || m.kind == azimuthal::perspective);
+    value_t const t = c_outside ? t1 : t2;
+
+    return ecef_to_geo(vec3dp{Xe.x + t * de.x, Xe.y + t * de.y, Xe.z + t * de.z, 1.0},
+                       m.el);
+}
+
+// The boundary of the drawable region: n points (ECEF, on the ellipsoid) around the
+// curve where the map's limit plane cuts the ellipsoid -- the horizon of an orthographic
+// or perspective map, the chosen cut of a gnomonic or stereographic one. Projected, it is
+// the outline of the map: the edge of the globe in an orthographic view.
+//
+// A plane cuts an ellipsoid in an ellipse whose centre K lies on the diameter CONJUGATE
+// to the plane: for the plane n.x = d and the ellipsoid x^T G x = 1,
+//
+//     K = d / (n^T G^-1 n) * G^-1 n
+//
+// and around K the curve is K + r(theta) v(theta) for the unit directions v in the
+// plane, with r^2 = (1 - K^T G K) / (v^T G v): the cross term vanishes because K is the
+// centre. (For the polar plane of C, G^-1 n is C itself, so K lies on the line from the
+// geocentre towards C.) Lengths are taken in units of a, as in line_meets_ellipsoid.
+inline std::vector<vec3dp> limit_outline(azimuthal_map const& m, size_t n = 360)
+{
+    value_t const a = m.el.r_equator;
+    value_t const q = (a / m.el.r_pole) * (a / m.el.r_pole); // G = diag(1, 1, q) / a^2
+
+    // the limit in ECEF, n.x + d0 = 0; in units of a: (a n).xi = -d0
+    auto const L = move3dp(m.limit, m.M);
+    vec3d const nn{a * L.x, a * L.y, a * L.z};
+    value_t const d = -L.w;
+
+    vec3d const gin{nn.x, nn.y, nn.z / q}; // G^-1 n, up to the common 1/a^2
+    vec3d const K = (d / value_t(ega::dot(nn, gin))) * gin;
+    value_t const r2_num = 1.0 - (K.x * K.x + K.y * K.y + q * K.z * K.z);
+    if (!(r2_num > 0.0)) {
+        throw std::domain_error("limit_outline: the limit plane misses the ellipsoid");
+    }
+
+    // an orthonormal basis of the plane's directions
+    auto const nh = ega::normalize(nn);
+    vec3d const seed =
+        (std::abs(nh.x) < 0.9) ? vec3d{1.0, 0.0, 0.0} : vec3d{0.0, 1.0, 0.0};
+    auto const e1 = ega::normalize(seed - value_t(ega::dot(seed, nh)) * nh);
+    auto const e2 = ega::normalize(ega::dual(ega::wdg(nh, e1)));
+
+    std::vector<vec3dp> out;
+    out.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        value_t const th = 2.0 * pi * static_cast<value_t>(i) / static_cast<value_t>(n);
+        vec3d const v = std::cos(th) * e1 + std::sin(th) * e2;
+        value_t const r = std::sqrt(r2_num / (v.x * v.x + v.y * v.y + q * v.z * v.z));
+        vec3d const xi = K + r * v;
+        out.push_back(vec3dp{a * xi.x, a * xi.y, a * xi.z, 1.0});
+    }
+    return out;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // the two-dimensional case: ECEF section <-> geodetic, and the local frame
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -914,6 +1333,8 @@ inline vec2dp geo_to_ecef(geo_pos2dp const& p, ellipsoid const& el = wgs84)
 
 // the meridian section -> geodetic position (see detail::geodetic_from_meridian for the
 // method and its accuracy against height).
+//
+// (The 3D projections onto the tangent plane are further up, after enu_motor_at.)
 //
 // A point with e1 < 0 lies on the far half of the ellipse -- the 180-degree meridian --
 // which has no geodetic latitude in [-90, +90] and so no representation here; in three

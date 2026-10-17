@@ -444,3 +444,19 @@
            acceleration. get_pos_trafo to a root and world_VA no longer allocate, and
            the recursions group coordinates by frame in two allocations instead of
            one per frame -- those changes byte-identical.
+- 2026/10: projections onto the tangent plane of the ellipsoid (ga_usr_geodesics.hpp):
+           the orthographic, gnomonic, stereographic and vertical perspective maps as
+           ONE construction, the meet of the line from a projection centre with the
+           tangent plane -- they differ only in where the centre sits, and the comment of
+           each states what it preserves and what it is used for. azimuthal_map holds a
+           projection at one point of the ellipsoid; is_drawable() bounds the region by
+           the polar plane of the centre (exactly the horizon for the orthographic and
+           perspective maps), clip_at() cuts a segment at it, limit_outline() samples the
+           edge of the region, unproject() inverts the map, and densify() fills in an
+           edge that is straight in (lat, lon). Gated against Snyder's spherical forms
+           (to 1e-8 m), against the EPSG ellipsoidal orthographic and vertical perspective
+           methods (to 2e-9 m, both are defined by this construction), by the defining
+           properties (a gnomonic great circle is straight to 3e-15, the stereographic map
+           is conformal on a sphere) and by the inverse (3e-16 rad). The EPSG oblique
+           stereographic, which goes through a conformal sphere, differs by up to 3.2e-4
+           of the distance from the centre -- measured and stated, not hidden.

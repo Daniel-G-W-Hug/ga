@@ -3,6 +3,8 @@
 
 #include "doctest/doctest.h"
 
+#include <algorithm> // std::max
+#include <array>     // std::array
 #include <cmath>
 #include <iostream>
 #include <limits> // std::numeric_limits
@@ -5939,3 +5941,487 @@ TEST_SUITE("PGA3DP: coordinate transformation")
     }
 
 } // TEST_SUITE("PGA3DP: coordinate transformation")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Projections onto the tangent plane (the azimuthal projections of ga_usr_geodesics.hpp)
+//
+// Every kind is the meet of the line from a projection centre C with the tangent plane,
+// so the tests pin what that one construction must deliver for each placement of C:
+// the spherical closed forms (Snyder, "Map Projections -- A Working Manual", USGS 1987,
+// sections 20-23) when the ellipsoid is a sphere, the drawable region against an
+// independent visibility test, the defining property of each kind, and the inverse.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+namespace azimuthal_test {
+
+// Snyder's oblique azimuthal forms on a sphere of radius R, centre (lat0, lon0): all four
+// are k * (x_o, y_o) with (x_o, y_o) the orthographic coordinates and k the kind's radial
+// factor, a function of cos c, c the angular distance from the centre
+inline vec2d snyder(azimuthal kind, value_t R, value_t H, geo_pos const& c0,
+                    geo_pos const& p)
+{
+    value_t const dl = p.lon - c0.lon;
+    value_t const cos_c = std::sin(c0.lat) * std::sin(p.lat) +
+                          std::cos(c0.lat) * std::cos(p.lat) * std::cos(dl);
+    value_t const xo = R * std::cos(p.lat) * std::sin(dl);
+    value_t const yo = R * (std::cos(c0.lat) * std::sin(p.lat) -
+                            std::sin(c0.lat) * std::cos(p.lat) * std::cos(dl));
+    value_t k = 1.0;
+    switch (kind) {
+        case azimuthal::orthographic:
+            k = 1.0;
+            break;
+        case azimuthal::gnomonic:
+            k = 1.0 / cos_c;
+            break;
+        case azimuthal::stereographic:
+            k = 2.0 / (1.0 + cos_c);
+            break;
+        case azimuthal::perspective: {
+            value_t const P = (R + H) / R; // viewpoint distance in units of R
+            k = (P - 1.0) / (P - cos_c);
+            break;
+        }
+    }
+    return vec2d{k * xo, k * yo};
+}
+
+inline value_t cos_dist(geo_pos const& a, geo_pos const& b)
+{
+    return std::sin(a.lat) * std::sin(b.lat) +
+           std::cos(a.lat) * std::cos(b.lat) * std::cos(b.lon - a.lon);
+}
+
+inline value_t dist2d(vec2d const& a, vec2d const& b)
+{
+    return std::hypot(a.x - b.x, a.y - b.y);
+}
+
+inline std::array<azimuthal, 4> const all_kinds{
+    azimuthal::orthographic, azimuthal::gnomonic, azimuthal::stereographic,
+    azimuthal::perspective};
+
+} // namespace azimuthal_test
+
+TEST_SUITE("PGA3DP: projections onto the tangent plane")
+{
+
+    TEST_CASE("pga3dp: azimuthal projections reduce to the spherical closed forms")
+    {
+        fmt::println(
+            "pga3dp: azimuthal projections reduce to the spherical closed forms");
+        using namespace azimuthal_test;
+
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        value_t const H = 1000.0e3; // perspective viewpoint height
+        geo_pos const st{deg2rad(52.5), deg2rad(13.4), 0.0};
+
+        for (auto const kind : all_kinds) {
+            auto const m = make_azimuthal_map(st, kind, sphere, {.height = H});
+
+            // where the region ends on a sphere: cos c above this
+            value_t const cos_limit =
+                (kind == azimuthal::orthographic) ? 0.0
+                : (kind == azimuthal::perspective)
+                    ? R / (R + H)
+                    : std::cos(deg2rad(kind == azimuthal::gnomonic ? 60.0 : 90.0));
+
+            value_t max_err = 0.0;
+            int n_drawn = 0;
+            int n_region_mismatch = 0;
+            for (int ilat = -80; ilat <= 80; ilat += 5) {
+                for (int ilon = -180; ilon < 180; ilon += 5) {
+                    geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                    auto const P = to_local(m, geo_to_ecef(p, sphere));
+                    value_t const cc = cos_dist(st, p);
+
+                    // the drawable region is the sphere's: skip the boundary itself
+                    if (std::abs(cc - cos_limit) > 1e-9) {
+                        if (is_drawable(m, P) != (cc > cos_limit)) ++n_region_mismatch;
+                    }
+                    if (!is_drawable(m, P)) continue;
+
+                    ++n_drawn;
+                    auto const x = project(m, P);
+                    auto const ref = snyder(kind, R, H, st, p);
+                    max_err = std::max(max_err, dist2d(x, ref));
+                }
+            }
+            fmt::println("    {:13}: {:4} points drawn, max |x - Snyder| = {:.3e} m",
+                         kind, n_drawn, max_err);
+            CHECK(n_drawn > 50);
+            CHECK(n_region_mismatch == 0);
+            CHECK(max_err < 1.0e-6); // 1 um at earth scale
+
+            // falsify the pin: the same comparison against another kind's form fails
+            auto const other = (kind == azimuthal::orthographic)
+                                   ? azimuthal::stereographic
+                                   : azimuthal::orthographic;
+            geo_pos const p20{deg2rad(42.5), deg2rad(13.4), 0.0}; // 10 deg south
+            CHECK(dist2d(project(m, p20), snyder(other, R, H, st, p20)) > 1.0);
+        }
+    }
+
+    TEST_CASE("pga3dp: azimuthal projections on WGS84 - orientation and the inverse")
+    {
+        fmt::println(
+            "pga3dp: azimuthal projections on WGS84 - orientation and the inverse");
+        using namespace azimuthal_test;
+
+        geo_pos const berlin{deg2rad(52.523765), deg2rad(13.399603), 0.0};
+
+        for (auto const kind : all_kinds) {
+            auto const m = make_azimuthal_map(berlin, kind);
+
+            // the station is the origin of the map, north is +y and east is +x
+            auto const o = project(m, berlin);
+            CHECK(std::hypot(o.x, o.y) < 1.0e-6);
+
+            auto const n =
+                project(m, geo_pos{berlin.lat + deg2rad(1.0), berlin.lon, 0.0});
+            CHECK(std::abs(n.x) < 1.0e-6);
+            CHECK(n.y > 100.0e3);
+
+            auto const e =
+                project(m, geo_pos{berlin.lat, berlin.lon + deg2rad(1.0), 0.0});
+            CHECK(e.x > 60.0e3);
+            CHECK(std::abs(e.y) < 0.02 * e.x); // a parallel curves only slightly
+
+            // the inverse returns the position, over the drawable part of a grid
+            value_t max_err = 0.0;
+            for (int ilat = 30; ilat <= 70; ilat += 5) {
+                for (int ilon = -20; ilon <= 40; ilon += 5) {
+                    geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                    auto const P = to_local(m, geo_to_ecef(p));
+                    if (!is_drawable(m, P)) continue;
+                    auto const q = unproject(m, project(m, P));
+                    max_err =
+                        std::max({max_err, std::abs(q.lat - p.lat),
+                                  std::abs(q.lon - p.lon), std::abs(q.height) / 6.4e6});
+                }
+            }
+            fmt::println("    {:13}: max round-trip error = {:.3e} rad", kind, max_err);
+            CHECK(max_err < 1.0e-11);
+
+            // falsify the pin: a point 1 m off does not round-trip to the same position
+            geo_pos const p{deg2rad(48.0), deg2rad(11.0), 0.0};
+            auto const x = project(m, p);
+            auto const q = unproject(m, vec2d{x.x + 1.0, x.y});
+            CHECK(std::abs(q.lon - p.lon) > 1.0e-8);
+        }
+
+        // beyond the limb there is no position: reported, or thrown when not asked for
+        auto const ortho = make_azimuthal_map(berlin, azimuthal::orthographic);
+        bool hit = true;
+        unproject(ortho, vec2d{7.0e6, 0.0}, &hit);
+        CHECK_FALSE(hit);
+        CHECK_THROWS_AS(unproject(ortho, vec2d{7.0e6, 0.0}), std::domain_error);
+        unproject(ortho, vec2d{6.0e6, 0.0}, &hit);
+        CHECK(hit);
+    }
+
+    TEST_CASE("pga3dp: azimuthal projections - the defining property of each kind")
+    {
+        fmt::println(
+            "pga3dp: azimuthal projections - the defining property of each kind");
+        using namespace azimuthal_test;
+
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        geo_pos const st{deg2rad(52.5), deg2rad(13.4), 0.0};
+
+        // GNOMONIC: a great circle maps to a straight line. Points on the great circle
+        // through A and B by spherical interpolation, the deviation from collinearity as
+        // the sine of the angle between the chords from the first image point
+        auto great_circle_bend = [&](azimuthal kind) {
+            auto const m = make_azimuthal_map(st, kind, sphere);
+            auto const A =
+                to_vec3d(geo_to_ecef(geo_pos{deg2rad(38.0), deg2rad(-9.1)}, sphere));
+            auto const B =
+                to_vec3d(geo_to_ecef(geo_pos{deg2rad(60.2), deg2rad(24.9)}, sphere));
+            value_t const w = std::acos(value_t(dot(A, B)) / (R * R));
+            std::vector<vec2d> x;
+            for (int i = 0; i <= 10; ++i) {
+                value_t const f = i / 10.0;
+                vec3d const P =
+                    (std::sin((1.0 - f) * w) * A + std::sin(f * w) * B) / std::sin(w);
+                x.push_back(project(m, to_local(m, vec3dp{P, 1.0})));
+            }
+            value_t bend = 0.0;
+            for (size_t i = 1; i + 1 < x.size(); ++i) {
+                vec2d const u = x[i] - x[0];
+                vec2d const v = x.back() - x[0];
+                bend = std::max(bend, std::abs(value_t(wdg(u, v))) / (nrm(u) * nrm(v)));
+            }
+            return bend;
+        };
+        value_t const bend_g = great_circle_bend(azimuthal::gnomonic);
+        value_t const bend_o = great_circle_bend(azimuthal::orthographic);
+        fmt::println("    great circle Lisbon-Helsinki: bend gnomonic = {:.2e}, "
+                     "orthographic = {:.2e}",
+                     bend_g, bend_o);
+        CHECK(bend_g < 1.0e-12);
+        CHECK(bend_o > 1.0e-3); // the falsification: only the gnomonic straightens it
+
+        // STEREOGRAPHIC: conformal. The images of a step east and a step north, each in
+        // metres on the sphere, are perpendicular and equally long
+        auto conformality = [&](azimuthal kind, geo_pos const& p) {
+            auto const m = make_azimuthal_map(st, kind, sphere);
+            value_t const h = 1.0e-6;
+            auto at = [&](value_t dlat, value_t dlon) {
+                return project(m, geo_pos{p.lat + dlat, p.lon + dlon, 0.0});
+            };
+            vec2d const je = (at(0.0, h) - at(0.0, -h)) / (2.0 * h * R * std::cos(p.lat));
+            vec2d const jn = (at(h, 0.0) - at(-h, 0.0)) / (2.0 * h * R);
+            value_t const ratio = nrm(je) / nrm(jn);
+            value_t const skew = value_t(dot(je, jn)) / (nrm(je) * nrm(jn));
+            return std::max(std::abs(ratio - 1.0), std::abs(skew));
+        };
+        value_t worst_s = 0.0;
+        for (geo_pos const& p : {geo_pos{deg2rad(38.0), deg2rad(23.7)},
+                                 geo_pos{deg2rad(64.0), deg2rad(-20.0)},
+                                 geo_pos{deg2rad(28.1), deg2rad(-15.4)}}) {
+            worst_s = std::max(worst_s, conformality(azimuthal::stereographic, p));
+        }
+        value_t const worst_o =
+            conformality(azimuthal::orthographic, geo_pos{deg2rad(38.0), deg2rad(23.7)});
+        fmt::println(
+            "    conformality defect: stereographic = {:.2e}, orthographic = {:.2e}",
+            worst_s, worst_o);
+        CHECK(worst_s < 1.0e-6);
+        CHECK(worst_o >
+              1.0e-2); // the falsification: the orthographic map is not conformal
+    }
+
+    TEST_CASE("pga3dp: azimuthal projections - the drawable region and clipping")
+    {
+        fmt::println("pga3dp: azimuthal projections - the drawable region and clipping");
+
+        geo_pos const berlin{deg2rad(52.523765), deg2rad(13.399603), 0.0};
+        value_t const aa = wgs84.r_equator * wgs84.r_equator;
+        value_t const bb = wgs84.r_pole * wgs84.r_pole;
+
+        // ORTHOGRAPHIC and PERSPECTIVE on WGS84: drawable == visible from C, decided
+        // independently by the sign of (C - P) . n(P), n the ellipsoid normal at P
+        for (auto const kind : {azimuthal::orthographic, azimuthal::perspective}) {
+            auto const m = make_azimuthal_map(berlin, kind, wgs84, {.height = 2000.0e3});
+            auto const Ce = move3dp(m.C, m.M); // the centre in ECEF
+            int n_vis = 0;
+            int n_mismatch = 0;
+            for (int ilat = -88; ilat <= 88; ilat += 4) {
+                for (int ilon = -180; ilon < 180; ilon += 4) {
+                    auto const P =
+                        geo_to_ecef(geo_pos{deg2rad(ilat), deg2rad(ilon), 0.0});
+                    vec3d const n{P.x / aa, P.y / aa, P.z / bb};
+                    // (C - P) as a direction: c - w_C p
+                    vec3d const cp{Ce.x - Ce.w * P.x, Ce.y - Ce.w * P.y,
+                                   Ce.z - Ce.w * P.z};
+                    value_t const s = value_t(dot(cp, n)) / (nrm(cp) * nrm(n));
+                    if (std::abs(s) < 1.0e-9) continue; // on the horizon itself
+                    bool const visible = s > 0.0;
+                    if (visible) ++n_vis;
+                    if (is_drawable(m, to_local(m, P)) != visible) ++n_mismatch;
+                }
+            }
+            fmt::println("    {:13}: {} visible grid points, {} mismatches", m.kind,
+                         n_vis, n_mismatch);
+            CHECK(n_vis > 100);
+            CHECK(n_mismatch == 0);
+        }
+
+        // clip_at: a segment leaving the region is cut ON the limit, between its ends
+        auto const m = make_azimuthal_map(berlin, azimuthal::orthographic);
+        auto const A = to_local(m, geo_to_ecef(geo_pos{deg2rad(10.0), deg2rad(60.0)}));
+        auto const B = to_local(m, geo_to_ecef(geo_pos{deg2rad(-10.0), deg2rad(120.0)}));
+        REQUIRE(is_drawable(m, A));
+        REQUIRE_FALSE(is_drawable(m, B));
+        auto const Q = clip_at(A, B, m.limit);
+        // on the plane, relative to the size of the terms
+        value_t const on =
+            value_t(wdg(Q, m.limit)) / (nrm(to_vec3d(Q)) * nrm(to_vec3d(m.limit)));
+        CHECK(std::abs(on) < 1.0e-12);
+        // between A and B
+        vec3d const ab = to_vec3d(B) - to_vec3d(A);
+        value_t const f =
+            value_t(dot(to_vec3d(Q) - to_vec3d(A), ab)) / value_t(dot(ab, ab));
+        CHECK(f > 0.0);
+        CHECK(f < 1.0);
+
+        // limit_outline: every point is on the ellipsoid AND on the limit plane
+        for (auto const kind : azimuthal_test::all_kinds) {
+            auto const mk = make_azimuthal_map(berlin, kind, wgs84, {.height = 2000.0e3});
+            value_t off_ell = 0.0, off_plane = 0.0;
+            for (auto const& X : limit_outline(mk, 72)) {
+                off_ell = std::max(off_ell, std::abs(X.x * X.x / aa + X.y * X.y / aa +
+                                                     X.z * X.z / bb - 1.0));
+                auto const Xl = to_local(mk, X);
+                off_plane = std::max(off_plane,
+                                     std::abs(value_t(wdg(Xl, mk.limit))) /
+                                         (nrm(to_vec3d(Xl)) * nrm(to_vec3d(mk.limit))));
+            }
+            fmt::println("    {:13}: limit outline off the ellipsoid {:.1e}, off the "
+                         "plane {:.1e}",
+                         kind, off_ell, off_plane);
+            CHECK(off_ell < 1.0e-14);
+            CHECK(off_plane < 1.0e-12);
+        }
+        // and on a sphere the orthographic outline is the circle of radius R
+        {
+            value_t const R = 6371000.0;
+            ellipsoid const sphere{R, R};
+            auto const mk = make_azimuthal_map(berlin, azimuthal::orthographic, sphere);
+            value_t worst = 0.0;
+            for (auto const& X : limit_outline(mk, 72)) {
+                worst = std::max(worst, std::abs(nrm(project(mk, to_local(mk, X))) - R));
+            }
+            CHECK(worst < 1.0e-6);
+        }
+
+        // the settings each kind refuses
+        CHECK_THROWS_AS(
+            make_azimuthal_map(berlin, azimuthal::perspective, wgs84, {.height = 0.0}),
+            std::invalid_argument);
+        CHECK_THROWS_AS(make_azimuthal_map(berlin, azimuthal::gnomonic, wgs84,
+                                           {.max_angle = deg2rad(90.0)}),
+                        std::invalid_argument);
+        CHECK_THROWS_AS(make_azimuthal_map(berlin, azimuthal::stereographic, wgs84,
+                                           {.max_angle = deg2rad(180.0)}),
+                        std::invalid_argument);
+    }
+
+    TEST_CASE("pga3dp: azimuthal projections against the EPSG ellipsoidal methods")
+    {
+        fmt::println(
+            "pga3dp: azimuthal projections against the EPSG ellipsoidal methods");
+        using namespace azimuthal_test;
+
+        // The EPSG formulas (IOGP Guidance Note 7-2), written out independently of the
+        // library: the topocentric frame by its rotation matrix (method 9837), and the
+        // three ellipsoidal azimuthal methods built on it or beside it.
+        geo_pos const st{deg2rad(52.523765), deg2rad(13.399603), 0.0}; // Berlin
+        value_t const a = wgs84.r_equator;
+        value_t const e2 = wgs84.e_sq();
+        value_t const e = std::sqrt(e2);
+        value_t const sp0 = std::sin(st.lat), cp0 = std::cos(st.lat);
+        value_t const sl0 = std::sin(st.lon), cl0 = std::cos(st.lon);
+        value_t const nu0 = a / std::sqrt(1.0 - e2 * sp0 * sp0);
+        auto const S = geo_to_ecef(st);
+
+        // topocentric east/north/up of an ECEF point (EPSG 9837)
+        auto topo = [&](vec3dp const& P) {
+            value_t const dx = P.x - S.x, dy = P.y - S.y, dz = P.z - S.z;
+            return vec3d{-dx * sl0 + dy * cl0,
+                         -dx * sp0 * cl0 - dy * sp0 * sl0 + dz * cp0,
+                         dx * cp0 * cl0 + dy * cp0 * sl0 + dz * sp0};
+        };
+        // orthographic (EPSG 9840)
+        auto epsg_ortho = [&](geo_pos const& p) {
+            value_t const sp = std::sin(p.lat), cp = std::cos(p.lat);
+            value_t const dl = p.lon - st.lon;
+            value_t const nu = a / std::sqrt(1.0 - e2 * sp * sp);
+            return vec2d{nu * cp * std::sin(dl),
+                         nu * (sp * cp0 - cp * sp0 * std::cos(dl)) +
+                             e2 * (nu0 * sp0 - nu * sp) * cp0};
+        };
+        // vertical perspective (EPSG 9838), viewpoint at height hv above the origin
+        value_t const hv = 2000.0e3;
+        auto epsg_persp = [&](geo_pos const& p) {
+            auto const t = topo(geo_to_ecef(p));
+            return vec2d{t.x * hv / (hv - t.z), t.y * hv / (hv - t.z)};
+        };
+        // oblique stereographic (EPSG 9809), k0 = 1, no false origin: through the
+        // conformal sphere of radius sqrt(rho0 nu0)
+        value_t const rho0 = a * (1.0 - e2) / std::pow(1.0 - e2 * sp0 * sp0, 1.5);
+        value_t const Rc = std::sqrt(rho0 * nu0);
+        value_t const n = std::sqrt(1.0 + e2 * cp0 * cp0 * cp0 * cp0 / (1.0 - e2));
+        value_t const S1 = (1.0 + sp0) / (1.0 - sp0);
+        value_t const S2 = (1.0 - e * sp0) / (1.0 + e * sp0);
+        value_t const w1 = std::pow(S1 * std::pow(S2, e), n);
+        value_t const sin_chi0_1 = (w1 - 1.0) / (w1 + 1.0);
+        value_t const cc =
+            (n + sp0) * (1.0 - sin_chi0_1) / ((n - sp0) * (1.0 + sin_chi0_1));
+        value_t const w2 = cc * w1;
+        value_t const chi0 = std::asin((w2 - 1.0) / (w2 + 1.0));
+        auto epsg_stereo = [&](geo_pos const& p) {
+            value_t const sp = std::sin(p.lat);
+            value_t const dL = n * (p.lon - st.lon);
+            value_t const Sa = (1.0 + sp) / (1.0 - sp);
+            value_t const Sb = (1.0 - e * sp) / (1.0 + e * sp);
+            value_t const w = cc * std::pow(Sa * std::pow(Sb, e), n);
+            value_t const chi = std::asin((w - 1.0) / (w + 1.0));
+            value_t const B = 1.0 + std::sin(chi) * std::sin(chi0) +
+                              std::cos(chi) * std::cos(chi0) * std::cos(dL);
+            return vec2d{2.0 * Rc * std::cos(chi) * std::sin(dL) / B,
+                         2.0 * Rc *
+                             (std::sin(chi) * std::cos(chi0) -
+                              std::cos(chi) * std::sin(chi0) * std::cos(dL)) /
+                             B};
+        };
+
+        auto const mo = make_azimuthal_map(st, azimuthal::orthographic);
+        auto const mp =
+            make_azimuthal_map(st, azimuthal::perspective, wgs84, {.height = hv});
+        auto const ms = make_azimuthal_map(st, azimuthal::stereographic);
+
+        value_t err_o = 0.0, err_p = 0.0, dev_s = 0.0, rel_s = 0.0;
+        for (int ilat = 30; ilat <= 72; ilat += 3) {
+            for (int ilon = -30; ilon <= 45; ilon += 3) {
+                geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                auto const P = geo_to_ecef(p);
+                if (is_drawable(mo, to_local(mo, P))) {
+                    err_o = std::max(err_o, dist2d(project(mo, p), epsg_ortho(p)));
+                }
+                if (is_drawable(mp, to_local(mp, P))) {
+                    err_p = std::max(err_p, dist2d(project(mp, p), epsg_persp(p)));
+                }
+                auto const xs = project(ms, p);
+                value_t const r = nrm(xs);
+                value_t const dv = dist2d(xs, epsg_stereo(p));
+                dev_s = std::max(dev_s, dv);
+                if (r > 100.0e3) rel_s = std::max(rel_s, dv / r);
+            }
+        }
+        fmt::println("    orthographic  vs EPSG 9840: max {:.3e} m", err_o);
+        fmt::println("    perspective   vs EPSG 9838: max {:.3e} m", err_p);
+        fmt::println("    stereographic vs EPSG 9809: max {:.3e} m, max {:.3e} of the "
+                     "distance from the station (lat 30..72, lon -30..45)",
+                     dev_s, rel_s);
+        // the two EPSG methods that ARE the tangent-plane construction agree with it
+        CHECK(err_o < 1.0e-6);
+        CHECK(err_p < 1.0e-6);
+        // the oblique stereographic routes through a conformal sphere and differs, by
+        // about the flattening; the size is measured here and stated in the header
+        CHECK(dev_s > 1.0);
+        CHECK(rel_s < 1.0e-3); // measured 3.2e-4
+    }
+
+    TEST_CASE("geodesics: densify an edge that is straight in (lat, lon)")
+    {
+        fmt::println("geodesics: densify an edge that is straight in (lat, lon)");
+
+        // along a parallel: 10 deg in steps of at most 1 deg -> 9 points between
+        auto const d =
+            densify(geo_pos{deg2rad(50.0), deg2rad(10.0), 0.0},
+                    geo_pos{deg2rad(50.0), deg2rad(20.0), 100.0}, deg2rad(1.0));
+        REQUIRE(d.size() == 9);
+        CHECK(std::abs(d[0].lon - deg2rad(11.0)) < 1.0e-15);
+        CHECK(std::abs(d[8].lon - deg2rad(19.0)) < 1.0e-15);
+        CHECK(std::abs(d[4].lat - deg2rad(50.0)) < 1.0e-15);
+        CHECK(std::abs(d[4].height - 50.0) < 1.0e-12);
+
+        // across the 180-degree meridian the short way round: 2 deg, not 358 deg
+        auto const w =
+            densify(geo_pos{deg2rad(-16.0), deg2rad(179.0), 0.0},
+                    geo_pos{deg2rad(-16.0), deg2rad(-179.0), 0.0}, deg2rad(0.5));
+        REQUIRE(w.size() == 3);
+        CHECK(std::abs(w[1].lon - deg2rad(180.0)) < 1.0e-14);
+
+        // an edge shorter than the step needs nothing in between
+        CHECK(densify(geo_pos{0.0, 0.0, 0.0}, geo_pos{0.001, 0.0, 0.0}, 0.01).empty());
+        CHECK_THROWS_AS(densify(geo_pos{}, geo_pos{0.1, 0.0, 0.0}, 0.0),
+                        std::invalid_argument);
+    }
+
+} // TEST_SUITE("PGA3DP: projections onto the tangent plane")

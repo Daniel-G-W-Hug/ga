@@ -236,3 +236,96 @@ template <> struct fmt::formatter<hd::ga::pga::un_frame> {
         return fmt::format_to(out, ")");
     }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// azimuthal - which projection onto the tangent plane (printed by name)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::azimuthal> : fmt::formatter<string_view> {
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::azimuthal k, FormatContext& ctx) const
+    {
+        string_view name = "unknown";
+        switch (k) {
+            case hd::ga::pga::azimuthal::orthographic:
+                name = "orthographic";
+                break;
+            case hd::ga::pga::azimuthal::gnomonic:
+                name = "gnomonic";
+                break;
+            case hd::ga::pga::azimuthal::stereographic:
+                name = "stereographic";
+                break;
+            case hd::ga::pga::azimuthal::perspective:
+                name = "perspective";
+                break;
+        }
+        return fmt::formatter<string_view>::format(name, ctx);
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// azimuthal_options - the per-kind settings of a projection onto the tangent plane
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::azimuthal_options> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::azimuthal_options const& o, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "azimuthal_options(height = ");
+        out = fmt::format_to(out, fmt::runtime(child), o.height);
+        out = fmt::format_to(out, " m, max_angle = ");
+        out = fmt::format_to(out, fmt::runtime(child), o.max_angle);
+        return fmt::format_to(out, " rad)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// azimuthal_map - one projection onto the tangent plane at one station
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::azimuthal_map> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::azimuthal_map const& m, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "azimuthal_map({}, station = ", m.kind);
+        out = fmt::format_to(out, fmt::runtime(child), m.station);
+        out = fmt::format_to(out, ", C = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.C);
+        out = fmt::format_to(out, ", limit = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.limit);
+        return fmt::format_to(out, ")");
+    }
+};
