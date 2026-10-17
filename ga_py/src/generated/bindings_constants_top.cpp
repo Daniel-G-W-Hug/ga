@@ -32,5 +32,6 @@ using namespace hd::ga::sta;
 
 void register_constants_top(nb::module_& m)
 {
-    (void)m; // no constants in this submodule yet
+    m.attr("grs80") = nb::cast(hd::ga::grs80);
+    m.attr("wgs84") = nb::cast(hd::ga::wgs84);
 }

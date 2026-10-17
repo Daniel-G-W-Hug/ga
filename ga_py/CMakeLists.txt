@@ -79,6 +79,7 @@ nanobind_add_module(_ga_py
     src/bindings_rk4_step.cpp
     src/bindings_mechanics.cpp
     src/bindings_projections.cpp
+    src/bindings_geodesics.cpp
     ${GA_PY_GENERATED_SOURCES}
 )
 

@@ -16,6 +16,7 @@
 #include "fmt/ranges.h"  // support printing of (nested) containers & tuples
 
 // include functions to be tested
+#include "ga/ga_cga.hpp" // the stereographic projection as an inversion (cross-check)
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 
@@ -6395,6 +6396,75 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
         // about the flattening; the size is measured here and stated in the header
         CHECK(dev_s > 1.0);
         CHECK(rel_s < 1.0e-3); // measured 3.2e-4
+    }
+
+    TEST_CASE("pga3dp: the stereographic projection is a CGA inversion (cross-check)")
+    {
+        // Two independent constructions of one map. On a sphere of radius R the
+        // stereographic projection from the antipode C onto the plane tangent at the
+        // station S is the INVERSION in the sphere centred at C with radius 2R: an
+        // inversion keeps every ray from its centre, and it sends the sphere through C to
+        // the plane perpendicular to OC at distance (2R)^2 / (2R) = 2R from C -- the
+        // tangent plane at S. The library builds the map as a PGA meet (the line from C
+        // through P, met with the plane); CGA does the inversion as one sandwich. The two
+        // share no code. The inversion is taken in units of R: a round point carries
+        // |p|^2 / 2 in its e_inf part, which at earth scale would cost most of the
+        // digits.
+        fmt::println(
+            "pga3dp: the stereographic projection is a CGA inversion (cross-check)");
+        using namespace azimuthal_test;
+
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        geo_pos const st{deg2rad(52.5), deg2rad(13.4), 0.0};
+        auto const m = make_azimuthal_map(st, azimuthal::stereographic, sphere);
+
+        auto const S = to_vec3d(geo_to_ecef(st, sphere)) * (1.0 / R); // unit sphere
+        auto const f = enu_at(st, sphere);
+        vec3d const east{f.east.x, f.east.y, f.east.z};
+        vec3d const north{f.north.x, f.north.y, f.north.z};
+        vec3d const up{f.up.x, f.up.y, f.up.z};
+
+        // the stereographic map as an inversion, for a given inversion radius (in R)
+        auto by_inversion = [&](geo_pos const& p, value_t k) {
+            auto const inv = hd::ga::cga::sphere3dc(-1.0 * S, k);
+            auto const P = to_vec3d(geo_to_ecef(p, sphere)) * (1.0 / R);
+            auto const X =
+                hd::ga::cga::invert_on(hd::ga::cga::round_point3dc(P, 0.0), inv);
+            vec3d const d = hd::ga::cga::position(X) - S; // from the station, units of R
+            return std::array<value_t, 3>{R * value_t(dot(d, east)),
+                                          R * value_t(dot(d, north)),
+                                          R * value_t(dot(d, up))};
+        };
+
+        value_t worst = 0.0, off_plane = 0.0, worst_wrong = 1e300;
+        int n = 0;
+        for (int ilat = -80; ilat <= 80; ilat += 5) {
+            for (int ilon = -180; ilon < 180; ilon += 5) {
+                geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                auto const P = to_local(m, geo_to_ecef(p, sphere));
+                if (!is_drawable(m, P)) continue;
+                ++n;
+                auto const x = project(m, P);
+                auto const c = by_inversion(p, 2.0);
+                worst = std::max(worst, std::hypot(x.x - c[0], x.y - c[1]));
+                off_plane = std::max(off_plane, std::abs(c[2]));
+                // falsified: a radius 1 % off is a different map, metres to km away
+                if (std::hypot(x.x, x.y) > 1.0e5) {
+                    auto const w = by_inversion(p, 2.02);
+                    worst_wrong =
+                        std::min(worst_wrong, std::hypot(x.x - w[0], x.y - w[1]));
+                }
+            }
+        }
+        fmt::println("    {} points: PGA meet vs CGA inversion {:.2e} m, the inversion's "
+                     "image off the tangent plane {:.2e} m; with the radius 1 % off at "
+                     "least {:.0f} m",
+                     n, worst, off_plane, worst_wrong);
+        CHECK(n > 1000);
+        CHECK(worst < 1.0e-6);
+        CHECK(off_plane < 1.0e-6);
+        CHECK(worst_wrong > 100.0);
     }
 
     TEST_CASE("pga3dp: azimuthal projections - the area excess goes with 1 / depth")

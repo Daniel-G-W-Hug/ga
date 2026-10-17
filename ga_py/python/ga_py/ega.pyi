@@ -7,6 +7,52 @@ import numpy
 from numpy.typing import NDArray
 
 
+class ellipsoid:
+    """Reference ellipsoid of revolution, given by its two radii [m]."""
+
+    def __init__(self, r_equator: float, r_pole: float) -> None: ...
+
+    @property
+    def r_equator(self) -> float:
+        """semi-major axis a [m]"""
+
+    @r_equator.setter
+    def r_equator(self, arg: float, /) -> None: ...
+
+    @property
+    def r_pole(self) -> float:
+        """semi-minor axis b [m]"""
+
+    @r_pole.setter
+    def r_pole(self, arg: float, /) -> None: ...
+
+    def flattening(self) -> float:
+        """f = (a - b) / a"""
+
+    def e_sq(self) -> float:
+        """first eccentricity squared (a^2 - b^2) / a^2"""
+
+    def radius(self, lat: float) -> float:
+        """
+        distance of the surface from the geocenter at geodetic latitude lat [rad]
+        """
+
+    def N(self, lat: float) -> float:
+        """
+        radius of curvature in the prime vertical at geodetic latitude lat [rad]
+        """
+
+    def geocentric_lat(self, lat: float) -> float:
+        """the geocentric latitude for a geodetic one [rad]"""
+
+    def __eq__(self, arg: ellipsoid, /) -> bool: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
 class bivec3d:
     @overload
     def __init__(self) -> None: ...
@@ -1872,6 +1918,51 @@ class scalar3d:
 
     @overload
     def __xor__(self, arg: vec3d, /) -> vec3d: ...
+
+class transverse_mercator:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, lat0: float, lon0: float, k0: float, false_easting: float, false_northing: float) -> None: ...
+
+    @property
+    def lat0(self) -> float: ...
+
+    @lat0.setter
+    def lat0(self, arg: float, /) -> None: ...
+
+    @property
+    def lon0(self) -> float: ...
+
+    @lon0.setter
+    def lon0(self, arg: float, /) -> None: ...
+
+    @property
+    def k0(self) -> float: ...
+
+    @k0.setter
+    def k0(self, arg: float, /) -> None: ...
+
+    @property
+    def false_easting(self) -> float: ...
+
+    @false_easting.setter
+    def false_easting(self, arg: float, /) -> None: ...
+
+    @property
+    def false_northing(self) -> float: ...
+
+    @false_northing.setter
+    def false_northing(self, arg: float, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: transverse_mercator, /) -> bool: ...
 
 class vec2d:
     @overload

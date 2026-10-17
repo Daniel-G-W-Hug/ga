@@ -15,6 +15,8 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
 void bind_rk4_step(nb::module_& m);
 void bind_mechanics(nb::module_& pga);
 void bind_projections(nb::module_& ega, nb::module_& pga, nb::module_& sta);
+void bind_geodesics_types(nb::module_& ega);
+void bind_geodesics(nb::module_& pga);
 
 NB_MODULE(_ga_py, m)
 {
@@ -27,8 +29,12 @@ NB_MODULE(_ga_py, m)
         "cga", "Conformal geometric algebra (2dc, 3dc; rounds, flats, conformal maps)");
     auto sta = m.def_submodule("sta", "Space-time algebra (G(1,3,0), types *_4ds)");
 
+    // before register_all: the generated constants wgs84 / grs80 are converted at
+    // import and need the ellipsoid class registered (bindings_geodesics.cpp)
+    bind_geodesics_types(ega);
     register_all(m, ega, pga, cga, sta);
     bind_rk4_step(m);
     bind_mechanics(pga);
     bind_projections(ega, pga, sta);
+    bind_geodesics(pga);
 }

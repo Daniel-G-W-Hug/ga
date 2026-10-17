@@ -32,6 +32,11 @@ using namespace hd::ga::sta;
 
 void register_enums_pga(nb::module_& m)
 {
+    nb::enum_<azimuthal>(m, "azimuthal")
+        .value("orthographic", azimuthal::orthographic)
+        .value("gnomonic", azimuthal::gnomonic)
+        .value("stereographic", azimuthal::stereographic)
+        .value("perspective", azimuthal::perspective);
     nb::enum_<constraint2dp>(m, "constraint2dp")
         .value("coincidence", constraint2dp::coincidence)
         .value("distance", constraint2dp::distance)

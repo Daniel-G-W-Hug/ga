@@ -36,6 +36,15 @@ void register_functions_top(nb::module_& m)
     m.def("critical_damping",
           [](double a0, double a1) { return critical_damping(a0, a1); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
+    m.def("densify", [](geo_pos const& a0, geo_pos const& a1, double a2) {
+        return densify(a0, a1, a2);
+    });
+    m.def("distance_from_geocenter", [](geo_pos const& a0, ellipsoid const& a1) {
+        return distance_from_geocenter(a0, a1);
+    });
+    m.def("distance_from_geocenter", [](geo_pos2dp const& a0, ellipsoid const& a1) {
+        return distance_from_geocenter(a0, a1);
+    });
     m.def("fact", [](int a0) { return fact(a0); });
     m.def("fd_derivative",
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2,
@@ -122,6 +131,10 @@ void register_functions_top(nb::module_& m)
     m.def("stopping_accel_bound", [](double a0, double a1, double a2, double a3) {
         return stopping_accel_bound(a0, a1, a2, a3);
     });
+    m.def("tm_forward", [](geo_pos const& a0, transverse_mercator const& a1,
+                           ellipsoid const& a2) { return tm_forward(a0, a1, a2); });
+    m.def("tm_inverse", [](vec2d const& a0, transverse_mercator const& a1,
+                           ellipsoid const& a2) { return tm_inverse(a0, a1, a2); });
     m.def("to_geo_pos",
           [](geo_pos_dms const& a0, double a1) { return to_geo_pos(a0, a1); });
     m.def("to_geo_pos",
@@ -130,4 +143,5 @@ void register_functions_top(nb::module_& m)
           [](std::vector<double> const& a0, std::vector<double> const& a1,
              std::vector<double> const& a2,
              std::vector<double> const& a3) { return tridiag_solve(a0, a1, a2, a3); });
+    m.def("utm_zone", [](int a0, bool a1) { return utm_zone(a0, a1); });
 }

@@ -186,6 +186,14 @@ struct ellipsoid {
     }
 };
 
+// Exact equality of the two radii. Free, not a member: the binding generator drops a
+// struct carrying a member function, and the generated equality of every struct with an
+// ellipsoid field (azimuthal_map) compares it with this.
+inline bool operator==(ellipsoid const& a, ellipsoid const& b)
+{
+    return a.r_equator == b.r_equator && a.r_pole == b.r_pole;
+}
+
 // WGS84 (the GPS datum) and GRS80 (the ITRS/ETRS89 datum); the two differ by well below
 // a millimetre on the earth's surface
 inline ellipsoid const wgs84{6378137.0, 6356752.314245179};
@@ -606,6 +614,12 @@ struct geo_pos {
     value_t lon{};    // longitude [rad], positive towards east
     value_t height{}; // [m] above the reference ellipsoid, along the ellipsoid normal
 };
+
+// Exact equality, field by field (free, for the reason given at the ellipsoid's).
+inline bool operator==(geo_pos const& a, geo_pos const& b)
+{
+    return a.lat == b.lat && a.lon == b.lon && a.height == b.height;
+}
 
 // distance of the position from the geocenter [m] -- the "total radius". It equals
 // el.radius(lat) + height only on the ellipsoid surface (height == 0); off the surface

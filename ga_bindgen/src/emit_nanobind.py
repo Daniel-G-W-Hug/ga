@@ -1554,6 +1554,13 @@ def main() -> int:
         # hand-bound names so those structs resolve.
         for tmpl, user in (("Inertia2dp", "inertia2dp"), ("Inertia3dp", "inertia3dp")):
             type_map.setdefault(tmpl, user)
+        # The reference ellipsoid is HAND-bound too (ga_py/src/bindings_geodesics.cpp):
+        # it carries member functions (flattening(), N(), ...), so it is no pure-data
+        # struct and the scan does not list it -- and every geodesy function takes an
+        # `ellipsoid const&`, so without this entry the whole layer (geo_to_ecef,
+        # enu_at, the projections onto the tangent plane, tm_forward, ...) and the
+        # azimuthal_map struct were dropped without a message.
+        type_map.setdefault("ellipsoid", "ellipsoid")
         grade_methods_per_type = collect_grade_extractors(manifest, type_map)
         binary_ops_per_type = collect_binary_operators(manifest, type_map)
         types_by_name: dict[str, TypeAlias] = {t.name: t for t in eligible}

@@ -36,6 +36,9 @@ void register_convenience_types(sol::state& lua);
 // PGA physics pure-data structs (pose / kin_state / joint_state / loop_constraint)
 // and their scoped enums (joint / constraint)
 void register_physics_pods(sol::state& lua);
+// geodesy: the ellipsoid, geodetic positions, ECEF <-> ENU, the projections onto the
+// tangent plane and the transverse Mercator (types, functions and constants)
+void register_geodesics(sol::state& lua);
 // Function and constant registration
 void register_functions(sol::state& lua);
 void register_constants(sol::state& lua);
@@ -7430,4 +7433,274 @@ void register_3dc_types(sol::state& lua)
                       sol::resolve<mvec3dc(mvec3dc const&, mvec3dc const&)>(operator*)),
         sol::meta_function::division,
         sol::resolve<mvec3dc(mvec3dc const&, value_t)>(operator/));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// geodesy (ga_usr_geodesics.hpp)
+////////////////////////////////////////////////////////////////////////////////
+//
+// The types and constants keep their global names, the functions go where ga_py has
+// them: the ECEF / ENU frames and the projections onto the tangent plane in `pga`, the
+// position helpers and the transverse Mercator at the top. Every function that takes
+// the ellipsoid in C++ takes it here too, as an optional last argument defaulting to
+// wgs84 -- the C++ default, which the Python bindings cannot carry. unproject returns
+// nil where the C++ form reports a miss through its bool* out-parameter, and the
+// functions returning a std::vector return a Lua table.
+
+void register_geodesics(sol::state& lua)
+{
+    using namespace hd::ga;
+    using namespace hd::ga::pga;
+
+    // ---- types
+    lua.new_enum<geo_angle>("geo_angle", {{"latitude", geo_angle::latitude},
+                                          {"longitude", geo_angle::longitude}});
+    lua.new_enum<azimuthal>("azimuthal", {{"orthographic", azimuthal::orthographic},
+                                          {"gnomonic", azimuthal::gnomonic},
+                                          {"stereographic", azimuthal::stereographic},
+                                          {"perspective", azimuthal::perspective}});
+
+    lua.new_usertype<ellipsoid>(
+        "ellipsoid", sol::call_constructor,
+        sol::factories([](value_t a, value_t b) { return ellipsoid{a, b}; }), "new",
+        sol::factories([](value_t a, value_t b) { return ellipsoid{a, b}; }), "r_equator",
+        &ellipsoid::r_equator, "r_pole", &ellipsoid::r_pole, "flattening",
+        &ellipsoid::flattening, "e_sq", &ellipsoid::e_sq, "radius", &ellipsoid::radius,
+        "N", &ellipsoid::N, "geocentric_lat", &ellipsoid::geocentric_lat,
+        sol::meta_function::equal_to,
+        [](ellipsoid const& a, ellipsoid const& b) { return a == b; },
+        sol::meta_function::to_string,
+        [](ellipsoid const& e) { return fmt::format("{}", e); });
+
+    lua.new_usertype<geo_pos>("geo_pos", sol::call_constructor,
+                              sol::factories([]() { return geo_pos{}; },
+                                             [](value_t lat, value_t lon, value_t h) {
+                                                 return geo_pos{lat, lon, h};
+                                             }),
+                              "new",
+                              sol::factories([]() { return geo_pos{}; },
+                                             [](value_t lat, value_t lon, value_t h) {
+                                                 return geo_pos{lat, lon, h};
+                                             }),
+                              "lat", &geo_pos::lat, "lon", &geo_pos::lon, "height",
+                              &geo_pos::height, sol::meta_function::to_string,
+                              [](geo_pos const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<geo_pos2dp>(
+        "geo_pos2dp", sol::call_constructor,
+        sol::factories([]() { return geo_pos2dp{}; },
+                       [](value_t lat, value_t h) { return geo_pos2dp{lat, h}; }),
+        "new",
+        sol::factories([]() { return geo_pos2dp{}; },
+                       [](value_t lat, value_t h) { return geo_pos2dp{lat, h}; }),
+        "lat", &geo_pos2dp::lat, "height", &geo_pos2dp::height,
+        sol::meta_function::to_string,
+        [](geo_pos2dp const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<geo_pos_dms>(
+        "geo_pos_dms", sol::call_constructor,
+        sol::factories([](std::string const& lat, std::string const& lon, value_t h) {
+            return geo_pos_dms{lat, lon, h};
+        }),
+        "new",
+        sol::factories([](std::string const& lat, std::string const& lon, value_t h) {
+            return geo_pos_dms{lat, lon, h};
+        }),
+        "lat", &geo_pos_dms::lat, "lon", &geo_pos_dms::lon, "height",
+        &geo_pos_dms::height, sol::meta_function::to_string,
+        [](geo_pos_dms const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<enu_frame>("enu_frame", sol::no_constructor, "east",
+                                &enu_frame::east, "north", &enu_frame::north, "up",
+                                &enu_frame::up, sol::meta_function::to_string,
+                                [](enu_frame const& f) { return fmt::format("{}", f); });
+
+    lua.new_usertype<un_frame>("un_frame", sol::no_constructor, "up", &un_frame::up,
+                               "north", &un_frame::north, sol::meta_function::to_string,
+                               [](un_frame const& f) { return fmt::format("{}", f); });
+
+    lua.new_usertype<azimuthal_options>(
+        "azimuthal_options", sol::call_constructor,
+        sol::factories([]() { return azimuthal_options{}; },
+                       [](value_t height, value_t max_angle) {
+                           return azimuthal_options{height, max_angle};
+                       }),
+        "new",
+        sol::factories([]() { return azimuthal_options{}; },
+                       [](value_t height, value_t max_angle) {
+                           return azimuthal_options{height, max_angle};
+                       }),
+        "height", &azimuthal_options::height, "max_angle", &azimuthal_options::max_angle,
+        sol::meta_function::to_string,
+        [](azimuthal_options const& o) { return fmt::format("{}", o); });
+
+    lua.new_usertype<azimuthal_map>(
+        "azimuthal_map", sol::no_constructor, "station", &azimuthal_map::station, "el",
+        &azimuthal_map::el, "kind", &azimuthal_map::kind, "M", &azimuthal_map::M, "C",
+        &azimuthal_map::C, "limit", &azimuthal_map::limit, sol::meta_function::to_string,
+        [](azimuthal_map const& m) { return fmt::format("{}", m); });
+
+    lua.new_usertype<transverse_mercator>(
+        "transverse_mercator", sol::call_constructor,
+        sol::factories(
+            []() { return transverse_mercator{}; },
+            [](value_t lat0, value_t lon0, value_t k0, value_t fe, value_t fn) {
+                return transverse_mercator{lat0, lon0, k0, fe, fn};
+            }),
+        "new",
+        sol::factories(
+            []() { return transverse_mercator{}; },
+            [](value_t lat0, value_t lon0, value_t k0, value_t fe, value_t fn) {
+                return transverse_mercator{lat0, lon0, k0, fe, fn};
+            }),
+        "lat0", &transverse_mercator::lat0, "lon0", &transverse_mercator::lon0, "k0",
+        &transverse_mercator::k0, "false_easting", &transverse_mercator::false_easting,
+        "false_northing", &transverse_mercator::false_northing,
+        sol::meta_function::to_string,
+        [](transverse_mercator const& t) { return fmt::format("{}", t); });
+
+    // ---- functions in pga: ECEF <-> ENU, the meridian section, the projections
+    auto pga = lua["pga"].get_or_create<sol::table>();
+
+    pga.set_function(
+        "geo_to_ecef",
+        sol::overload(
+            [](geo_pos const& p) { return geo_to_ecef(p); },
+            [](geo_pos const& p, ellipsoid const& el) { return geo_to_ecef(p, el); },
+            [](geo_pos2dp const& p) { return geo_to_ecef(p); },
+            [](geo_pos2dp const& p, ellipsoid const& el) { return geo_to_ecef(p, el); }));
+    pga.set_function(
+        "ecef_to_geo",
+        sol::overload(
+            [](vec3dp const& P) { return ecef_to_geo(P); },
+            [](vec3dp const& P, ellipsoid const& el) { return ecef_to_geo(P, el); },
+            [](vec2dp const& P) { return ecef_to_geo(P); },
+            [](vec2dp const& P, ellipsoid const& el) { return ecef_to_geo(P, el); }));
+    pga.set_function("enu_at", sol::overload([](vec3dp const& P) { return enu_at(P); },
+                                             [](vec3dp const& P, ellipsoid const& el) {
+                                                 return enu_at(P, el);
+                                             },
+                                             [](geo_pos const& p) { return enu_at(p); },
+                                             [](geo_pos const& p, ellipsoid const& el) {
+                                                 return enu_at(p, el);
+                                             }));
+    pga.set_function("enu_basis_at",
+                     sol::overload([](geo_pos const& p) { return enu_basis_at(p); },
+                                   [](geo_pos const& p, ellipsoid const& el) {
+                                       return enu_basis_at(p, el);
+                                   }));
+    pga.set_function("enu_to_ecef_motor",
+                     sol::overload([](geo_pos const& p) { return enu_to_ecef_motor(p); },
+                                   [](geo_pos const& p, ellipsoid const& el) {
+                                       return enu_to_ecef_motor(p, el);
+                                   }));
+    pga.set_function("enu_motor_at",
+                     sol::overload([](vec3dp const& P) { return enu_motor_at(P); },
+                                   [](vec3dp const& P, ellipsoid const& el) {
+                                       return enu_motor_at(P, el);
+                                   }));
+    pga.set_function("un_at", sol::overload([](vec2dp const& P) { return un_at(P); },
+                                            [](vec2dp const& P, ellipsoid const& el) {
+                                                return un_at(P, el);
+                                            },
+                                            [](geo_pos2dp const& p) { return un_at(p); },
+                                            [](geo_pos2dp const& p, ellipsoid const& el) {
+                                                return un_at(p, el);
+                                            }));
+    pga.set_function("un_basis_at",
+                     sol::overload([](geo_pos2dp const& p) { return un_basis_at(p); },
+                                   [](geo_pos2dp const& p, ellipsoid const& el) {
+                                       return un_basis_at(p, el);
+                                   }));
+    pga.set_function(
+        "un_to_ecef_motor",
+        sol::overload([](geo_pos2dp const& p) { return un_to_ecef_motor(p); },
+                      [](geo_pos2dp const& p, ellipsoid const& el) {
+                          return un_to_ecef_motor(p, el);
+                      }));
+    pga.set_function("un_motor_at",
+                     sol::overload([](vec2dp const& P) { return un_motor_at(P); },
+                                   [](vec2dp const& P, ellipsoid const& el) {
+                                       return un_motor_at(P, el);
+                                   }));
+
+    pga.set_function(
+        "make_azimuthal_map",
+        sol::overload(
+            [](geo_pos const& s, azimuthal k) { return make_azimuthal_map(s, k); },
+            [](geo_pos const& s, azimuthal k, ellipsoid const& el) {
+                return make_azimuthal_map(s, k, el);
+            },
+            [](geo_pos const& s, azimuthal k, ellipsoid const& el,
+               azimuthal_options const& o) { return make_azimuthal_map(s, k, el, o); }));
+    pga.set_function("to_local", [](azimuthal_map const& m, vec3dp const& P) {
+        return to_local(m, P);
+    });
+    pga.set_function("is_drawable", [](azimuthal_map const& m, vec3dp const& P) {
+        return is_drawable(m, P);
+    });
+    pga.set_function(
+        "project",
+        sol::overload(
+            [](azimuthal_map const& m, vec3dp const& P) { return project(m, P); },
+            [](azimuthal_map const& m, geo_pos const& p) { return project(m, p); }));
+    pga.set_function("clip_at", [](vec3dp const& A, vec3dp const& B, trivec3dp const& t) {
+        return clip_at(A, B, t);
+    });
+    pga.set_function(
+        "unproject",
+        [](azimuthal_map const& m, vec2d const& x) -> sol::optional<geo_pos> {
+            bool hit = false;
+            geo_pos const p = unproject(m, x, &hit);
+            if (!hit) return sol::nullopt;
+            return p;
+        });
+    pga.set_function("limit_outline", sol::overload(
+                                          [](azimuthal_map const& m) {
+                                              return sol::as_table(limit_outline(m));
+                                          },
+                                          [](azimuthal_map const& m, size_t n) {
+                                              return sol::as_table(limit_outline(m, n));
+                                          }));
+
+    // ---- top-level functions: positions and the transverse Mercator
+    lua.set_function("densify", [](geo_pos const& a, geo_pos const& b, value_t step) {
+        return sol::as_table(densify(a, b, step));
+    });
+    lua.set_function(
+        "distance_from_geocenter",
+        sol::overload([](geo_pos const& p) { return distance_from_geocenter(p); },
+                      [](geo_pos const& p, ellipsoid const& el) {
+                          return distance_from_geocenter(p, el);
+                      },
+                      [](geo_pos2dp const& p) { return distance_from_geocenter(p); },
+                      [](geo_pos2dp const& p, ellipsoid const& el) {
+                          return distance_from_geocenter(p, el);
+                      }));
+    lua.set_function(
+        "to_geo_pos",
+        sol::overload([](geo_pos_dms const& p) { return to_geo_pos(p); },
+                      [](geo_pos_dms const& p, value_t n) { return to_geo_pos(p, n); }));
+    lua.set_function("utm_zone", sol::overload([](int zone) { return utm_zone(zone); },
+                                               [](int zone, bool north) {
+                                                   return utm_zone(zone, north);
+                                               }));
+    lua.set_function(
+        "tm_forward",
+        sol::overload([](geo_pos const& p,
+                         transverse_mercator const& t) { return tm_forward(p, t); },
+                      [](geo_pos const& p, transverse_mercator const& t,
+                         ellipsoid const& el) { return tm_forward(p, t, el); }));
+    lua.set_function(
+        "tm_inverse",
+        sol::overload(
+            [](vec2d const& x, transverse_mercator const& t) { return tm_inverse(x, t); },
+            [](vec2d const& x, transverse_mercator const& t, ellipsoid const& el) {
+                return tm_inverse(x, t, el);
+            }));
+
+    // ---- constants (after their type)
+    lua["wgs84"] = wgs84;
+    lua["grs80"] = grs80;
 }

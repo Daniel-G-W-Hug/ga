@@ -2,6 +2,8 @@
 # Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 
 set(GA_PY_GENERATED_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_azimuthal_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_azimuthal_options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec3d.cpp
@@ -72,6 +74,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_axis2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_transverse_mercator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dp.cpp

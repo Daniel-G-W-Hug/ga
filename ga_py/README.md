@@ -466,6 +466,7 @@ ga_py/
 │   ├── bindings_rk4_step.cpp   # hand-written: rk4_step per VecType (§6.5)
 │   ├── bindings_mechanics.cpp  # hand-written: the inertia surface (§6.6)
 │   ├── bindings_projections.cpp # hand-written: the generic templates (§6.10)
+│   ├── bindings_geodesics.cpp  # hand-written: the ellipsoid and unproject (geodesy)
 │   └── generated/              # produced by ga_bindgen — do not edit
 │       ├── bindings_*.cpp      # one file per bound user type (46 today)
 │       ├── bindings_constants_*.cpp

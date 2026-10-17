@@ -1179,12 +1179,19 @@ NON-generated files — each one surfaced as a test failure when missed:
 Helpers used only by the C++ ops (not public API) belong in `hd::ga::detail`, which
 `scan.py` excludes from the binding — see the STA rotor section below.
 
-**Three files are HAND-written and the generator never touches them** (`ga_py/src/`):
+**Four files are HAND-written and the generator never touches them** (`ga_py/src/`):
 `bindings_rk4_step.cpp` (templated on `VecType`), `bindings_mechanics.cpp` (the `inertia*`
-struct shapes), and `bindings_projections.cpp` (the fully generic
+struct shapes), `bindings_projections.cpp` (the fully generic
 `decltype(auto) f(arg1&&, arg2&&)` templates: the projection / antiprojection families,
-`dist{2,3}dp`, `try_unitize`, `is_simple`'s defaulted tolerance). Adding one means a
-declaration + call in `module.cpp` and an entry in `ga_py/CMakeLists.txt`'s source list.
+`dist{2,3}dp`, `try_unitize`, `is_simple`'s defaulted tolerance), and
+`bindings_geodesics.cpp` (the `ellipsoid`, which has member functions and so is no
+pure-data struct -- without it every geodesy function, all taking an `ellipsoid const&`,
+was dropped silently -- and `unproject`, whose `bool*` miss flag becomes a `None`
+return). Adding one means a declaration + call in `module.cpp` and an entry in
+`ga_py/CMakeLists.txt`'s source list. **`bind_geodesics_types()` runs BEFORE
+`register_all`**: the generated constants `wgs84` / `grs80` are converted at import and
+need the class registered. The generated bindings carry no C++ default arguments, so
+Python passes the ellipsoid explicitly (`geo_to_ecef(p, ga_py.wgs84)`).
 
 **The line between a C++ binding and a Python forwarder in `__init__.py`** — both exist
 for the same reason, that a fully generic template has no signature the emitter can map —

@@ -473,3 +473,12 @@
            against the orthographic map go with 1/depth of the centre (perspective /
            stereographic to 2e-4), the gnomonic one too over a region centred on the
            station or with its centre moved onto the normal, and not over an uneven one.
+- 2026/10: the geodesy layer reaches Python and Lua. ga_py: the reference ellipsoid is
+           hand-bound (it carries member functions, so the generator skipped it -- and with
+           it every function taking an `ellipsoid const&`, i.e. the whole ECEF / ENU layer);
+           with it the generator binds geo_to_ecef, enu_at, the ENU motors, the projections
+           onto the tangent plane and the transverse Mercator, plus the wgs84 / grs80
+           constants; unproject is hand-bound and returns None beyond the limb. ga_lua: the
+           same surface by hand, the ellipsoid an optional argument defaulting to wgs84.
+           A cross-check: on a sphere the stereographic map equals the CGA inversion in the
+           sphere about the antipode of radius 2R (to 8e-9 m), the two sharing no code.

@@ -117,6 +117,9 @@ void register_functions_pga(nb::module_& m)
     m.def("bulk_nrm_sq", [](mvec3dp_e const& a0) { return bulk_nrm_sq(a0); });
     m.def("bulk_nrm_sq", [](mvec3dp_u const& a0) { return bulk_nrm_sq(a0); });
     m.def("bulk_nrm_sq", [](mvec3dp const& a0) { return bulk_nrm_sq(a0); });
+    m.def("clip_at", [](vec3dp const& a0, vec3dp const& a1, trivec3dp const& a2) {
+        return clip_at(a0, a1, a2);
+    });
     m.def("cmpl", [](scalar2dp const& a0) { return cmpl(a0); });
     m.def("cmpl", [](vec2dp const& a0) { return cmpl(a0); });
     m.def("cmpl", [](bivec2dp const& a0) { return cmpl(a0); });
@@ -203,10 +206,28 @@ void register_functions_pga(nb::module_& m)
     m.def("dot", [](bivec3dp const& a0, bivec3dp const& a1) { return dot(a0, a1); });
     m.def("dot", [](vec3dp const& a0, vec3dp const& a1) { return dot(a0, a1); });
     m.def("dot", [](scalar3dp const& a0, scalar3dp const& a1) { return dot(a0, a1); });
+    m.def("ecef_to_geo",
+          [](vec3dp const& a0, ellipsoid const& a1) { return ecef_to_geo(a0, a1); });
+    m.def("ecef_to_geo",
+          [](vec2dp const& a0, ellipsoid const& a1) { return ecef_to_geo(a0, a1); });
+    m.def("enu_at", [](vec3dp const& a0, ellipsoid const& a1) { return enu_at(a0, a1); });
+    m.def("enu_at",
+          [](geo_pos const& a0, ellipsoid const& a1) { return enu_at(a0, a1); });
+    m.def("enu_basis_at",
+          [](geo_pos const& a0, ellipsoid const& a1) { return enu_basis_at(a0, a1); });
+    m.def("enu_motor_at",
+          [](vec3dp const& a0, ellipsoid const& a1) { return enu_motor_at(a0, a1); });
+    m.def("enu_to_ecef_motor", [](geo_pos const& a0, ellipsoid const& a1) {
+        return enu_to_ecef_motor(a0, a1);
+    });
     m.def("expand", [](point2d const& a0, line2d const& a1) { return expand(a0, a1); });
     m.def("expand", [](point3d const& a0, plane3d const& a1) { return expand(a0, a1); });
     m.def("expand", [](point3d const& a0, line3d const& a1) { return expand(a0, a1); });
     m.def("expand", [](line3d const& a0, plane3d const& a1) { return expand(a0, a1); });
+    m.def("geo_to_ecef",
+          [](geo_pos const& a0, ellipsoid const& a1) { return geo_to_ecef(a0, a1); });
+    m.def("geo_to_ecef",
+          [](geo_pos2dp const& a0, ellipsoid const& a1) { return geo_to_ecef(a0, a1); });
     m.def("geom_nrm", [](scalar2dp const& a0) { return geom_nrm(a0); });
     m.def("geom_nrm", [](vec2dp const& a0) { return geom_nrm(a0); });
     m.def("geom_nrm", [](bivec2dp const& a0) { return geom_nrm(a0); });
@@ -389,6 +410,8 @@ void register_functions_pga(nb::module_& m)
     m.def("is_congruent", [](pscalar3dp const& a0, pscalar3dp const& a1, double a2) {
         return is_congruent(a0, a1, a2);
     });
+    m.def("is_drawable",
+          [](azimuthal_map const& a0, vec3dp const& a1) { return is_drawable(a0, a1); });
     m.def("is_same_motion", [](mvec2dp_u const& a0, mvec2dp_u const& a1, double a2) {
         return is_same_motion(a0, a1, a2);
     });
@@ -436,6 +459,11 @@ void register_functions_pga(nb::module_& m)
     m.def("l_weight_dual", [](mvec3dp_e const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp_u const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp const& a0) { return l_weight_dual(a0); });
+    m.def("limit_outline",
+          [](azimuthal_map const& a0, int a1) { return limit_outline(a0, a1); });
+    m.def("make_azimuthal_map",
+          [](geo_pos const& a0, azimuthal const& a1, ellipsoid const& a2,
+             azimuthal_options const& a3) { return make_azimuthal_map(a0, a1, a2, a3); });
     m.def("make_body_from_inertia",
           [](double a0, double a1) { return make_body_from_inertia(a0, a1); });
     m.def("make_body_from_inertia",
@@ -512,6 +540,10 @@ void register_functions_pga(nb::module_& m)
           [](mvec2dp_u const& a0) { return pose2dp_from_motor(a0); });
     m.def("pose3dp_from_motor",
           [](mvec3dp_e const& a0) { return pose3dp_from_motor(a0); });
+    m.def("project",
+          [](azimuthal_map const& a0, vec3dp const& a1) { return project(a0, a1); });
+    m.def("project",
+          [](azimuthal_map const& a0, geo_pos const& a1) { return project(a0, a1); });
     m.def("project_onto",
           [](vec2dp const& a0, vec2dp const& a1) { return project_onto(a0, a1); });
     m.def("project_onto",
@@ -947,6 +979,8 @@ void register_functions_pga(nb::module_& m)
     m.def("sup", [](bivec3dp const& a0) { return sup(a0); });
     m.def("sup", [](trivec3dp const& a0) { return sup(a0); });
     m.def("to_bivec3d", [](bivec3dp const& a0) { return to_bivec3d(a0); });
+    m.def("to_local",
+          [](azimuthal_map const& a0, vec3dp const& a1) { return to_local(a0, a1); });
     m.def("to_pscalar2d", [](bivec2dp const& a0) { return to_pscalar2d(a0); });
     m.def("to_scalar3d", [](trivec3dp const& a0) { return to_scalar3d(a0); });
     m.def("to_vec2d", [](vec2dp const& a0) { return to_vec2d(a0); });
@@ -970,6 +1004,16 @@ void register_functions_pga(nb::module_& m)
     m.def("twdg1", [](bivec3dp const& a0, vec3dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec3dp const& a0, bivec3dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec3dp const& a0, vec3dp const& a1) { return twdg1(a0, a1); });
+    m.def("un_at", [](vec2dp const& a0, ellipsoid const& a1) { return un_at(a0, a1); });
+    m.def("un_at",
+          [](geo_pos2dp const& a0, ellipsoid const& a1) { return un_at(a0, a1); });
+    m.def("un_basis_at",
+          [](geo_pos2dp const& a0, ellipsoid const& a1) { return un_basis_at(a0, a1); });
+    m.def("un_motor_at",
+          [](vec2dp const& a0, ellipsoid const& a1) { return un_motor_at(a0, a1); });
+    m.def("un_to_ecef_motor", [](geo_pos2dp const& a0, ellipsoid const& a1) {
+        return un_to_ecef_motor(a0, a1);
+    });
     m.def("unitize", [](vec2dp const& a0) { return unitize(a0); });
     m.def("unitize", [](bivec2dp const& a0) { return unitize(a0); });
     m.def("unitize", [](pscalar2dp const& a0) { return unitize(a0); });

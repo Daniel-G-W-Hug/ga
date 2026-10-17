@@ -211,6 +211,7 @@ int main(int argc, char* argv[])
         register_3dc_types(lua);         // CGA (G(4,1,0))
         register_convenience_types(lua); // subclasses; after the base value types
         register_physics_pods(lua);      // pose / kin_state / joint_state / enums
+        register_geodesics(lua);         // ellipsoid, positions, projections, UTM
         register_functions(lua);
         register_constants(lua);
         register_forwarders(lua); // Lua-level template forwarders (after primitives)
