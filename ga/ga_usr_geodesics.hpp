@@ -4,6 +4,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <algorithm> // std::max
+#include <array>     // std::array (transverse Mercator coefficients)
 #include <cctype>    // std::isspace, std::toupper
 #include <cmath>     // std::sin, std::cos, std::sqrt, std::atan2, std::abs
 #include <cstdio>    // std::snprintf (deg2dms)
@@ -67,6 +68,10 @@
 //                               notation, closing the parser's round trip
 // - to_geo_pos()              : geo_pos_dms -> geo_pos (the explicit conversion above)
 // - densify()                 : intermediate positions on an edge straight in (lat, lon)
+// - transverse_mercator       : the parameters of a transverse Mercator grid
+// - utm_zone()                : those of a UTM zone
+// - tm_forward() / tm_inverse(): geodetic position <-> grid coordinates (easting,
+//                               northing) -- e.g. to read geodata delivered in UTM
 // - distance_from_geocenter() : the position's "total radius" [m], derived
 // - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
 //                               to_geo_pos() and distance_from_geocenter() overload on
@@ -675,6 +680,170 @@ inline std::vector<geo_pos> densify(geo_pos const& a, geo_pos const& b, value_t 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// transverse Mercator: geodetic position <-> grid coordinates (UTM, national grids)
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// The conformal map onto a cylinder that touches the ellipsoid along a central meridian:
+// the basis of UTM and of most national grids. Official geodata is often delivered only
+// in such GRID coordinates -- easting and northing in metres -- so reading it needs the
+// inverse, tm_inverse(), and writing it the forward map, tm_forward().
+//
+// This is classical numerics with no geometric-algebra form, and is written as such:
+// Krueger's series in the third flattening n = f / (2 - f), to order n^6, in the form
+// given by Karney ("Transverse Mercator with an accuracy of a few nanometers", J. Geodesy
+// 85, 2011), on the EXACT conformal latitude -- the inverse solves for the geodetic
+// latitude by Newton's method instead of a second series. Within a UTM zone (3 deg either
+// side of the central meridian) it agrees with PROJ to well below a millimetre (tested);
+// like every series form it degrades far outside the zone.
+//
+// Grid coordinates are returned as a vec2d: x the easting, y the northing [m].
+
+// the parameters of one transverse Mercator grid
+struct transverse_mercator {
+    value_t lat0{0.0};           // latitude of the origin [rad]
+    value_t lon0{0.0};           // the central meridian [rad]
+    value_t k0{1.0};             // the scale on the central meridian
+    value_t false_easting{0.0};  // [m]
+    value_t false_northing{0.0}; // [m]
+};
+
+// UTM zone 1..60: the central meridian at 6 zone - 183 deg, k0 = 0.9996, a false easting
+// of 500 km, and a false northing of 0 (northern) or 10 000 km (southern hemisphere)
+inline transverse_mercator utm_zone(int zone, bool north = true)
+{
+    if (zone < 1 || zone > 60) {
+        throw std::invalid_argument("utm_zone: the zone must be in 1..60");
+    }
+    return transverse_mercator{0.0, deg2rad(6.0 * zone - 183.0), 0.9996, 500000.0,
+                               north ? 0.0 : 10000000.0};
+}
+
+namespace detail {
+
+// the coefficients of Krueger's series for one ellipsoid (Karney 2011, eqs. 14 and 15)
+struct tm_series {
+    value_t e;                    // first eccentricity
+    value_t A;                    // the rectifying radius
+    std::array<value_t, 6> alpha; // forward: conformal sphere -> rectifying
+    std::array<value_t, 6> beta;  // inverse: rectifying -> conformal sphere
+};
+
+inline tm_series tm_coefficients(ellipsoid const& el)
+{
+    value_t const f = el.flattening();
+    value_t const n = f / (2.0 - f);
+    value_t const n2 = n * n, n3 = n2 * n, n4 = n3 * n, n5 = n4 * n, n6 = n5 * n;
+
+    tm_series s{};
+    s.e = std::sqrt(el.e_sq());
+    s.A = el.r_equator / (1.0 + n) * (1.0 + n2 / 4.0 + n4 / 64.0 + n6 / 256.0);
+    s.alpha = {n / 2.0 - 2.0 * n2 / 3.0 + 5.0 * n3 / 16.0 + 41.0 * n4 / 180.0 -
+                   127.0 * n5 / 288.0 + 7891.0 * n6 / 37800.0,
+               13.0 * n2 / 48.0 - 3.0 * n3 / 5.0 + 557.0 * n4 / 1440.0 +
+                   281.0 * n5 / 630.0 - 1983433.0 * n6 / 1935360.0,
+               61.0 * n3 / 240.0 - 103.0 * n4 / 140.0 + 15061.0 * n5 / 26880.0 +
+                   167603.0 * n6 / 181440.0,
+               49561.0 * n4 / 161280.0 - 179.0 * n5 / 168.0 + 6601661.0 * n6 / 7257600.0,
+               34729.0 * n5 / 80640.0 - 3418889.0 * n6 / 1995840.0,
+               212378941.0 * n6 / 319334400.0};
+    s.beta = {n / 2.0 - 2.0 * n2 / 3.0 + 37.0 * n3 / 96.0 - n4 / 360.0 -
+                  81.0 * n5 / 512.0 + 96199.0 * n6 / 604800.0,
+              n2 / 48.0 + n3 / 15.0 - 437.0 * n4 / 1440.0 + 46.0 * n5 / 105.0 -
+                  1118711.0 * n6 / 3870720.0,
+              17.0 * n3 / 480.0 - 37.0 * n4 / 840.0 - 209.0 * n5 / 4480.0 +
+                  5569.0 * n6 / 90720.0,
+              4397.0 * n4 / 161280.0 - 11.0 * n5 / 504.0 - 830251.0 * n6 / 7257600.0,
+              4583.0 * n5 / 161280.0 - 108847.0 * n6 / 3991680.0,
+              20648693.0 * n6 / 638668800.0};
+    return s;
+}
+
+// tan of the conformal latitude, from tan of the geodetic one:
+// tau' = sinh(asinh(tau) - e atanh(e sin(lat)))
+inline value_t tm_taup(value_t tau, value_t e)
+{
+    value_t const s = tau / std::sqrt(1.0 + tau * tau); // sin(lat)
+    return std::sinh(std::asinh(tau) - e * std::atanh(e * s));
+}
+
+// the inverse of tm_taup, by Newton's method on
+// d tau' / d tau = (1 - e^2) sqrt(1 + tau'^2) sqrt(1 + tau^2) / (1 + (1 - e^2) tau^2)
+inline value_t tm_tau(value_t taup, value_t e)
+{
+    value_t const e2m = 1.0 - e * e;
+    value_t tau = taup / e2m; // close enough to start from everywhere
+    for (int i = 0; i < 10; ++i) {
+        value_t const tp = tm_taup(tau, e);
+        value_t const d = (taup - tp) * (1.0 + e2m * tau * tau) /
+                          (e2m * std::sqrt(1.0 + tp * tp) * std::sqrt(1.0 + tau * tau));
+        tau += d;
+        if (std::abs(d) <= 1.0e-15 * std::max(value_t(1.0), std::abs(tau))) break;
+    }
+    return tau;
+}
+
+// the rectifying-sphere coordinate xi of the central meridian at latitude lat
+inline value_t tm_xi0(tm_series const& s, value_t lat)
+{
+    value_t const xip = std::atan(tm_taup(std::tan(lat), s.e));
+    value_t xi = xip;
+    for (int j = 1; j <= 6; ++j)
+        xi += s.alpha[size_t(j - 1)] * std::sin(2.0 * j * xip);
+    return xi;
+}
+
+} // namespace detail
+
+// geodetic position -> grid coordinates (x easting, y northing) [m]; the height is
+// ignored, as in every map projection
+inline vec2d tm_forward(geo_pos const& p, transverse_mercator const& tm,
+                        ellipsoid const& el = wgs84)
+{
+    auto const s = detail::tm_coefficients(el);
+
+    value_t lam = p.lon - tm.lon0; // the longitude from the central meridian, (-pi, pi]
+    lam = std::remainder(lam, 2.0 * pi);
+
+    value_t const taup = detail::tm_taup(std::tan(p.lat), s.e);
+    value_t const xip = std::atan2(taup, std::cos(lam));
+    value_t const etap = std::asinh(std::sin(lam) / std::hypot(taup, std::cos(lam)));
+
+    value_t xi = xip, eta = etap;
+    for (int j = 1; j <= 6; ++j) {
+        value_t const a = s.alpha[size_t(j - 1)];
+        xi += a * std::sin(2.0 * j * xip) * std::cosh(2.0 * j * etap);
+        eta += a * std::cos(2.0 * j * xip) * std::sinh(2.0 * j * etap);
+    }
+
+    return vec2d{tm.false_easting + tm.k0 * s.A * eta,
+                 tm.false_northing + tm.k0 * s.A * (xi - detail::tm_xi0(s, tm.lat0))};
+}
+
+// grid coordinates (x easting, y northing) [m] -> geodetic position, height 0
+inline geo_pos tm_inverse(vec2d const& en, transverse_mercator const& tm,
+                          ellipsoid const& el = wgs84)
+{
+    auto const s = detail::tm_coefficients(el);
+
+    value_t const xi =
+        (en.y - tm.false_northing) / (tm.k0 * s.A) + detail::tm_xi0(s, tm.lat0);
+    value_t const eta = (en.x - tm.false_easting) / (tm.k0 * s.A);
+
+    value_t xip = xi, etap = eta;
+    for (int j = 1; j <= 6; ++j) {
+        value_t const b = s.beta[size_t(j - 1)];
+        xip -= b * std::sin(2.0 * j * xi) * std::cosh(2.0 * j * eta);
+        etap -= b * std::cos(2.0 * j * xi) * std::sinh(2.0 * j * eta);
+    }
+
+    value_t const taup = std::sin(xip) / std::hypot(std::sinh(etap), std::cos(xip));
+    value_t const lam = std::atan2(std::sinh(etap), std::cos(xip));
+
+    return geo_pos{std::atan(detail::tm_tau(taup, s.e)), tm.lon0 + lam, 0.0};
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // the two-dimensional case: a position in the meridian section
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1004,6 +1173,15 @@ enum class azimuthal {
     // Used for great-circle routes in navigation (a straight line on the chart is the
     // shortest route, to be transferred to a conformal chart for steering), seismic and
     // radio wave paths, meteor trails, and the faces of cube-shaped global grids.
+    //
+    // On the ellipsoid the straight lines are the images of the plane sections through
+    // the geocentre (great ellipses), and the geocentre lies OFF the station's normal
+    // everywhere between the equator and the poles (21 km at 49 deg). That adds a
+    // north-south tilt the three kinds with their centre on the normal do not have: over
+    // a
+    // region centred on the station it cancels, over one extending unevenly around it the
+    // area excess against the orthographic map is no longer twice the stereographic one,
+    // as it is for a centre on the normal at the same depth (tested).
     gnomonic,
 
     // C at the other end of the normal chord through the station (on a sphere: the

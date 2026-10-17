@@ -329,3 +329,40 @@ template <> struct fmt::formatter<hd::ga::pga::azimuthal_map> {
         return fmt::format_to(out, ")");
     }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// transverse_mercator - the parameters of a transverse Mercator grid
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::transverse_mercator> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::transverse_mercator const& t, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "transverse_mercator(lat0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), t.lat0);
+        out = fmt::format_to(out, " rad, lon0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), t.lon0);
+        out = fmt::format_to(out, " rad, k0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), t.k0);
+        out = fmt::format_to(out, ", false_easting = ");
+        out = fmt::format_to(out, fmt::runtime(child), t.false_easting);
+        out = fmt::format_to(out, " m, false_northing = ");
+        out = fmt::format_to(out, fmt::runtime(child), t.false_northing);
+        return fmt::format_to(out, " m)");
+    }
+};

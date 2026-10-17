@@ -6397,6 +6397,158 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
         CHECK(rel_s < 1.0e-3); // measured 3.2e-4
     }
 
+    TEST_CASE("pga3dp: azimuthal projections - the area excess goes with 1 / depth")
+    {
+        // A centre at depth D below the tangent plane, on the normal, stretches a point
+        // at distance s from the station by 1 + s^2 / (2 rho D): against the orthographic
+        // map (D infinite) the area grows by 2 s^2 / (rho D). So the excesses of the
+        // gnomonic (D ~ rho), stereographic (D ~ 2 rho) and perspective (D = -H) maps
+        // stand in the ratios of their 1/D -- for any region. On the ellipsoid the
+        // gnomonic centre, the geocentre, is off the normal, which adds a term odd in the
+        // position: it cancels over a region centred on the station and shows over one
+        // that is not.
+        fmt::println(
+            "pga3dp: azimuthal projections - the area excess goes with 1 / depth");
+
+        geo_pos const st{deg2rad(49.0), deg2rad(9.0), 0.0};
+        // the area enclosed by a lat/lon box, densified, in the plane of map m
+        auto box_area = [&](azimuthal_map const& m, value_t la0, value_t la1, value_t lo0,
+                            value_t lo1) {
+            std::vector<geo_pos> const corners{{deg2rad(la0), deg2rad(lo0), 0.0},
+                                               {deg2rad(la0), deg2rad(lo1), 0.0},
+                                               {deg2rad(la1), deg2rad(lo1), 0.0},
+                                               {deg2rad(la1), deg2rad(lo0), 0.0}};
+            std::vector<vec2d> ring;
+            for (size_t i = 0; i < 4; ++i) {
+                ring.push_back(project(m, corners[i]));
+                for (auto const& q :
+                     densify(corners[i], corners[(i + 1) % 4], deg2rad(0.01)))
+                    ring.push_back(project(m, q));
+            }
+            value_t a = 0.0;
+            for (size_t i = 0; i < ring.size(); ++i)
+                a += 0.5 * value_t(wdg(ring[i], ring[(i + 1) % ring.size()]));
+            return std::abs(a);
+        };
+        auto excess = [&](azimuthal_map const& m, std::array<value_t, 4> const& b) {
+            auto const mo = make_azimuthal_map(st, azimuthal::orthographic);
+            return box_area(m, b[0], b[1], b[2], b[3]) /
+                       box_area(mo, b[0], b[1], b[2], b[3]) -
+                   1.0;
+        };
+
+        auto const ms = make_azimuthal_map(st, azimuthal::stereographic);
+        auto const mp = make_azimuthal_map(st, azimuthal::perspective);
+        auto const mg = make_azimuthal_map(st, azimuthal::gnomonic);
+        auto mg_on = mg; // the gnomonic centre moved onto the normal, same depth
+        mg_on.C = vec3dp{0.0, 0.0, mg.C.z, 1.0};
+        value_t const Ds = -ms.C.z, Dg = -mg.C.z, H = mp.C.z;
+
+        std::array<value_t, 4> const centred{48.0, 50.0, 7.5, 10.5}; // around the station
+        std::array<value_t, 4> const uneven{48.5, 51.0, 8.0, 10.0};  // mostly north of it
+        value_t const s_c = excess(ms, centred), s_u = excess(ms, uneven);
+        value_t const p_u = excess(mp, uneven);
+        value_t const g_c = excess(mg, centred), g_u = excess(mg, uneven);
+        value_t const g_on = excess(mg_on, uneven);
+        fmt::println("    perspective/stereographic {:.4f} (1/D: {:.4f}); gnomonic/"
+                     "stereographic: centred {:.4f}, uneven {:.4f}, uneven on the normal "
+                     "{:.4f} (1/D: {:.4f}); geocentre {:.1f} km off the normal",
+                     p_u / s_u, -Ds / H, g_c / s_c, g_u / s_u, g_on / s_u, Ds / Dg,
+                     std::hypot(mg.C.x, mg.C.y) / 1e3);
+        CHECK(std::abs(p_u / s_u + Ds / H) < 2.0e-3);
+        CHECK(std::abs(g_on / s_u - Ds / Dg) < 2.0e-3); // on the normal: the 1/D ratio
+        CHECK(std::abs(g_c / s_c - Ds / Dg) < 0.01);    // centred: the tilt cancels
+        CHECK(std::abs(g_u / s_u - Ds / Dg) > 0.02);    // uneven: it shows
+    }
+
+    TEST_CASE("geodesics: transverse Mercator against PROJ, EPSG and its own inverse")
+    {
+        fmt::println(
+            "geodesics: transverse Mercator against PROJ, EPSG and its own inverse");
+        using namespace azimuthal_test;
+
+        // UTM zone 32 on GRS80 (ETRS89 / UTM 32N, EPSG:25832). The references are PROJ
+        // 9.9.0: `cs2cs -f %.6f +proj=longlat +ellps=GRS80 +to +proj=utm +zone=32
+        // +ellps=GRS80`, i.e. its own (Poder/Engsager) series -- an independent
+        // implementation of the same map
+        struct ref {
+            value_t lon, lat, e, n;
+        };
+        std::array<ref, 8> const proj{
+            {{9.177734, 48.775817, 513058.154680, 5402550.141164},
+             {9.190393, 48.896233, 513954.727401, 5415938.071340},
+             {8.411368, 48.463876, 456485.868948, 5368027.523841},
+             {6.0, 48.0, 276224.084601, 5320655.789070},
+             {12.0, 60.0, 667294.821127, 6655205.483512},
+             {9.0, 0.0, 500000.0, 0.0},
+             {3.0, 80.0, 383885.348661, 8887579.007620},
+             {13.0, -33.0, 873787.712841, -3658400.226820}}};
+        auto const utm32 = utm_zone(32);
+        value_t err_proj = 0.0;
+        for (auto const& r : proj) {
+            auto const x =
+                tm_forward(geo_pos{deg2rad(r.lat), deg2rad(r.lon), 0.0}, utm32, grs80);
+            err_proj = std::max(err_proj, dist2d(x, vec2d{r.e, r.n}));
+        }
+
+        // the EPSG Guidance Note 7-2 example (EPSG method 9807): OSGB 1936 / British
+        // National Grid on Airy 1830, 50 deg 30' N, 0 deg 30' E -> E 577274.99, N
+        // 69740.50 as published (rounded to cm, by the USGS series); PROJ gives
+        // 577274.9838, 69740.4923
+        ellipsoid const airy{6377563.396, 6377563.396 * (1.0 - 1.0 / 299.3249646)};
+        transverse_mercator const bng{deg2rad(49.0), deg2rad(-2.0), 0.9996012717,
+                                      400000.0, -100000.0};
+        auto const xb = tm_forward(geo_pos{deg2rad(50.5), deg2rad(0.5), 0.0}, bng, airy);
+        value_t const err_epsg = dist2d(xb, vec2d{577274.99, 69740.50});
+        value_t const err_bng_proj = dist2d(xb, vec2d{577274.9838, 69740.4923});
+
+        // on a sphere the map has a closed form (Snyder, eq. 8-1/8-3):
+        // x = k0 R atanh(sin(dl) cos(lat)), y = k0 R atan2(tan(lat), cos(dl))
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        transverse_mercator const tms{0.0, deg2rad(9.0), 0.9996, 0.0, 0.0};
+        value_t err_sphere = 0.0;
+        for (int ilat = -80; ilat <= 80; ilat += 10) {
+            for (int dl = -6; dl <= 6; dl += 2) {
+                value_t const la = deg2rad(ilat), d = deg2rad(dl);
+                auto const x =
+                    tm_forward(geo_pos{la, deg2rad(9.0) + d, 0.0}, tms, sphere);
+                vec2d const xs{0.9996 * R * std::atanh(std::sin(d) * std::cos(la)),
+                               0.9996 * R * std::atan2(std::tan(la), std::cos(d))};
+                err_sphere = std::max(err_sphere, dist2d(x, xs));
+            }
+        }
+
+        // the round trip across a zone and beyond, in metres on the ground
+        value_t err_trip = 0.0;
+        for (int ilat = -84; ilat <= 84; ilat += 4) {
+            for (int dl = -6; dl <= 6; ++dl) {
+                geo_pos const p{deg2rad(ilat), deg2rad(9.0 + dl), 0.0};
+                auto const q = tm_inverse(tm_forward(p, utm32, grs80), utm32, grs80);
+                err_trip = std::max({err_trip, 6.4e6 * std::abs(q.lat - p.lat),
+                                     6.4e6 * std::cos(p.lat) * std::abs(q.lon - p.lon)});
+            }
+        }
+
+        fmt::println("    vs PROJ {:.2e} m; EPSG example {:.2e} m (PROJ there {:.2e} m); "
+                     "sphere {:.2e} m; round trip {:.2e} m",
+                     err_proj, err_epsg, err_bng_proj, err_sphere, err_trip);
+        CHECK(err_proj < 1.0e-5);
+        // the published values carry the USGS series' own ~8 mm (PROJ is 8 mm off them
+        // too) and a rounding to cm; PROJ's value at the same point is the tight check
+        CHECK(err_epsg < 0.02);
+        CHECK(err_bng_proj < 1.0e-4);
+        CHECK(err_sphere < 1.0e-6);
+        CHECK(err_trip < 1.0e-6);
+
+        // falsify the pin: a central meridian one zone off is metres away, not
+        // micrometres
+        auto const x31 = tm_forward(geo_pos{deg2rad(48.775817), deg2rad(9.177734), 0.0},
+                                    utm_zone(31), grs80);
+        CHECK(dist2d(x31, vec2d{proj[0].e, proj[0].n}) > 1.0e3);
+        CHECK_THROWS_AS(utm_zone(0), std::invalid_argument);
+    }
+
     TEST_CASE("geodesics: densify an edge that is straight in (lat, lon)")
     {
         fmt::println("geodesics: densify an edge that is straight in (lat, lon)");

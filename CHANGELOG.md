@@ -460,3 +460,16 @@
            is conformal on a sphere) and by the inverse (3e-16 rad). The EPSG oblique
            stereographic, which goes through a conformal sphere, differs by up to 3.2e-4
            of the distance from the centre -- measured and stated, not hidden.
+- 2026/10: transverse Mercator in ga_usr_geodesics.hpp: transverse_mercator, utm_zone(),
+           tm_forward() and tm_inverse() -- geodetic position <-> grid coordinates, for
+           geodata delivered in UTM or a national grid. Krueger's series to n^6 (Karney
+           2011) on the exact conformal latitude, the inverse latitude by Newton; plain
+           numerics, no GA form claimed. Gated against PROJ at eight points over and
+           beyond a zone (6e-7 m), the round trip (3e-9 m), the closed form on a sphere
+           (2e-9 m) and the EPSG Guidance Note 7-2 example within its published rounding.
+- 2026/10: the gnomonic comment states what the ellipsoid changes: the geocentre lies off
+           the station's normal (21 km at 49 deg), so the map carries a north-south tilt
+           the kinds with their centre on the normal do not have. Gated: the area excesses
+           against the orthographic map go with 1/depth of the centre (perspective /
+           stereographic to 2e-4), the gnomonic one too over a region centred on the
+           station or with its centre moved onto the normal, and not over an uneven one.
