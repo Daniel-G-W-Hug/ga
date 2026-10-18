@@ -45,6 +45,7 @@ void register_functions_top(nb::module_& m)
     m.def("distance_from_geocenter", [](geo_pos2dp const& a0, ellipsoid const& a1) {
         return distance_from_geocenter(a0, a1);
     });
+    m.def("etrs89_laea", []() { return etrs89_laea(); });
     m.def("fact", [](int a0) { return fact(a0); });
     m.def("fd_derivative",
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2,
@@ -81,6 +82,11 @@ void register_functions_top(nb::module_& m)
     m.def("gr", [](trivec3dc const& a0) { return gr(a0); });
     m.def("gr", [](quadvec3dc const& a0) { return gr(a0); });
     m.def("gr", [](pscalar3dc const& a0) { return gr(a0); });
+    m.def("laea_at", [](geo_pos const& a0) { return laea_at(a0); });
+    m.def("laea_forward", [](geo_pos const& a0, lambert_azimuthal const& a1,
+                             ellipsoid const& a2) { return laea_forward(a0, a1, a2); });
+    m.def("laea_inverse", [](vec2d const& a0, lambert_azimuthal const& a1,
+                             ellipsoid const& a2) { return laea_inverse(a0, a1, a2); });
     m.def("linear_step",
           [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
     m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,

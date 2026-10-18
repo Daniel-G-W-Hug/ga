@@ -7560,6 +7560,38 @@ void register_geodesics(sol::state& lua)
         sol::meta_function::to_string,
         [](transverse_mercator const& t) { return fmt::format("{}", t); });
 
+    lua.new_usertype<lambert_azimuthal>(
+        "lambert_azimuthal", sol::call_constructor,
+        sol::factories([]() { return lambert_azimuthal{}; },
+                       [](value_t lat0, value_t lon0, value_t fe, value_t fn) {
+                           return lambert_azimuthal{lat0, lon0, fe, fn};
+                       }),
+        "new",
+        sol::factories([]() { return lambert_azimuthal{}; },
+                       [](value_t lat0, value_t lon0, value_t fe, value_t fn) {
+                           return lambert_azimuthal{lat0, lon0, fe, fn};
+                       }),
+        "lat0", &lambert_azimuthal::lat0, "lon0", &lambert_azimuthal::lon0,
+        "false_easting", &lambert_azimuthal::false_easting, "false_northing",
+        &lambert_azimuthal::false_northing, sol::meta_function::to_string,
+        [](lambert_azimuthal const& m) { return fmt::format("{}", m); });
+
+    lua.new_usertype<helmert7>(
+        "helmert7", sol::call_constructor,
+        sol::factories([]() { return helmert7{}; },
+                       [](value_t tx, value_t ty, value_t tz, value_t rx, value_t ry,
+                          value_t rz,
+                          value_t ds) { return helmert7{tx, ty, tz, rx, ry, rz, ds}; }),
+        "new",
+        sol::factories([]() { return helmert7{}; },
+                       [](value_t tx, value_t ty, value_t tz, value_t rx, value_t ry,
+                          value_t rz,
+                          value_t ds) { return helmert7{tx, ty, tz, rx, ry, rz, ds}; }),
+        "tx", &helmert7::tx, "ty", &helmert7::ty, "tz", &helmert7::tz, "rx",
+        &helmert7::rx, "ry", &helmert7::ry, "rz", &helmert7::rz, "ds", &helmert7::ds,
+        sol::meta_function::to_string,
+        [](helmert7 const& h) { return fmt::format("{}", h); });
+
     // ---- functions in pga: ECEF <-> ENU, the meridian section, the projections
     auto pga = lua["pga"].get_or_create<sol::table>();
 
@@ -7699,6 +7731,33 @@ void register_geodesics(sol::state& lua)
             [](vec2d const& x, transverse_mercator const& t, ellipsoid const& el) {
                 return tm_inverse(x, t, el);
             }));
+    lua.set_function("laea_at", [](geo_pos const& c) { return laea_at(c); });
+    lua.set_function("etrs89_laea", []() { return etrs89_laea(); });
+    lua.set_function(
+        "laea_forward",
+        sol::overload([](geo_pos const& p,
+                         lambert_azimuthal const& m) { return laea_forward(p, m); },
+                      [](geo_pos const& p, lambert_azimuthal const& m,
+                         ellipsoid const& el) { return laea_forward(p, m, el); }));
+    lua.set_function(
+        "laea_inverse",
+        sol::overload(
+            [](vec2d const& x, lambert_azimuthal const& m) { return laea_inverse(x, m); },
+            [](vec2d const& x, lambert_azimuthal const& m, ellipsoid const& el) {
+                return laea_inverse(x, m, el);
+            }));
+
+    // ---- datum transformation in pga: one motor sandwich plus a scale
+    pga.set_function("make_helmert7", [](value_t tx, value_t ty, value_t tz, value_t rx,
+                                         value_t ry, value_t rz, value_t ds) {
+        return make_helmert7(tx, ty, tz, rx, ry, rz, ds);
+    });
+    pga.set_function("helmert_position_vector", [](vec3dp const& X, helmert7 const& h) {
+        return helmert_position_vector(X, h);
+    });
+    pga.set_function("helmert_coordinate_frame", [](vec3dp const& X, helmert7 const& h) {
+        return helmert_coordinate_frame(X, h);
+    });
 
     // ---- constants (after their type)
     lua["wgs84"] = wgs84;

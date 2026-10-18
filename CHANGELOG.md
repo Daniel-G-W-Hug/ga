@@ -482,3 +482,20 @@
            same surface by hand, the ellipsoid an optional argument defaulting to wgs84.
            A cross-check: on a sphere the stereographic map equals the CGA inversion in the
            sphere about the antipode of radius 2R (to 8e-9 m), the two sharing no code.
+- 2026/10: Lambert azimuthal equal-area in ga_usr_geodesics.hpp: lambert_azimuthal,
+           laea_at(), etrs89_laea() (EPSG:3035, the EU's statistical grid), laea_forward()
+           and laea_inverse() -- the map that keeps area. EPSG method 9820 through the
+           authalic sphere, the inverse latitude by Newton on q; plain numerics, since the
+           map is not a central projection and the tangent-plane meet does not cover it.
+           Gated against PROJ (EPSG:3035 and the polar aspect, 5e-7 m), the spherical
+           closed form, the round trip (4e-8 m) and the area of projected 2-deg cells
+           against a direct integral over the ellipsoid (6e-9 relative).
+- 2026/10: the 7-parameter Helmert datum transformation: helmert7, make_helmert7()
+           (published units: m, arc seconds, ppm), and the two EPSG conventions as two
+           named functions, helmert_position_vector() (1033, PROJ's towgs84) and
+           helmert_coordinate_frame() (1032) -- they differ in the sign of the rotation,
+           and confusing them costs ~110 m for a typical set. One motor sandwich of the
+           point, re-weighted for the scale; the rotation is exact where EPSG linearizes
+           it, the difference stated (0.33 mm for the DHDN set) and gated against PROJ's
+           linearized and exact forms and an independent Rodrigues rotation (1e-9 m).
+           Both additions reach Python and Lua.

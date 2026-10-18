@@ -72,6 +72,10 @@
 // - utm_zone()                : those of a UTM zone
 // - tm_forward() / tm_inverse(): geodetic position <-> grid coordinates (easting,
 //                               northing) -- e.g. to read geodata delivered in UTM
+// - lambert_azimuthal         : the parameters of a Lambert azimuthal equal-area map
+// - laea_at() / etrs89_laea() : that map centred at a position / the EU's EPSG:3035 grid
+// - laea_forward() / laea_inverse(): geodetic position <-> map coordinates, AREA kept --
+//                               maps for statistics and densities
 // - distance_from_geocenter() : the position's "total radius" [m], derived
 // - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
 //                               to_geo_pos() and distance_from_geocenter() overload on
@@ -93,6 +97,12 @@
 // - enu_to_ecef_motor()  : motor taking ENU coordinates to ECEF coordinates (its rrev is
 //                          the ECEF -> ENU direction)
 // - enu_motor_at()       : the same motor for a station given as an ECEF point
+// - helmert7             : the seven parameters of a datum transformation, built in the
+//                          published units (m, arc seconds, ppm) by make_helmert7()
+// - helmert_position_vector() / helmert_coordinate_frame() : ECEF -> ECEF between two
+//                          datums, one motor sandwich plus a scale; the two EPSG
+//                          conventions differ in the sign of the rotation, so each has
+//                          its own name
 // - azimuthal            : the projections onto the tangent plane -- orthographic,
 //                          gnomonic, stereographic, perspective (what each preserves and
 //                          what it is used for is stated at the enum)
@@ -858,6 +868,176 @@ inline geo_pos tm_inverse(vec2d const& en, transverse_mercator const& tm,
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Lambert azimuthal equal-area: geodetic position <-> map coordinates, area kept
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// The map that keeps AREA: a region has the same area on the map as on the ellipsoid, at
+// every distance from the centre and in every direction. That is what a map is for when
+// it compares quantities per area -- population density, land use, statistics -- and why
+// the EU's statistical grid is this projection: ETRS89-LAEA, EPSG:3035, centred at 52 deg
+// N 10 deg E (etrs89_laea()). The price is shape: away from the centre a region is
+// squeezed along the radius and stretched across it by the same factor, so its area stays
+// and its outline does not.
+//
+// Unlike the projections onto the tangent plane in hd::ga::pga, this map is NOT a central
+// projection: no centre exists from which the lines through the points meet a plane at
+// the map positions, so the meet X = rwdg(wdg(C, P), plane) has nothing to offer here. It
+// is classical numerics, written as such (EPSG method 9820; Snyder, "Map Projections -- A
+// Working Manual", USGS 1987, section 24). The ellipsoid is replaced by the AUTHALIC
+// sphere -- the sphere of the same surface area, radius Rq -- with each geodetic latitude
+// moved to the authalic latitude beta, which divides the ellipsoid's area between the
+// equator and the latitude in the same ratio as the sphere's. On that sphere the
+// equal-area azimuthal map has a closed form, and a factor D restores the true scale at
+// the centre. The inverse returns from beta to the geodetic latitude by Newton's method
+// on the authalic function q, not by the usual truncated series. Agreement with PROJ is
+// a few micrometres (tested).
+//
+// The whole ellipsoid is mapped into a disc of radius 2 Rq, except the ANTIPODE of the
+// centre, which has no image (it would be the whole rim). Map coordinates are returned
+// as a vec2d: x towards east, y towards north at the centre [m]. NOTE: EPSG lists the
+// axes of EPSG:3035 as (northing, easting), so tools that honour EPSG's axis order print
+// y before x.
+
+// the parameters of one Lambert azimuthal equal-area map
+struct lambert_azimuthal {
+    value_t lat0{0.0};           // latitude of the centre [rad]
+    value_t lon0{0.0};           // longitude of the centre [rad]
+    value_t false_easting{0.0};  // [m]
+    value_t false_northing{0.0}; // [m]
+};
+
+// the map centred at a position, the centre at map coordinates (0, 0)
+inline lambert_azimuthal laea_at(geo_pos const& centre)
+{
+    return lambert_azimuthal{centre.lat, centre.lon, 0.0, 0.0};
+}
+
+// ETRS89-LAEA (EPSG:3035), the EU's equal-area grid: centred at 52 deg N 10 deg E, false
+// easting 4321 km, false northing 3210 km. Defined on GRS80 -- pass grs80 to the
+// functions below; WGS84 differs from it by about 0.1 mm in the pole radius
+inline lambert_azimuthal etrs89_laea()
+{
+    return lambert_azimuthal{deg2rad(52.0), deg2rad(10.0), 4321000.0, 3210000.0};
+}
+
+namespace detail {
+
+// atanh(e s) / e, which is s on a sphere
+inline value_t laea_atanh_e(value_t s, value_t e)
+{
+    return (e == 0.0) ? s : std::atanh(e * s) / e;
+}
+
+// the authalic function (Snyder eq. 3-12): the area of the ellipsoid between the equator
+// and the latitude whose sine is s is pi a^2 q(s)
+inline value_t laea_q(value_t s, value_t e)
+{
+    value_t const e2 = e * e;
+    return (1.0 - e2) * (s / (1.0 - e2 * s * s) + laea_atanh_e(s, e));
+}
+
+// the inverse of laea_q: the geodetic latitude for a value of q, by Newton's method
+// (Snyder eq. 3-16, dq/dlat = 2 (1 - e^2) cos(lat) / (1 - e^2 sin^2(lat))^2)
+inline value_t laea_lat_from_q(value_t q, value_t qp, value_t e)
+{
+    if (std::abs(q) >= qp) return std::copysign(0.5 * pi, q);
+    value_t const e2 = e * e;
+    value_t lat = std::asin(std::clamp(q / 2.0, value_t(-1.0), value_t(1.0)));
+    for (int i = 0; i < 20; ++i) {
+        value_t const s = std::sin(lat), c = std::cos(lat);
+        if (c < 1.0e-12) break; // at a pole, where q already is +-qp
+        value_t const w = 1.0 - e2 * s * s;
+        value_t const d =
+            w * w / (2.0 * c) * (q / (1.0 - e2) - s / w - laea_atanh_e(s, e));
+        lat += d;
+        if (std::abs(d) <= 1.0e-15) break;
+    }
+    return lat;
+}
+
+// what one map needs from its ellipsoid and centre
+struct laea_constants {
+    value_t e;      // first eccentricity
+    value_t qp;     // q at the pole
+    value_t Rq;     // radius of the authalic sphere
+    value_t sin_b0; // sine and cosine of the centre's authalic latitude
+    value_t cos_b0;
+    value_t D; // restores the true scale at the centre (1 at a pole)
+};
+
+inline laea_constants laea_setup(lambert_azimuthal const& m, ellipsoid const& el)
+{
+    laea_constants c{};
+    c.e = std::sqrt(el.e_sq());
+    c.qp = laea_q(1.0, c.e);
+    c.Rq = el.r_equator * std::sqrt(0.5 * c.qp);
+    value_t const s0 = std::sin(m.lat0);
+    c.sin_b0 = std::clamp(laea_q(s0, c.e) / c.qp, value_t(-1.0), value_t(1.0));
+    c.cos_b0 = std::sqrt(std::max(value_t(0.0), 1.0 - c.sin_b0 * c.sin_b0));
+    // D = a m0 / (Rq cos(beta0)), m0 = cos(lat0) / sqrt(1 - e^2 sin^2(lat0)); its limit
+    // at a pole is 1, where the oblique form below becomes the polar one
+    c.D = (c.cos_b0 < 1.0e-12)
+              ? 1.0
+              : el.r_equator * std::cos(m.lat0) / std::sqrt(1.0 - el.e_sq() * s0 * s0) /
+                    (c.Rq * c.cos_b0);
+    return c;
+}
+
+} // namespace detail
+
+// geodetic position -> map coordinates (x towards east, y towards north) [m]; the
+// height is ignored, as in every map projection. Throws for the antipode of the centre.
+inline vec2d laea_forward(geo_pos const& p, lambert_azimuthal const& m,
+                          ellipsoid const& el = wgs84)
+{
+    auto const c = detail::laea_setup(m, el);
+
+    value_t const sin_b = std::clamp(detail::laea_q(std::sin(p.lat), c.e) / c.qp,
+                                     value_t(-1.0), value_t(1.0));
+    value_t const cos_b = std::sqrt(std::max(value_t(0.0), 1.0 - sin_b * sin_b));
+    value_t const dlon = std::remainder(p.lon - m.lon0, 2.0 * pi);
+
+    // 1 + cos of the angle from the centre on the authalic sphere
+    value_t const den = 1.0 + c.sin_b0 * sin_b + c.cos_b0 * cos_b * std::cos(dlon);
+    if (!(den > 1.0e-14)) {
+        throw std::invalid_argument("laea_forward: the antipode of the centre has no "
+                                    "image");
+    }
+    value_t const B = c.Rq * std::sqrt(2.0 / den);
+
+    return vec2d{m.false_easting + B * c.D * cos_b * std::sin(dlon),
+                 m.false_northing +
+                     B / c.D * (c.cos_b0 * sin_b - c.sin_b0 * cos_b * std::cos(dlon))};
+}
+
+// map coordinates (x towards east, y towards north) [m] -> geodetic position, height 0.
+// Throws for a point outside the disc of radius 2 Rq the map fills.
+inline geo_pos laea_inverse(vec2d const& xy, lambert_azimuthal const& m,
+                            ellipsoid const& el = wgs84)
+{
+    auto const c = detail::laea_setup(m, el);
+
+    value_t const x = xy.x - m.false_easting;
+    value_t const y = xy.y - m.false_northing;
+    value_t const rho = std::hypot(x / c.D, c.D * y);
+    if (rho == 0.0) return geo_pos{m.lat0, m.lon0, 0.0};
+    if (rho > 2.0 * c.Rq * (1.0 + 1.0e-12)) {
+        throw std::invalid_argument("laea_inverse: the point lies outside the map");
+    }
+
+    // the angle from the centre on the authalic sphere, and the authalic latitude there
+    value_t const C = 2.0 * std::asin(std::min(value_t(1.0), rho / (2.0 * c.Rq)));
+    value_t const sC = std::sin(C), cC = std::cos(C);
+    value_t const sin_b = std::clamp(cC * c.sin_b0 + c.D * y * sC * c.cos_b0 / rho,
+                                     value_t(-1.0), value_t(1.0));
+    value_t const lon = m.lon0 + std::atan2(x * sC, c.D * rho * c.cos_b0 * cC -
+                                                        c.D * c.D * y * c.sin_b0 * sC);
+
+    return geo_pos{detail::laea_lat_from_q(c.qp * sin_b, c.qp, c.e), lon, 0.0};
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // the two-dimensional case: a position in the meridian section
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1125,6 +1305,96 @@ inline mvec3dp_e enu_to_ecef_motor(geo_pos const& p, ellipsoid const& el = wgs84
 inline mvec3dp_e enu_motor_at(vec3dp const& P, ellipsoid const& el = wgs84)
 {
     return enu_to_ecef_motor(ecef_to_geo(P, el), el);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// datum transformation: the 7-parameter Helmert transformation in ECEF
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// Two geodetic datums -- an old national one on the Bessel ellipsoid, say, and ETRS89 --
+// place their ECEF axes slightly differently: shifted by up to some hundred metres,
+// turned by a few arc seconds, and with a scale differing by some parts per million. The
+// Helmert transformation carries ECEF coordinates from one datum to the other,
+//
+//     X' = T + (1 + ds) R X
+//
+// with the translation T = (tx, ty, tz), a rotation R by the small angles (rx, ry, rz)
+// and the scale correction ds. To convert geodetic positions between datums: geo_to_ecef
+// on the source datum's ellipsoid, the Helmert transformation, ecef_to_geo on the target
+// datum's ellipsoid.
+//
+// In PGA the rigid part IS a motor, M = T (x) R, and the scale about the geocentre is a
+// change of the point's weight, so the transformation is one sandwich:
+//
+//     X' = move3dp(vec3dp(x, y, z, w / (1 + ds)), M)
+//
+// The rotation is the motor of the LINE through the geocentre with direction
+// (rx, ry, rz), whose weight is the angle: rexp(0.5 * bivec3dp(rx, ry, rz, 0, 0, 0)) --
+// a right-handed turn by |r| about that axis.
+//
+// TWO CONVENTIONS, published parameter sets use both, and they differ only in the sign of
+// the rotation. Applying a parameter set with the wrong one is a silent error of about
+// 2 |r| |X| -- 110 m for the German DHDN set (2.5 arc seconds, measured) -- so each has a
+// function named after it:
+//
+// - helmert_position_vector()  : EPSG method 1033 (and 1037 geog3D), PROJ's towgs84; the
+//                                rotation turns the POINT by +r
+// - helmert_coordinate_frame() : EPSG method 1032 (and 1038), common in Europe; the
+//                                rotation turns the AXES by +r, i.e. the point by -r
+//
+// The parameter set says which one it is meant for. EPSG writes R in its linearized form
+// I + [r]x, valid to first order in the angles; the motor here is the EXACT rotation. The
+// two differ by second-order terms, at most |r|^2 |X| / 2: 0.33 mm for the DHDN set, and
+// 0.04 mm from PROJ's exact form, which composes three axis rotations instead of turning
+// about one axis -- far below the accuracy of any published parameter set (both measured
+// and tested). The inverse transformation is, to first order, the same function with
+// every parameter negated (EPSG's "reversible" methods) -- only to first order: for the
+// DHDN set the round trip misses by 9 mm (measured), the rotation acting on a
+// translation of 740 m.
+
+// the seven parameters: translation [m], rotation angles [rad], scale correction (ppm
+// times 1e-6). Published sets give the angles in arc seconds and the scale in ppm --
+// make_helmert7() takes those units
+struct helmert7 {
+    value_t tx{0.0}, ty{0.0}, tz{0.0}; // [m]
+    value_t rx{0.0}, ry{0.0}, rz{0.0}; // [rad]
+    value_t ds{0.0};                   // scale correction, dimensionless
+};
+
+// the parameters in the units they are published in: metres, arc seconds and ppm
+inline helmert7 make_helmert7(value_t tx, value_t ty, value_t tz, value_t rx_arcsec,
+                              value_t ry_arcsec, value_t rz_arcsec, value_t ds_ppm)
+{
+    value_t const as = deg2rad(1.0 / 3600.0);
+    return helmert7{
+        tx, ty, tz, rx_arcsec * as, ry_arcsec * as, rz_arcsec * as, ds_ppm * 1.0e-6};
+}
+
+namespace detail {
+
+// X' = T + (1 + ds) R(sign * r) X, as one motor sandwich of the re-weighted point
+inline vec3dp helmert_apply(vec3dp const& X, helmert7 const& h, value_t sign)
+{
+    auto const M_rot = rexp(0.5 * sign * bivec3dp{h.rx, h.ry, h.rz, 0.0, 0.0, 0.0});
+    auto const M_tra = get_motor(vec3dp{h.tx, h.ty, h.tz, 0.0});
+    // concatenation order is rgpr(applied_last, applied_first)
+    auto const M = rgpr(M_tra, M_rot);
+    return unitize(move3dp(vec3dp{X.x, X.y, X.z, X.w / (1.0 + h.ds)}, M));
+}
+
+} // namespace detail
+
+// position vector convention (EPSG 1033, PROJ towgs84): ECEF point -> ECEF point
+inline vec3dp helmert_position_vector(vec3dp const& X, helmert7 const& h)
+{
+    return detail::helmert_apply(X, h, 1.0);
+}
+
+// coordinate frame convention (EPSG 1032): ECEF point -> ECEF point
+inline vec3dp helmert_coordinate_frame(vec3dp const& X, helmert7 const& h)
+{
+    return detail::helmert_apply(X, h, -1.0);
 }
 
 

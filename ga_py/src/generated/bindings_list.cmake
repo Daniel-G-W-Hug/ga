@@ -17,6 +17,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_helmert7.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_range2dp.cpp
@@ -25,6 +26,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_lambert_azimuthal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint2dp.cpp

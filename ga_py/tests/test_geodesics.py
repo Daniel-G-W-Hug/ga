@@ -111,3 +111,43 @@ def test_transverse_mercator_against_proj():
     assert utm.k0 == 0.9996 and utm.false_easting == 500000.0
     with pytest.raises(Exception):
         ga_py.utm_zone(0, True)
+
+
+def test_lambert_azimuthal_equal_area_against_proj():
+    # PROJ 9.9: cs2cs +proj=longlat +ellps=GRS80 +to +proj=laea +lat_0=52 +lon_0=10
+    #           +x_0=4321000 +y_0=3210000 +ellps=GRS80  (EPSG:3035, easting first)
+    eu = ga_py.etrs89_laea()
+    assert eu.false_easting == 4321000.0 and abs(eu.lat0 - 52.0 * DEG) < 1e-15
+    for lon, lat, e, n in [(13.4, 52.52, 4551697.475620, 3273252.407167),
+                           (-9.14, 38.72, 2665402.840046, 1946531.124408),
+                           (33.38, 35.17, 6436679.629092, 1670516.596678)]:
+        p = ega.geo_pos(lat * DEG, lon * DEG, 0.0)
+        x = ga_py.laea_forward(p, eu, ga_py.grs80)
+        assert math.hypot(x.x - e, x.y - n) < 1e-5
+        q = ga_py.laea_inverse(x, eu, ga_py.grs80)
+        assert abs(q.lat - p.lat) < 1e-14 and abs(q.lon - p.lon) < 1e-14
+    c = ga_py.laea_at(BERLIN)
+    o = ga_py.laea_forward(BERLIN, c, ga_py.wgs84)
+    assert math.hypot(o.x, o.y) < 1e-6
+    assert "lambert_azimuthal(" in repr(eu)
+    with pytest.raises(Exception):  # the centre's antipode has no image
+        ga_py.laea_forward(ega.geo_pos(-52.0 * DEG, -170.0 * DEG, 0.0), eu, ga_py.grs80)
+
+
+def test_helmert_both_conventions_against_proj():
+    # PROJ 9.9: cct +proj=helmert +x=598.1 +y=73.7 +z=418.2 +rx=0.202 +ry=0.045
+    #           +rz=-2.455 +s=6.7 +convention=<c> +exact
+    h = pga.make_helmert7(598.1, 73.7, 418.2, 0.202, 0.045, -2.455, 6.7)
+    assert abs(h.ds - 6.7e-6) < 1e-18 and abs(h.rz - (-2.455 / 3600.0) * DEG) < 1e-18
+    X = pga.vec3dp(4157222.543, 664789.307, 4774952.099, 1.0)
+    for f, ref in [(pga.helmert_position_vector,
+                    (4157857.450329, 664813.304462, 4775402.035203)),
+                   (pga.helmert_coordinate_frame,
+                    (4157839.541809, 664921.617609, 4775402.547100))]:
+        Y = f(X, h)
+        assert math.hypot(Y.x - ref[0], Y.y - ref[1], Y.z - ref[2]) < 1e-4
+    pv, cf = pga.helmert_position_vector(X, h), pga.helmert_coordinate_frame(X, h)
+    assert math.hypot(pv.x - cf.x, pv.y - cf.y, pv.z - cf.z) > 100.0  # not interchangeable
+    I = pga.helmert_position_vector(X, pga.helmert7())
+    assert math.hypot(I.x - X.x, I.y - X.y, I.z - X.z) < 1e-8
+    assert "helmert7(" in repr(h)

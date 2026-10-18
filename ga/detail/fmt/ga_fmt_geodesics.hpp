@@ -366,3 +366,79 @@ template <> struct fmt::formatter<hd::ga::transverse_mercator> {
         return fmt::format_to(out, " m)");
     }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// lambert_azimuthal - the parameters of a Lambert azimuthal equal-area map
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::lambert_azimuthal> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::lambert_azimuthal const& m, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "lambert_azimuthal(lat0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.lat0);
+        out = fmt::format_to(out, " rad, lon0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.lon0);
+        out = fmt::format_to(out, " rad, false_easting = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.false_easting);
+        out = fmt::format_to(out, " m, false_northing = ");
+        out = fmt::format_to(out, fmt::runtime(child), m.false_northing);
+        return fmt::format_to(out, " m)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// helmert7 - the seven parameters of a datum transformation
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::helmert7> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::helmert7 const& h, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "helmert7(t = (");
+        out = fmt::format_to(out, fmt::runtime(child), h.tx);
+        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, fmt::runtime(child), h.ty);
+        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, fmt::runtime(child), h.tz);
+        out = fmt::format_to(out, ") m, r = (");
+        out = fmt::format_to(out, fmt::runtime(child), h.rx);
+        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, fmt::runtime(child), h.ry);
+        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, fmt::runtime(child), h.rz);
+        out = fmt::format_to(out, ") rad, ds = ");
+        out = fmt::format_to(out, fmt::runtime(child), h.ds);
+        return fmt::format_to(out, ")");
+    }
+};

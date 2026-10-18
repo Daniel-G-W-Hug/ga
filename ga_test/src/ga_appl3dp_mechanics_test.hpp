@@ -6619,6 +6619,257 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
         CHECK_THROWS_AS(utm_zone(0), std::invalid_argument);
     }
 
+    TEST_CASE("geodesics: Lambert azimuthal equal-area against PROJ, the sphere and area")
+    {
+        fmt::println(
+            "geodesics: Lambert azimuthal equal-area against PROJ, the sphere and area");
+        using namespace azimuthal_test;
+
+        // ETRS89-LAEA (EPSG:3035) on GRS80. The references are PROJ 9.9.0: `cs2cs -f %.6f
+        // +proj=longlat +ellps=GRS80 +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000
+        // +y_0=3210000 +ellps=GRS80` -- written as a proj string, because EPSG:3035
+        // itself prints northing before easting
+        struct ref {
+            value_t lon, lat, e, n;
+        };
+        std::array<ref, 6> const epsg3035{
+            {{10.0, 52.0, 4321000.0, 3210000.0},
+             {13.4, 52.52, 4551697.475620, 3273252.407167},     // Berlin
+             {-9.14, 38.72, 2665402.840046, 1946531.124408},    // Lisbon
+             {24.94, 60.17, 5145382.161704, 4206177.504041},    // Helsinki
+             {33.38, 35.17, 6436679.629092, 1670516.596678},    // Nicosia
+             {-25.67, 37.74, 1282418.650395, 2359417.526939}}}; // Ponta Delgada
+        auto const eu = etrs89_laea();
+        value_t err_proj = 0.0;
+        for (auto const& r : epsg3035) {
+            auto const x =
+                laea_forward(geo_pos{deg2rad(r.lat), deg2rad(r.lon), 0.0}, eu, grs80);
+            err_proj = std::max(err_proj, dist2d(x, vec2d{r.e, r.n}));
+        }
+        // the polar aspect (the same formulas, D = 1): PROJ at +lat_0=90 +lon_0=0
+        auto const north = laea_at(geo_pos{deg2rad(90.0), 0.0, 0.0});
+        value_t const err_polar = std::max(
+            dist2d(laea_forward(geo_pos{deg2rad(70.0), deg2rad(30.0), 0.0}, north, grs80),
+                   vec2d{1110835.443764, -1924023.427448}),
+            dist2d(
+                laea_forward(geo_pos{deg2rad(80.0), deg2rad(-150.0), 0.0}, north, grs80),
+                vec2d{-557704.525488, 965972.573757}));
+
+        // on a sphere the map has a closed form (Snyder eq. 24-2..24-4): the orthographic
+        // coordinates times k = sqrt(2 / (1 + cos c)), c the angle from the centre
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        geo_pos const c0{deg2rad(40.0), deg2rad(-100.0), 0.0};
+        auto const ms = laea_at(c0);
+        value_t err_sphere = 0.0;
+        for (int ilat = -60; ilat <= 85; ilat += 5) {
+            for (int ilon = -180; ilon < 180; ilon += 10) {
+                geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                value_t const dl = p.lon - c0.lon;
+                value_t const cos_c = std::sin(c0.lat) * std::sin(p.lat) +
+                                      std::cos(c0.lat) * std::cos(p.lat) * std::cos(dl);
+                if (cos_c < -0.9) continue; // near the antipode the rim is ill-posed
+                value_t const k = std::sqrt(2.0 / (1.0 + cos_c));
+                vec2d const xs{k * R * std::cos(p.lat) * std::sin(dl),
+                               k * R *
+                                   (std::cos(c0.lat) * std::sin(p.lat) -
+                                    std::sin(c0.lat) * std::cos(p.lat) * std::cos(dl))};
+                err_sphere =
+                    std::max(err_sphere, dist2d(laea_forward(p, ms, sphere), xs));
+            }
+        }
+
+        // the round trip, in metres on the ground, out to 150 deg from the centre
+        value_t err_trip = 0.0;
+        for (int ilat = -88; ilat <= 88; ilat += 4) {
+            for (int ilon = -170; ilon <= 180; ilon += 10) {
+                geo_pos const p{deg2rad(ilat), deg2rad(ilon), 0.0};
+                value_t const cos_c =
+                    std::sin(eu.lat0) * std::sin(p.lat) +
+                    std::cos(eu.lat0) * std::cos(p.lat) * std::cos(p.lon - eu.lon0);
+                if (cos_c < std::cos(deg2rad(150.0))) continue;
+                auto const q = laea_inverse(laea_forward(p, eu, grs80), eu, grs80);
+                err_trip =
+                    std::max({err_trip, 6.4e6 * std::abs(q.lat - p.lat),
+                              6.4e6 * std::cos(p.lat) *
+                                  std::abs(std::remainder(q.lon - p.lon, 2.0 * pi))});
+            }
+        }
+
+        // AREA, the defining property: the shoelace area of a projected 2 x 2 deg cell
+        // against the cell's area on the ellipsoid, integrated directly --
+        // dA = M N cos(lat) dlat dlon (Simpson's rule), which uses neither q nor the map.
+        // The orthographic map at the same centre is the falsifier: it shrinks a cell by
+        // about cos(c), visibly so at the edge of Europe
+        auto const cell_area = [](value_t la0, value_t la1, value_t dlon) {
+            value_t const a = grs80.r_equator, e2 = grs80.e_sq();
+            auto const f = [&](value_t la) {
+                value_t const w = 1.0 - e2 * std::sin(la) * std::sin(la);
+                return a * a * (1.0 - e2) * std::cos(la) / (w * w);
+            };
+            int const n = 200;
+            value_t const hs = (la1 - la0) / n;
+            value_t s = f(la0) + f(la1);
+            for (int i = 1; i < n; ++i)
+                s += f(la0 + i * hs) * ((i % 2) ? 4.0 : 2.0);
+            return s * hs / 3.0 * dlon;
+        };
+        auto const cell_ring = [](value_t la0, value_t lo0, value_t d) {
+            std::vector<geo_pos> ring;
+            std::array<geo_pos, 4> const c{
+                geo_pos{la0, lo0, 0.0}, geo_pos{la0, lo0 + d, 0.0},
+                geo_pos{la0 + d, lo0 + d, 0.0}, geo_pos{la0 + d, lo0, 0.0}};
+            for (size_t i = 0; i < 4; ++i) {
+                ring.push_back(c[i]);
+                for (auto const& q : densify(c[i], c[(i + 1) % 4], deg2rad(0.01)))
+                    ring.push_back(q);
+            }
+            return ring;
+        };
+        auto const shoelace = [](std::vector<vec2d> const& pts) {
+            value_t s = 0.0;
+            for (size_t i = 0; i < pts.size(); ++i)
+                s += value_t(ega::wdg(pts[i], pts[(i + 1) % pts.size()]));
+            return 0.5 * std::abs(s);
+        };
+        auto const ortho = make_azimuthal_map(geo_pos{eu.lat0, eu.lon0, 0.0},
+                                              azimuthal::orthographic, grs80);
+        value_t const d2 = deg2rad(2.0);
+        value_t err_area = 0.0, ortho_min = 1.0;
+        for (int ilat = 34; ilat <= 68; ilat += 6) {
+            for (int ilon = -26; ilon <= 34; ilon += 10) {
+                auto const ring = cell_ring(deg2rad(ilat), deg2rad(ilon), d2);
+                std::vector<vec2d> xl, xo;
+                for (auto const& q : ring) {
+                    xl.push_back(laea_forward(q, eu, grs80));
+                    xo.push_back(project(ortho, q));
+                }
+                value_t const A = cell_area(deg2rad(ilat), deg2rad(ilat) + d2, d2);
+                err_area = std::max(err_area, std::abs(shoelace(xl) / A - 1.0));
+                ortho_min = std::min(ortho_min, shoelace(xo) / A);
+            }
+        }
+
+        fmt::println("    vs PROJ {:.2e} m (polar {:.2e} m); sphere {:.2e} m; round trip "
+                     "{:.2e} m; area {:.2e} relative (orthographic down to {:.3f})",
+                     err_proj, err_polar, err_sphere, err_trip, err_area, ortho_min);
+        CHECK(err_proj < 1.0e-5); // PROJ printed to the micrometre
+        CHECK(err_polar < 1.0e-5);
+        CHECK(err_sphere < 1.0e-6);
+        CHECK(err_trip < 1.0e-6);
+        CHECK(err_area < 1.0e-6);
+        CHECK(ortho_min < 0.9); // the gate sees an area error where there is one
+
+        // falsify the pin: a centre one degree off is tens of kilometres away
+        lambert_azimuthal moved = eu;
+        moved.lon0 += deg2rad(1.0);
+        CHECK(dist2d(
+                  laea_forward(geo_pos{deg2rad(52.52), deg2rad(13.4), 0.0}, moved, grs80),
+                  vec2d{epsg3035[1].e, epsg3035[1].n}) > 1.0e4);
+        // the centre's antipode has no image, and nothing lies outside the disc
+        CHECK_THROWS_AS(laea_forward(geo_pos{-eu.lat0, eu.lon0 - pi, 0.0}, eu, grs80),
+                        std::invalid_argument);
+        CHECK_THROWS_AS(
+            laea_inverse(vec2d{eu.false_easting + 1.3e7, eu.false_northing}, eu, grs80),
+            std::invalid_argument);
+    }
+
+    TEST_CASE("geodesics: the Helmert transformation in both conventions against PROJ")
+    {
+        fmt::println(
+            "geodesics: the Helmert transformation in both conventions against PROJ");
+        using namespace azimuthal_test;
+
+        // PROJ's towgs84 for the German DHDN (Bessel) datum, in published units
+        auto const hp = make_helmert7(598.1, 73.7, 418.2, 0.202, 0.045, -2.455, 6.7);
+        vec3dp const X{4157222.543, 664789.307, 4774952.099, 1.0};
+        auto const dist3 = [](vec3dp const& a, vec3d const& b) {
+            return std::hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+        };
+
+        // PROJ 9.9.0: `cct -d 6 +proj=helmert +x=598.1 +y=73.7 +z=418.2 +rx=0.202
+        // +ry=0.045 +rz=-2.455 +s=6.7 +convention=<c> [+exact]`; without +exact PROJ uses
+        // EPSG's linearized rotation, with it three composed axis rotations
+        vec3d const pv_lin{4157857.450623, 664813.304508, 4775402.035256};
+        vec3d const pv_exa{4157857.450329, 664813.304462, 4775402.035203};
+        vec3d const cf_lin{4157839.542159, 664921.617668, 4775402.547102};
+        vec3d const cf_exa{4157839.541809, 664921.617609, 4775402.547100};
+        auto const pv = helmert_position_vector(X, hp);
+        auto const cf = helmert_coordinate_frame(X, hp);
+
+        // an independent reference for the exact rotation: Rodrigues' formula about the
+        // axis k = r / |r|, X' = t + (1 + ds) (X cos + (k x X) sin + k (k . X)(1 - cos))
+        auto const rodrigues = [&](value_t sign) {
+            vec3d const r{sign * hp.rx, sign * hp.ry, sign * hp.rz};
+            value_t const th = std::sqrt(hp.rx * hp.rx + hp.ry * hp.ry + hp.rz * hp.rz);
+            vec3d const k{r.x / th, r.y / th, r.z / th};
+            vec3d const x{X.x, X.y, X.z};
+            vec3d const kx{k.y * x.z - k.z * x.y, k.z * x.x - k.x * x.z,
+                           k.x * x.y - k.y * x.x};
+            value_t const kd = k.x * x.x + k.y * x.y + k.z * x.z;
+            value_t const c = std::cos(th), s = std::sin(th), sc = 1.0 + hp.ds;
+            return vec3d{hp.tx + sc * (x.x * c + kx.x * s + k.x * kd * (1.0 - c)),
+                         hp.ty + sc * (x.y * c + kx.y * s + k.y * kd * (1.0 - c)),
+                         hp.tz + sc * (x.z * c + kx.z * s + k.z * kd * (1.0 - c))};
+        };
+        value_t const err_rod =
+            std::max(dist3(pv, rodrigues(1.0)), dist3(cf, rodrigues(-1.0)));
+
+        // the second-order bound on the linearized form: |r|^2 |X| / 2
+        value_t const r2 = hp.rx * hp.rx + hp.ry * hp.ry + hp.rz * hp.rz;
+        value_t const bound = 0.5 * r2 * std::hypot(X.x, X.y, X.z);
+        value_t const err_lin = std::max(dist3(pv, pv_lin), dist3(cf, cf_lin));
+        value_t const err_exa = std::max(dist3(pv, pv_exa), dist3(cf, cf_exa));
+
+        // the two conventions are one map with the rotation's sign flipped ...
+        pga::helmert7 flipped = hp;
+        flipped.rx = -hp.rx;
+        flipped.ry = -hp.ry;
+        flipped.rz = -hp.rz;
+        value_t const err_flip = dist3(cf, vec3d{helmert_position_vector(X, flipped).x,
+                                                 helmert_position_vector(X, flipped).y,
+                                                 helmert_position_vector(X, flipped).z});
+        // ... and confusing them costs about 2 |r| |X|
+        value_t const confusion = dist3(pv, vec3d{cf.x, cf.y, cf.z});
+
+        // geodetic DHDN -> ETRS89 at Stuttgart: Bessel, Helmert, GRS80. PROJ: `cct -d 9
+        // +proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=cart
+        // +ellps=bessel +step +proj=helmert ... +convention=position_vector +step +inv
+        // +proj=cart +ellps=GRS80 +step +proj=unitconvert +xy_in=rad +xy_out=deg`
+        ellipsoid const bessel{6377397.155, 6377397.155 * (1.0 - 1.0 / 299.1528128)};
+        auto const g = ecef_to_geo(
+            helmert_position_vector(
+                geo_to_ecef(geo_pos{deg2rad(48.7758), deg2rad(9.1829), 0.0}, bessel), hp),
+            grs80);
+        value_t const err_geo =
+            std::max({6.4e6 * std::abs(g.lat - deg2rad(48.774793672)),
+                      6.4e6 * std::cos(g.lat) * std::abs(g.lon - deg2rad(9.181844358)),
+                      std::abs(g.height - 51.760504052)});
+
+        // the inverse, to first order: every parameter negated
+        pga::helmert7 const neg{-hp.tx, -hp.ty, -hp.tz, -hp.rx, -hp.ry, -hp.rz, -hp.ds};
+        value_t const err_back =
+            dist3(helmert_position_vector(pv, neg), vec3d{X.x, X.y, X.z});
+
+        fmt::println("    vs Rodrigues {:.2e} m; vs PROJ linearized {:.2e} m (bound "
+                     "{:.2e} m), exact {:.2e} m; conventions {:.2e} m apart by sign, "
+                     "{:.1f} m if confused; DHDN at Stuttgart {:.2e} m; negated {:.2e} m",
+                     err_rod, err_lin, bound, err_exa, err_flip, confusion, err_geo,
+                     err_back);
+        CHECK(err_rod < 1.0e-7);
+        CHECK(err_lin < bound);
+        CHECK(err_exa < 1.0e-4);
+        CHECK(err_flip < 1.0e-7);
+        CHECK(confusion >
+              100.0); // the falsifier: the conventions are not interchangeable
+        CHECK(err_geo < 1.0e-3);
+        CHECK(err_back < 1.0e-2);
+
+        // no parameters, no change
+        auto const id = helmert_coordinate_frame(X, pga::helmert7{});
+        CHECK(dist3(id, vec3d{X.x, X.y, X.z}) < 1.0e-8);
+    }
+
     TEST_CASE("geodesics: densify an edge that is straight in (lat, lon)")
     {
         fmt::println("geodesics: densify an edge that is straight in (lat, lon)");

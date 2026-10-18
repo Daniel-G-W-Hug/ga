@@ -309,6 +309,12 @@ void register_functions_pga(nb::module_& m)
     m.def("gr_inv", [](mvec3dp_e const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](mvec3dp_u const& a0) { return gr_inv(a0); });
     m.def("gr_inv", [](mvec3dp const& a0) { return gr_inv(a0); });
+    m.def("helmert_coordinate_frame", [](vec3dp const& a0, helmert7 const& a1) {
+        return helmert_coordinate_frame(a0, a1);
+    });
+    m.def("helmert_position_vector", [](vec3dp const& a0, helmert7 const& a1) {
+        return helmert_position_vector(a0, a1);
+    });
     m.def("inv", [](scalar2dp const& a0) { return inv(a0); });
     m.def("inv", [](vec2dp const& a0) { return inv(a0); });
     m.def("inv", [](bivec2dp const& a0) { return inv(a0); });
@@ -475,6 +481,9 @@ void register_functions_pga(nb::module_& m)
     m.def("make_disc_body", [](double a0, double a1) { return make_disc_body(a0, a1); });
     m.def("make_disc_body",
           [](double a0, double a1, double a2) { return make_disc_body(a0, a1, a2); });
+    m.def("make_helmert7",
+          [](double a0, double a1, double a2, double a3, double a4, double a5,
+             double a6) { return make_helmert7(a0, a1, a2, a3, a4, a5, a6); });
     m.def("make_plate_body",
           [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
     m.def("make_point_body2dp", [](double a0) { return make_point_body2dp(a0); });
