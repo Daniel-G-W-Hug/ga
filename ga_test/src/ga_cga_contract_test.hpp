@@ -190,9 +190,11 @@ TEST_SUITE("CGA contracts")
 
     TEST_CASE("cga3dc: par of a dipole is its imaginary partner")
     {
-        // same centre and attitude, radius squared negated; applied twice, the identity
+        // same centre and attitude, radius squared negated; applied twice, the identity.
+        // The round trip is two chains of products, which accumulate a few ulps more
+        // than operator=='s window (measured ~7 ulps on MSVC), so compare by is_close.
         auto const d = dipole3dc(1.0, 2.0, 3.0, 0.5, 0.0, 0.6, 0.8);
-        CHECK(par(par(d)) == d);
+        CHECK(is_close(par(par(d)), d));
         CHECK(radius_sq(par(d)) == doctest::Approx(-radius_sq(d)));
         CHECK(radius_sq(d) == doctest::Approx(0.25));
     }

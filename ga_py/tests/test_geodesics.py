@@ -29,7 +29,8 @@ def test_ellipsoid_and_constants():
     assert ga_py.grs80 != w and ga_py.grs80 == ega.ellipsoid(w.r_equator,
                                                              ga_py.grs80.r_pole)
     sphere = ega.ellipsoid(6371000.0, 6371000.0)
-    assert sphere.e_sq() == 0.0 and sphere.radius(0.7) == 6371000.0
+    assert sphere.e_sq() == 0.0
+    assert sphere.radius(0.7) == pytest.approx(6371000.0, rel=1e-12)  # an ulp off on MSVC
     assert "ellipsoid(" in repr(w)
 
 
