@@ -7576,6 +7576,33 @@ void register_geodesics(sol::state& lua)
         &lambert_azimuthal::false_northing, sol::meta_function::to_string,
         [](lambert_azimuthal const& m) { return fmt::format("{}", m); });
 
+    lua.new_usertype<geodesic_solution>(
+        "geodesic_solution", sol::no_constructor, "s12", &geodesic_solution::s12, "azi1",
+        &geodesic_solution::azi1, "azi2", &geodesic_solution::azi2,
+        sol::meta_function::to_string,
+        [](geodesic_solution const& g) { return fmt::format("{}", g); });
+
+    lua.new_usertype<geodesic_destination>(
+        "geodesic_destination", sol::no_constructor, "pos", &geodesic_destination::pos,
+        "azi2", &geodesic_destination::azi2, sol::meta_function::to_string,
+        [](geodesic_destination const& d) { return fmt::format("{}", d); });
+
+    lua.new_usertype<azimuthal_equidistant>(
+        "azimuthal_equidistant", sol::call_constructor,
+        sol::factories([]() { return azimuthal_equidistant{}; },
+                       [](value_t lat0, value_t lon0, value_t fe, value_t fn) {
+                           return azimuthal_equidistant{lat0, lon0, fe, fn};
+                       }),
+        "new",
+        sol::factories([]() { return azimuthal_equidistant{}; },
+                       [](value_t lat0, value_t lon0, value_t fe, value_t fn) {
+                           return azimuthal_equidistant{lat0, lon0, fe, fn};
+                       }),
+        "lat0", &azimuthal_equidistant::lat0, "lon0", &azimuthal_equidistant::lon0,
+        "false_easting", &azimuthal_equidistant::false_easting, "false_northing",
+        &azimuthal_equidistant::false_northing, sol::meta_function::to_string,
+        [](azimuthal_equidistant const& m) { return fmt::format("{}", m); });
+
     lua.new_usertype<helmert7>(
         "helmert7", sol::call_constructor,
         sol::factories([]() { return helmert7{}; },
@@ -7746,6 +7773,45 @@ void register_geodesics(sol::state& lua)
             [](vec2d const& x, lambert_azimuthal const& m, ellipsoid const& el) {
                 return laea_inverse(x, m, el);
             }));
+
+    lua.set_function(
+        "geodesic_inverse",
+        sol::overload(
+            [](geo_pos const& a, geo_pos const& b) { return geodesic_inverse(a, b); },
+            [](geo_pos const& a, geo_pos const& b, ellipsoid const& el) {
+                return geodesic_inverse(a, b, el);
+            }));
+    lua.set_function(
+        "geodesic_direct",
+        sol::overload(
+            [](geo_pos const& a, value_t azi1, value_t s12) {
+                return geodesic_direct(a, azi1, s12);
+            },
+            [](geo_pos const& a, value_t azi1, value_t s12, ellipsoid const& el) {
+                return geodesic_direct(a, azi1, s12, el);
+            }));
+    lua.set_function(
+        "geodesic_path",
+        sol::overload(
+            [](geo_pos const& a, geo_pos const& b, value_t step) {
+                return sol::as_table(geodesic_path(a, b, step));
+            },
+            [](geo_pos const& a, geo_pos const& b, value_t step, ellipsoid const& el) {
+                return sol::as_table(geodesic_path(a, b, step, el));
+            }));
+    lua.set_function("aeqd_at", [](geo_pos const& c) { return aeqd_at(c); });
+    lua.set_function(
+        "aeqd_forward",
+        sol::overload([](geo_pos const& p,
+                         azimuthal_equidistant const& m) { return aeqd_forward(p, m); },
+                      [](geo_pos const& p, azimuthal_equidistant const& m,
+                         ellipsoid const& el) { return aeqd_forward(p, m, el); }));
+    lua.set_function(
+        "aeqd_inverse",
+        sol::overload([](vec2d const& x,
+                         azimuthal_equidistant const& m) { return aeqd_inverse(x, m); },
+                      [](vec2d const& x, azimuthal_equidistant const& m,
+                         ellipsoid const& el) { return aeqd_inverse(x, m, el); }));
 
     // ---- datum transformation in pga: one motor sandwich plus a scale
     pga.set_function("make_helmert7", [](value_t tx, value_t ty, value_t tz, value_t rx,

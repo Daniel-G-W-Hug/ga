@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-18T15:53:39+00:00",
+  "generated_at": "2026-10-18T16:34:28+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -3745,6 +3745,34 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "azimuthal_equidistant",
+      "underlying": "azimuthal_equidistant",
+      "canonical_underlying": "hd::ga::azimuthal_equidistant",
+      "fields": [
+        {
+          "name": "lat0",
+          "type": "value_t"
+        },
+        {
+          "name": "lon0",
+          "type": "value_t"
+        },
+        {
+          "name": "false_easting",
+          "type": "value_t"
+        },
+        {
+          "name": "false_northing",
+          "type": "value_t"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/ga_usr_geodesics.hpp",
+      "source_line": 1425
+    },
+    {
+      "namespace": "hd::ga",
       "name": "base_class_t",
       "underlying": "typename base_class<T>::type",
       "canonical_underlying": "hd::ga::base_class<type-parameter-0-0>::type",
@@ -4269,7 +4297,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1062
+      "source_line": 1481
     },
     {
       "namespace": "hd::ga",
@@ -4313,7 +4341,51 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1054
+      "source_line": 1473
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "geodesic_destination",
+      "underlying": "geodesic_destination",
+      "canonical_underlying": "hd::ga::geodesic_destination",
+      "fields": [
+        {
+          "name": "pos",
+          "type": "geo_pos"
+        },
+        {
+          "name": "azi2",
+          "type": "value_t"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/ga_usr_geodesics.hpp",
+      "source_line": 1088
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "geodesic_solution",
+      "underlying": "geodesic_solution",
+      "canonical_underlying": "hd::ga::geodesic_solution",
+      "fields": [
+        {
+          "name": "s12",
+          "type": "value_t"
+        },
+        {
+          "name": "azi1",
+          "type": "value_t"
+        },
+        {
+          "name": "azi2",
+          "type": "value_t"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/ga_usr_geodesics.hpp",
+      "source_line": 1081
     },
     {
       "namespace": "hd::ga",
@@ -8006,7 +8078,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1513
+      "source_line": 1932
     },
     {
       "namespace": "hd::ga::pga",
@@ -8026,7 +8098,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1497
+      "source_line": 1916
     },
     {
       "namespace": "hd::ga::pga",
@@ -8120,7 +8192,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1128
+      "source_line": 1547
     },
     {
       "namespace": "hd::ga::pga",
@@ -8160,7 +8232,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1359
+      "source_line": 1778
     },
     {
       "namespace": "hd::ga::pga",
@@ -8795,7 +8867,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1835
+      "source_line": 2254
     },
     {
       "namespace": "hd::ga::sta",
@@ -9040,6 +9112,52 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "aeqd_at",
+      "overloads": [
+        {
+          "return_type": "azimuthal_equidistant",
+          "param_types": [
+            "const geo_pos &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1433
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "aeqd_forward",
+      "overloads": [
+        {
+          "return_type": "vec2d",
+          "param_types": [
+            "const geo_pos &",
+            "const azimuthal_equidistant &",
+            "const ellipsoid &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1439
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "aeqd_inverse",
+      "overloads": [
+        {
+          "return_type": "geo_pos",
+          "param_types": [
+            "const vec2d &",
+            "const azimuthal_equidistant &",
+            "const ellipsoid &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1449
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
       "name": "apply_scheme",
       "overloads": [
         {
@@ -9198,7 +9316,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1075
+          "source_line": 1494
         }
       ]
     },
@@ -9288,6 +9406,56 @@
           ],
           "source_file": "ga/ga_usr_fd.hpp",
           "source_line": 393
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "geodesic_direct",
+      "overloads": [
+        {
+          "return_type": "geodesic_destination",
+          "param_types": [
+            "const geo_pos &",
+            "value_t",
+            "value_t",
+            "const ellipsoid &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1337
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "geodesic_inverse",
+      "overloads": [
+        {
+          "return_type": "geodesic_solution",
+          "param_types": [
+            "const geo_pos &",
+            "const geo_pos &",
+            "const ellipsoid &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1252
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "geodesic_path",
+      "overloads": [
+        {
+          "return_type": "std::vector<geo_pos>",
+          "param_types": [
+            "const geo_pos &",
+            "const geo_pos &",
+            "value_t",
+            "const ellipsoid &"
+          ],
+          "source_file": "ga/ga_usr_geodesics.hpp",
+          "source_line": 1382
         }
       ]
     },
@@ -11128,7 +11296,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1069
+          "source_line": 1488
         }
       ]
     },
@@ -26309,7 +26477,7 @@
             "const trivec3dp &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1681
+          "source_line": 2100
         }
       ]
     },
@@ -27104,7 +27272,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1113
+          "source_line": 1532
         },
         {
           "return_type": "geo_pos2dp",
@@ -27113,7 +27281,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1805
+          "source_line": 2224
         }
       ]
     },
@@ -27128,7 +27296,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1194
+          "source_line": 1613
         },
         {
           "return_type": "enu_frame",
@@ -27137,7 +27305,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1232
+          "source_line": 1651
         }
       ]
     },
@@ -27152,7 +27320,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1254
+          "source_line": 1673
         }
       ]
     },
@@ -27167,7 +27335,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1305
+          "source_line": 1724
         }
       ]
     },
@@ -27182,7 +27350,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1278
+          "source_line": 1697
         }
       ]
     },
@@ -27239,7 +27407,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1099
+          "source_line": 1518
         },
         {
           "return_type": "vec2dp",
@@ -27248,7 +27416,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1789
+          "source_line": 2208
         }
       ]
     },
@@ -27854,7 +28022,7 @@
             "const helmert7 &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1395
+          "source_line": 1814
         }
       ]
     },
@@ -27869,7 +28037,7 @@
             "const helmert7 &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1389
+          "source_line": 1808
         }
       ]
     },
@@ -28317,7 +28485,7 @@
             "const vec3dp &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1657
+          "source_line": 2076
         }
       ]
     },
@@ -28839,7 +29007,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1739
+          "source_line": 2158
         }
       ]
     },
@@ -28856,7 +29024,7 @@
             "const azimuthal_options &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1582
+          "source_line": 2001
         }
       ]
     },
@@ -28947,7 +29115,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1366
+          "source_line": 1785
         }
       ]
     },
@@ -29467,7 +29635,7 @@
             "const vec3dp &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1665
+          "source_line": 2084
         },
         {
           "return_type": "vec2d",
@@ -29476,7 +29644,7 @@
             "const geo_pos &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1673
+          "source_line": 2092
         }
       ]
     },
@@ -33256,7 +33424,7 @@
             "const vec3dp &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1648
+          "source_line": 2067
         }
       ]
     },
@@ -33597,7 +33765,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1850
+          "source_line": 2269
         },
         {
           "return_type": "un_frame",
@@ -33606,7 +33774,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1869
+          "source_line": 2288
         }
       ]
     },
@@ -33621,7 +33789,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1877
+          "source_line": 2296
         }
       ]
     },
@@ -33636,7 +33804,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1906
+          "source_line": 2325
         }
       ]
     },
@@ -33651,7 +33819,7 @@
             "const ellipsoid &"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1895
+          "source_line": 2314
         }
       ]
     },
@@ -33833,7 +34001,7 @@
             "bool *"
           ],
           "source_file": "ga/ga_usr_geodesics.hpp",
-          "source_line": 1697
+          "source_line": 2116
         }
       ]
     },
@@ -59641,7 +59809,7 @@
       ],
       "scoped": true,
       "source_file": "ga/ga_usr_geodesics.hpp",
-      "source_line": 1436
+      "source_line": 1855
     },
     {
       "namespace": "hd::ga::pga",

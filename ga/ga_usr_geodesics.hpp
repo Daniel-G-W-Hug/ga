@@ -76,6 +76,14 @@
 // - laea_at() / etrs89_laea() : that map centred at a position / the EU's EPSG:3035 grid
 // - laea_forward() / laea_inverse(): geodetic position <-> map coordinates, AREA kept --
 //                               maps for statistics and densities
+// - geodesic_inverse()        : distance and both azimuths of the shortest path between
+//                               two positions (geodesic_solution)
+// - geodesic_direct()         : where a path of given start, azimuth and length ends
+//                               (geodesic_destination)
+// - geodesic_path()           : a shortest path as positions, to draw a route
+// - azimuthal_equidistant     : the parameters of an azimuthal equidistant map; aeqd_at()
+// - aeqd_forward() / aeqd_inverse(): geodetic position <-> map coordinates, DISTANCE and
+//                               DIRECTION from the centre kept -- the flight map of a hub
 // - distance_from_geocenter() : the position's "total radius" [m], derived
 // - geo_pos_dms2dp/geo_pos2dp : the same pair for the MERIDIAN SECTION (no longitude);
 //                               to_geo_pos() and distance_from_geocenter() overload on
@@ -1034,6 +1042,425 @@ inline geo_pos laea_inverse(vec2d const& xy, lambert_azimuthal const& m,
                                                         c.D * c.D * y * c.sin_b0 * sC);
 
     return geo_pos{detail::laea_lat_from_q(c.qp * sin_b, c.qp, c.e), lon, 0.0};
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// geodesics on the ellipsoid: the inverse and the direct problem
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// The shortest path on the ellipsoid between two positions -- what a long-haul flight
+// follows, and what a "great circle" means once the earth is not a sphere. Two problems:
+//
+// - INVERSE: given two positions, the distance s12 between them and the azimuth of the
+//   path at each end (azi1 departing, azi2 arriving; clockwise from north)
+// - DIRECT:  given a position, an azimuth and a distance, where the path ends
+//
+// The path is not a plane section of the ellipsoid, so no product expression of the
+// algebra yields it; this is classical numerics, written as such. It follows Bessel's
+// method in the form of Karney ("Algorithms for geodesics", J. Geodesy 87, 2013): the
+// geodesic is mapped onto an auxiliary sphere through the reduced latitude beta,
+// tan(beta) = (1 - f) tan(lat), where it is a great circle with the arc length sigma
+// and the equatorial azimuth alpha0 (sin(alpha0) = sin(alpha) cos(beta), Clairaut's
+// constant), and distance and longitude follow from two integrals over sigma,
+//
+//     s      = b  int sqrt(1 + k^2 sin^2(sigma)) dsigma ,        k^2 = e'^2 cos^2(alpha0)
+//     lambda = omega - f sin(alpha0) int (2 - f) / (1 + (1 - f) sqrt(1 + k^2 sin^2))
+//     dsigma
+//
+// (Karney's eqs. 7 and 8; omega the longitude on the auxiliary sphere). Where Karney
+// expands both integrals in series, they are evaluated here by Gauss-Legendre
+// quadrature -- the integrands are smooth and nearly constant (k^2 < 0.007 on the earth),
+// so twelve nodes per quarter circle reach machine precision. The inverse problem is
+// solved by bracketing the departure azimuth: with the two ends arranged canonically
+// (the first the one farther from the equator, in the southern hemisphere, the second
+// east of it), the longitude difference reached grows monotonically with the azimuth
+// from 0 (due north) to pi (due south, across the pole) -- Karney's section 4 -- so a
+// regula falsi on [0, pi] converges for every pair, nearly antipodal ones included,
+// where Vincenty's iteration fails. Agreement with GeographicLib (PROJ's geod) is a
+// fraction of a micrometre over the whole earth (tested).
+//
+// Degenerate cases, handled as Karney does: an end at a pole, where the azimuth is the
+// meridian's longitude; both ends on the equator, where the equator itself is the
+// shortest path up to (1 - f) pi of longitude, and beyond that a path that leaves it and
+// meets it again half a circle on (the northern of the two mirror images).
+
+// the solution of the inverse problem
+struct geodesic_solution {
+    value_t s12{0.0};  // distance along the ellipsoid [m]
+    value_t azi1{0.0}; // azimuth at the start, departing [rad], clockwise from north
+    value_t azi2{0.0}; // azimuth at the end, arriving (the direction of travel there)
+};
+
+// the solution of the direct problem
+struct geodesic_destination {
+    geo_pos pos{};     // where the path ends (height 0)
+    value_t azi2{0.0}; // azimuth there, arriving [rad]
+};
+
+namespace detail {
+
+// 12-point Gauss-Legendre nodes and weights on [-1, 1], by Newton's method on the
+// Legendre polynomial P_12; computed once
+struct gauss_legendre12_t {
+    std::array<value_t, 12> x{};
+    std::array<value_t, 12> w{};
+};
+
+inline gauss_legendre12_t const& gauss_legendre12()
+{
+    static gauss_legendre12_t const g = [] {
+        gauss_legendre12_t r{};
+        int const n = 12;
+        for (int i = 0; i < n / 2; ++i) {
+            value_t z = std::cos(pi * (i + 0.75) / (n + 0.5));
+            value_t dp = 1.0;
+            for (int it = 0; it < 100; ++it) {
+                value_t p1 = 1.0, p2 = 0.0;
+                for (int j = 0; j < n; ++j) {
+                    value_t const p3 = p2;
+                    p2 = p1;
+                    p1 = ((2.0 * j + 1.0) * z * p2 - j * p3) / (j + 1.0);
+                }
+                dp = n * (z * p1 - p2) / (z * z - 1.0); // P_12'(z)
+                value_t const dz = p1 / dp;
+                z -= dz;
+                if (std::abs(dz) < 1.0e-16) break;
+            }
+            r.x[size_t(i)] = -z;
+            r.x[size_t(n - 1 - i)] = z;
+            r.w[size_t(i)] = r.w[size_t(n - 1 - i)] = 2.0 / ((1.0 - z * z) * dp * dp);
+        }
+        return r;
+    }();
+    return g;
+}
+
+// int_a^b g(sigma) dsigma, twelve nodes per panel of at most a quarter circle
+template <typename F> inline value_t geod_quadrature(F const& g, value_t a, value_t b)
+{
+    auto const& q = gauss_legendre12();
+    int const n = std::max(1, static_cast<int>(std::ceil(std::abs(b - a) / (0.5 * pi))));
+    value_t const h = (b - a) / n;
+    value_t sum = 0.0;
+    for (int p = 0; p < n; ++p) {
+        value_t const c = a + (p + 0.5) * h;
+        for (size_t i = 0; i < 12; ++i)
+            sum += q.w[i] * g(c + 0.5 * h * q.x[i]);
+    }
+    return 0.5 * h * sum;
+}
+
+// one geodesic on the auxiliary sphere: the two integrals of Karney's eqs. 7 and 8
+struct geod_line {
+    value_t f;      // flattening
+    value_t sin_a0; // Clairaut's constant sin(alpha0)
+    value_t k2;     // e'^2 cos^2(alpha0)
+
+    value_t g1(value_t s) const
+    {
+        value_t const sn = std::sin(s);
+        return std::sqrt(1.0 + k2 * sn * sn);
+    }
+    // the distance integral, in units of the pole radius
+    value_t i1(value_t a, value_t b) const
+    {
+        return geod_quadrature([this](value_t s) { return g1(s); }, a, b);
+    }
+    // the longitude correction lambda - omega
+    value_t dlam(value_t a, value_t b) const
+    {
+        if (sin_a0 == 0.0) return 0.0;
+        return -f * sin_a0 *
+               geod_quadrature(
+                   [this](value_t s) { return (2.0 - f) / (1.0 + (1.0 - f) * g1(s)); }, a,
+                   b);
+    }
+};
+
+inline geod_line geod_line_from(ellipsoid const& el, value_t sin_a0)
+{
+    value_t const e2 = el.e_sq();
+    value_t const ep2 = e2 / (1.0 - e2);
+    return geod_line{el.flattening(), sin_a0, ep2 * (1.0 - sin_a0 * sin_a0)};
+}
+
+// the reduced latitude, as its sine and cosine
+inline void reduced_latitude(ellipsoid const& el, value_t lat, value_t& sb, value_t& cb)
+{
+    value_t const f = el.flattening();
+    value_t const y = (1.0 - f) * std::sin(lat), x = std::cos(lat);
+    value_t const r = std::hypot(x, y);
+    sb = y / r;
+    cb = x / r;
+}
+
+// the canonical inverse problem: beta1 <= 0, |beta2| <= |beta1|, 0 <= lam12 <= pi;
+// the departure azimuth in [0, pi], the path followed to its first northward crossing of
+// beta2. Returns lam12 reached for the azimuth a1, and the line's quantities.
+struct geod_shot {
+    value_t lam12;
+    value_t sig1, sig2;
+    value_t sin_a0;
+    value_t ca2cb2; // cos(alpha2) cos(beta2) at the end
+};
+
+inline geod_shot geod_shoot(ellipsoid const& el, value_t sb1, value_t cb1, value_t sb2,
+                            value_t cb2, value_t a1)
+{
+    value_t const sa1 = std::sin(a1), ca1 = std::cos(a1);
+    value_t const sin_a0 = sa1 * cb1;
+    value_t const sig1 = std::atan2(sb1, ca1 * cb1);
+    // Karney eq. 45: cos(alpha2) cos(beta2), northward, written to avoid cancellation
+    value_t const ca2cb2 = std::sqrt(
+        std::max(value_t(0.0), ca1 * ca1 * cb1 * cb1 + (cb2 - cb1) * (cb2 + cb1)));
+    value_t const sig2 = std::atan2(sb2, ca2cb2);
+    // omega on the auxiliary sphere: omega1 in (-pi, 0], omega2 in [-pi/2, pi/2], so the
+    // difference is continuous in a1 and needs no unwrapping
+    value_t const om1 = std::atan2(sin_a0 * std::sin(sig1), std::cos(sig1));
+    value_t const om2 = std::atan2(sin_a0 * std::sin(sig2), std::cos(sig2));
+    auto const L = geod_line_from(el, sin_a0);
+    return geod_shot{om2 - om1 + L.dlam(sig1, sig2), sig1, sig2, sin_a0, ca2cb2};
+}
+
+// the root of an increasing function on [lo, hi] (F(lo) <= 0 <= F(hi)), by regula
+// falsi with the Illinois modification: superlinear, and never leaves the bracket
+template <typename F> inline value_t geod_root(F const& fn, value_t lo, value_t hi)
+{
+    value_t f_lo = fn(lo), f_hi = fn(hi);
+    if (f_lo >= 0.0) return lo;
+    if (f_hi <= 0.0) return hi;
+    value_t x = lo;
+    int side = 0;
+    for (int it = 0; it < 200; ++it) {
+        x = (lo * f_hi - hi * f_lo) / (f_hi - f_lo);
+        if (!(x > lo && x < hi)) x = 0.5 * (lo + hi);
+        value_t const fx = fn(x);
+        if (fx == 0.0 || hi - lo < 1.0e-15 || std::abs(fx) < 1.0e-15) break;
+        if (fx < 0.0) {
+            lo = x;
+            f_lo = fx;
+            if (side == -1) f_hi *= 0.5;
+            side = -1;
+        }
+        else {
+            hi = x;
+            f_hi = fx;
+            if (side == 1) f_lo *= 0.5;
+            side = 1;
+        }
+    }
+    return x;
+}
+
+} // namespace detail
+
+// the inverse problem: distance and azimuths of the shortest path from a to b (heights
+// ignored)
+inline geodesic_solution geodesic_inverse(geo_pos const& a, geo_pos const& b,
+                                          ellipsoid const& el = wgs84)
+{
+    value_t lat1 = a.lat, lat2 = b.lat;
+    value_t lam12 = std::remainder(b.lon - a.lon, 2.0 * pi);
+
+    // canonical arrangement: the end farther from the equator first, in the south, the
+    // other east of it
+    bool const swapped = std::abs(lat1) < std::abs(lat2);
+    if (swapped) {
+        std::swap(lat1, lat2);
+        lam12 = -lam12;
+    }
+    value_t const lat_sign = (lat1 > 0.0) ? -1.0 : 1.0;
+    lat1 *= lat_sign;
+    lat2 *= lat_sign;
+    value_t const lon_sign = (lam12 < 0.0) ? -1.0 : 1.0;
+    lam12 *= lon_sign;
+
+    value_t sb1, cb1, sb2, cb2;
+    detail::reduced_latitude(el, lat1, sb1, cb1);
+    detail::reduced_latitude(el, lat2, sb2, cb2);
+
+    value_t a1 = 0.0, a2 = 0.0, s12 = 0.0;
+    value_t const f = el.flattening();
+    if (cb1 < 1.0e-15) {
+        // the first end at the (south) pole: the path is the meridian of the other end,
+        // the azimuth at the pole that meridian's longitude
+        auto const L = detail::geod_line_from(el, 0.0);
+        s12 = el.r_pole * L.i1(-0.5 * pi, std::atan2(sb2, cb2));
+        a1 = lam12;
+        a2 = 0.0;
+    }
+    else if (sb1 == 0.0 && lam12 <= (1.0 - f) * pi) {
+        // both on the equator, close enough for the equator to be the shortest path
+        s12 = el.r_equator * lam12;
+        a1 = a2 = 0.5 * pi;
+    }
+    else if (sb1 == 0.0) {
+        // both on the equator, farther apart than (1 - f) pi: the shortest path leaves
+        // the equator northward and meets it again at sigma = pi, where
+        // lam12(a1) = pi - f sin(a1) int_0^pi ... falls from pi (a1 = 0, over the pole)
+        // to (1 - f) pi (a1 = pi/2, along the equator). Of the two mirror images the
+        // northern one is taken, as GeographicLib does
+        auto const lam_eq = [&](value_t az) {
+            return pi + detail::geod_line_from(el, std::sin(az)).dlam(0.0, pi);
+        };
+        a1 = detail::geod_root([&](value_t az) { return lam12 - lam_eq(az); }, 0.0,
+                               0.5 * pi);
+        s12 = el.r_pole * detail::geod_line_from(el, std::sin(a1)).i1(0.0, pi);
+        a2 = pi - a1;
+    }
+    else {
+        // the general case: lam12(a1) increases monotonically over [0, pi]
+        a1 = detail::geod_root(
+            [&](value_t az) {
+                return detail::geod_shoot(el, sb1, cb1, sb2, cb2, az).lam12 - lam12;
+            },
+            0.0, pi);
+        auto const shot = detail::geod_shoot(el, sb1, cb1, sb2, cb2, a1);
+        auto const L = detail::geod_line_from(el, shot.sin_a0);
+        s12 = el.r_pole * L.i1(shot.sig1, shot.sig2);
+        a2 = std::atan2(shot.sin_a0, shot.ca2cb2);
+    }
+
+    // undo the arrangement: the mirrors first, then the exchange of the ends
+    if (lon_sign < 0.0) {
+        a1 = -a1;
+        a2 = -a2;
+    }
+    if (lat_sign < 0.0) {
+        a1 = pi - a1;
+        a2 = pi - a2;
+    }
+    if (swapped) {
+        value_t const t = a1;
+        a1 = a2 + pi;
+        a2 = t + pi;
+    }
+    return geodesic_solution{s12, std::remainder(a1, 2.0 * pi),
+                             std::remainder(a2, 2.0 * pi)};
+}
+
+// the direct problem: where the path from a, leaving at azimuth azi1 [rad, clockwise from
+// north], ends after the distance s12 [m]
+inline geodesic_destination geodesic_direct(geo_pos const& a, value_t azi1, value_t s12,
+                                            ellipsoid const& el = wgs84)
+{
+    value_t sb1, cb1;
+    detail::reduced_latitude(el, a.lat, sb1, cb1);
+    value_t const sa1 = std::sin(azi1), ca1 = std::cos(azi1);
+    value_t sin_a0 = sa1 * cb1;
+    value_t cos_a0 = std::hypot(sb1, ca1 * cb1);
+    value_t sig1 = std::atan2(sb1, ca1 * cb1);
+    value_t lon1 = a.lon;
+    if (cb1 < 1.0e-15) {
+        // a start at a pole: the azimuth names the meridian taken -- its longitude is
+        // lon1 + azi1 from the south pole, lon1 + pi - azi1 from the north pole (the
+        // convention geodesic_inverse returns). On the auxiliary sphere the north pole
+        // is sigma = pi/2, past which omega = pi: so there the base meridian is the
+        // opposite one, lon1 - azi1
+        sin_a0 = 0.0;
+        cos_a0 = 1.0;
+        sig1 = std::copysign(0.5 * pi, sb1);
+        lon1 += (sb1 < 0.0) ? azi1 : -azi1;
+    }
+    auto const L = detail::geod_line_from(el, sin_a0);
+
+    // the arc sigma2 with b * I1(sigma1, sigma2) = s12, by Newton (I1 increases)
+    value_t sig2 = sig1 + s12 / el.r_pole;
+    for (int it = 0; it < 30; ++it) {
+        value_t const r = el.r_pole * L.i1(sig1, sig2) - s12;
+        sig2 -= r / (el.r_pole * L.g1(sig2));
+        if (std::abs(r) < 1.0e-9) break;
+    }
+
+    value_t const ss2 = std::sin(sig2), cs2 = std::cos(sig2);
+    value_t const lat2 = std::atan2(cos_a0 * ss2, (1.0 - el.flattening()) *
+                                                      std::hypot(sin_a0, cos_a0 * cs2));
+    // omega12 matters only modulo 2 pi here: the longitude is wrapped at the end
+    value_t const om1 = std::atan2(sin_a0 * std::sin(sig1), std::cos(sig1));
+    value_t const om2 = std::atan2(sin_a0 * ss2, cs2);
+    value_t const lon2 =
+        std::remainder(lon1 + (om2 - om1) + L.dlam(sig1, sig2), 2.0 * pi);
+    return geodesic_destination{geo_pos{lat2, lon2, 0.0},
+                                std::atan2(sin_a0, cos_a0 * cs2)};
+}
+
+// the shortest path from a to b as positions, both ends included, spaced at most
+// max_step [m] apart -- to draw a route
+inline std::vector<geo_pos> geodesic_path(geo_pos const& a, geo_pos const& b,
+                                          value_t max_step, ellipsoid const& el = wgs84)
+{
+    if (!(max_step > 0.0)) {
+        throw std::invalid_argument("geodesic_path: max_step must be positive");
+    }
+    auto const g = geodesic_inverse(a, b, el);
+    auto const n = std::max(size_t(1), static_cast<size_t>(std::ceil(g.s12 / max_step)));
+    std::vector<geo_pos> out;
+    out.reserve(n + 1);
+    out.push_back(geo_pos{a.lat, a.lon, 0.0});
+    for (size_t i = 1; i < n; ++i) {
+        out.push_back(
+            geodesic_direct(a, g.azi1, g.s12 * static_cast<value_t>(i) / n, el).pos);
+    }
+    out.push_back(geo_pos{b.lat, b.lon, 0.0});
+    return out;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// azimuthal equidistant: true distance and direction from one point
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+// The map that keeps DISTANCE and DIRECTION from its centre: every point is drawn at its
+// geodesic distance from the centre, in the direction of the geodesic's azimuth there,
+//
+//     x = s12 sin(azi1) ,   y = s12 cos(azi1)
+//
+// So the shortest route from the centre to anywhere is a STRAIGHT line on the map, of
+// its true length, and the circles around the centre are the places at one distance. It
+// is the map of everything seen from one place: a flight map from one airport (the
+// emblem of the United Nations is its polar aspect), radio and seismic ranges, the reach
+// of a missile. Distances and directions between two OTHER points are not kept, and
+// shape and area grow worse with the distance; the whole earth fits into a disc of
+// radius about 20 000 km, its rim the antipode of the centre.
+//
+// Like the equal-area map it is no central projection, so the tangent-plane meet does not
+// produce it; it is the inverse geodesic problem in polar coordinates. On the ellipsoid
+// this is the rigorous form (PROJ's aeqd, GeographicLib's AzimuthalEquidistant), not the
+// series approximation of EPSG method 1125 / 9832, which is valid only near the centre.
+
+// the parameters of one azimuthal equidistant map
+struct azimuthal_equidistant {
+    value_t lat0{0.0};           // latitude of the centre [rad]
+    value_t lon0{0.0};           // longitude of the centre [rad]
+    value_t false_easting{0.0};  // [m]
+    value_t false_northing{0.0}; // [m]
+};
+
+// the map centred at a position, the centre at map coordinates (0, 0)
+inline azimuthal_equidistant aeqd_at(geo_pos const& centre)
+{
+    return azimuthal_equidistant{centre.lat, centre.lon, 0.0, 0.0};
+}
+
+// geodetic position -> map coordinates (x towards east, y towards north at the centre)
+inline vec2d aeqd_forward(geo_pos const& p, azimuthal_equidistant const& m,
+                          ellipsoid const& el = wgs84)
+{
+    auto const g = geodesic_inverse(geo_pos{m.lat0, m.lon0, 0.0}, p, el);
+    return vec2d{m.false_easting + g.s12 * std::sin(g.azi1),
+                 m.false_northing + g.s12 * std::cos(g.azi1)};
+}
+
+// map coordinates -> geodetic position, height 0 (a point beyond the antipode's distance
+// continues along its geodesic)
+inline geo_pos aeqd_inverse(vec2d const& xy, azimuthal_equidistant const& m,
+                            ellipsoid const& el = wgs84)
+{
+    value_t const x = xy.x - m.false_easting, y = xy.y - m.false_northing;
+    value_t const s = std::hypot(x, y);
+    if (s == 0.0) return geo_pos{m.lat0, m.lon0, 0.0};
+    return geodesic_direct(geo_pos{m.lat0, m.lon0, 0.0}, std::atan2(x, y), s, el).pos;
 }
 
 

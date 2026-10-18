@@ -442,3 +442,102 @@ template <> struct fmt::formatter<hd::ga::pga::helmert7> {
         return fmt::format_to(out, ")");
     }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// geodesic_solution - the solution of the inverse geodesic problem
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::geodesic_solution> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::geodesic_solution const& v, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "geodesic_solution(s12 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.s12);
+        out = fmt::format_to(out, " m, azi1 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.azi1);
+        out = fmt::format_to(out, " rad, azi2 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.azi2);
+        return fmt::format_to(out, " rad)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// geodesic_destination - the solution of the direct geodesic problem
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::geodesic_destination> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::geodesic_destination const& v, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "geodesic_destination(pos = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.pos);
+        out = fmt::format_to(out, ", azi2 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.azi2);
+        return fmt::format_to(out, " rad)");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// azimuthal_equidistant - the parameters of an azimuthal equidistant map
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::azimuthal_equidistant> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::azimuthal_equidistant const& v, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+        auto out = fmt::format_to(ctx.out(), "azimuthal_equidistant(lat0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.lat0);
+        out = fmt::format_to(out, " rad, lon0 = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.lon0);
+        out = fmt::format_to(out, " rad, false_easting = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.false_easting);
+        out = fmt::format_to(out, " m, false_northing = ");
+        out = fmt::format_to(out, fmt::runtime(child), v.false_northing);
+        return fmt::format_to(out, " m)");
+    }
+};

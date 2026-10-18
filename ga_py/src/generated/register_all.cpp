@@ -5,6 +5,7 @@
 
 namespace nb = nanobind;
 
+void bind_azimuthal_equidistant(nb::module_& m);
 void bind_azimuthal_map(nb::module_& m);
 void bind_azimuthal_options(nb::module_& m);
 void bind_bivec2dc(nb::module_& m);
@@ -20,6 +21,8 @@ void bind_dualnum3dp(nb::module_& m);
 void bind_enu_frame(nb::module_& m);
 void bind_geo_pos(nb::module_& m);
 void bind_geo_pos2dp(nb::module_& m);
+void bind_geodesic_destination(nb::module_& m);
+void bind_geodesic_solution(nb::module_& m);
 void bind_helmert7(nb::module_& m);
 void bind_joint_drive2dp(nb::module_& m);
 void bind_joint_drive3dp(nb::module_& m);
@@ -119,6 +122,7 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     register_enums_cga(cga);
     register_enums_sta(sta);
     register_enums_top(top);
+    bind_azimuthal_equidistant(ega);
     bind_azimuthal_map(pga);
     bind_azimuthal_options(pga);
     bind_bivec2dc(cga);
@@ -134,6 +138,8 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_enu_frame(pga);
     bind_geo_pos(ega);
     bind_geo_pos2dp(pga);
+    bind_geodesic_destination(ega);
+    bind_geodesic_solution(ega);
     bind_helmert7(pga);
     bind_joint_drive2dp(pga);
     bind_joint_drive3dp(pga);

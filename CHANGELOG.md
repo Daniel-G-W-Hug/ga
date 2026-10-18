@@ -499,3 +499,17 @@
            it, the difference stated (0.33 mm for the DHDN set) and gated against PROJ's
            linearized and exact forms and an independent Rodrigues rotation (1e-9 m).
            Both additions reach Python and Lua.
+- 2026/10: geodesics on the ellipsoid: geodesic_inverse() (distance and both azimuths),
+           geodesic_direct() and geodesic_path() -- Bessel's auxiliary sphere in Karney's
+           form, the two integrals by Gauss-Legendre quadrature instead of series, the
+           inverse problem a bracketed root search on the departure azimuth (monotone
+           in the canonical arrangement), so nearly antipodal pairs converge too; both
+           ends on the equator and an end at a pole handled exactly. Agrees with
+           GeographicLib (PROJ geod) to 2e-8 m over 2000 random pairs and the degenerate
+           cases.
+- 2026/10: the azimuthal equidistant map on it: azimuthal_equidistant, aeqd_at(),
+           aeqd_forward() / aeqd_inverse() -- true distance and direction from the centre,
+           the map of a flight network from one airport. The rigorous ellipsoidal form
+           (PROJ's aeqd, to 1e-6 m); a route from the centre stays straight to 4e-8 m,
+           and a route between two other places bulges (the falsifier). Python and Lua
+           bound.

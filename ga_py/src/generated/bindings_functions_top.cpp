@@ -33,6 +33,11 @@ using namespace hd::ga::sta;
 void register_functions_top(nb::module_& m)
 {
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
+    m.def("aeqd_at", [](geo_pos const& a0) { return aeqd_at(a0); });
+    m.def("aeqd_forward", [](geo_pos const& a0, azimuthal_equidistant const& a1,
+                             ellipsoid const& a2) { return aeqd_forward(a0, a1, a2); });
+    m.def("aeqd_inverse", [](vec2d const& a0, azimuthal_equidistant const& a1,
+                             ellipsoid const& a2) { return aeqd_inverse(a0, a1, a2); });
     m.def("critical_damping",
           [](double a0, double a1) { return critical_damping(a0, a1); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
@@ -50,6 +55,18 @@ void register_functions_top(nb::module_& m)
     m.def("fd_derivative",
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2,
              fd_kind const& a3, int a4) { return fd_derivative(a0, a1, a2, a3, a4); });
+    m.def("geodesic_direct",
+          [](geo_pos const& a0, double a1, double a2, ellipsoid const& a3) {
+              return geodesic_direct(a0, a1, a2, a3);
+          });
+    m.def("geodesic_inverse",
+          [](geo_pos const& a0, geo_pos const& a1, ellipsoid const& a2) {
+              return geodesic_inverse(a0, a1, a2);
+          });
+    m.def("geodesic_path",
+          [](geo_pos const& a0, geo_pos const& a1, double a2, ellipsoid const& a3) {
+              return geodesic_path(a0, a1, a2, a3);
+          });
     m.def("gr", [](scalar2d const& a0) { return gr(a0); });
     m.def("gr", [](vec2d const& a0) { return gr(a0); });
     m.def("gr", [](pscalar2d const& a0) { return gr(a0); });

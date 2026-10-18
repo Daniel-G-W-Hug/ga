@@ -151,3 +151,35 @@ def test_helmert_both_conventions_against_proj():
     I = pga.helmert_position_vector(X, pga.helmert7())
     assert math.hypot(I.x - X.x, I.y - X.y, I.z - X.z) < 1e-8
     assert "helmert7(" in repr(h)
+
+
+def test_geodesic_inverse_and_direct_against_geographiclib():
+    # PROJ 9.9: geod +ellps=WGS84 -I -f %.12f -F %.9f (GeographicLib); the second azimuth
+    # geod prints is the back azimuth, azi2 + 180 deg
+    fra = ega.geo_pos(50.050677 * DEG, 8.571823 * DEG, 0.0)
+    syd = ega.geo_pos(-33.936583 * DEG, 151.166067 * DEG, 0.0)
+    g = ga_py.geodesic_inverse(fra, syd, ga_py.wgs84)
+    ref = ga_py.geodesic_inverse(ega.geo_pos(4.115312342334 * DEG, -48.351989911469 * DEG, 0.0),
+                                 ega.geo_pos(-62.128974631194 * DEG, 2.676863948191 * DEG, 0.0),
+                                 ga_py.wgs84)
+    assert abs(ref.s12 - 8517282.881914280) < 1e-5
+    assert abs(math.remainder(ref.azi1 - 157.977361349993 * DEG, 2 * math.pi)) < 1e-12
+    d = ga_py.geodesic_direct(fra, g.azi1, g.s12, ga_py.wgs84)
+    assert abs(d.pos.lat - syd.lat) < 1e-12 and abs(d.pos.lon - syd.lon) < 1e-12
+    path = ga_py.geodesic_path(fra, syd, 500.0e3, ga_py.wgs84)
+    assert len(path) == 34 and abs(path[-1].lon - syd.lon) < 1e-15
+    assert "geodesic_solution(" in repr(g)
+
+
+def test_azimuthal_equidistant_against_proj():
+    # PROJ 9.9: cs2cs +proj=longlat +ellps=WGS84 +to +proj=aeqd +lat_0=50.050677
+    #           +lon_0=8.571823 +ellps=WGS84
+    m = ga_py.aeqd_at(ega.geo_pos(50.050677 * DEG, 8.571823 * DEG, 0.0))
+    for lon, lat, x, y in [(151.166067, -33.936583, 15807946.680345, 4694317.626501),
+                           (-73.786327, 40.64596, -5650330.698446, 2565532.550647)]:
+        p = ega.geo_pos(lat * DEG, lon * DEG, 0.0)
+        X = ga_py.aeqd_forward(p, m, ga_py.wgs84)
+        assert math.hypot(X.x - x, X.y - y) < 1e-5
+        q = ga_py.aeqd_inverse(X, m, ga_py.wgs84)
+        assert abs(q.lat - p.lat) < 1e-13 and abs(q.lon - p.lon) < 1e-13
+    assert "azimuthal_equidistant(" in repr(m)

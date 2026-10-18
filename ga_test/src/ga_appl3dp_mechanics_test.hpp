@@ -6774,6 +6774,229 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
             std::invalid_argument);
     }
 
+    TEST_CASE("geodesics: the inverse and direct geodesic problems against GeographicLib")
+    {
+        fmt::println(
+            "geodesics: the inverse and direct geodesic problems against GeographicLib");
+
+        // PROJ 9.9.0 `geod +ellps=WGS84 -I -f %.12f -F %.9f` (GeographicLib inside): lat1
+        // lon1 lat2 lon2 [deg] -> azi1, the BACK azimuth at the end (azi2 + 180), s12
+        // [m]. Six random pairs, then the hard cases: nearly antipodal, both on the
+        // equator near and beyond (1 - f) pi, an end at a pole, a meridian over the pole
+        struct ref {
+            value_t la1, lo1, la2, lo2, az1, baz2, s12;
+            bool azimuths_defined; // not for exactly antipodal pairs
+        };
+        std::array<ref, 17> const geod{{
+            {-20.630168393436, -125.694297387179, 17.569890992855, -153.922936799685,
+             -38.113823966920, 142.700696239580, 5230122.177321436, true},
+            {4.115312342334, -48.351989911469, -62.128974631194, 2.676863948191,
+             157.977361349993, -52.935808777266, 8517282.881914280, true},
+            {-67.669664366606, -23.887553881541, -59.349064472009, -147.343315196209,
+             -144.074468424510, 154.058853784575, 5184338.911628597, true},
+            {38.209390653248, 138.374267148864, 50.289677181392, -167.625484230977,
+             54.295203997955, -86.353070603796, 4409982.422893546, true},
+            {-76.590171412407, -86.331707870217, 25.570124970071, 176.292926826770,
+             -90.891490300096, 165.065101921821, 12939807.767353520, true},
+            {49.199101291255, 59.406435896770, -26.544371780074, 151.227155335297,
+             106.649416142299, -44.481796541033, 12319874.267119616, true},
+            {50.05, 8.57, -50.05, -171.43, 0.0, 0.0, 20003931.458625447, false},
+            {50.05, 8.57, -50.049999, -171.429999, -0.000147683655, 0.000147683652,
+             20003931.347395327, true},
+            {50.05, 8.57, -49.05, -170.43, -28.280567529852, 27.659453754547,
+             19874885.317230910, true},
+            {20.0, 0.0, -20.0, 179.5, 61.829889784520, -61.829889784520,
+             19980861.908890963, true},
+            {0.0, 0.0, 0.0, 10.0, 90.0, -90.0, 1113194.907932736, true},
+            {0.0, 0.0, 0.0, 179.4, 83.826290472407, -83.826290472407, 19970715.516595997,
+             true},
+            {0.0, 0.0, 0.0, 179.6, 41.537175375185, -41.537175375185, 19989165.416035745,
+             true},
+            {0.0, 0.0, 0.5, 179.7, 15.556882793491, -15.557486109145, 19944127.420750458,
+             true},
+            {-90.0, 0.0, 10.0, 20.0, 20.0, -180.0, 11107820.562547095, true},
+            {90.0, 0.0, -10.0, -50.0, -130.0, 0.0, 11107820.562547095, true},
+            {40.0, -100.0, 40.0, 80.0, 0.0, 0.0, 11144873.397924416, true},
+        }};
+        value_t err_s = 0.0, err_az = 0.0, err_trip = 0.0;
+        for (auto const& r : geod) {
+            geo_pos const a{deg2rad(r.la1), deg2rad(r.lo1), 0.0};
+            geo_pos const b{deg2rad(r.la2), deg2rad(r.lo2), 0.0};
+            auto const g = geodesic_inverse(a, b, wgs84);
+            err_s = std::max(err_s, std::abs(g.s12 - r.s12));
+            if (r.azimuths_defined) {
+                // as arc length at the far end: an angle error times the distance
+                err_az = std::max(
+                    {err_az,
+                     r.s12 * std::abs(std::remainder(g.azi1 - deg2rad(r.az1), 2.0 * pi)),
+                     r.s12 * std::abs(std::remainder(g.azi2 - deg2rad(r.baz2) - pi,
+                                                     2.0 * pi))});
+            }
+            // the direct problem with GeographicLib's azimuth and distance must land on b
+            auto const d = geodesic_direct(a, deg2rad(r.az1), r.s12, wgs84);
+            err_trip = std::max(
+                err_trip, std::hypot(6.4e6 * (d.pos.lat - b.lat),
+                                     6.4e6 * std::cos(b.lat) *
+                                         std::remainder(d.pos.lon - b.lon, 2.0 * pi)));
+        }
+
+        // on a sphere the inverse problem has a closed form: the central angle and the
+        // spherical azimuth (Snyder eqs. 5-3a, 5-4b)
+        value_t const R = 6371000.0;
+        ellipsoid const sphere{R, R};
+        value_t err_sphere = 0.0, err_sym = 0.0, err_rt = 0.0;
+        for (int ila = -80; ila <= 80; ila += 20) {
+            for (int jla = -85; jla <= 85; jla += 17) {
+                for (int dl = -175; dl <= 180; dl += 25) {
+                    geo_pos const a{deg2rad(ila), deg2rad(5.0), 0.0};
+                    geo_pos const b{deg2rad(jla), deg2rad(5.0 + dl), 0.0};
+                    value_t const l = b.lon - a.lon;
+                    value_t const c = std::acos(
+                        std::clamp(std::sin(a.lat) * std::sin(b.lat) +
+                                       std::cos(a.lat) * std::cos(b.lat) * std::cos(l),
+                                   value_t(-1.0), value_t(1.0)));
+                    auto const gs = geodesic_inverse(a, b, sphere);
+                    value_t const az =
+                        std::atan2(std::cos(b.lat) * std::sin(l),
+                                   std::cos(a.lat) * std::sin(b.lat) -
+                                       std::sin(a.lat) * std::cos(b.lat) * std::cos(l));
+                    err_sphere =
+                        std::max({err_sphere, std::abs(gs.s12 - R * c),
+                                  R * std::abs(std::remainder(gs.azi1 - az, 2.0 * pi)) *
+                                      std::sin(c)});
+                    // on WGS84: symmetric, and the direct problem undoes the inverse
+                    auto const g = geodesic_inverse(a, b, wgs84);
+                    auto const h = geodesic_inverse(b, a, wgs84);
+                    err_sym = std::max(err_sym, std::abs(g.s12 - h.s12));
+                    auto const d = geodesic_direct(a, g.azi1, g.s12, wgs84);
+                    err_rt = std::max(
+                        err_rt,
+                        std::hypot(6.4e6 * (d.pos.lat - b.lat),
+                                   6.4e6 * std::cos(b.lat) *
+                                       std::remainder(d.pos.lon - b.lon, 2.0 * pi)));
+                }
+            }
+        }
+
+        // a route: both ends included, no step longer than asked, all on the path
+        geo_pos const fra{deg2rad(50.050677), deg2rad(8.571823), 0.0};
+        geo_pos const syd{deg2rad(-33.936583), deg2rad(151.166067), 0.0};
+        auto const route = geodesic_path(fra, syd, 500.0e3, wgs84);
+        value_t longest = 0.0, total = 0.0;
+        for (size_t i = 1; i < route.size(); ++i) {
+            value_t const step = geodesic_inverse(route[i - 1], route[i], wgs84).s12;
+            longest = std::max(longest, step);
+            total += step;
+        }
+        value_t const s_fs = geodesic_inverse(fra, syd, wgs84).s12;
+
+        fmt::println("    vs GeographicLib: s {:.2e} m, azimuths {:.2e} m, direct {:.2e} "
+                     "m; sphere {:.2e} m; symmetry {:.2e} m, round trip {:.2e} m; "
+                     "FRA-SYD {:.3f} km in {} steps",
+                     err_s, err_az, err_trip, err_sphere, err_sym, err_rt, s_fs / 1e3,
+                     route.size() - 1);
+        CHECK(err_s < 1.0e-5);
+        CHECK(err_az < 1.0e-5);
+        CHECK(err_trip < 1.0e-5);
+        CHECK(err_sphere < 1.0e-6);
+        CHECK(err_sym < 1.0e-6);
+        CHECK(err_rt < 1.0e-5);
+        CHECK(longest <= 500.0e3 + 1.0e-6);
+        CHECK(std::abs(total - s_fs) < 1.0e-4); // the points lie on the path
+        CHECK(route.size() == 34);              // ceil(16 490.233 km / 500 km) steps
+
+        // falsify the pin: the sphere's answer is kilometres off on the ellipsoid (4.2 km
+        // for Frankfurt - Sydney, measured)
+        CHECK(std::abs(geodesic_inverse(fra, syd, sphere).s12 - s_fs) > 1.0e3);
+    }
+
+    TEST_CASE("geodesics: azimuthal equidistant against PROJ, and straight routes")
+    {
+        fmt::println(
+            "geodesics: azimuthal equidistant against PROJ, and straight routes");
+        using namespace azimuthal_test;
+
+        // PROJ 9.9.0: `cs2cs -f %.6f +proj=longlat +ellps=WGS84 +to +proj=aeqd
+        // +lat_0=50.050677 +lon_0=8.571823 +ellps=WGS84` -- Frankfurt airport; Sydney,
+        // New York JFK, Honolulu, Auckland, a point next to Frankfurt's antipode
+        struct ref {
+            value_t lon, lat, x, y;
+        };
+        std::array<ref, 5> const fra_refs{
+            {{151.166067, -33.936583, 15807946.680345, 4694317.626501},
+             {-73.786327, 40.64596, -5650330.698446, 2565532.550647},
+             {-157.919783, 21.332022, -2729671.755875, 11671685.075351},
+             {174.791719, -37.006355, 12148559.093350, 13536441.081567},
+             {-171.43, -50.05, 93743.816098, 20003636.193528}}};
+        geo_pos const fra{deg2rad(50.050677), deg2rad(8.571823), 0.0};
+        auto const m = aeqd_at(fra);
+        value_t err_proj = 0.0;
+        for (auto const& r : fra_refs) {
+            auto const x =
+                aeqd_forward(geo_pos{deg2rad(r.lat), deg2rad(r.lon), 0.0}, m, wgs84);
+            err_proj = std::max(err_proj, dist2d(x, vec2d{r.x, r.y}));
+        }
+        // the polar aspect: PROJ at +lat_0=90 +lon_0=0
+        auto const np = aeqd_at(geo_pos{0.5 * pi, 0.0, 0.0});
+        value_t const err_polar = std::max(
+            dist2d(aeqd_forward(geo_pos{deg2rad(70.0), deg2rad(30.0), 0.0}, np, wgs84),
+                   vec2d{1116492.500771, -1933821.737605}),
+            dist2d(aeqd_forward(geo_pos{deg2rad(-60.0), deg2rad(-150.0), 0.0}, np, wgs84),
+                   vec2d{-8328019.274402, 14424552.509676}));
+
+        // the defining property: a route FROM the centre is a straight line of its true
+        // length. Every point of the Frankfurt - Sydney geodesic must lie on the line
+        // from the origin to Sydney's map point, at its distance along the route
+        geo_pos const syd{deg2rad(-33.936583), deg2rad(151.166067), 0.0};
+        geo_pos const jfk{deg2rad(40.64596), deg2rad(-73.786327), 0.0};
+        auto const xs = aeqd_forward(syd, m, wgs84);
+        value_t const len_s = std::hypot(xs.x, xs.y);
+        value_t off_line = 0.0, off_dist = 0.0, done = 0.0;
+        auto const route = geodesic_path(fra, syd, 250.0e3, wgs84);
+        for (size_t i = 0; i < route.size(); ++i) {
+            if (i > 0) done += geodesic_inverse(route[i - 1], route[i], wgs84).s12;
+            auto const x = aeqd_forward(route[i], m, wgs84);
+            off_line = std::max(off_line, std::abs(value_t(ega::wdg(x, xs))) / len_s);
+            off_dist = std::max(off_dist, std::abs(std::hypot(x.x, x.y) - done));
+        }
+        // the falsifier: the route between two OTHER airports (New York - Sydney) is not
+        // straight on this map -- it bulges by thousands of kilometres
+        auto const xj = aeqd_forward(jfk, m, wgs84);
+        value_t bulge = 0.0;
+        for (auto const& q : geodesic_path(jfk, syd, 250.0e3, wgs84)) {
+            auto const x = aeqd_forward(q, m, wgs84);
+            bulge = std::max(bulge, std::abs(value_t(ega::wdg(x - xj, xs - xj))) /
+                                        dist2d(xs, xj));
+        }
+
+        // the round trip, out to 170 deg from the centre
+        value_t err_trip = 0.0;
+        for (int ila = -85; ila <= 85; ila += 10) {
+            for (int ilo = -175; ilo <= 180; ilo += 15) {
+                geo_pos const p{deg2rad(ila), deg2rad(ilo), 0.0};
+                if (geodesic_inverse(fra, p, wgs84).s12 > 18.9e6) continue;
+                auto const q = aeqd_inverse(aeqd_forward(p, m, wgs84), m, wgs84);
+                err_trip =
+                    std::max({err_trip, 6.4e6 * std::abs(q.lat - p.lat),
+                              6.4e6 * std::cos(p.lat) *
+                                  std::abs(std::remainder(q.lon - p.lon, 2.0 * pi))});
+            }
+        }
+
+        fmt::println(
+            "    vs PROJ {:.2e} m (polar {:.2e} m); a route from the centre: off "
+            "its line {:.2e} m, off its length {:.2e} m; New York - Sydney "
+            "bulges {:.0f} km; round trip {:.2e} m",
+            err_proj, err_polar, off_line, off_dist, bulge / 1e3, err_trip);
+        CHECK(err_proj < 1.0e-5); // PROJ printed to the micrometre
+        CHECK(err_polar < 1.0e-5);
+        CHECK(off_line < 1.0e-6);
+        CHECK(off_dist < 1.0e-4);
+        CHECK(bulge > 1.0e6);
+        CHECK(err_trip < 1.0e-6);
+        CHECK(dist2d(aeqd_forward(fra, m, wgs84), vec2d{0.0, 0.0}) < 1.0e-9);
+    }
+
     TEST_CASE("geodesics: the Helmert transformation in both conventions against PROJ")
     {
         fmt::println(

@@ -2,6 +2,7 @@
 # Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all
 
 set(GA_PY_GENERATED_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_azimuthal_equidistant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_azimuthal_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_azimuthal_options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec2dc.cpp
@@ -17,6 +18,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geodesic_destination.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geodesic_solution.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_helmert7.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_drive3dp.cpp
