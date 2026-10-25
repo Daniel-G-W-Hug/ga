@@ -155,6 +155,54 @@ TEST_SUITE("magnetostatics 3d")
         }
     }
 
+    TEST_CASE("magnetostatics 3d: b = -nabla dual(A) in the Coulomb gauge")
+    {
+        // (a) inside a uniformly conducting wire through c along J, the potential
+        // A = -(mu0/4) |r_perp|^2 J is quadratic and divergence-free: -nabla dual(A) is
+        // the field (mu0/2) J x (r - c), nabla^2 dual(A) = -mu0 dual(J), both exact to
+        // rounding by central differences
+        vec3d const c{0.1, 0.05, -0.02};
+        vec3d const J = 3.0e6 * (vec3d{0.2, -0.4, 0.9} / nrm(vec3d{0.2, -0.4, 0.9}));
+        vec3d const u = J / nrm(J);
+        auto A_in = [&](vec3d const& r) {
+            vec3d const d = r - c;
+            vec3d const perp = d - dot3(d, u) * u;
+            return dual((-0.25 * mu0 * dot3(perp, perp)) * J);
+        };
+        vec3d const r{0.12, 0.04, 0.0};
+        vec3d const b_in = 0.5 * mu0 * cross3(J, r - c);
+        mvec3d const N = -1.0 * ega::nabla(A_in, r, 1e-3);
+        CHECK(nrm(gr1(N) - b_in) < 1e-9 * nrm(b_in));
+        CHECK(std::abs(value_t(gr3(N))) < 1e-9 * nrm(b_in)); // div A = 0
+        bivec3d const lap = gr2(ega::laplacian(A_in, r, 1e-3));
+        CHECK(nrm(lap + mu0 * dual(J)) < 1e-6 * mu0 * nrm(J));
+        CHECK(nrm(lap - mu0 * dual(J)) > mu0 * nrm(J)); // the falsifier: the sign
+
+        // (b) the potential of a closed loop of chords (the Coulomb gauge holds for a
+        // closed current): -nabla dual(A) converges to its field as h^2, and the
+        // trivector part, the divergence, falls with it
+        auto const loop = circle_loop(vec3d{}, vec3d{0.0, 0.3, 1.0}, 0.05, 64, 10.0);
+        auto A_loop = [&](vec3d const& q) {
+            vec3d a{};
+            for (auto const& sg : loop)
+                a += A_segment(q, sg);
+            return dual(a);
+        };
+        vec3d const rl{0.04, 0.03, 0.05};
+        vec3d const bl = b_segments(rl, loop);
+        double err[2], div[2];
+        for (int k = 0; k < 2; ++k) {
+            mvec3d const M = -1.0 * ega::nabla(A_loop, rl, k == 0 ? 2e-3 : 1e-3);
+            err[k] = rel(gr1(M), bl);
+            div[k] = std::abs(value_t(gr3(M))) / nrm(bl);
+        }
+        std::printf("3D loop: -nabla dual(A) against b %.1e (h 2e-3), %.1e (h 1e-3); "
+                    "divergence %.1e\n",
+                    err[0], err[1], div[1]);
+        CHECK(std::abs(err[0] / err[1] - 4.0) < 0.2);
+        CHECK(div[1] < err[1]);
+    }
+
     TEST_CASE("magnetostatics 3d: the dual identities of the bivector convention")
     {
         // the identities the text uses to move between b and B = dual(b), each against
@@ -221,8 +269,9 @@ TEST_SUITE("magnetostatics 3d")
     {
         vec3d const b{0.3, -1.1, 0.7}, Idl{2.0, 0.5, -1.5};
         CHECK(nrm(lorentz_force(b, Idl) - cross3(Idl, b)) < 1e-15);
-        CHECK(nrm(lorentz_force(b, Idl) - dual(wdg(Idl, b))) <
-              1e-15);                                             // dF = dual(I dl ^ b)
+        // dF = dual(I dl ^ b) = dual(I dl) |_ b, the contraction the same in 2D
+        CHECK(nrm(lorentz_force(b, Idl) - dual(wdg(Idl, b))) < 1e-15);
+        CHECK(nrm(lorentz_force(b, Idl) - (dual(Idl) >> b)) < 1e-15);
         CHECK(nrm(lorentz_force(b, Idl) + cross3(Idl, b)) > 1.0); // the falsifier
     }
 
@@ -247,6 +296,11 @@ TEST_SUITE("magnetostatics 3d")
             vec3d const ref =
                 (mu0 / (4.0 * pi * rn * rn * rn)) * (3.0 * dot3(mu, rh) * rh - mu);
             CHECK(rel(b_dipole(r, mu), ref) < 1e-14);
+            // the dipole field in d dimensions at d = 3:
+            // mu0 / (2 S_d r^d) ((d - 2) mu + d rh mu rh), S_3 = 4 pi
+            vec3d const bd = (mu0 / (2.0 * 4.0 * pi * rn * rn * rn)) *
+                             (1.0 * mu + 3.0 * gr1(rh * mu * rh));
+            CHECK(rel(bd, ref) < 1e-14);
             // the bivector form is the same expression: no sign change
             bivec3d const m = dual(mu);
             bivec3d const Bga =
@@ -377,6 +431,10 @@ TEST_SUITE("magnetostatics 3d")
         vec3d const c{}, m{3.0e5, -2.0e5, 6.0e5}; // A/m
         double const R = 0.02;
         CHECK(nrm(surface_current(m, vec3d{0, 0, 1}) - cross3(m, vec3d{0, 0, 1})) < 1e-9);
+        // the form of the text, the same in 2D: dual(K) = m ^ n (the dual twice is the
+        // identity in 3D)
+        vec3d const nn = vec3d{0.2, 0.9, -0.4} / nrm(vec3d{0.2, 0.9, -0.4});
+        CHECK(nrm(dual(surface_current(m, nn)) - wdg(m, nn)) < 1e-15 * nrm(m));
         auto const cs = magnetised_sphere_currents(c, R, m, 4, 512);
         auto bf = [&](vec3d const& r) { return b_segments(r, cs); };
         double in = 0.0, out = 0.0;

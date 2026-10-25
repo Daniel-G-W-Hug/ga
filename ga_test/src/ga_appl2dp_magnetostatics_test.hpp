@@ -228,6 +228,7 @@ TEST_SUITE("magnetostatics 2d")
         // the form of the text, F = I_z r_dual(b), and the classical I e_z x b
         vec2d const b12 = b_line_current(w1.p, w2);
         CHECK(nrm(F1 - 300.0 * r_dual(b12)) < 1e-15 * nrm(F1));
+        CHECK(nrm(F1 - (w1.I >> b12)) < 1e-15 * nrm(F1)); // dual(I) |_ b, as in 3D
         CHECK(nrm(F1 - vec2d{-300.0 * b12.y, 300.0 * b12.x}) < 1e-15 * nrm(F1));
 
         auto const scale = std::max(nrm(F1), 1e-30);
@@ -287,6 +288,11 @@ TEST_SUITE("magnetostatics 2d")
             vec2d const mu = (pi * R * R) * m;
             vec2d const sw = (mu0 / (2.0 * pi * rr * rr)) * (rh * mu * rh);
             CHECK(nrm(sw - ref) < 1e-14 * nrm(ref));
+            // the dipole field in d dimensions at d = 2: the identity term drops out
+            // with d - 2; S_2 = 2 pi
+            vec2d const bd =
+                (mu0 / (2.0 * 2.0 * pi * rr * rr)) * (0.0 * mu + 2.0 * (rh * mu * rh));
+            CHECK(nrm(bd - ref) < 1e-14 * nrm(ref));
         }
         // the falsifier: K = n ^ m (the opposite orientation) reverses the field
         std::vector<line_current> flipped;
