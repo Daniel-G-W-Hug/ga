@@ -102,8 +102,8 @@ TEST_SUITE("magnetostatics 3d")
         double worst[2] = {0.0, 0.0};
         for (int k = 0; k < 2; ++k)
             for (vec3d const r : {vec3d{0.5, 0.0, 0.0}, vec3d{-0.3, 0.4, 0.2}}) {
-                // nabla ^ A = I curl A
-                vec3d const curl = cmpl(ega::nabla_wdg(A, r, k == 0 ? 1e-3 : 1e-4));
+                // nabla ^ A = dual(curl A), and the dual twice is the identity in 3D
+                vec3d const curl = dual(ega::nabla_wdg(A, r, k == 0 ? 1e-3 : 1e-4));
                 worst[k] = std::max(worst[k], rel(curl, b_segment(r, s)));
             }
         std::printf("3D segment: curl A against b %.1e (h 1e-3), %.1e (h 1e-4)\n",
@@ -269,7 +269,7 @@ TEST_SUITE("magnetostatics 3d")
     {
         vec3d const b{0.3, -1.1, 0.7}, Idl{2.0, 0.5, -1.5};
         CHECK(nrm(lorentz_force(b, Idl) - cross3(Idl, b)) < 1e-15);
-        // dF = dual(I dl ^ b) = dual(I dl) |_ b, the contraction the same in 2D
+        // dF = dual(I dl ^ b) = dual(I dl) >> b, the contraction the same in 2D
         CHECK(nrm(lorentz_force(b, Idl) - dual(wdg(Idl, b))) < 1e-15);
         CHECK(nrm(lorentz_force(b, Idl) - (dual(Idl) >> b)) < 1e-15);
         CHECK(nrm(lorentz_force(b, Idl) + cross3(Idl, b)) > 1.0); // the falsifier

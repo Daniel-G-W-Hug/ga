@@ -64,7 +64,7 @@ def test_dipole_both_conventions():
     ref = [c * (3.0 * md * hi - mi) for hi, mi in zip(h, (mu.x, mu.y, mu.z))]
     assert norm((b.x - ref[0], b.y - ref[1], b.z - ref[2])) < 1e-14 * norm(ref)
     # the bivector convention: the same expression, dual(b) = B
-    B = ga_py.b_dipole(r, ega.cmpl(mu))
+    B = ga_py.b_dipole(r, ega.dual(mu))
     assert norm((B.x - b.x, B.y - b.y, B.z - b.z)) < 1e-14 * norm(ref)
 
 

@@ -27,25 +27,32 @@
 // and the direction Vec(t, 0).
 //
 // THE GRADES. The flux density is carried as a VECTOR b in both dimensions. In 2D the
-// field of a z-independent current distribution lies in the plane, and the out-of-plane
-// quantities are pseudoscalars: a line current I = I_z e12, the vector potential
-// A = A_z e12, a magnetisation's surface current K = m ^ n. In 3D a current element is
-// the vector I dl, the vector potential a vector, a dipole moment a vector mu; the
-// induction BIVECTOR B = I3 b = dual(b) is the other common convention, and each formula
-// below says whether it changes sign under it.
+// field of a z-independent current distribution lies in the plane; what points along z
+// is not in the plane's algebra and enters through its dual (dual(e3) = e12 in 3D): the
+// current density as dual(J) = J_z e12, a line current as dual(I) = I_z e12, the vector
+// potential as dual(A) = A_z e12, a magnetisation's surface current as dual(K) = m ^ n --
+// the pseudoscalars the 2D functions take. In 3D a current element is the vector I dl,
+// the vector potential a vector, a dipole moment a vector mu; the induction as the
+// BIVECTOR B = dual(b) (the Hodge dual, a metric operation; in EGA it evaluates as the
+// complement) is the other common convention, and each formula below says whether it
+// changes sign under it.
 //
-// THE 2D KERNEL. The field of a line current is the vector inverse,
+// THE FIELD EQUATION. nabla b = mu0 dual(J), in 2D and 3D alike: its scalar part is
+// div b = 0, its bivector part (in 2D the pseudoscalar part) the curl,
+// nabla ^ b = dual(curl b).
 //
-//     b(r) = mu0/(2 pi) (r - p)^-1 I         ((r - p)^-1 = (r - p) / |r - p|^2)
+// THE 2D KERNEL. The field of a line current is the right dual of the vector inverse,
 //
-// the 2D Green's function of the vector derivative (nabla b = mu0 J, one equation for
-// div b = 0 and curl b = mu0 J_z), with b = -nabla A and A = -(mu0/(2 pi)) ln|r - p| I.
-// The flux per unit length through a path from P to Q is A(Q) - A(P).
+//     b(r) = mu0/(2 pi) I_z r_dual((r - p)^-1)         ((r - p)^-1 = (r - p) / |r - p|^2)
+//
+// the 2D Green's function of the vector derivative, with b = -nabla dual(A) and
+// dual(A) = -(mu0/(2 pi)) ln|r - p| dual(I). The flux per unit length through a path from
+// P to Q is A_z(Q) - A_z(P).
 //
 // THE 3D KERNEL. A straight segment from a to b carrying I (unit direction u, rho the
 // rejection of r - a from the segment's line) has the field
 //
-//     b(r) = (mu0 I / (4 pi)) (c_a - c_b) cmpl(u ^ rho^-1)
+//     b(r) = (mu0 I / (4 pi)) (c_a - c_b) dual(u ^ rho^-1)
 //     c_a = u . (r - a) / |r - a|,   c_b = u . (r - b) / |r - b|
 //
 // and the 2D kernel is its limit for an infinitely long segment (c_a - c_b -> 2). Its
@@ -57,10 +64,14 @@
 //
 //     b(r) = mu0 / (8 pi |r|^3) (mu + 3 r_hat mu r_hat)
 //
-// Because I3 is central in 3D, the bivector form is the SAME expression with mu ->
-// dual(mu) and b -> B: no sign change. The coupling of a second moment to that field is
-// the scalar <m B> (the energy is its negative), the torque on it cmt(B, m). In 2D the
-// line dipole's field is the pure sandwich (mu0 / (2 pi |r|^2)) r_hat mu r_hat.
+// In 3D the dual of a reflection sandwich is the sandwich of the dual, dual(r mu r) =
+// r dual(mu) r, so the bivector form is the SAME expression with mu -> m = dual(mu) and
+// b -> B: no sign change. The coupling of a second moment to that field is the library's
+// scalar product m . B (= mu . b; the energy is its negative -- the scalar part of the
+// geometric product m B of two bivectors is -m . B), the torque on it cmt(B, m) =
+// dual(mu x b), the force grad(m . B). In 2D the line dipole's field is the pure sandwich
+// (mu0 / (2 pi |r|^2)) r_hat mu r_hat: in d dimensions the field is
+// mu0 / (2 S_d |r|^d) ((d - 2) mu + d r_hat mu r_hat), S_2 = 2 pi, S_3 = 4 pi.
 //
 // THE STRESS. The traction on a surface with unit normal n is one sandwich in either
 // dimension,
@@ -68,8 +79,8 @@
 //     t(n) = (1/(2 mu0)) b n b                (its grade-1 part in 3D)
 //
 // equal to Maxwell's tensor (1/mu0)((b.n) b - (1/2) b^2 n) because b n b = 2 (b.n) b -
-// b^2 n for vectors. SIGN: with the bivector B = I3 b the same traction is
-// -(1/(2 mu0)) B n B, since I3^2 = -1.
+// b^2 n for vectors. SIGN: with the bivector B = dual(b) the same traction is
+// -(1/(2 mu0)) B n B, since dual(b) n dual(b) = -(b n b) for vectors of ega3d.
 //
 // THE WRENCH. The force and torque of the field on everything inside a closed contour
 // (2D) or surface (3D) is the sum of the tractions on their points of action,
@@ -90,12 +101,13 @@
 // - b_line_current()          : its field (the 2D kernel)
 // - A_line_current()          : its vector potential, -(mu0/(2 pi)) ln|r - p| I
 // - b_line_currents()         : the field of a set of line currents
-// - lorentz_force(vec2d, pscalar2d) : the force per length on a line current, b I
+// - lorentz_force(vec2d, pscalar2d) : the force per length on a line current,
+//                               dual(I) >> b = I_z r_dual(b)
 // - traction(vec2d, vec2d)    : the stress sandwich t(n)
 // - contour_point             : a quadrature point of a closed contour (P, outward n, ds)
 // - circle_contour()          : the midpoint rule on a circle
 // - stress_wrench(b, contour) : W = sum wdg(P, t(n)) ds, a bivec2dp
-// - surface_current(vec2d, vec2d)   : K = m ^ n, a magnetisation's surface current
+// - surface_current(vec2d, vec2d)   : dual(K) = m ^ n, a magnetisation's surface current
 // - magnetised_disc_currents(): a uniformly magnetised disc as boundary line currents
 //
 // 3D (ega3d field, pga3dp wrench):
@@ -104,16 +116,16 @@
 // - b_segment(), A_segment()  : its field and vector potential (Biot-Savart, closed)
 // - b_segments()              : the field of a set of segments
 // - circle_loop()             : a circular loop as N chords
-// - lorentz_force(vec3d, vec3d) : the force on a current element I dl, cmpl(I dl ^ b)
+// - lorentz_force(vec3d, vec3d) : the force on a current element, dual(I dl ^ b)
 // - b_dipole(r, vec3d mu) / b_dipole(r, bivec3d m) : a point dipole's field, vector or
 //                               bivector convention
-// - dipole_coupling()         : <m_j B_i(r)>, the second moment's coupling to the first's
+// - dipole_coupling()         : m_j . B_i(r), the second moment's coupling to the first's
 //                               field (bivector convention)
 // - traction(vec3d, vec3d)    : the stress sandwich t(n)
 // - surface_point             : a quadrature point of a closed surface (P, n, dA)
 // - sphere_surface()          : Gauss-Legendre in cos(theta) x the midpoint rule in phi
 // - stress_wrench(b, surface) : W = sum wdg(P, t(n)) dA, a bivec3dp
-// - surface_current(vec3d, vec3d)   : K = m x n = cmpl(m ^ n)
+// - surface_current(vec3d, vec3d)   : K = m x n = dual(m ^ n)
 // - magnetised_sphere_currents(): a uniformly magnetised sphere as current rings
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -125,20 +137,21 @@ inline value_t const mu0 = 4.0e-7 * pi; // vacuum permeability [Vs/Am]
 // 2D
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// a line current I = I_z e12 [A] along z through the point p
+// a line current along z through the point p, carried as its dual I_z e12 [A]
 struct line_current {
     vec2d p{};
     pscalar2d I{};
 };
 
-// the field of a line current: b(r) = mu0/(2 pi) (r - p)^-1 I
+// the field of a line current: b(r) = mu0/(2 pi) I_z r_dual((r - p)^-1)
 inline vec2d b_line_current(vec2d const& r, line_current const& c)
 {
     using namespace ega;
-    return (mu0 / (2.0 * pi)) * (inv(r - c.p) * c.I);
+    return (mu0 / (2.0 * pi)) * (r_dual(inv(r - c.p)) * value_t(c.I));
 }
 
-// its vector potential, A = -(mu0/(2 pi)) ln|r - p| I (zero on the unit circle about p)
+// its vector potential as the dual, -(mu0/(2 pi)) ln|r - p| I_z e12 (zero on the unit
+// circle about p)
 inline pscalar2d A_line_current(vec2d const& r, line_current const& c)
 {
     using namespace ega;
@@ -153,11 +166,14 @@ inline vec2d b_line_currents(vec2d const& r, std::span<line_current const> cs)
     return b;
 }
 
-// the force per unit length on a line current in a field: F = b I (= I e_z x B)
+// the force per unit length on a line current in a field, the classical I e_z x b:
+//
+//     F = dual(I) >> b = I_z r_dual(b)
+//
 inline vec2d lorentz_force(vec2d const& b, pscalar2d I)
 {
     using namespace ega;
-    return b * I;
+    return r_dual(b) * value_t(I);
 }
 
 // the magnetic traction on a surface with unit normal n: t = (1/(2 mu0)) b n b
@@ -204,7 +220,7 @@ inline bivec2dp stress_wrench(Field&& b, std::span<contour_point const> contour)
 }
 
 // the equivalent surface current of a magnetisation m at an edge with outward unit
-// normal n: K = m ^ n [A/m] (the classical M x n, z component)
+// normal n: dual(K) = m ^ n [A/m] (the classical M x n, z component)
 inline pscalar2d surface_current(vec2d const& m, vec2d const& n)
 {
     using namespace ega;
@@ -234,7 +250,7 @@ struct current_segment {
     value_t I{0.0};
 };
 
-// the field of a segment: (mu0 I / (4 pi)) (c_a - c_b) cmpl(u ^ rho^-1)
+// the field of a segment: (mu0 I / (4 pi)) (c_a - c_b) dual(u ^ rho^-1)
 inline vec3d b_segment(vec3d const& r, current_segment const& s)
 {
     using namespace ega;
@@ -244,7 +260,7 @@ inline vec3d b_segment(vec3d const& r, current_segment const& s)
     vec3d const rho = Ra - value_t(dot(Ra, u)) * u;
     value_t const ca = value_t(dot(u, Ra)) / nrm(Ra);
     value_t const cb = value_t(dot(u, Rb)) / nrm(Rb);
-    return (mu0 * s.I / (4.0 * pi) * (ca - cb)) * cmpl(wdg(u, inv(rho)));
+    return (mu0 * s.I / (4.0 * pi) * (ca - cb)) * dual(wdg(u, inv(rho)));
 }
 
 // its vector potential, along the segment
@@ -276,7 +292,7 @@ inline std::pair<vec3d, vec3d> frame_about(vec3d const& n)
     vec3d const h = std::abs(n.x) < 0.9 ? vec3d{1.0, 0.0, 0.0} : vec3d{0.0, 1.0, 0.0};
     vec3d ea = h - value_t(dot(h, n)) * n;
     ea = ea / nrm(ea);
-    return {ea, cmpl(wdg(n, ea))};
+    return {ea, dual(wdg(n, ea))}; // n x e_a
 }
 
 } // namespace detail
@@ -298,11 +314,12 @@ inline std::vector<current_segment> circle_loop(vec3d const& c, vec3d const& n, 
     return s;
 }
 
-// the force on a current element I dl in a field: F = cmpl(I dl ^ b) (= I dl x b)
+// the force on a current element I dl in a field: F = dual(I dl ^ b) = dual(I dl) >> b
+// (= I dl x b)
 inline vec3d lorentz_force(vec3d const& b, vec3d const& I_dl)
 {
     using namespace ega;
-    return cmpl(wdg(I_dl, b));
+    return dual(wdg(I_dl, b));
 }
 
 // the field of a point dipole mu at the origin: mu0 / (8 pi r^3) (mu + 3 r_hat mu r_hat)
@@ -316,7 +333,7 @@ inline vec3d b_dipole(vec3d const& r, vec3d const& mu)
 }
 
 // the same in the bivector convention, m = dual(mu), B = dual(b): the same expression,
-// since I3 is central
+// since the dual of a reflection sandwich is the sandwich of the dual
 inline bivec3d b_dipole(vec3d const& r, bivec3d const& m)
 {
     using namespace ega;
@@ -326,8 +343,9 @@ inline bivec3d b_dipole(vec3d const& r, bivec3d const& m)
     return c * (m + 3.0 * gr2(rh * m * rh));
 }
 
-// the coupling of a dipole m_j at r (relative to m_i) to the field of m_i: <m_j B_i(r)>
-// (= mu_j . b_i(r); the interaction energy is its negative)
+// the coupling of a dipole m_j at r (relative to m_i) to the field of m_i: m_j . B_i(r),
+// the library's scalar product (= mu_j . b_i(r)); the interaction energy is its negative,
+// the force on m_j its gradient in r
 inline value_t dipole_coupling(vec3d const& r, bivec3d const& m_i, bivec3d const& m_j)
 {
     using namespace ega;
@@ -385,11 +403,11 @@ inline bivec3dp stress_wrench(Field&& b, std::span<surface_point const> surface)
 }
 
 // the equivalent surface current of a magnetisation m at a surface with outward unit
-// normal n: K = m x n = cmpl(m ^ n) [A/m] (2D: K = m ^ n, its z component)
+// normal n: K = m x n = dual(m ^ n) [A/m] (2D: dual(K) = m ^ n, its z component)
 inline vec3d surface_current(vec3d const& m, vec3d const& n)
 {
     using namespace ega;
-    return cmpl(wdg(m, n));
+    return dual(wdg(m, n));
 }
 
 // a sphere of radius R about c, uniformly magnetised m, as current rings: K = m x n

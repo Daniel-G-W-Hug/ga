@@ -228,7 +228,7 @@ TEST_SUITE("magnetostatics 2d")
         // the form of the text, F = I_z r_dual(b), and the classical I e_z x b
         vec2d const b12 = b_line_current(w1.p, w2);
         CHECK(nrm(F1 - 300.0 * r_dual(b12)) < 1e-15 * nrm(F1));
-        CHECK(nrm(F1 - (w1.I >> b12)) < 1e-15 * nrm(F1)); // dual(I) |_ b, as in 3D
+        CHECK(nrm(F1 - (w1.I >> b12)) < 1e-15 * nrm(F1)); // dual(I) >> b, as in 3D
         CHECK(nrm(F1 - vec2d{-300.0 * b12.y, 300.0 * b12.x}) < 1e-15 * nrm(F1));
 
         auto const scale = std::max(nrm(F1), 1e-30);

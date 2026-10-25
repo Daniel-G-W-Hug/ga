@@ -62,7 +62,7 @@ end, sphere_surface(pj, 0.02, 8, 96))
 -- the C++ gate's reference: the force line through pj plus the couple
 -- T = mu_j x b_i(pj) (the force taken from W3 itself: this checks the binding and
 -- the couple, the C++ suite checks the force against Yung et al.)
-local T = ega.cmpl(ega.wdg(mj, b_dipole(pj, mi)))
+local T = ega.dual(ega.wdg(mj, b_dipole(pj, mi)))
 local Wref3 = pga.wdg(vec3dp.new(pj.x, pj.y, pj.z, 1.0), vec3dp.new(W3.vx, W3.vy, W3.vz, 0.0))
     + bivec3dp.new(0.0, 0.0, 0.0, T.x, T.y, T.z)
 -- against the moment's norm: its z component vanishes here (1e-17), so a per-component
