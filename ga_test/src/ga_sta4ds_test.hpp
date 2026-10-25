@@ -1006,6 +1006,65 @@ TEST_SUITE("STA 3D Tests")
                      "fixes the sign the boost law cannot see");
     }
 
+    TEST_CASE("G<1,3,0>: the magnetic part of F is the DUAL of the field vector")
+    {
+        fmt::println("G<1,3,0>: the magnetic part of F is the DUAL of the field vector");
+
+        // ega3d carries the magnetic induction as the bivector B = dual(b). There the
+        // extended metric is the identity and the dual evaluates as the complement; here
+        // it is not, the two differ in sign on the time-space bivectors, and only one of
+        // them can carry the formula over. The relative vectors sigma_k = g_k ^ g4
+        // square to +1 and span a copy of ega3d (e_k -> sigma_k, e_jk -> sigma_j
+        // sigma_k), so the question has an answer: which operation maps sigma_k to the
+        // image of ega3d's dual(e_k) = e_jk?
+        bivec4ds const s1 = wdg(g1_4ds, g4_4ds);
+        bivec4ds const s2 = wdg(g2_4ds, g4_4ds);
+        bivec4ds const s3 = wdg(g3_4ds, g4_4ds);
+        for (bivec4ds const& sk : {s1, s2, s3}) {
+            CHECK(value_t(gr0(sk * sk)) == doctest::Approx(1.0));
+            CHECK(gr2(sk * sk) == bivec4ds{});
+            CHECK(std::abs(value_t(gr4(sk * sk))) < 1.0e-15);
+        }
+
+        // ---- 1. the dual is the image of ega3d's dual; the complement its negative --
+        CHECK(r_dual(s1) == gr2(s2 * s3));
+        CHECK(r_dual(s2) == gr2(s3 * s1));
+        CHECK(r_dual(s3) == gr2(s1 * s2));
+        CHECK(l_dual(s1) == r_dual(s1)); // a bivector: left and right agree
+        CHECK(r_cmpl(s1) == -1.0 * gr2(s2 * s3));
+
+        // ---- 2. it is the force-law-pinned convention of the case above -------------
+        // F = sum_k b_k dual(sigma_k) puts B on g_jk with the MINUS that the Lorentz
+        // force fixed there; the complement would put it there with a plus
+        double const Bx = 1.1, By = 0.4, Bz = -0.6;
+        bivec4ds const Fm = Bx * r_dual(s1) + By * r_dual(s2) + Bz * r_dual(s3);
+        CHECK(rel_bivec_split(Fm, g4_4ds) == bivec4ds{0.0, 0.0, 0.0, -Bx, -By, -Bz});
+        CHECK(rel_vec_split(Fm, g4_4ds) == bivec4ds{});
+
+        // ---- 3. Ampere: nabla F = J with the dual, the reversed current otherwise ---
+        // inside a wire along +z with current density Jz the field is (Jz/2)(-y, x, 0)
+        // (natural units); it is linear, so the central difference is exact to rounding
+        double const Jz = 2.0;
+        bivec4ds const D1 = r_dual(s1), D2 = r_dual(s2);
+        bivec4ds const C1 = r_cmpl(s1), C2 = r_cmpl(s2);
+        auto F_dual = [&](vec4ds const& x) {
+            return (-0.5 * Jz * x.y) * D1 + (0.5 * Jz * x.x) * D2;
+        };
+        auto F_cmpl = [&](vec4ds const& x) {
+            return (-0.5 * Jz * x.y) * C1 + (0.5 * Jz * x.x) * C2;
+        };
+        auto const x0 = vec4ds{0.31, -0.22, 0.44, 0.57};
+        auto const Nd = nabla(F_dual, x0, 1.0e-3);
+        CHECK(gr1(Nd) == vec4ds{0.0, 0.0, Jz, 0.0});
+        CHECK(gr3(Nd) == trivec4ds{});
+        CHECK(std::abs(value_t(gr0(Nd))) < 1.0e-12);
+        CHECK(gr2(Nd) == bivec4ds{});
+        CHECK(std::abs(value_t(gr4(Nd))) < 1.0e-12);
+        // the complement drops the metric, and Ampere's law comes out with the current
+        // reversed: the operation that carries the magnetostatics over needs the metric
+        CHECK(gr1(nabla(F_cmpl, x0, 1.0e-3)) == vec4ds{0.0, 0.0, -Jz, 0.0});
+    }
+
     TEST_CASE("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, E x B)")
     {
         fmt::println("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, "

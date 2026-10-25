@@ -55,6 +55,35 @@ TEST_SUITE("magnetostatics 2d")
         }
         CHECK(worst < 1e-14);
         CHECK(worst_flip > 1.0);
+        // the form of the text: the right dual of the vector inverse, (mu0 I_z/(2 pi))
+        // r_dual((r - p)^-1), and the potential -(mu0/(2 pi)) ln|r - p| I
+        for (vec2d const r : {vec2d{1.0, 0.0}, vec2d{-0.4, 0.7}}) {
+            vec2d const ref = (mu0 * 250.0 / (2.0 * pi)) * r_dual(inv(r - c.p));
+            CHECK(nrm(b_line_current(r, c) - ref) < 1e-15 * nrm(ref));
+            double const dx = r.x - c.p.x, dy = r.y - c.p.y;
+            double const A = -(mu0 * 250.0 / (2.0 * pi)) * std::log(std::hypot(dx, dy));
+            CHECK(std::abs(value_t(A_line_current(r, c)) - A) < 1e-15 * std::abs(A));
+        }
+    }
+
+    TEST_CASE("magnetostatics 2d: the circulation of b around a wire is mu0 I")
+    {
+        // the normalisation of the Green's function: Ampere's law in integral form,
+        // with the counter-clockwise tangent of the outward normal written out
+        line_current const w{vec2d{0.05, -0.02}, pscalar2d(40.0)};
+        auto circulation = [&](vec2d const& centre, double radius) {
+            double sum = 0.0;
+            for (auto const& q : circle_contour(centre, radius, 720)) {
+                vec2d const b = b_line_current(q.P, w);
+                sum += (-b.x * q.n.y + b.y * q.n.x) * q.ds;
+            }
+            return sum;
+        };
+        double const ref = mu0 * 40.0;
+        CHECK(std::abs(circulation(vec2d{0.0, 0.0}, 0.2) - ref) < 1e-12 * ref);
+        CHECK(std::abs(circulation(vec2d{0.1, 0.05}, 0.3) - ref) < 1e-12 * ref);
+        // a contour that does not enclose the wire: no circulation
+        CHECK(std::abs(circulation(vec2d{0.6, 0.4}, 0.2)) < 1e-12 * ref);
     }
 
     TEST_CASE("magnetostatics 2d: nabla b = mu0 J -- one equation for both laws")
@@ -114,12 +143,27 @@ TEST_SUITE("magnetostatics 2d")
             prev = err;
         }
 
+        // inside a uniformly conducting wire, A = -(mu0/4) |r - c|^2 J: its negative
+        // derivative is the field (mu0/2) (r - c) J, and nabla^2 A = -mu0 J -- both
+        // exact to rounding for a quadratic potential
+        vec2d const cw{0.1, 0.05};
+        pscalar2d const J(3.0e6);
+        auto A_in = [&](vec2d const& q) {
+            return pscalar2d(-0.25 * mu0 * value_t(J) * nrm_sq(q - cw));
+        };
+        vec2d const rin{0.12, 0.04};
+        vec2d const b_in = 0.5 * mu0 * ((rin - cw) * J);
+        CHECK(nrm(gr1(-ega::nabla(A_in, rin, 1e-3)) - b_in) < 1e-9 * nrm(b_in));
+        double const lap = value_t(gr2(ega::laplacian(A_in, rin, 1e-3)));
+        CHECK(std::abs(lap + mu0 * value_t(J)) < 1e-6 * mu0 * value_t(J));
+        CHECK(std::abs(lap - mu0 * value_t(J)) > mu0 * value_t(J)); // the falsifier
+
         // the flux per length through the straight path P -> Q, by 20-point Gauss-
-        // Legendre quadrature of b . nu with nu = e12 t, equals A(Q) - A(P)
+        // Legendre quadrature of b . nu with nu = l_dual(t), equals A(Q) - A(P)
         vec2d const P{0.5, -0.4}, Q{-0.2, 0.6};
         double const L = dist(P, Q);
         vec2d const t = (Q - P) / L;
-        vec2d const nu = pscalar2d(1.0) * t; // e12 t: t turned by -90 deg
+        vec2d const nu = l_dual(t); // t turned by -90 deg
         // nodes and weights on [-1, 1], 20 points (symmetric pairs)
         double const xg[10] = {0.0765265211334973, 0.2277858511416451, 0.3737060887154195,
                                0.5108670019508271, 0.6360536807265150, 0.7463319064601508,
@@ -142,7 +186,9 @@ TEST_SUITE("magnetostatics 2d")
                 }
         double const dA = value_t(A(Q)) - value_t(A(P));
         CHECK(std::abs(flux - dA) < 1e-12 * std::abs(dA));
-        // the falsifier: the other normal (t turned by +90 deg) gives the opposite flux
+        // the falsifier: the other normal, r_dual(t) (t turned by +90 deg), gives the
+        // opposite flux
+        CHECK(nrm(r_dual(t) + nu) < 1e-15);
         CHECK(std::abs(flux + dA) > 1.0 * std::abs(dA));
     }
 
@@ -179,6 +225,10 @@ TEST_SUITE("magnetostatics 2d")
         double const d = dist(w1.p, w2.p);
         CHECK(std::abs(nrm(F1) - mu0 * 300.0 * 180.0 / (2.0 * pi * d)) < 1e-13 * nrm(F1));
         CHECK(dot(F1, w1.p - w2.p) > 0.0);
+        // the form of the text, F = I_z r_dual(b), and the classical I e_z x b
+        vec2d const b12 = b_line_current(w1.p, w2);
+        CHECK(nrm(F1 - 300.0 * r_dual(b12)) < 1e-15 * nrm(F1));
+        CHECK(nrm(F1 - vec2d{-300.0 * b12.y, 300.0 * b12.x}) < 1e-15 * nrm(F1));
 
         auto const scale = std::max(nrm(F1), 1e-30);
         auto rel = [&](bivec2dp const& W) {
@@ -214,6 +264,10 @@ TEST_SUITE("magnetostatics 2d")
         // (mu0 R^2 / (2 r^2)) (2 (m.r_hat) r_hat - m) -- written out classically
         vec2d const c{0.0, 0.0}, m{6.0e5, 3.5e5}; // A/m
         double const R = 0.02;
+        // the surface current of the text, K = m ^ n, written out
+        vec2d const nn{0.6, 0.8};
+        CHECK(std::abs(value_t(surface_current(m, nn)) - (m.x * nn.y - m.y * nn.x)) <
+              1e-15 * nrm(m));
         auto const cs = magnetised_disc_currents(c, R, m, 2048);
         auto bfield = [&](vec2d const& r) { return b_line_currents(r, cs); };
 
@@ -228,6 +282,11 @@ TEST_SUITE("magnetostatics 2d")
             vec2d const ref = (mu0 * R * R / (2.0 * rr * rr)) *
                               vec2d{2.0 * mr * rh.x - m.x, 2.0 * mr * rh.y - m.y};
             CHECK(nrm(bfield(r) - ref) < 1e-9 * nrm(ref));
+            // the line dipole of the text, moment pi R^2 m: one reflection, no identity
+            // term, (mu0 / (2 pi r^2)) rh mu rh
+            vec2d const mu = (pi * R * R) * m;
+            vec2d const sw = (mu0 / (2.0 * pi * rr * rr)) * (rh * mu * rh);
+            CHECK(nrm(sw - ref) < 1e-14 * nrm(ref));
         }
         // the falsifier: K = n ^ m (the opposite orientation) reverses the field
         std::vector<line_current> flipped;
