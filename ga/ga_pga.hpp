@@ -54,5 +54,8 @@
 // geodetic coordinates on a reference ellipsoid (after the pga3dp ops it builds on)
 #include "ga_usr_geodesics.hpp" // ellipsoid, geo_pos, ECEF <-> ENU
 
+// magnetostatics in 2D and 3D: fields in ega, wrenches in pga (after both)
+#include "ga_usr_magnetostatics.hpp" // line currents, segments, dipoles, stress, wrench
+
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

@@ -17,5 +17,6 @@
 #include "ga_appl2dp_api_test.hpp"
 #include "ga_appl2dp_appl_test.hpp"
 #include "ga_appl2dp_fmt_test.hpp"
+#include "ga_appl2dp_magnetostatics_test.hpp"
 #include "ga_appl2dp_mechanics_test.hpp"
 #include "ga_appl2dp_preconditions_test.hpp"

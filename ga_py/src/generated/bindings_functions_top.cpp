@@ -32,17 +32,35 @@ using namespace hd::ga::sta;
 
 void register_functions_top(nb::module_& m)
 {
+    m.def("A_line_current",
+          [](vec2d const& a0, line_current const& a1) { return A_line_current(a0, a1); });
+    m.def("A_segment",
+          [](vec3d const& a0, current_segment const& a1) { return A_segment(a0, a1); });
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
     m.def("aeqd_at", [](geo_pos const& a0) { return aeqd_at(a0); });
     m.def("aeqd_forward", [](geo_pos const& a0, azimuthal_equidistant const& a1,
                              ellipsoid const& a2) { return aeqd_forward(a0, a1, a2); });
     m.def("aeqd_inverse", [](vec2d const& a0, azimuthal_equidistant const& a1,
                              ellipsoid const& a2) { return aeqd_inverse(a0, a1, a2); });
+    m.def("b_dipole", [](vec3d const& a0, vec3d const& a1) { return b_dipole(a0, a1); });
+    m.def("b_dipole",
+          [](vec3d const& a0, bivec3d const& a1) { return b_dipole(a0, a1); });
+    m.def("b_line_current",
+          [](vec2d const& a0, line_current const& a1) { return b_line_current(a0, a1); });
+    m.def("b_segment",
+          [](vec3d const& a0, current_segment const& a1) { return b_segment(a0, a1); });
+    m.def("circle_contour",
+          [](vec2d const& a0, double a1, int a2) { return circle_contour(a0, a1, a2); });
+    m.def("circle_loop", [](vec3d const& a0, vec3d const& a1, double a2, int a3,
+                            double a4) { return circle_loop(a0, a1, a2, a3, a4); });
     m.def("critical_damping",
           [](double a0, double a1) { return critical_damping(a0, a1); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
     m.def("densify", [](geo_pos const& a0, geo_pos const& a1, double a2) {
         return densify(a0, a1, a2);
+    });
+    m.def("dipole_coupling", [](vec3d const& a0, bivec3d const& a1, bivec3d const& a2) {
+        return dipole_coupling(a0, a1, a2);
     });
     m.def("distance_from_geocenter", [](geo_pos const& a0, ellipsoid const& a1) {
         return distance_from_geocenter(a0, a1);
@@ -106,10 +124,22 @@ void register_functions_top(nb::module_& m)
                              ellipsoid const& a2) { return laea_inverse(a0, a1, a2); });
     m.def("linear_step",
           [](double a0, double a1, double a2) { return linear_step(a0, a1, a2); });
+    m.def("lorentz_force",
+          [](vec2d const& a0, pscalar2d const& a1) { return lorentz_force(a0, a1); });
+    m.def("lorentz_force",
+          [](vec3d const& a0, vec3d const& a1) { return lorentz_force(a0, a1); });
     m.def("lstsq_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
                             int a2, double a3) { return lstsq_solve(a0, a1, a2, a3); });
     m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1,
                          int a2) { return lu_solve(a0, a1, a2); });
+    m.def("magnetised_disc_currents",
+          [](vec2d const& a0, double a1, vec2d const& a2, int a3) {
+              return magnetised_disc_currents(a0, a1, a2, a3);
+          });
+    m.def("magnetised_sphere_currents",
+          [](vec3d const& a0, double a1, vec3d const& a2, int a3, int a4) {
+              return magnetised_sphere_currents(a0, a1, a2, a3, a4);
+          });
     m.def("matrix_rank", [](std::vector<double> const& a0, int a1, int a2, double a3) {
         return matrix_rank(a0, a1, a2, a3);
     });
@@ -151,9 +181,16 @@ void register_functions_top(nb::module_& m)
           [](double a0, double a1, double a2) { return smooth_step(a0, a1, a2); });
     m.def("smoother_step",
           [](double a0, double a1, double a2) { return smoother_step(a0, a1, a2); });
+    m.def("sphere_surface", [](vec3d const& a0, double a1, int a2, int a3) {
+        return sphere_surface(a0, a1, a2, a3);
+    });
     m.def("stopping_accel_bound", [](double a0, double a1, double a2, double a3) {
         return stopping_accel_bound(a0, a1, a2, a3);
     });
+    m.def("surface_current",
+          [](vec2d const& a0, vec2d const& a1) { return surface_current(a0, a1); });
+    m.def("surface_current",
+          [](vec3d const& a0, vec3d const& a1) { return surface_current(a0, a1); });
     m.def("tm_forward", [](geo_pos const& a0, transverse_mercator const& a1,
                            ellipsoid const& a2) { return tm_forward(a0, a1, a2); });
     m.def("tm_inverse", [](vec2d const& a0, transverse_mercator const& a1,
@@ -162,6 +199,8 @@ void register_functions_top(nb::module_& m)
           [](geo_pos_dms const& a0, double a1) { return to_geo_pos(a0, a1); });
     m.def("to_geo_pos",
           [](geo_pos_dms2dp const& a0, double a1) { return to_geo_pos(a0, a1); });
+    m.def("traction", [](vec2d const& a0, vec2d const& a1) { return traction(a0, a1); });
+    m.def("traction", [](vec3d const& a0, vec3d const& a1) { return traction(a0, a1); });
     m.def("tridiag_solve",
           [](std::vector<double> const& a0, std::vector<double> const& a1,
              std::vector<double> const& a2,

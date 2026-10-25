@@ -10,11 +10,13 @@ set(HEADERS
     detail/fmt/ga_fmt_pga.hpp
     detail/fmt/ga_fmt_sta.hpp
     detail/fmt/ga_fmt_geodesics.hpp
+    detail/fmt/ga_fmt_magnetostatics.hpp
     detail/fmt/ga_fmt_mechanics.hpp
     detail/ga_fmt_support.hpp
     #
     detail/ga_error_handling.hpp
     detail/ga_foundation.hpp
+    detail/ga_quadrature.hpp
     detail/ga_solver.hpp
     detail/ga_stencil.hpp
     #
@@ -78,6 +80,7 @@ set(HEADERS
     ga_usr_consts.hpp
     ga_usr_fd.hpp
     ga_usr_geodesics.hpp
+    ga_usr_magnetostatics.hpp
     ga_usr_types.hpp
     ga_usr_types_mechanics.hpp
     ga_usr_utilities.hpp

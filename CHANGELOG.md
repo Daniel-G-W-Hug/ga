@@ -513,3 +513,14 @@
            (PROJ's aeqd, to 1e-6 m); a route from the centre stays straight to 4e-8 m,
            and a route between two other places bulges (the falsifier). Python and Lua
            bound.
+- 2026/10: magnetostatics in 2D and 3D (ga_usr_magnetostatics.hpp): the field and
+           potential of a line current and of a straight current segment (Biot-Savart
+           in closed form, the 2D kernel its long limit), the point dipole in the vector
+           and the bivector convention, the Lorentz force, a magnetisation's surface
+           current, and the Maxwell stress as one sandwich (b n b)/(2 mu0) -- the same
+           expression in both dimensions -- with the wrench of a field on a closed
+           contour or surface as one PGA bivector (in 3D a screw: the couple of a
+           dipole pair comes out of the sum of force lines). Gated against classical
+           closed forms (two dipoles' stress wrench against force line plus couple to
+           3e-14); bound to Python. The 12-point Gauss-Legendre rule moved to
+           detail/ga_quadrature.hpp.

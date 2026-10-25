@@ -13,6 +13,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_bivec4ds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_body2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_body3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_contour_point.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_current_segment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
@@ -32,6 +34,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_lambert_azimuthal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line_current.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d.cpp
@@ -79,6 +82,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_axis2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_screw_system3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_surface_point.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_transverse_mercator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec2dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_trivec3dc.cpp

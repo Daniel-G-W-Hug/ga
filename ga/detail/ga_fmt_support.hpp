@@ -10,8 +10,9 @@
 #include "fmt/ga_fmt_pga.hpp" // PGA type formatters
 #include "fmt/ga_fmt_sta.hpp" // STA type formatters
 
-#include "fmt/ga_fmt_geodesics.hpp" // Geodesics formatters
-#include "fmt/ga_fmt_mechanics.hpp" // Mechanics type formatters (Inertia)
+#include "fmt/ga_fmt_geodesics.hpp"      // Geodesics formatters
+#include "fmt/ga_fmt_magnetostatics.hpp" // Magnetostatics formatters
+#include "fmt/ga_fmt_mechanics.hpp"      // Mechanics type formatters (Inertia)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Unified formatting support for all GA library types (backward compatibility)

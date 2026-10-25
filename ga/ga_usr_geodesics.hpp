@@ -14,6 +14,7 @@
 #include <utility>   // std::swap
 #include <vector>    // std::vector (densify)
 
+#include "detail/ga_quadrature.hpp" // gauss_legendre12 (the geodesic integrals)
 #include "ega/ga_ega2d_ops.hpp"  // normalize, operator*(vec, I_2d), ... for the 2D frame
 #include "ega/ga_ega3d_ops.hpp"  // wdg, dual, normalize, ... for the direction frame
 #include "ga_usr_consts.hpp"     // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
@@ -1100,41 +1101,7 @@ struct geodesic_destination {
 
 namespace detail {
 
-// 12-point Gauss-Legendre nodes and weights on [-1, 1], by Newton's method on the
-// Legendre polynomial P_12; computed once
-struct gauss_legendre12_t {
-    std::array<value_t, 12> x{};
-    std::array<value_t, 12> w{};
-};
-
-inline gauss_legendre12_t const& gauss_legendre12()
-{
-    static gauss_legendre12_t const g = [] {
-        gauss_legendre12_t r{};
-        int const n = 12;
-        for (int i = 0; i < n / 2; ++i) {
-            value_t z = std::cos(pi * (i + 0.75) / (n + 0.5));
-            value_t dp = 1.0;
-            for (int it = 0; it < 100; ++it) {
-                value_t p1 = 1.0, p2 = 0.0;
-                for (int j = 0; j < n; ++j) {
-                    value_t const p3 = p2;
-                    p2 = p1;
-                    p1 = ((2.0 * j + 1.0) * z * p2 - j * p3) / (j + 1.0);
-                }
-                dp = n * (z * p1 - p2) / (z * z - 1.0); // P_12'(z)
-                value_t const dz = p1 / dp;
-                z -= dz;
-                if (std::abs(dz) < 1.0e-16) break;
-            }
-            r.x[size_t(i)] = -z;
-            r.x[size_t(n - 1 - i)] = z;
-            r.w[size_t(i)] = r.w[size_t(n - 1 - i)] = 2.0 / ((1.0 - z * z) * dp * dp);
-        }
-        return r;
-    }();
-    return g;
-}
+// the 12-point Gauss-Legendre rule: gauss_legendre12() in detail/ga_quadrature.hpp
 
 // int_a^b g(sigma) dsigma, twelve nodes per panel of at most a quarter circle
 template <typename F> inline value_t geod_quadrature(F const& g, value_t a, value_t b)
