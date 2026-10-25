@@ -522,5 +522,6 @@
            contour or surface as one PGA bivector (in 3D a screw: the couple of a
            dipole pair comes out of the sum of force lines). Gated against classical
            closed forms (two dipoles' stress wrench against force line plus couple to
-           3e-14); bound to Python. The 12-point Gauss-Legendre rule moved to
+           3e-14); bound to Python and Lua (in Lua, stress_wrench takes the field
+           as a function). The 12-point Gauss-Legendre rule moved to
            detail/ga_quadrature.hpp.

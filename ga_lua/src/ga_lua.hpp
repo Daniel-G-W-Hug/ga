@@ -39,6 +39,8 @@ void register_physics_pods(sol::state& lua);
 // geodesy: the ellipsoid, geodetic positions, ECEF <-> ENU, the projections onto the
 // tangent plane and the transverse Mercator (types, functions and constants)
 void register_geodesics(sol::state& lua);
+// magnetostatics: line currents, segments, dipoles, the stress sandwich and wrench
+void register_magnetostatics(sol::state& lua);
 // Function and constant registration
 void register_functions(sol::state& lua);
 void register_constants(sol::state& lua);
@@ -7828,4 +7830,173 @@ void register_geodesics(sol::state& lua)
     // ---- constants (after their type)
     lua["wgs84"] = wgs84;
     lua["grs80"] = grs80;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// magnetostatics (ga_usr_magnetostatics.hpp)
+////////////////////////////////////////////////////////////////////////////////
+//
+// The data types and the functions at the top level, as in ga_py; mu0 a global
+// number (Lua can carry it, the Python generator skips primitive constants). The
+// sums over sets of currents take a Lua table, the quadrature rules and the
+// equivalent-current builders return one, and stress_wrench takes the FIELD as a
+// Lua function of the point -- the C++ template parameter, which Python cannot
+// bind. The 2D and 3D forms of one name are overloads, told apart by the
+// argument types (vec2d / vec3d, contour_point / surface_point).
+
+// a Lua table of usertypes as a std::vector (sol2 does not convert a table into a
+// container of usertypes by itself)
+template <typename T> inline std::vector<T> ms_vector_of(sol::table const& t)
+{
+    std::vector<T> v;
+    v.reserve(t.size());
+    for (size_t i = 1; i <= t.size(); ++i)
+        v.push_back(t.get<T>(i));
+    return v;
+}
+
+void register_magnetostatics(sol::state& lua)
+{
+    using namespace hd::ga;
+
+    // ---- types
+    lua.new_usertype<line_current>(
+        "line_current", sol::call_constructor,
+        sol::factories([]() { return line_current{}; },
+                       [](vec2d const& p, pscalar2d I) { return line_current{p, I}; }),
+        "new",
+        sol::factories([]() { return line_current{}; },
+                       [](vec2d const& p, pscalar2d I) { return line_current{p, I}; }),
+        "p", &line_current::p, "I", &line_current::I, sol::meta_function::to_string,
+        [](line_current const& c) { return fmt::format("{}", c); });
+
+    lua.new_usertype<contour_point>(
+        "contour_point", sol::call_constructor,
+        sol::factories([]() { return contour_point{}; },
+                       [](vec2d const& P, vec2d const& n, value_t ds) {
+                           return contour_point{P, n, ds};
+                       }),
+        "new",
+        sol::factories([]() { return contour_point{}; },
+                       [](vec2d const& P, vec2d const& n, value_t ds) {
+                           return contour_point{P, n, ds};
+                       }),
+        "P", &contour_point::P, "n", &contour_point::n, "ds", &contour_point::ds,
+        sol::meta_function::to_string,
+        [](contour_point const& q) { return fmt::format("{}", q); });
+
+    lua.new_usertype<current_segment>(
+        "current_segment", sol::call_constructor,
+        sol::factories([]() { return current_segment{}; },
+                       [](vec3d const& a, vec3d const& b, value_t I) {
+                           return current_segment{a, b, I};
+                       }),
+        "new",
+        sol::factories([]() { return current_segment{}; },
+                       [](vec3d const& a, vec3d const& b, value_t I) {
+                           return current_segment{a, b, I};
+                       }),
+        "a", &current_segment::a, "b", &current_segment::b, "I", &current_segment::I,
+        sol::meta_function::to_string,
+        [](current_segment const& s) { return fmt::format("{}", s); });
+
+    lua.new_usertype<surface_point>(
+        "surface_point", sol::call_constructor,
+        sol::factories([]() { return surface_point{}; },
+                       [](vec3d const& P, vec3d const& n, value_t dA) {
+                           return surface_point{P, n, dA};
+                       }),
+        "new",
+        sol::factories([]() { return surface_point{}; },
+                       [](vec3d const& P, vec3d const& n, value_t dA) {
+                           return surface_point{P, n, dA};
+                       }),
+        "P", &surface_point::P, "n", &surface_point::n, "dA", &surface_point::dA,
+        sol::meta_function::to_string,
+        [](surface_point const& q) { return fmt::format("{}", q); });
+
+    // ---- functions
+    lua.set_function("b_line_current", [](vec2d const& r, line_current const& c) {
+        return b_line_current(r, c);
+    });
+    lua.set_function("A_line_current", [](vec2d const& r, line_current const& c) {
+        return A_line_current(r, c);
+    });
+    lua.set_function("b_line_currents", [](vec2d const& r, sol::table const& cs) {
+        return b_line_currents(r, ms_vector_of<line_current>(cs));
+    });
+    lua.set_function("b_segment", [](vec3d const& r, current_segment const& s) {
+        return b_segment(r, s);
+    });
+    lua.set_function("A_segment", [](vec3d const& r, current_segment const& s) {
+        return A_segment(r, s);
+    });
+    lua.set_function("b_segments", [](vec3d const& r, sol::table const& ss) {
+        return b_segments(r, ms_vector_of<current_segment>(ss));
+    });
+    lua.set_function(
+        "lorentz_force",
+        sol::overload(
+            [](vec2d const& b, pscalar2d I) { return lorentz_force(b, I); },
+            [](vec3d const& b, vec3d const& I_dl) { return lorentz_force(b, I_dl); }));
+    lua.set_function(
+        "traction",
+        sol::overload([](vec2d const& b, vec2d const& n) { return traction(b, n); },
+                      [](vec3d const& b, vec3d const& n) { return traction(b, n); }));
+    lua.set_function(
+        "surface_current",
+        sol::overload(
+            [](vec2d const& m, vec2d const& n) { return surface_current(m, n); },
+            [](vec3d const& m, vec3d const& n) { return surface_current(m, n); }));
+    lua.set_function(
+        "b_dipole",
+        sol::overload([](vec3d const& r, vec3d const& mu) { return b_dipole(r, mu); },
+                      [](vec3d const& r, bivec3d const& m) { return b_dipole(r, m); }));
+    lua.set_function("dipole_coupling",
+                     [](vec3d const& r, bivec3d const& mi, bivec3d const& mj) {
+                         return dipole_coupling(r, mi, mj);
+                     });
+    lua.set_function("circle_contour", [](vec2d const& c, value_t R, size_t N) {
+        return sol::as_table(circle_contour(c, R, N));
+    });
+    lua.set_function("sphere_surface",
+                     [](vec3d const& c, value_t R, size_t panels, size_t N_phi) {
+                         return sol::as_table(sphere_surface(c, R, panels, N_phi));
+                     });
+    lua.set_function("circle_loop",
+                     [](vec3d const& c, vec3d const& n, value_t R, size_t N, value_t I) {
+                         return sol::as_table(circle_loop(c, n, R, N, I));
+                     });
+    lua.set_function("magnetised_disc_currents",
+                     [](vec2d const& c, value_t R, vec2d const& m, size_t N) {
+                         return sol::as_table(magnetised_disc_currents(c, R, m, N));
+                     });
+    lua.set_function(
+        "magnetised_sphere_currents",
+        [](vec3d const& c, value_t R, vec3d const& m, size_t panels, size_t N_seg) {
+            return sol::as_table(magnetised_sphere_currents(c, R, m, panels, N_seg));
+        });
+    // the field a Lua function of the point; the dimension read off the table's first
+    // element (two table overloads could not be told apart)
+    lua.set_function(
+        "stress_wrench",
+        [](sol::protected_function b, sol::table const& q,
+           sol::this_state ts) -> sol::object {
+            sol::state_view L(ts);
+            if (q.size() == 0) throw std::invalid_argument("stress_wrench: empty rule");
+            if (q.get<sol::object>(1).is<contour_point>()) {
+                auto const c = ms_vector_of<contour_point>(q);
+                return sol::make_object(
+                    L, stress_wrench([&](vec2d const& P) { return b(P).get<vec2d>(); },
+                                     std::span<contour_point const>(c)));
+            }
+            auto const sp = ms_vector_of<surface_point>(q);
+            return sol::make_object(
+                L, stress_wrench([&](vec3d const& P) { return b(P).get<vec3d>(); },
+                                 std::span<surface_point const>(sp)));
+        });
+
+    // ---- constants
+    lua["mu0"] = mu0;
 }

@@ -88,3 +88,6 @@ dofile(script_dir .. "test_grades.lua")
 
 print("\n" .. string.rep("=", 60))
 dofile(script_dir .. "test_functions.lua")
+
+print("\n" .. string.rep("=", 60))
+dofile(script_dir .. "test_magnetostatics.lua")
