@@ -1688,6 +1688,32 @@ Three consequences that bite in code:
 Reader-facing statement with the derivation and the per-algebra table: the "Central
 element" and "Duality rotation" entries in the glossary of `ga_docu.pdf`.
 
+### Dualities: the dual or the complement -- never a product with the pseudoscalar (user, 2026-10-25)
+
+**This library does not express a duality as a multiplication with the pseudoscalar.** The
+complement is defined by the outer product (`u ^ r_cmpl(u) = I`, Lengyel), the dual as the
+complement after the extended metric (`dual(u) = cmpl(G u)`). Every identification of a
+grade-k quantity with a grade-(n-k) one -- a field vector and its induction bivector, a
+moment vector and its plane, a cross product, a gradient turned by 90 degrees -- is
+written with these, in code (`dual()`, `r_dual()`, `l_dual()`, `cmpl()`) and in the
+documentation, never as `I x`, `x I` or "`B = I3 b`". That is the
+literature's convention, and mixing it in obscures the library's own; it also carries a
+reversion sign (`I * X == l_dual(rev(X))`, see above) that is easy to drop.
+
+**Which of the two:** if the identification uses the METRIC -- a direction and the plane
+perpendicular to it, a cross product, a Hodge star, a quarter turn of a gradient -- it is
+the DUAL, also in EGA, where it happens to evaluate as the complement. A metric-free
+statement (orientation, a join or a meet) uses the complement. **The test:** would the
+formula still hold in an algebra whose metric is not the identity? Formulate it in STA,
+where dual and complement differ in sign on half the blades (the time-space bivectors
+`g_k4`): only the dual reproduces Ampere's law there (gated: `ga_sta4ds_test.hpp`, "the
+magnetic part of F is the DUAL of the field vector").
+
+**Scalar couplings use the library's scalar product** `dot` (positive definite on
+bivectors), not the scalar part of a geometric product: for two EGA3D bivectors
+`gr0(m * B) == -dot(m, B)`. That sign put a wrong `U = -<m B>_0` into the documentation
+once (found and fixed 2026-10-25; the code had always used `dot`).
+
 ### Supported Algebra Types
 
 **EGA2D - G(2,0,0)**: Euclidean 2D
