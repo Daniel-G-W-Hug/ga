@@ -231,6 +231,94 @@ TEST_SUITE("PGA2DP mechanics API")
         CHECK(s.mass_bias().second == rhs0);
     }
 
+    TEST_CASE("pga2dp: a subclass adds its own force elements through extra_wrenches()")
+    {
+        // the extension seam: a subclass contributes world wrenches the base knows
+        // nothing about, folded onto the supporting coordinates exactly like an applied
+        // wrench
+        struct seam2dp : dynamic_system2dp {
+            using fn_t =
+                std::function<std::vector<std::pair<size_t, bivec2dp>>(seam2dp&)>;
+            fn_t fn;
+
+          protected:
+
+            std::vector<std::pair<size_t, bivec2dp>> extra_wrenches() override
+            {
+                if (!fn) return {};
+                return fn(*this);
+            }
+        };
+        // a pendulum on a revolute joint, and a free disc beside it
+        auto build = [](dynamic_system2dp& s) {
+            s.set_gravity(vec2dp(0.0, -9.81, 0.0));
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("R"), make_plate_body(1.0, 1.0, 0.1),
+                                vec2dp(-0.5, 0.0, 1.0));
+            s.add_body(static_frame2dp("F", vec2dp(3.0, 0.0, 1.0)),
+                       make_disc_body(1.0, 0.2), {}, 0);
+        };
+        auto run = [](dynamic_system2dp& s) {
+            for (int n = 0; n < 400; ++n)
+                s.step(1.0e-3);
+        };
+        bivec2dp const W = wdg(vec2dp(0.3, 0.1, 1.0), vec2dp(2.0, -1.0, 0.0));
+
+        // (a) a constant wrench through the seam is the same wrench given by
+        // set_applied_wrench: the same state, bit for bit
+        dynamic_system2dp a;
+        build(a);
+        size_t const R = a.index_of("R"), F = a.index_of("F");
+        a.set_applied_wrench(R, [&](value_t) { return W; });
+        a.set_applied_wrench(F, [&](value_t) { return W; });
+        run(a);
+        seam2dp b;
+        build(b);
+        b.fn = [&](seam2dp&) {
+            return std::vector<std::pair<size_t, bivec2dp>>{{R, W}, {F, W}};
+        };
+        run(b);
+        CHECK(b.joint_phi(R) == a.joint_phi(R));
+        CHECK(b.joint_omega(R) == a.joint_omega(R));
+        CHECK(b.joint_motor(F) == a.joint_motor(F));
+        // the falsifier: without the seam's wrench the motion differs
+        dynamic_system2dp c;
+        build(c);
+        run(c);
+        CHECK(std::abs(c.joint_phi(R) - a.joint_phi(R)) > 1.0e-3);
+
+        // (b) a CONFIGURATION-dependent wrench: a spring and damper written through the
+        // seam from the live pose and velocity equals add_grounded_spring, so the seam is
+        // evaluated at every RK4 sub-step on the stage's state
+        vec2dp const anchor(0.4, 0.0, 1.0), p0(3.1, 0.2, 1.0), k(80.0, 120.0, 0.0);
+        value_t const damping = 0.7;
+        dynamic_system2dp d;
+        build(d);
+        d.add_grounded_spring(F, anchor, p0, k, damping);
+        run(d);
+        seam2dp e;
+        build(e);
+        e.fn = [&](seam2dp& s) {
+            vec2dp const P = unitize(move2dp(anchor, s.get_pos_trafo(F, 0)));
+            vec2dp const v = seam2dp::velocity_field(s.twist_world(F), P);
+            vec2dp const f{-k.x * (P.x - p0.x) - damping * v.x,
+                           -k.y * (P.y - p0.y) - damping * v.y, 0.0};
+            return std::vector<std::pair<size_t, bivec2dp>>{{F, wdg(P, f)}};
+        };
+        run(e);
+        CHECK(is_close(e.joint_motor(F), d.joint_motor(F), 1.0e-12));
+        // the falsifier: the spring read from a frozen pose is a different motion
+        seam2dp g;
+        build(g);
+        vec2dp const P_frozen = unitize(move2dp(anchor, g.get_pos_trafo(F, 0)));
+        g.fn = [&](seam2dp&) {
+            vec2dp const f{-k.x * (P_frozen.x - p0.x), -k.y * (P_frozen.y - p0.y), 0.0};
+            return std::vector<std::pair<size_t, bivec2dp>>{{F, wdg(P_frozen, f)}};
+        };
+        run(g);
+        CHECK_FALSE(is_close(g.joint_motor(F), d.joint_motor(F), 1.0e-6));
+    }
+
     TEST_CASE("pga2dp: frames without a coordinate, and a linear chain")
     {
         dynamic_system2dp s;

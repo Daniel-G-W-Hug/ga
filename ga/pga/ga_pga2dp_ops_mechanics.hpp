@@ -81,8 +81,8 @@
 // validate, and set_joint() clamps into the range.
 //
 // Force elements: set_joint_spring_damper(), set_applied_wrench(), set_joint_torque(),
-// add_grounded_spring(), set_driven_rate(). (The protected extra_wrenches() seam a
-// subclass overrides for application-specific wrenches exists in 3dp only.)
+// add_grounded_spring(), set_driven_rate(), and the protected extra_wrenches() seam a
+// subclass overrides for application-specific wrenches.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga::pga {
@@ -1120,9 +1120,10 @@ class kinematic_system2dp : public static_system2dp {
 //
 // Bodies are either FREE (unconstrained, integrated independently under gravity) or
 // connected to a parent by a 1-DOF JOINT into an articulated chain (coupled forward
-// dynamics), with force elements (spring/damper, applied wrench, grounded spring) feeding
-// the generalised force. The pose is evolved on the motor manifold; the integration state
-// is the Lie-algebra pair (B, Omega).
+// dynamics), with force elements (spring/damper, applied wrench, grounded spring, and
+// subclass-provided elements via extra_wrenches()) feeding the generalised force. The
+// pose is evolved on the motor manifold; the integration state is the Lie-algebra pair
+// (B, Omega).
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // Rigid-body inertial properties of a frame (body frame, about the body origin = cm).
@@ -1434,6 +1435,15 @@ class dynamic_system2dp : public kinematic_system2dp {
   public:
 
     dynamic_system2dp() = default;
+
+    // Virtual so an application subclass can be owned and deleted polymorphically. Copy
+    // and move stay the defaults: a user-declared destructor would otherwise suppress the
+    // implicit moves and turn every move into a copy.
+    virtual ~dynamic_system2dp() = default;
+    dynamic_system2dp(dynamic_system2dp const&) = default;
+    dynamic_system2dp(dynamic_system2dp&&) = default;
+    dynamic_system2dp& operator=(dynamic_system2dp const&) = default;
+    dynamic_system2dp& operator=(dynamic_system2dp&&) = default;
 
     // add a frame WITHOUT inertia (e.g. the inertial root); keeps body[]/joint[] in sync
     // with the base frame list. Mirrors the two base add_frame overloads.
@@ -2181,6 +2191,16 @@ class dynamic_system2dp : public kinematic_system2dp {
         return C;
     }
 
+  protected:
+
+    // Extension point for a subclass: inject configuration-dependent world
+    // wrenches into the force assembly, evaluated at each RK4 sub-step. Each
+    // returned (frame_idx, wrench) pair is folded onto that frame's supporting
+    // joints exactly like an applied wrench (same spatial_dot(S_j, W) pairing).
+    // The generic base contributes none; a subclass overrides this to add its
+    // own force elements without the base knowing anything about them.
+    virtual std::vector<std::pair<size_t, bivec2dp>> extra_wrenches() { return {}; }
+
   private:
 
     // Spatial (reciprocal / Klein) pairing of a velocity twist with a momentum or
@@ -2601,9 +2621,9 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // The external wrenches acting on frames, world frame, in a fixed order: the applied
     // wrenches (evaluated at the current clock time_), the grounded springs/dampers
-    // (recomputed from the live state, not a function of time).
-    // Shared by the assemblies (projected onto the supporting coordinates) and the
-    // articulated-body recursion (applied to the frame's body).
+    // (recomputed from the live state, not a function of time) and the subclass's
+    // extra_wrenches(). Shared by the assemblies (projected onto the supporting
+    // coordinates) and the articulated-body recursion (applied to the frame's body).
     std::vector<std::pair<size_t, bivec2dp>> frame_wrenches()
     {
         std::vector<std::pair<size_t, bivec2dp>> out;
@@ -2624,6 +2644,10 @@ class dynamic_system2dp : public kinematic_system2dp {
                 out.emplace_back(fi, wdg(P, F));
             }
         }
+        // application-specific external wrenches contributed by a subclass. Empty in the
+        // generic base.
+        for (auto const& fw : extra_wrenches())
+            out.push_back(fw);
         return out;
     }
 
