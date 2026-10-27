@@ -15,14 +15,14 @@
 #include <vector>    // std::vector (densify)
 
 #include "detail/ga_quadrature.hpp" // gauss_legendre12 (the geodesic integrals)
-#include "ega/ga_ega2d_ops.hpp"  // normalize, operator*(vec, I_2d), ... for the 2D frame
-#include "ega/ga_ega3d_ops.hpp"  // wdg, dual, normalize, ... for the direction frame
-#include "ga_usr_consts.hpp"     // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
-#include "ga_usr_types.hpp"      // vec3d, vec3dp, mvec3dp_e
-#include "ga_usr_utilities.hpp"  // deg2rad, rad2deg, pi
-#include "ga_value_t.hpp"        // value_t
-#include "pga/ga_pga2dp_ops.hpp" // get_motor, move2dp, unitize, ... for the 2D case
-#include "pga/ga_pga3dp_ops.hpp" // get_motor, move3dp, unitize, ... for points/motors
+#include "ega/ga_ega2d_ops.hpp"     // normalize, r_dual, ... for the 2D frame
+#include "ega/ga_ega3d_ops.hpp"     // wdg, dual, normalize, ... for the direction frame
+#include "ga_usr_consts.hpp"        // e3_3d, I_3d, O_3dp, x_axis_3dp, z_axis_3dp, ...
+#include "ga_usr_types.hpp"         // vec3d, vec3dp, mvec3dp_e
+#include "ga_usr_utilities.hpp"     // deg2rad, rad2deg, pi
+#include "ga_value_t.hpp"           // value_t
+#include "pga/ga_pga2dp_ops.hpp"    // get_motor, move2dp, unitize, ... for the 2D case
+#include "pga/ga_pga3dp_ops.hpp"    // get_motor, move3dp, unitize, ... for points/motors
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Geodetic coordinates on a reference ellipsoid.
@@ -2239,8 +2239,8 @@ struct un_frame {
 // longitude, which does not exist in a meridian section.
 //
 //     up    = grad of the ellipse through the position, normalized
-//     north = up * I_2d      a quarter turn towards the pole (the ega2d pseudoscalar
-//                            rotates a vector by +90 degrees)
+//     north = r_dual(up)     a quarter turn towards the pole: (x, y) -> (-y, x), +90
+//                            degrees, the direction perpendicular to up
 inline un_frame un_at(vec2dp const& P, ellipsoid const& el = wgs84)
 {
     auto const p = unitize(P);
@@ -2255,7 +2255,7 @@ inline un_frame un_at(vec2dp const& P, ellipsoid const& el = wgs84)
     // ega names must be qualified: unqualified lookup from inside hd::ga::pga finds the
     // pga overload set first and stops there
     auto const u = ega::normalize(vec2d{p.x / aa, p.y / bb});
-    auto const n = ega::operator*(u, ega::I_2d);
+    auto const n = ega::r_dual(u);
 
     return un_frame{vec2dp{u.x, u.y, 0.0}, vec2dp{n.x, n.y, 0.0}};
 }

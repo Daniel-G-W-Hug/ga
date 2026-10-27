@@ -98,7 +98,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
     using ctype = std::common_type_t<T, U>;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
 
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -119,7 +119,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
 //     using std::numbers::pi;
 
 // ctype nrm_prod = nrm(v1) * nrm(v2);
-// hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+// hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
 // #endif
 
 // auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
@@ -154,7 +154,7 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v1) * nrm(v2);
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -179,7 +179,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v) * nrm(B);
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
     return std::atan2(ctype(wdg(v, B)), ctype(nrm((v << B))));
 }
 
@@ -191,7 +191,7 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(B) * nrm(v);
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
     return std::atan2(ctype(wdg(B, v)), ctype(nrm((B >> v))));
 }
 
@@ -369,12 +369,11 @@ constexpr MVec3d_E<T> sqrt(MVec3d_E<T> const& R)
         M.c0 = 1.0; // replace by identity transformation
     }
 
-    // when M is a unit rotor, i.e. |M|=1, we have
-    // M      = exp(-phi*e12_2d) = cos(phi) - e12_2d*sin(phi)
-    // 1 + M  = (1+cos(phi)) - e12_2d * sin(phi)
-    // Imagine this as adding two unit vectors. The sum points at direction -phi/2.
-    // The normalization gives us the rotation with half the angle.
-    // normalize(1 + M) = cos(phi/2) - e12_2d*sin(phi/2) = exp(-phi/2*e12_2d) = sqrt(M)
+    // when M is a unit rotor, i.e. |M|=1, with B the unit bivector of its plane (B*B =
+    // -1) M      = exp(-phi*B) = cos(phi) - B*sin(phi) 1 + M  = (1+cos(phi)) - B *
+    // sin(phi) Imagine this as adding two unit vectors. The sum points at direction
+    // -phi/2. The normalization gives us the rotation with half the angle. normalize(1 +
+    // M) = cos(phi/2) - B*sin(phi/2) = exp(-phi/2*B) = sqrt(M)
 
     return normalize(Scalar3d<T>(1.0) + M);
 }
@@ -403,8 +402,8 @@ constexpr MVec3d_E<T> sqrt(MVec3d_E<T> const& R)
 // Output:
 //         - a rotor representing the rotation
 //
-// HINT:     For a rotation around an axis n (n = normalize(Vec3d<T>))
-//           use the bivector B = n*I_3d  => B = Vec3d<T> * PScalar3d<T>
+// HINT:     For a rotation around an axis n (n = normalize(Vec3d<T>)) use the plane
+//           perpendicular to it, its dual: B = dual(n)
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
@@ -433,10 +432,11 @@ constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& B, U theta)
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 //
-// for a rotation about an axis n (n = normalized vector) choose the ansatz n*B = I_3d
-// and multiply both sides with n from the left (remember n*n = |n|^2 = 1)
+// for a rotation about an axis n (n = normalized vector) choose the plane
+// perpendicular to it, its dual (the metric identification of a direction with the
+// plane it is normal to, written with dual(), not as a product with I_3d):
 //
-// => choose: B = n*I_3d
+// => choose: B = dual(n)
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
@@ -676,7 +676,7 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj3d(arg1&& a, ar
     // the expression is quadratic in b: remove b's scale, keep a's (a projection is
     // linear in what is projected)
     auto const nsq = nrm_sq(b);
-    detail::check_division_by_zero(nsq, "ortho_proj3d");
+    detail::check_nonzero(nsq, "ortho_proj3d target");
     return rwdg(b, r_expand(std::forward<arg1>(a), b)) / nsq;
 }
 
@@ -694,7 +694,7 @@ constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const nsq = ctype(nrm_sq(v2));
-    detail::check_division_by_zero(nsq, "project_onto(Vec3d, Vec3d)");
+    detail::check_nonzero(nsq, "project_onto(Vec3d, Vec3d) target");
     return Vec3d<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
@@ -761,7 +761,7 @@ constexpr BiVec3d<std::common_type_t<T, U>> project_onto(BiVec3d<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const nsq = ctype(nrm_sq(B));
-    detail::check_division_by_zero(nsq, "project_onto(BiVec3d, BiVec3d)");
+    detail::check_nonzero(nsq, "project_onto(BiVec3d, BiVec3d) target");
     return BiVec3d<ctype>(ctype(dot(A, B)) / nsq * B);
 }
 
@@ -975,10 +975,10 @@ bool is_congruent(PScalar3d<T> a, PScalar3d<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates grow large, where a single ulp already exceeds it.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default.
 //
 // Distinct from is_congruent(), which allows an arbitrary scale factor between the
 // operands and so answers "same subspace", not "same value".
@@ -1116,7 +1116,12 @@ inline std::array<Vec3d<T>, 3> reciprocal_frame(Vec3d<T> const& a1, Vec3d<T> con
                                                 Vec3d<T> const& a3)
 {
     PScalar3d<T> const A = wdg(wdg(a1, a2), a3);
-    if (std::abs(T(A)) <= detail::safe_epsilon<T>()) {
+    // degenerate is judged against the frame's own scale -- Hadamard: |A| <= prod |a_i|
+    // -- so a frame of vectors 1e-6 long is not a degenerate one (until 2026-10-27 the
+    // floor was absolute, and it threw)
+    T const scale = std::sqrt(T(detail::coeff_sq(a1)) * T(detail::coeff_sq(a2)) *
+                              T(detail::coeff_sq(a3)));
+    if (!(std::abs(T(A)) > detail::safe_epsilon<T>() * scale)) {
         throw std::invalid_argument("reciprocal_frame: degenerate frame");
     }
     PScalar3d<T> const Ai = inv(A);

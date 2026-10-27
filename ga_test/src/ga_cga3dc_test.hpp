@@ -1202,6 +1202,20 @@ TEST_SUITE("CGA 3dc Tests")
         // conjugated rotation == rotation about the shifted line (the check
         // the double cover blocked above)
         CHECK(is_same_transform(Mc, Rsh));
+
+        // FAR FROM THE ORIGIN, rlog and rexp still round-trip (2026-10-27): the
+        // simplicity checks compared a quantity quadratic in the coefficients against
+        // |alpha| + 1, so a rotation about a line 1e3 away was refused as non-simple
+        for (double const L : {1.0, 1.0e2, 1.0e3, 1.0e4}) {
+            CAPTURE(L);
+            auto const Rf =
+                get_rotation(0.37 * L, 0.71 * L, 0.13 * L, 0.3, -0.4, 0.866, 0.7);
+            auto const Tf = get_translation(0.123 * L, -0.456 * L, 0.789 * L);
+            CHECK_NOTHROW(rexp(rlog(Rf)));
+            CHECK_NOTHROW(rexp(rlog(Tf)));
+            CHECK(is_same_transform(rexp(rlog(Rf)), Rf));
+            CHECK(is_same_transform(rexp(rlog(Tf)), Tf));
+        }
     }
 
     TEST_CASE("cga3dc: fmt printing")

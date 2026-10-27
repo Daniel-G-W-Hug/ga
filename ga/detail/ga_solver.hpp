@@ -848,7 +848,10 @@ std::vector<T> nullspace_basis(std::vector<T> const& A, size_t rows, size_t ncol
 // estimator, not a worse implementation of the same one: near a singularity the damped
 // step stays bounded where the pseudo-inverse step (finite, but the inverse of a small
 // pivot) grows. The scaling is relative to the Gram trace so one damping value works
-// across problem scales. Ignored for the square regime, which forms no Gram matrix.
+// across problem scales. It applies at every shape: a square A takes the normal-equation
+// route of the overdetermined case, (A^T A + lambda^2 I) x = A^T b. (Until 2026-10-27 a
+// square A ignored the damping, although a square system near a singularity is where
+// nullspace_project() advises it.)
 //
 // Domain- and dimension-agnostic (pure linear algebra over T): used by the closed-loop
 // constraint solver for the position Newton step (A = constraint Jacobian G, b = -g), the
@@ -874,10 +877,6 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
     // no rank test is needed below: with damping > 0 the regularized Gram matrix is
     // positive definite, and an A of zeros has zero rows, which lu_decomp refuses
 
-    if (ncols == m) {
-        // square A: no Gram matrix is formed, so damping does not apply
-        return minnorm_solve(A, b, ncols);
-    }
     if (ncols > m) {
         // minimum-norm: solve (A A^T) y = b (m x m), then x = A^T y
         std::vector<T> AAt(m * m, T(0));
@@ -899,7 +898,7 @@ std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, siz
         }
         return x;
     }
-    // overdetermined: normal equations (A^T A) x = A^T b (ncols x ncols)
+    // square or overdetermined: normal equations (A^T A) x = A^T b (ncols x ncols)
     std::vector<T> AtA(ncols * ncols, T(0)), Atb(ncols, T(0));
     for (size_t a = 0; a < ncols; ++a) {
         for (size_t i = 0; i < m; ++i)
@@ -1717,11 +1716,32 @@ kkt_factor<T> kkt_factorize(std::vector<T> const& M, std::vector<T> const& G, si
             F.keep[c] = c;
     }
     else {
+        // each trial judged at G's OWN scale. matrix_rank's tolerance is relative to the
+        // largest column of the matrix it is handed, so until 2026-10-27 a tiny leading
+        // row alone read as rank 1 and was kept -- and every real row after it was then
+        // dependent at the trial's scale and dropped (G = [[1e-14, 0], [1, 0], [0, 1]]
+        // kept one row of a rank-2 G, and q-dd violated the third). The tolerance is
+        // rescaled so the test |R_kk| <= rtol * r00 compares against G's r00.
+        auto col_scale = [n](std::vector<T> const& A, size_t rows) {
+            double s = 0.0;
+            for (size_t j = 0; j < n; ++j) {
+                double c = 0.0;
+                for (size_t i = 0; i < rows; ++i)
+                    c += static_cast<double>(A[i * n + j]) *
+                         static_cast<double>(A[i * n + j]);
+                s = std::max(s, c);
+            }
+            return std::sqrt(s);
+        };
+        double const sG = col_scale(G, m);
         std::vector<T> Gk; // the kept rows
         for (size_t c = 0; c < m && F.keep.size() < F.rank; ++c) {
             std::vector<T> trial = Gk;
             trial.insert(trial.end(), G.begin() + c * n, G.begin() + (c + 1) * n);
-            if (matrix_rank(trial, F.keep.size() + 1, n) > F.keep.size()) {
+            double const st = col_scale(trial, F.keep.size() + 1);
+            if (!(st > 0.0)) continue; // a zero row raises nothing
+            if (matrix_rank(trial, F.keep.size() + 1, n, 1.0e-12 * sG / st) >
+                F.keep.size()) {
                 F.keep.push_back(c);
                 Gk = std::move(trial);
             }

@@ -4836,6 +4836,31 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         leaf.set_driven_rate(leaf.index_of("C"), 2.0);
         CHECK_NOTHROW(leaf.step(1.0e-3));
 
+        // ... and so does a mass ON its own hinge axis, whose articulated inertia cancels
+        // to +-1e-16 rather than to 0: refused since 2026-10-27, where it passed the
+        // exact `== 0` test and returned accelerations of ~1e16. A small mass a small
+        // distance OFF the axis is a real inertia and is not refused.
+        for (value_t const r : {0.0, 1.0e-3}) {
+            dynamic_system2dp onaxis;
+            onaxis.set_gravity(vec2dp{}); // the spring alone: qdd in closed form
+            onaxis.add_frame(static_frame2dp("I"));
+            onaxis.add_frame(static_frame2dp("L1", vec2dp{0.3, 0.7, 1.0}, 0.4));
+            onaxis.add_revolute_body(static_frame2dp("B", vec2dp{0.11, -0.23, 1.0}, 0.37),
+                                     make_point_body2dp(1.0e-3), vec2dp{-r, 0.0, 1.0},
+                                     0.2, 0.5, 1);
+            onaxis.set_joint_spring_damper(2, 5.0, 0.0, 0.0);
+            if (r == 0.0)
+                CHECK_THROWS_WITH_AS(onaxis.joint_accelerations(),
+                                     doctest::Contains("moves no inertia"),
+                                     std::runtime_error);
+            else {
+                // a point mass m at distance r: I = m r^2, so qdd = -k q / (m r^2)
+                auto const qdd = onaxis.joint_accelerations();
+                CHECK(std::abs(qdd[0] - (-5.0 * 0.2 / (1.0e-3 * r * r))) <
+                      1.0e-9 * 5.0 * 0.2 / (1.0e-3 * r * r));
+            }
+        }
+
         // a massless FREE body is inert: skipped by the free-body integrator, no throw
         dynamic_system2dp free;
         free.add_frame(static_frame2dp("W"));
@@ -5800,6 +5825,252 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: closed_loop_system2dp - driven joints advance with the step")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - driven joints");
+
+        // A driven rotor carrying a pendulum, stepped by the open tree and by the
+        // closed-loop layer with no loop at all: the two must agree. Until 2026-10-27
+        // the closed-loop step never prescribed a driven joint -- the rotor stayed at
+        // 0 rad after 1 s at 1 rad/s -- and with no dof coordinate it did not advance
+        // the clock either.
+        auto build = [](auto& s) {
+            s.add_frame(static_frame2dp("I"));
+            s.add_revolute_body(static_frame2dp("rotor", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                                make_disc_body(1.0, 0.1), vec2dp{0.0, 0.0, 1.0}, 0.0,
+                                0.0);
+            s.add_revolute_body(static_frame2dp("pend", vec2dp{0.5, 0.0, 1.0}, 0.0),
+                                make_plate_body(1.0, 0.1, 0.1), vec2dp{0.0, 0.0, 1.0},
+                                0.0, 0.0);
+        };
+        dynamic_system2dp d;
+        build(d);
+        d.set_driven_rate(1, 1.0);
+        closed_loop_system2dp c;
+        build(c);
+        c.system().set_driven_rate(1, 1.0);
+        for (int i = 0; i < 100; ++i) {
+            d.step(0.01);
+            c.step(0.01);
+        }
+        CHECK(std::abs(c.system().time() - 1.0) < 1.0e-12);
+        CHECK(std::abs(c.system().joint_phi(1) - 1.0) < 1.0e-12);
+        CHECK(std::abs(c.system().joint_phi(2) - d.joint_phi(2)) < 1.0e-9);
+        fmt::println("    after 1 s: rotor {:.6f} (open tree {:.6f}), pendulum {:.9f} "
+                     "({:.9f})",
+                     c.system().joint_phi(1), d.joint_phi(1), c.system().joint_phi(2),
+                     d.joint_phi(2));
+
+        // ... and with the driven joint the only joint there is (no dof coordinate)
+        closed_loop_system2dp r;
+        r.add_frame(static_frame2dp("I"));
+        r.add_revolute_body(static_frame2dp("rotor", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                            make_disc_body(1.0, 0.1), vec2dp{0.0, 0.0, 1.0}, 0.0, 0.0);
+        r.system().set_driven_rate(1, 2.0);
+        for (int i = 0; i < 10; ++i)
+            r.step(0.05);
+        CHECK(std::abs(r.system().time() - 0.5) < 1.0e-12);
+        CHECK(std::abs(r.system().joint_phi(1) - 1.0) < 1.0e-12);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ground_contact2dp - reactions read at each loop's own rows")
+    {
+        fmt::println(
+            "pga2dp: ground_contact2dp - reactions behind a loop of another kind");
+
+        // A loop the contact layer does not own -- a rod, ONE row -- registered before a
+        // contact shifts every row after it. Until 2026-10-27 the layer counted every
+        // active loop as a pin or a weld (2 or 3 rows): a body resting on its pin read a
+        // force of (19.62, 0) with a normal force of 0 instead of (0, 19.62), and the
+        // read ran one row past the end of the multipliers.
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("I"));
+        cl.add_body(static_frame2dp("A", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                    make_disc_body(2.0, 0.1));
+        size_t const rod = cl.add_loop_constraint(
+            loop_constraint2dp{1, vec2dp{0.1, 0.0, 1.0}, 0, vec2dp{0.1, 1.0, 1.0},
+                               constraint2dp::distance, 1.0});
+        ground_contact2dp gc(cl, ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0},
+                                                                vec2dp{1.0, 0.0, 1.0}));
+        size_t const c = gc.add({1, vec2dp{0.0, 0.0, 1.0}, contact_kind2dp::point});
+        gc.engage(c);
+        std::vector<value_t> lam;
+        cl.joint_accelerations(&lam);
+        REQUIRE(lam.size() == 3);
+        REQUIRE(cl.constraint_row_offset(rod) == 0);
+        size_t const off = cl.constraint_row_offset(gc.pin_loop(c));
+        REQUIRE(off == 1);
+        gc.read_reactions(lam);
+        value_t const weight = 2.0 * std::abs(cl.system().gravity().y);
+        CHECK(std::abs(gc.force(c).x + lam[off]) < 1.0e-12);
+        CHECK(std::abs(gc.force(c).y + lam[off + 1]) < 1.0e-12);
+        // the pin sits at the centre of mass, so it carries the whole weight
+        CHECK(std::abs(gc.normal_force(c) - weight) < 1.0e-9 * weight);
+        fmt::println("    the pin behind a rod: force ({:.4f}, {:.4f}), normal {:.4f} N",
+                     gc.force(c).x, gc.force(c).y, gc.normal_force(c));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ground_contact2dp - the search reads the trial's state")
+    {
+        fmt::println("pga2dp: ground_contact2dp - a touchdown under a state-reading law");
+
+        // A disc falls onto the ground pulled by a stiff spring law, F_y = -K (y - y_r),
+        // written the OLD way: a function of time that reads the system through a
+        // captured reference. Closed form (m = 1, w^2 = K):
+        //
+        //     y(t) = y_e + (h - y_e) cos(w t),    y_e = y_r - g / K
+        //
+        // Until 2026-10-27 the layer located the touchdown by stepping COPIES, whose law
+        // read this system -- already at the end of the interval -- so the search ran
+        // under a frozen law: 3.0e-6 s off at dt = 1e-3. The layer now steps the system
+        // itself for each trial, and the error is RK4's own (6.8e-9 s, measured).
+        value_t const g = 9.81, K = 1.0e4, y_r = -0.5, h = 0.3, dt = 1.0e-3;
+        closed_loop_system2dp cl;
+        cl.system().set_gravity(vec2dp{0.0, -g, 0.0});
+        cl.add_frame(static_frame2dp("W"));
+        cl.add_body(static_frame2dp("D", vec2dp{0.0, h, 1.0}, 0.0),
+                    make_disc_body(1.0, 0.1), kin_state2dp{}, 0);
+        cl.system().set_applied_wrench(1, [&cl, K, y_r](value_t) {
+            vec2dp const P = unitize(move2dp(O_2dp, cl.system().get_pos_trafo(1, 0)));
+            return bivec2dp(wdg(P, vec2dp{0.0, -K * (P.y - y_r), 0.0}));
+        });
+        ground_contact2dp gc(cl, ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0},
+                                                                vec2dp{1.0, 0.0, 1.0}));
+        gc.add({1, vec2dp{0.0, 0.0, 1.0}, contact_kind2dp::point});
+        for (int i = 0; i < 100 && gc.events().empty(); ++i)
+            gc.step(dt);
+        REQUIRE(gc.events().size() == 1);
+        value_t const y_e = y_r - g / K, w = std::sqrt(K);
+        value_t const t_exact = std::acos(-y_e / (h - y_e)) / w;
+        value_t const err = gc.events()[0].t - t_exact;
+        CHECK(std::abs(err) < 1.0e-7);
+        fmt::println("    touchdown at t = {:.12f} s, exact {:.12f} s: error {:.1e} s",
+                     gc.events()[0].t, t_exact, err);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: a law is handed the system it acts on - a forecast runs true")
+    {
+        fmt::println("pga2dp: a law, law(s, t), in a forecast copy");
+
+        // A copy of a system carries its registered laws along. Written as a LAW, the
+        // feedback reads the system it acts on, so a forecast on a copy runs exactly as
+        // the original then does. Written as a function of time that reads the system
+        // through a captured reference, the copy's law reads the original, which stands
+        // still while the forecast runs: the forecast integrates a frozen law. Both are
+        // run; the second is the falsification of the first.
+        value_t const k = 40.0, c = 2.0, dt = 1.0e-3;
+        auto make = []() {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, -9.81, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.3, 1.0}, 0.0),
+                                make_plate_body(2.0, 0.06, 0.6), vec2dp{0.0, 0.3, 1.0},
+                                0.9, 0.0, s.index_of("W"));
+            return s;
+        };
+        auto forecast_miss = [&](bool as_law) {
+            auto s = make();
+            size_t const b = s.index_of("b");
+            if (as_law)
+                s.set_joint_torque(b, [b, k, c](dynamic_system2dp const& q, value_t) {
+                    return -k * q.joint_phi(b) - c * q.joint_omega(b);
+                });
+            else
+                s.set_joint_torque(b, [&s, b, k, c](value_t) {
+                    return -k * s.joint_phi(b) - c * s.joint_omega(b);
+                });
+            for (int i = 0; i < 100; ++i)
+                s.step(dt);
+            auto f = s; // the forecast: a copy, run ahead
+            for (int i = 0; i < 300; ++i)
+                f.step(dt);
+            for (int i = 0; i < 300; ++i) // what then happens
+                s.step(dt);
+            return std::pair<value_t, value_t>{f.joint_phi(b) - s.joint_phi(b),
+                                               f.joint_omega(b) - s.joint_omega(b)};
+        };
+        auto const [dq_law, dw_law] = forecast_miss(true);
+        CHECK(dq_law == 0.0); // identical, not close
+        CHECK(dw_law == 0.0);
+        auto const [dq_ref, dw_ref] = forecast_miss(false);
+        CHECK(std::abs(dq_ref) > 1.0e-2);
+        fmt::println("    forecast minus actual after 0.3 s: law {:.1e} rad, captured "
+                     "reference {:.3e} rad",
+                     dq_law, dq_ref);
+
+        // ... and the same for a WRENCH law in a forecast with a contact layer: a push
+        // along a force line through the body's live position, the copy attached to its
+        // copied system as a forecast makes it
+        closed_loop_system2dp cl;
+        cl.system().set_gravity(vec2dp{0.0, -9.81, 0.0});
+        cl.add_frame(static_frame2dp("W"));
+        cl.add_body(static_frame2dp("rod", vec2dp{0.0, 0.4, 1.0}, 0.2),
+                    make_plate_body(2.0, 1.0, 0.02), kin_state2dp{}, 0);
+        cl.system().set_applied_wrench(1, [](dynamic_system2dp const& q, value_t) {
+            vec2dp const P = unitize(move2dp(O_2dp, q.get_pos_trafo(1, 0)));
+            return bivec2dp(wdg(P, vec2dp{6.0, 0.0, 0.0}));
+        });
+        ground_contact2dp gc(cl, ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0},
+                                                                vec2dp{1.0, 0.0, 1.0}));
+        gc.add({1, vec2dp{-0.5, 0.0, 1.0}});
+        gc.add({1, vec2dp{0.5, 0.0, 1.0}});
+        for (int i = 0; i < 100; ++i)
+            gc.step(dt);
+        closed_loop_system2dp cl_f = cl;
+        ground_contact2dp gc_f(gc, cl_f);
+        for (int i = 0; i < 500; ++i)
+            gc_f.step(dt);
+        for (int i = 0; i < 500; ++i)
+            gc.step(dt);
+        REQUIRE(!gc.events().empty());
+        REQUIRE(gc_f.events().size() == gc.events().size());
+        for (size_t e = 0; e < gc.events().size(); ++e)
+            CHECK(gc_f.events()[e].t == gc.events()[e].t);
+        vec2dp const P = unitize(move2dp(O_2dp, cl.system().get_pos_trafo(1, 0)));
+        vec2dp const Pf = unitize(move2dp(O_2dp, cl_f.system().get_pos_trafo(1, 0)));
+        CHECK(Pf.x == P.x);
+        CHECK(Pf.y == P.y);
+        fmt::println("    the pushed rod: {} events in the forecast and in the run, the "
+                     "centre at ({:+.9f}, {:+.9f}) in both",
+                     gc.events().size(), P.x, P.y);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ground_contact2dp - one step resolves every event in it")
+    {
+        fmt::println("pga2dp: ground_contact2dp - one step, twenty touchdowns");
+
+        // Twenty discs at twenty heights land at twenty instants inside ONE step(1.0).
+        // Until 2026-10-27 the event loop stopped after 16 iterations and returned with
+        // the rest of the step unintegrated: the clock read 0.5048 and four discs were
+        // still in the air, with nothing to tell the caller.
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("I"));
+        int const n = 20;
+        for (int i = 0; i < n; ++i)
+            cl.add_body(static_frame2dp("B" + std::to_string(i),
+                                        vec2dp{value_t(i), 0.5 + 0.05 * i, 1.0}, 0.0),
+                        make_disc_body(1.0, 0.1), kin_state2dp{},
+                        0); // on the ground frame
+        ground_contact2dp gc(cl, ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0},
+                                                                vec2dp{1.0, 0.0, 1.0}));
+        for (int i = 0; i < n; ++i)
+            gc.add({size_t(i + 1), vec2dp{0.0, 0.0, 1.0}, contact_kind2dp::point});
+        gc.step(1.0);
+        int landed = 0;
+        for (int i = 0; i < n; ++i)
+            landed += gc.active(size_t(i)) ? 1 : 0;
+        CHECK(std::abs(cl.system().time() - 1.0) < 1.0e-12);
+        CHECK(landed == n);
+        CHECK(gc.events().size() >= size_t(n));
+        fmt::println("    after step(1.0): clock {:.12f}, {} of {} landed, {} events",
+                     cl.system().time(), landed, n, gc.events().size());
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: ground_contact2dp - simultaneous touchdowns share one impact")
     {
         fmt::println("pga2dp: ground_contact2dp - simultaneous touchdowns");
@@ -6314,6 +6585,58 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  200 ms of swing: q = {:.12f} stated, {:.12f} silent, "
                      "{:.12f} at another length",
                      phi_spec, phi_free, phi_other);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: a passive joint takes no actuator torque")
+    {
+        fmt::println("pga2dp: a passive joint takes no actuator torque");
+
+        // joint_drive2dp::actuated == false says the joint HAS no actuator. Until
+        // 2026-10-27 the flag was carried and printed and nothing read it: a torque
+        // registered on a passive joint drove it like any other. It is refused now,
+        // whichever of the two is stated first.
+        auto make = []() {
+            dynamic_system2dp s;
+            s.add_frame(static_frame2dp("W"));
+            s.add_revolute_body(static_frame2dp("b", vec2dp{0.0, -0.3, 1.0}, 0.0),
+                                make_plate_body(2.0, 0.06, 0.6), vec2dp{0.0, 0.3, 1.0},
+                                0.4, 0.0, s.index_of("W"));
+            s.add_body(static_frame2dp("f", vec2dp{1.0, 0.0, 1.0}, 0.0),
+                       make_disc_body(1.0, 0.1), kin_state2dp{}, s.index_of("W"));
+            return s;
+        };
+        joint_drive2dp passive{};
+        passive.actuated = false;
+        auto const torque = [](value_t) { return value_t(1.0); };
+        auto const torques = [](value_t) { return std::vector<value_t>(3, 0.0); };
+
+        auto s = make();
+        size_t const b = s.index_of("b"), f = s.index_of("f");
+        s.set_joint_drive(b, passive);
+        s.set_joint_drive(f, passive);
+        CHECK_THROWS_AS(s.set_joint_torque(b, torque), std::runtime_error);
+        CHECK_THROWS_AS(s.set_joint_torque(f, torques), std::runtime_error);
+        // the law forms too
+        CHECK_THROWS_AS(s.set_joint_torque(b, [](dynamic_system2dp const&,
+                                                 value_t) { return value_t(1.0); }),
+                        std::runtime_error);
+        CHECK_THROWS_AS(
+            s.set_joint_torque(f, [](dynamic_system2dp const&,
+                                     value_t) { return std::vector<value_t>(3, 0.0); }),
+            std::runtime_error);
+        // clearing is always allowed, and a passive joint keeps its passive physics
+        CHECK_NOTHROW(s.set_joint_torque(b, std::function<value_t(value_t)>{}));
+        CHECK_NOTHROW(s.set_joint_spring_damper(b, 10.0, 1.0, 0.0));
+
+        // the other order: a joint carrying a torque cannot be made passive
+        auto t = make();
+        t.set_joint_torque(b, torque);
+        t.set_joint_torque(f, torques);
+        CHECK_THROWS_AS(t.set_joint_drive(b, passive), std::runtime_error);
+        CHECK_THROWS_AS(t.set_joint_drive(f, passive), std::runtime_error);
+        t.set_joint_torque(b, std::function<value_t(value_t)>{});
+        CHECK_NOTHROW(t.set_joint_drive(b, passive));
         fmt::println("");
     }
 

@@ -653,7 +653,7 @@ class static_system2dp {
     //
     // To be used as "p_to = move2dp(p_from, M);" with M as returned from get_pos_trafo()
     //
-    mvec2dp_u get_pos_trafo(size_t from_idx, size_t to_idx)
+    mvec2dp_u get_pos_trafo(size_t from_idx, size_t to_idx) const
     {
         // check permissible range
         // (at least one static_frame2dp required for identity, otherwise at least two)
@@ -710,7 +710,8 @@ class static_system2dp {
     }
 
     // Name-addressed convenience overload of get_pos_trafo (resolves names to indices).
-    mvec2dp_u get_pos_trafo(std::string const& from_name, std::string const& to_name)
+    mvec2dp_u get_pos_trafo(std::string const& from_name,
+                            std::string const& to_name) const
     {
         return get_pos_trafo(index_of(from_name), index_of(to_name));
     }
@@ -793,15 +794,20 @@ class static_system2dp {
 using twist2dp = vec2dp;
 
 
-// Momentary kinematic state of a frame RELATIVE to its parent (physical inputs).
+// Momentary kinematic state of a frame RELATIVE to its parent (physical inputs): the
+// components of its BODY twist, packed by to_twist().
 //
-// Linear quantities live in the parent frame (z = 0, i.e. directions); angular ones are
-// scalars, describing angle or angular velocity relative to the parent system.
+// The linear quantities are directions (z = 0) in the frame's OWN axes, not the
+// parent's: vel = (1, 0) on a frame turned by 90 degrees against its parent moves its
+// origin along the parent's y. acc is the rate of change of those body components, not
+// the acceleration of the origin: a frame with vel = (1, 0), omega = 1 and acc = 0
+// turns on a circle, its origin accelerating at omega * |vel| towards the centre.
+// The angular quantities are scalars relative to the parent.
 //
 // Carries NO pose -- the pose is held by the frame's static_frame2dp.
 struct kin_state2dp {
-    vec2dp vel{};       // linear velocity of the frame origin vs. parent [1/s]
-    vec2dp acc{};       // linear acceler. of the frame origin vs. parent [1/s^2]
+    vec2dp vel{};       // velocity of the frame origin vs. parent, own axes
+    vec2dp acc{};       // d/dt of vel's components (the body twist's rate)
     value_t omega{0.0}; // angular velocity vs. parent [rad/s]
     value_t alpha{0.0}; // angular acceleration vs. parent [rad/s^2]
 };
@@ -899,7 +905,7 @@ class kinematic_system2dp : public static_system2dp {
     // World-frame velocity twist of frame idx: the sum along the root -> idx path of each
     // relative twist transported into the world frame by that frame's world motor (the
     // adjoint move2dp). Spatial twists add (Lie algebra), so V_i = V_parent + Ad(xi_i).
-    twist2dp twist_world(size_t idx)
+    twist2dp twist_world(size_t idx) const
     {
         twist2dp V{};
         for (size_t n = idx; parent(n) != n; n = parent(n)) {
@@ -908,7 +914,7 @@ class kinematic_system2dp : public static_system2dp {
         return V;
     }
 
-    twist2dp twist_world(std::string const& frame_name)
+    twist2dp twist_world(std::string const& frame_name) const
     {
         return twist_world(index_of(frame_name));
     }
@@ -936,12 +942,12 @@ class kinematic_system2dp : public static_system2dp {
 
     // Velocity of a world-space point X rigidly attached to frame idx. (The
     // dimension-neutral rcmt form is a later refinement; this explicit field is exact.)
-    vec2dp point_velocity(vec2dp const& X_world, size_t idx)
+    vec2dp point_velocity(vec2dp const& X_world, size_t idx) const
     {
         return velocity_field(twist_world(idx), X_world);
     }
 
-    vec2dp point_velocity(vec2dp const& X_world, std::string const& frame_name)
+    vec2dp point_velocity(vec2dp const& X_world, std::string const& frame_name) const
     {
         return point_velocity(X_world, index_of(frame_name));
     }
@@ -956,7 +962,7 @@ class kinematic_system2dp : public static_system2dp {
     // origin motion plus its rotation) means an observer reads zero for any point fixed
     // in their own frame, and reads the absolute world velocity when obs is the inertial
     // root.
-    vec2dp relative_point_velocity(vec2dp const& P_src, size_t src, size_t obs)
+    vec2dp relative_point_velocity(vec2dp const& P_src, size_t src, size_t obs) const
     {
         auto const P_world = move2dp(P_src, get_pos_trafo(src, 0));
         auto const v_rel_world =
@@ -965,16 +971,16 @@ class kinematic_system2dp : public static_system2dp {
     }
 
     vec2dp relative_point_velocity(vec2dp const& P_src, std::string const& src_name,
-                                   std::string const& obs_name)
+                                   std::string const& obs_name) const
     {
         return relative_point_velocity(P_src, index_of(src_name), index_of(obs_name));
     }
 
     // World-frame acceleration twist A = dV/dt of frame idx (angular acceleration in
     // A.z).
-    twist2dp accel_twist_world(size_t idx) { return world_VA(idx).A; }
+    twist2dp accel_twist_world(size_t idx) const { return world_VA(idx).A; }
 
-    twist2dp accel_twist_world(std::string const& frame_name)
+    twist2dp accel_twist_world(std::string const& frame_name) const
     {
         return accel_twist_world(index_of(frame_name));
     }
@@ -986,13 +992,13 @@ class kinematic_system2dp : public static_system2dp {
     //   a(X) = field(A, X) + w * (V.x - w*X.x, V.y - w*X.y)
     //
     // (field(A,X) supplies the tangential alpha x r and linear-acceleration parts).
-    vec2dp point_acceleration(vec2dp const& X_world, size_t idx)
+    vec2dp point_acceleration(vec2dp const& X_world, size_t idx) const
     {
         auto const va = world_VA(idx);
         return accel_field(va.V, va.A, X_world);
     }
 
-    vec2dp point_acceleration(vec2dp const& X_world, std::string const& frame_name)
+    vec2dp point_acceleration(vec2dp const& X_world, std::string const& frame_name) const
     {
         return point_acceleration(X_world, index_of(frame_name));
     }
@@ -1008,7 +1014,7 @@ class kinematic_system2dp : public static_system2dp {
     // Coriolis term. (The centrifugal -w_obs^2 r contribution is contained in
     // -a_transport.) Reads zero for a point fixed in obs; equals the absolute world
     // acceleration when obs is the root.
-    vec2dp relative_point_acceleration(vec2dp const& P_src, size_t src, size_t obs)
+    vec2dp relative_point_acceleration(vec2dp const& P_src, size_t src, size_t obs) const
     {
         auto const P_world = move2dp(P_src, get_pos_trafo(src, 0));
         auto const vs = world_VA(src);
@@ -1023,7 +1029,7 @@ class kinematic_system2dp : public static_system2dp {
     }
 
     vec2dp relative_point_acceleration(vec2dp const& P_src, std::string const& src_name,
-                                       std::string const& obs_name)
+                                       std::string const& obs_name) const
     {
         return relative_point_acceleration(P_src, index_of(src_name), index_of(obs_name));
     }
@@ -1088,7 +1094,7 @@ class kinematic_system2dp : public static_system2dp {
         twist2dp A; // acceleration twist
     };
 
-    world_va2dp world_VA(size_t idx)
+    world_va2dp world_VA(size_t idx) const
     {
         // root -> idx by recursion on the parent: the operations of a walk along the
         // path in the same order, without building the path (an allocation per call)
@@ -1295,7 +1301,10 @@ inline bool is_unrestricted(joint_range2dp const& r)
 // at assembly and nowhere in a per-tick check.
 //
 // `actuated` is likewise not a bound: a PASSIVE joint has no capability at all, which
-// is a different statement from an unbounded one.
+// is a different statement from an unbounded one. It is the one field the system itself
+// enforces: set_joint_torque refuses a torque on a passive joint, and set_joint_drive
+// refuses to make a joint passive while a torque is registered on it. The bounds are
+// the controller's to hold; the system integrates whatever torque it is given.
 struct joint_drive2dp {
     value_t tau_max{std::numeric_limits<value_t>::infinity()}; // largest generalised
                                                                // force it may be asked
@@ -1378,6 +1387,39 @@ struct grounded_spring2dp {
 
 class dynamic_system2dp : public kinematic_system2dp {
 
+  public:
+
+    // THE FORCE FUNCTIONS a caller registers (set_applied_wrench, set_joint_torque) come
+    // in two forms. A FUNCTION OF TIME (`*_fn`, fn(t)) gets the clock only. A LAW
+    // (`*_law`, law(s, t), since 2026-10-27) also gets `s`, the system it acts on:
+    //
+    //     sys.set_joint_torque(j, [j, k, c, q0](dynamic_system2dp const& s, value_t) {
+    //         return -k * (s.joint_phi(j) - q0) - c * s.joint_omega(j);
+    //     });
+    //
+    // `s` is the system being stepped: the RK4 stage, the trial of a contact layer's
+    // event search (ground_contact2dp steps the system itself and restores it), and
+    // in a COPY -- a forecast, or any trial a caller runs on one -- the copy, which
+    // carries the law along. A feedback law therefore reads its state from `s`. A
+    // function of time that reads a system through a captured reference reads THAT
+    // system wherever it runs: in a copy it reads the original, which stands still
+    // while the copy runs, so the copy integrates a frozen law. That form is right for
+    // a law of time alone, or on a system that is never copied.
+    //
+    // Either form is evaluated at every RK4 stage and on every trial, so it must be a
+    // function of the state and the time; one that accumulates inside its closure
+    // counts the trials. Clear with an empty function of either form, e.g.
+    // set_joint_torque(j, torque_fn{}) -- a bare {} or nullptr is ambiguous.
+    using wrench_fn = std::function<bivec2dp(value_t)>;
+    using wrench_law = std::function<bivec2dp(dynamic_system2dp const&, value_t)>;
+    using torque_fn = std::function<value_t(value_t)>;
+    using torque_law = std::function<value_t(dynamic_system2dp const&, value_t)>;
+    using torque_vec_fn = std::function<std::vector<value_t>(value_t)>;
+    using torque_vec_law =
+        std::function<std::vector<value_t>(dynamic_system2dp const&, value_t)>;
+
+  private:
+
     // The optional closed-loop layer (ga_pga2dp_ops_constraints.hpp) composes a
     // dynamic_system2dp as its spanning tree and reuses this class's private assembly
     // seam (assemble_mass_bias, the joint screws, dof_joints/is_ancestor,
@@ -1394,8 +1436,8 @@ class dynamic_system2dp : public kinematic_system2dp {
     // frame without an entry has no applied wrench. The simulation clock `time_` is the
     // argument passed at each RK4 sub-step (set transiently by coupled_step). Only the
     // jointed (assemble_mass_bias) path consumes it; free bodies see gravity only.
-    using wrench_fn = std::function<bivec2dp(value_t)>;
-    std::unordered_map<size_t, wrench_fn> wrench_;
+    // (stored as laws: a function of time is wrapped into one that ignores the system)
+    std::unordered_map<size_t, wrench_law> wrench_;
 
     // Optional ACTUATOR torque per joint, folded into tau directly: a motor at a joint
     // acts equally and oppositely on parent and child, so in joint space it IS the
@@ -1404,11 +1446,21 @@ class dynamic_system2dp : public kinematic_system2dp {
     // of one value per screw for a motor joint. Evaluated at each RK4 sub-step time;
     // a driven joint ignores it (its coordinate is prescribed). An actuator is not
     // conservative: its work integral(tau q-dot dt) is what total_energy() changes by.
-    using torque_fn = std::function<value_t(value_t)>;
-    using torque_vec_fn = std::function<std::vector<value_t>(value_t)>;
-    std::unordered_map<size_t, torque_fn> torque_;
-    std::unordered_map<size_t, torque_vec_fn> torque_v_;
+    // (stored as laws, as wrench_ is)
+    std::unordered_map<size_t, torque_law> torque_;
+    std::unordered_map<size_t, torque_vec_law> torque_v_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
+
+    // a PASSIVE joint (joint_drive2dp::actuated == false) has no actuator, so a torque
+    // registered on it would be a force nothing in the model can exert: refused, loudly,
+    // rather than ignored
+    void refuse_if_passive(size_t idx) const
+    {
+        if (!joint[idx].drive.actuated)
+            throw std::runtime_error("dynamic_system2dp: joint " + std::to_string(idx) +
+                                     " is passive (joint_drive2dp::actuated == "
+                                     "false) and takes no actuator torque.");
+    }
 
     // Optional KINEMATICALLY DRIVEN joints: a 1-DOF joint whose coordinate is PRESCRIBED
     // q(t) = q0 + rate*t (constant rate) rather than integrated from the dynamics -- a
@@ -1514,30 +1566,66 @@ class dynamic_system2dp : public kinematic_system2dp {
     void set_gravity(vec2dp const& g) { grav = g; } // g is a direction (z = 0)
     vec2dp gravity() const { return grav; }
 
-    // Attach a time-varying applied wrench (world frame) to frame `idx`, folded into tau
-    // as an external generalised force projected onto each supporting joint screw. The
-    // wrench is a bivec2dp (force/moment); for a pure force F through a point P use
-    // wdg(P, F). Evaluated at each RK4 sub-step time. Pass an empty function to clear.
+    // Attach an applied wrench (world frame) to frame `idx`, folded into tau as an
+    // external generalised force projected onto each supporting joint screw. The wrench
+    // is a bivec2dp (force/moment); for a pure force F through a point P use
+    // wdg(P, F). Two forms (see wrench_law): a function of time, or a law handed the
+    // system it acts on -- the form for a wrench that depends on the state, a force line
+    // through a body's live position. Pass an empty function to clear.
     void set_applied_wrench(size_t idx, wrench_fn fn)
     {
-        if (fn) wrench_[idx] = std::move(fn);
+        if (fn)
+            wrench_[idx] = [f = std::move(fn)](dynamic_system2dp const&, value_t t) {
+                return f(t);
+            };
+        else wrench_.erase(idx);
+    }
+    void set_applied_wrench(size_t idx, wrench_law law)
+    {
+        if (law) wrench_[idx] = std::move(law);
         else wrench_.erase(idx);
     }
 
-    // Attach an actuator torque (generalised force) to joint `idx` as a function of
-    // time: tau_j += fn(t) on a coordinate joint. Pass an empty function to clear. For
-    // a controller, capture the system by reference and read its live state in fn --
-    // inside a step that is the RK4 stage state.
+    // Attach an actuator torque (generalised force) to joint `idx`: tau_j += fn(t) on a
+    // coordinate joint, or law(s, t) handed the system it acts on (see torque_law) --
+    // the form for a feedback law, which reads its state from `s`. Pass an empty
+    // function to clear. Refused on a passive joint (joint_drive2dp::actuated == false).
     void set_joint_torque(size_t idx, torque_fn fn)
     {
-        if (fn) torque_[idx] = std::move(fn);
+        if (fn) {
+            refuse_if_passive(idx);
+            torque_[idx] = [f = std::move(fn)](dynamic_system2dp const&, value_t t) {
+                return f(t);
+            };
+        }
         else torque_.erase(idx);
     }
-    // the motor-joint form: one generalised force per screw of joint `idx` (the
-    // joint's `screws` order), tau_{idx,k} += fn(t)[k]
+    void set_joint_torque(size_t idx, torque_law law)
+    {
+        if (law) {
+            refuse_if_passive(idx);
+            torque_[idx] = std::move(law);
+        }
+        else torque_.erase(idx);
+    }
+    // the motor-joint forms: one generalised force per screw of joint `idx` (the
+    // joint's `screws` order), tau_{idx,k} += fn(t)[k] or law(s, t)[k]
     void set_joint_torque(size_t idx, torque_vec_fn fn)
     {
-        if (fn) torque_v_[idx] = std::move(fn);
+        if (fn) {
+            refuse_if_passive(idx);
+            torque_v_[idx] = [f = std::move(fn)](dynamic_system2dp const&, value_t t) {
+                return f(t);
+            };
+        }
+        else torque_v_.erase(idx);
+    }
+    void set_joint_torque(size_t idx, torque_vec_law law)
+    {
+        if (law) {
+            refuse_if_passive(idx);
+            torque_v_[idx] = std::move(law);
+        }
         else torque_v_.erase(idx);
     }
 
@@ -1704,6 +1792,13 @@ class dynamic_system2dp : public kinematic_system2dp {
             throw std::runtime_error(
                 "dynamic_system2dp: an actuator capability must not be negative (the "
                 "neutral value is an ideal drive: infinite bounds, zero armature).");
+        // a PASSIVE joint takes no actuator torque, whichever is stated first: a torque
+        // already registered on it is refused here, a later one by set_joint_torque
+        if (!dr.actuated && (torque_.contains(idx) || torque_v_.contains(idx)))
+            throw std::runtime_error("dynamic_system2dp: joint " + std::to_string(idx) +
+                                     " carries an actuator torque and cannot be made "
+                                     "passive (actuated = false); clear the torque "
+                                     "first.");
         joint[idx].drive = dr;
     }
 
@@ -1768,12 +1863,6 @@ class dynamic_system2dp : public kinematic_system2dp {
         apply_driven_joints();    // prescribe the driven joints at t + dt (final state)
     }
 
-    // --- energy diagnostics (inertial / world frame) ---------------------------------
-
-    // total kinetic energy: sum over bodies of  1/2 <V_body, I(V_body)>, the spatial
-    // inertia-map quadratic form (= 1/2 m|v_cm|^2 + 1/2 I_cm omega^2), evaluated with the
-    // body twist V_body = the world twist pulled into the body frame where the inertia
-    // map lives. Same dimension-agnostic form used by the mass matrix and the 3D lift.
     // --- mass distribution ------------------------------------------------------------
     //
     // The total mass, the centre of mass, and gravity as ONE wrench -- the sum of the
@@ -1790,7 +1879,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         return m;
     }
 
-    vec2dp centre_of_mass()
+    vec2dp centre_of_mass() const
     {
         vec2dp acc{}; // sum of m_i C_i: a point of weight sum m_i
         for (size_t i = 0; i < size(); ++i)
@@ -1808,7 +1897,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     // whole mechanism reads total_mass() * a_C = the net external force, which is
     // the resultant of gravity_wrench() and the reactions -- the centroidal statement
     // a walking controller commands.
-    vec2dp centre_of_mass_velocity()
+    vec2dp centre_of_mass_velocity() const
     {
         vec2dp v{};
         value_t const M = total_mass();
@@ -1824,7 +1913,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         return v / M;
     }
 
-    vec2dp centre_of_mass_acceleration()
+    vec2dp centre_of_mass_acceleration() const
     {
         vec2dp a{};
         value_t const M = total_mass();
@@ -1840,7 +1929,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         return a / M;
     }
 
-    bivec2dp gravity_wrench()
+    bivec2dp gravity_wrench() const
     {
         bivec2dp W{};
         for (size_t i = 0; i < size(); ++i) {
@@ -1859,7 +1948,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     // applied wrenches), so in free flight the moment about the centre of mass is
     // conserved whatever the joints do. A sum over some of the bodies is not: it misses
     // the momentum the joints exchange with the rest.
-    bivec2dp total_momentum()
+    bivec2dp total_momentum() const
     {
         bivec2dp P{};
         for (size_t i = 1; i < size(); ++i)
@@ -1867,7 +1956,13 @@ class dynamic_system2dp : public kinematic_system2dp {
         return P;
     }
 
-    value_t kinetic_energy()
+    // --- energy diagnostics (inertial / world frame) ---------------------------------
+
+    // total kinetic energy: sum over bodies of 1/2 <V_body, I(V_body)>, the spatial
+    // inertia-map quadratic form (= 1/2 m|v_cm|^2 + 1/2 I_cm omega^2), evaluated with the
+    // body twist V_body = the world twist pulled into the body frame where the inertia
+    // map lives. Same form as in 3D.
+    value_t kinetic_energy() const
     {
         value_t ke = 0.0;
         for (size_t i = 1; i < size(); ++i) {
@@ -1879,7 +1974,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     }
 
     // total gravitational potential energy: sum over bodies of  -m (g . r_cm)
-    value_t potential_energy()
+    value_t potential_energy() const
     {
         value_t pe = 0.0;
         for (size_t i = 1; i < size(); ++i) {
@@ -1909,22 +2004,19 @@ class dynamic_system2dp : public kinematic_system2dp {
         return pe;
     }
 
-    value_t total_energy() { return kinetic_energy() + potential_energy(); }
+    value_t total_energy() const { return kinetic_energy() + potential_energy(); }
 
     // World-frame momentum bivector of body idx: the body momentum I(V_body) transported
     // to the world frame by the adjoint. Summed over the bodies of a free-floating
     // assembly it is CONSERVED (no gravity, no external wrench) -- the gate for the
     // floating base, complementing energy conservation. Same form as in 3D.
-    bivec2dp momentum_world(size_t idx)
+    bivec2dp momentum_world(size_t idx) const
     {
         auto const M = get_pos_trafo(idx, 0);                   // body -> world
         twist2dp const Vb = move2dp(twist_world(idx), rrev(M)); // body twist
         return move2dp(body[idx].I(Vb), M);                     // momentum back to world
     }
 
-    // Joint-space mass matrix M(q) (n*n row-major, n = number of revolute joints) at the
-    // current configuration. A diagnostic / showcase quantity: the reduced inertia of the
-    // articulated system, with the identity  1/2 * qdot^T M(q) qdot == kinetic_energy().
     // --- the Jacobian ---------------------------------------------------------------
     //
     // The columns of the (space) Jacobian of a frame f are the world joint screws of its
@@ -2214,6 +2306,22 @@ class dynamic_system2dp : public kinematic_system2dp {
     static value_t spatial_dot(twist2dp const& xi, bivec2dp const& mom)
     {
         return -value_t(rwdg(xi, mom));
+    }
+    // ... and the scale the rounding of spatial_dot(S, I(S)) carries: |S|_1^2 times the
+    // sum of the inertia map's entries in absolute value -- a bound of every product the
+    // quadratic form sums, so a form that cancels to ~0 (a mass ON the axis) can be told
+    // from one that is small (the forward dynamics' refusal of a joint that moves no
+    // inertia). Built from the inertia, not from I(S): on the axis I(S) cancels too.
+    static value_t inertia_form_gauge(twist2dp const& S, Inertia2dp<value_t> const& I)
+    {
+        value_t g = 0.0;
+        for (twist2dp const e : {twist2dp{1.0, 0.0, 0.0}, twist2dp{0.0, 1.0, 0.0},
+                                 twist2dp{0.0, 0.0, 1.0}}) {
+            bivec2dp const w = I(e);
+            g += std::abs(w.x) + std::abs(w.y) + std::abs(w.z);
+        }
+        value_t const s = std::abs(S.x) + std::abs(S.y) + std::abs(S.z);
+        return s * s * g;
     }
 
     // --- generalised coordinates: the seam every solver walks -------------------------
@@ -2609,10 +2717,10 @@ class dynamic_system2dp : public kinematic_system2dp {
         for (size_t j = 0; j < rc.size(); ++j) {
             if (auto const it = torque_.find(rc[j].frame);
                 it != torque_.end() && it->second && joint[rc[j].frame].screws.empty())
-                RHS[j] += it->second(time_);
+                RHS[j] += it->second(*this, time_);
             if (auto const it = torque_v_.find(rc[j].frame);
                 it != torque_v_.end() && it->second) {
-                auto const tv = it->second(time_);
+                auto const tv = it->second(*this, time_);
                 if (rc[j].k < tv.size()) RHS[j] += tv[rc[j].k];
             }
         }
@@ -2627,7 +2735,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         std::vector<std::pair<size_t, bivec2dp>> out;
         for (auto const& [fi, fn] : wrench_)
-            if (fn) out.emplace_back(fi, fn(time_));
+            if (fn) out.emplace_back(fi, fn(*this, time_));
         // grounded spatial springs/dampers: for each spring on frame fi, the live world
         // attachment point P and its velocity v_P give the restoring force F (world-axis
         // anisotropic stiffness + isotropic damping); the force line wdg(P, F) is the
@@ -2738,7 +2846,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         std::vector<mvec2dp_u> M;
         std::vector<twist2dp> V, A, c;
     };
-    world_pass world_forward_pass()
+    world_pass world_forward_pass() const
     {
         size_t const nf = size();
         twist2dp const z{};
@@ -2883,7 +2991,12 @@ class dynamic_system2dp : public kinematic_system2dp {
                         D[a * k + b] = spatial_dot(S[cs[a]], ra.U[b]);
                     D[a * k + a] += joint[f].drive.armature;
                     ra.u[a] = Q[cs[a]] - spatial_dot(S[cs[a]], pA[f]);
-                    if (D[a * k + a] == value_t(0.0))
+                    // judged against the rounding its own terms carry, not against 0:
+                    // a mass ON the axis cancels to +-1e-16, not to 0, and until
+                    // 2026-10-27 that passed and returned accelerations of ~1e16
+                    value_t const gauge =
+                        inertia_form_gauge(S[cs[a]], IA[f]) + joint[f].drive.armature;
+                    if (!(D[a * k + a] > value_t(64.0) * eps * gauge))
                         throw std::runtime_error(
                             std::string("dynamic_system2dp: joint '") +
                             frame(f).get_name() +

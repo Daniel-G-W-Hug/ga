@@ -11,16 +11,17 @@
 // are handled by EVENTS on the equality machinery of the closed-loop layer:
 //
 //   - touchdown: a contact point crossing the ground line downward is located by
-//     bisection on the last step (the system is a value type, so a copy is stepped
-//     from the pre-event state), the loop constraint is anchored at the crossing point
+//     bisection on the last step (the system itself is reset to the pre-event state
+//     for each trial, so a law registered on it reads the state being stepped), the
+//     loop constraint is anchored at the crossing point
 //     projected onto the ground and switched on WITH THE IMPACT MAP
 //     (activate_loop_with_impact): the closing velocity is absorbed, plastically;
 //
 //   - lift-off: an active contact whose normal reaction turns to a pull of more than
 //     release_threshold (0.5 N: a foot at zero load neither pulls nor pushes, and
 //     round-off must not release it a thousand times) is released where it is
-//     (Selig's criterion, lambda_y -> 0) -- provided it would SEPARATE: a copy of
-//     the system with the constraint removed is stepped briefly and the contact is
+//     (Selig's criterion, lambda_y -> 0) -- provided it would SEPARATE: the system,
+//     with the constraint removed, is stepped briefly and restored, and the contact is
 //     released only if its point moves away from the ground (a contact that pulls
 //     but would sink straight back is a RESTING contact and stays; without this test
 //     a landed foot at zero load was released and re-landed every millisecond); it
@@ -190,8 +191,19 @@ class ground_contact2dp {
     void step(value_t dt, value_t tol = value_t(1e-10))
     {
         value_t remaining = dt;
-        int guard = 0;
-        while (remaining > 0.0 && guard++ < 16) {
+        // EVERY event of the step is resolved, however many there are. Until 2026-10-27
+        // the loop stopped after 16 and left the rest of dt unintegrated, silently --
+        // twenty discs landing in one step left the clock at half of it. The cap below
+        // guards only against an event that re-fires without the clock moving, and
+        // reaching it THROWS: a step the layer did not finish is not a step.
+        size_t constexpr max_events = 4096;
+        size_t guard = 0;
+        while (remaining > 0.0) {
+            if (++guard > max_events)
+                throw std::runtime_error(
+                    "ground_contact2dp::step: more than 4096 contact events in "
+                    "one step -- an event that re-fires without "
+                    "the clock moving");
             closed_loop_system2dp const before = *cl_;
             // the points that may touch down: an inactive contact's point; a segment's
             // two ends while it is off the ground, its free end while one end is pinned
@@ -209,25 +221,40 @@ class ground_contact2dp {
             for (size_t i = 0; i < cand.size(); ++i)
                 h0[i] = height(end_point(cand[i].idx, cand[i].end));
             cl_->step(remaining);
+            // the heights at the end of the interval, read before the search below
+            // moves the system
+            std::vector<value_t> h1(cand.size());
+            for (size_t i = 0; i < cand.size(); ++i)
+                h1[i] = height(end_point(cand[i].idx, cand[i].end));
             // the first point that crossed the ground downward in this interval
             size_t hit = cand.size();
             value_t tau = remaining;
+            bool searched = false;
             std::vector<value_t> t_cross(cand.size(), value_t(-1.0));
             for (size_t i = 0; i < cand.size(); ++i) {
                 // (h0 >= -1e-9: a foot released at the ground line sits at a height
                 // of round-off size, possibly negative; it must still be able to land)
-                if (h0[i] < -1e-9 || height(end_point(cand[i].idx, cand[i].end)) >= 0.0)
-                    continue;
+                if (h0[i] < -1e-9 || h1[i] >= 0.0) continue;
                 // bisection on tau in (0, remaining]: not crossed at 0, crossed at
-                // remaining; a copy of the pre-event state is stepped by tau
+                // remaining. Each trial steps THE SYSTEM ITSELF from the pre-event
+                // state, so a law registered on it that reads it through a captured
+                // reference sees the state being stepped. (Until 2026-10-27 the trials
+                // stepped copies, whose laws still read this system -- at the END of
+                // the interval: the touchdown was located under a frozen law.)
                 value_t lo = 0.0, hi = remaining;
-                for (int j = 0; j < 60 && hi - lo > tol; ++j) {
-                    value_t const mid = 0.5 * (lo + hi);
-                    closed_loop_system2dp trial = before;
-                    trial.step(mid);
-                    if (height(trial_point(trial, cand[i].idx, cand[i].end)) < 0.0)
-                        hi = mid;
-                    else lo = mid;
+                searched = true;
+                try {
+                    for (int j = 0; j < 60 && hi - lo > tol; ++j) {
+                        value_t const mid = 0.5 * (lo + hi);
+                        *cl_ = before;
+                        cl_->step(mid);
+                        if (height(end_point(cand[i].idx, cand[i].end)) < 0.0) hi = mid;
+                        else lo = mid;
+                    }
+                }
+                catch (...) {
+                    *cl_ = before; // a failed trial leaves the step's starting state
+                    throw;
                 }
                 t_cross[i] = hi;
                 if (hi < tau) {
@@ -235,7 +262,14 @@ class ground_contact2dp {
                     hit = i;
                 }
             }
-            if (hit == cand.size()) break; // no event: the whole interval is done
+            if (hit == cand.size()) {
+                // no event: the whole interval is done (re-stepped if a search moved it)
+                if (searched) {
+                    *cl_ = before;
+                    cl_->step(remaining);
+                }
+                break;
+            }
             // every point crossing within the simultaneity window of the first lands
             // with it (a negative window: the first one alone)
             std::vector<landing> lands{cand[hit]};
@@ -507,13 +541,18 @@ class ground_contact2dp {
     // the same, from the multipliers of a solve the caller already holds (the
     // lambda of joint_accelerations / sync_accelerations at the current state) --
     // no second solve
+    //
+    // Every active loop of the system holds its own block of rows, a contact's or not: a
+    // distance loop holds one, so the offset is advanced by the loop's own row count
+    // (until 2026-10-27 every loop counted as a pin or a weld, and a distance loop
+    // registered before a contact shifted its reading by a row -- the pin's x read as y).
     void read_reactions(std::vector<value_t> const& lam)
     {
         size_t r = 0;
         for (size_t k = 0; k < cl_->loop_count(); ++k) {
             if (!cl_->loop_active(k)) continue;
             bool const weld = cl_->loop(k).type == constraint2dp::frame;
-            size_t const rows = weld ? 3 : 2;
+            size_t const rows = closed_loop_system2dp::rows_of(cl_->loop(k));
             for (auto& c : contacts_) {
                 if (k != c.pin && k != c.weld) continue;
                 c.force = vec2dp{-lam[r], -lam[r + 1], 0.0}; // -lambda: on the foot
@@ -550,25 +589,33 @@ class ground_contact2dp {
     };
 
     // the separation test of the lift-off rule: does the contact point move away from
-    // the ground once its constraint is removed? (a short trial step on a copy)
-    bool would_separate(size_t idx) const
+    // the ground once its constraint is removed? A short trial step ON THE SYSTEM, which
+    // is restored afterwards -- as in step()'s search, so that a law reading the system
+    // through a captured reference sees the trial's state, not a frozen one
+    bool would_separate(size_t idx)
     {
         contact const& c = contacts_[idx];
-        closed_loop_system2dp trial = *cl_;
-        trial.set_loop_active(c.pin, false);
-        if (c.weld != npos) trial.set_loop_active(c.weld, false);
+        closed_loop_system2dp const saved = *cl_;
         // the point that must rise: the contact's; a pinned segment's pinned end; a flat
         // segment's LOWER end (lifting one end only is a roll, not a lift-off)
-        auto low = [&](closed_loop_system2dp& s) {
-            if (!c.spec.segment) return height(trial_point(s, idx, 0));
-            if (c.pinned_end >= 0)
-                return height(trial_point(s, idx, size_t(c.pinned_end)));
-            return std::min(height(trial_point(s, idx, 0)),
-                            height(trial_point(s, idx, 1)));
+        auto low = [&]() {
+            if (!c.spec.segment) return height(end_point(idx, 0));
+            if (c.pinned_end >= 0) return height(end_point(idx, size_t(c.pinned_end)));
+            return std::min(height(end_point(idx, 0)), height(end_point(idx, 1)));
         };
-        value_t const h0 = low(trial);
-        trial.step(separation_dt_);
-        return low(trial) > h0 + value_t(1e-9);
+        try {
+            cl_->set_loop_active(c.pin, false);
+            if (c.weld != npos) cl_->set_loop_active(c.weld, false);
+            value_t const h0 = low();
+            cl_->step(separation_dt_);
+            bool const separates = low() > h0 + value_t(1e-9);
+            *cl_ = saved;
+            return separates;
+        }
+        catch (...) {
+            *cl_ = saved;
+            throw;
+        }
     }
 
     // A flat segment rolls onto one end when the other end PULLS. The weld's reaction --
@@ -614,12 +661,6 @@ class ground_contact2dp {
     vec2dp point_world(size_t frame, vec2dp const& point_b) const
     {
         return unitize(move2dp(point_b, cl_->system().get_pos_trafo(frame, 0)));
-    }
-    vec2dp trial_point(closed_loop_system2dp& trial, size_t idx, size_t end = 0) const
-    {
-        auto const& s = contacts_[idx].spec;
-        vec2dp const& p_b = (s.segment && end == 1) ? s.end_b : s.point_b;
-        return unitize(move2dp(p_b, trial.system().get_pos_trafo(s.frame, 0)));
     }
 
     // the weld's ground frame: at the landing point, with the contact frame's heading

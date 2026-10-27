@@ -270,9 +270,21 @@ inline vec3d A_segment(vec3d const& r, current_segment const& s)
     vec3d const L = s.b - s.a;
     vec3d const u = L / nrm(L);
     vec3d const Ra = r - s.a, Rb = r - s.b;
-    value_t const la = nrm(Ra) - value_t(dot(u, Ra));
-    value_t const lb = nrm(Rb) - value_t(dot(u, Rb));
-    return (mu0 * s.I / (4.0 * pi) * std::log(lb / la)) * u;
+    // ln(l_b / l_a) with l = |R| - z, z = u . R. That difference CANCELS where z ~ |R|,
+    // on the segment's line beyond its far end, and returned NaN there until
+    // 2026-10-27. Since (|R| - z)(|R| + z) = rho^2, the distance from the line squared,
+    // each cancelling factor is rewritten as rho^2 / (|R| + z) -- and where both are,
+    // rho^2 drops out of the ratio. (z_a - z_b = |L| > 0, so the cases are exhaustive.)
+    value_t const za = value_t(dot(u, Ra)), zb = value_t(dot(u, Rb));
+    value_t const na = value_t(nrm(Ra)), nb = value_t(nrm(Rb));
+    value_t ratio;
+    if (zb > 0.0) ratio = (na + za) / (nb + zb);      // beyond b
+    else if (za < 0.0) ratio = (nb - zb) / (na - za); // before a: nothing cancels
+    else {                                            // alongside the segment
+        vec3d const rho = Ra - za * u;
+        ratio = (nb - zb) * (na + za) / value_t(nrm_sq(rho));
+    }
+    return (mu0 * s.I / (4.0 * pi) * std::log(ratio)) * u;
 }
 
 inline vec3d b_segments(vec3d const& r, std::span<current_segment const> ss)

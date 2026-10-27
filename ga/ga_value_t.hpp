@@ -54,11 +54,17 @@ namespace detail {
 // dominant component keeps k well conditioned, so the rounding of a SMALL pivot is never
 // amplified onto the dominant entries (the failure mode of a first-non-zero pivot, where
 // the amplification factor max_component / pivot_component is unbounded).
+//
+// A NaN anywhere is NOT congruent to anything. Every comparison with NaN is false, so a
+// rejection written as `difference >= tol` lets a NaN component through, and a list of
+// NaNs looks like a zero list to the max scan below; both are refused explicitly.
 template <std::size_t N>
 inline bool coeffs_congruent(std::array<value_t, N> const& a,
                              std::array<value_t, N> const& b,
                              value_t rel_tol = eps_congruent)
 {
+    for (std::size_t i = 0; i < N; ++i)
+        if (std::isnan(a[i]) || std::isnan(b[i])) return false;
     value_t a_max = 0.0;
     value_t b_max = 0.0;
     std::size_t i_piv = 0;
@@ -78,7 +84,7 @@ inline bool coeffs_congruent(std::array<value_t, N> const& a,
     value_t const k = a[i_piv] / b[i_piv];
     value_t const tol = rel_tol * std::max(std::max(a_max, b_max), value_t(1.0));
     for (std::size_t i = 0; i < N; ++i) {
-        if (std::abs(a[i] - k * b[i]) >= tol) return false;
+        if (!(std::abs(a[i] - k * b[i]) < tol)) return false; // NaN (inf - inf) rejects
     }
     return true;
 }
@@ -87,21 +93,20 @@ inline bool coeffs_congruent(std::array<value_t, N> const& a,
 // coeffs_congruent above (which asks the weaker question "equal up to some scale
 // factor").
 //
-// Why this exists next to operator==: operator== compares against the ABSOLUTE eps, so
-// it answers "are these the same" only while the operands are of order one. Two
-// coordinates of order 1e6 differ by ~1e-10 in their last bit alone, so an absolute eps
-// rejects values that agree to every digit a double can carry; two coordinates of order
-// 1e-9 pass it no matter how different they are. Scaling the threshold by the operands
-// removes both failure modes:
+// Why this exists next to operator==: operator== is relative too (detail::coeffs_equal),
+// but its budget is a few ulps -- "equal to rounding". Two INDEPENDENTLY computed values
+// differ by far more than that, so this asks the same question with a caller's
+// tolerance, by default eps_congruent (some 4500 roundings):
 //
 //     |a[i] - b[i]| < rel_tol * max(|a|_inf, |b|_inf, 1)
 //
 // The floor of 1 keeps the test absolute near zero, so a component that should vanish is
-// still compared against rel_tol rather than against nothing.
+// still compared against rel_tol rather than against nothing. A NaN is close to nothing
+// (see coeffs_congruent).
 //
-// Use this whenever the operands carry a physical scale (positions in metres, a motor's
-// translation part, anything derived from them); keep operator== for values known to be
-// of order one, and is_congruent when only the direction matters, not the magnitude.
+// Use this for two results of different computations; keep operator== for values that
+// should agree to the last bits, and is_congruent when only the direction matters, not
+// the magnitude.
 template <std::size_t N>
 inline bool coeffs_close(std::array<value_t, N> const& a, std::array<value_t, N> const& b,
                          value_t rel_tol = eps_congruent)
@@ -113,7 +118,7 @@ inline bool coeffs_close(std::array<value_t, N> const& a, std::array<value_t, N>
 
     value_t const tol = rel_tol * scale;
     for (std::size_t i = 0; i < N; ++i) {
-        if (std::abs(a[i] - b[i]) >= tol) return false;
+        if (!(std::abs(a[i] - b[i]) < tol)) return false; // NaN rejects
     }
     return true;
 }

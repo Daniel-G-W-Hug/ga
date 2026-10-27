@@ -573,4 +573,120 @@ TEST_SUITE("PGA contracts")
         // scaled lines give the same motion
         CHECK(is_same_motion(get_motor_from_lines(2.0 * m1, 0.5 * m2), M));
     }
+
+    TEST_CASE("pga2dp: rlog on the far sheet -- two half turns make a translation")
+    {
+        // Two half turns, about (0, 0) and then about (1, 0), are a translation by
+        // (2, 0), and their product lies on the FAR sheet of the double cover
+        // (pseudoscalar -1). Until 2026-10-27 the 2D rlog returned that translation
+        // negated: rexp(rlog(M)) moved the origin to (-2, 0), and screw_axis said so too.
+        auto const M = rgpr(get_motor(vec2dp{1.0, 0.0, 1.0}, pi),
+                            get_motor(vec2dp{0.0, 0.0, 1.0}, pi));
+        REQUIRE(M.c3 < -0.99);
+        CHECK(is_close(unitize(move2dp(O_2dp, M)), vec2dp{2.0, 0.0, 1.0}));
+        CHECK(is_same_motion(rexp(rlog(M)), M));
+        CHECK(is_close(unitize(move2dp(O_2dp, rexp(rlog(M)))), vec2dp{2.0, 0.0, 1.0}));
+        auto const sa = screw_axis(M);
+        CHECK(std::abs(sa.translation.x - 2.0) < 1.0e-12);
+        CHECK(std::abs(sa.translation.y) < 1.0e-12);
+    }
+
+    TEST_CASE("pga2dp / pga3dp: the motor builders unitize a SMALL weight, not just a "
+              "large one")
+    {
+        // "Carries weight" is detail::has_weight, the predicate unitize() uses. Until
+        // 2026-10-27 the motor builders tested the squared weight against eps, so an
+        // input of weight below ~3e-8 -- the meet of two nearly parallel lines, a line
+        // through two close points -- was used as it stood: a 90 deg turn of (2, 2)
+        // about the point (1, 2) at weight 1e-9 returned (2, 2), and get_motor(L, theta)
+        // refused a line unitize() accepts.
+        vec2dp const P{1.0e-9, 2.0e-9, 1.0e-9};
+        CHECK(is_same_motion(get_motor(P, pi / 2), get_motor(unitize(P), pi / 2)));
+        CHECK(is_close(unitize(move2dp(vec2dp{2.0, 2.0, 1.0}, get_motor(P, pi / 2))),
+                       vec2dp{1.0, 3.0, 1.0}));
+
+        bivec3dp const shortx =
+            wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0e-8, 0.0, 0.0, 1.0});
+        bivec3dp const y_axis =
+            wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 1.0});
+        CHECK(is_same_motion(get_motor_from_lines(shortx, y_axis),
+                             get_motor_from_lines(unitize(shortx), y_axis)));
+        CHECK(is_same_motion(get_motor(shortx, 0.7), get_motor(unitize(shortx), 0.7)));
+        CHECK(is_same_motion(get_motor(shortx, 0.7, 0.2),
+                             get_motor(unitize(shortx), 0.7, 0.2)));
+
+        // ... and an IDEAL line has no axis: refused by both forms of get_motor
+        bivec3dp const ideal{0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+        CHECK_THROWS_AS(get_motor(ideal, 0.7), std::invalid_argument);
+        CHECK_THROWS_AS(get_motor(ideal, 0.7, 0.2), std::invalid_argument);
+    }
+
+    TEST_CASE("pga2dp / pga3dp: rlog round-trips on both sheets, through both roots")
+    {
+        // A versor M and -M are ONE transformation (the double cover). exp(log(M)) must
+        // perform M's transformation at every angle -- across pi and 2 pi, where the
+        // sine of the half angle passes 0 -- and on BOTH sheets; it is checked by the
+        // transformation, not the representation. A systematic check of every
+        // algebra's logarithm, made 2026-10-27 after a far-sheet defect in one of them:
+        // it found the far sheet wrong in the pga2dp rlog, in sta4ds for boosts and null
+        // rotors, and in both cga rlogs, and a screw near a full turn 1e-7 off in pga3dp.
+        bivec3dp const L =
+            unitize(wdg(vec3dp{1.0, 2.0, 0.5, 1.0}, vec3dp{1.3, 1.6, 1.4, 1.0}));
+        for (double const s : {1.0, -1.0}) {
+            CAPTURE(s);
+            for (double const a :
+                 {0.3, pi - 1.0e-9, pi, pi + 1.0e-9, 2.0 * pi - 1.0e-9, 2.0 * pi,
+                  2.0 * pi + 1.0e-9, 2.0 * pi + 0.3, 3.0 * pi, 4.0 * pi - 1.0e-9}) {
+                CAPTURE(a);
+                auto const M2 = s * get_motor(vec2dp{1.0, 2.0, 1.0}, a);
+                CHECK(is_same_motion(rexp(rlog(M2)), M2));
+                auto const M3 = s * get_motor(L, a);
+                CHECK(is_same_motion(rexp(rlog(M3)), M3));
+                auto const S3 = s * get_motor(L, a, 0.7); // a screw
+                CHECK(is_same_motion(rexp(rlog(S3)), S3));
+            }
+            auto const T2 = s * get_motor(vec2dp{0.4, -1.1, 0.0});
+            CHECK(is_same_motion(rexp(rlog(T2)), T2));
+            auto const T3 = s * get_motor(vec3dp{0.4, -1.1, 0.3, 0.0});
+            CHECK(is_same_motion(rexp(rlog(T3)), T3));
+            // two half turns about parallel axes: a translation on the far sheet
+            auto const H2 = s * rgpr(get_motor(vec2dp{1.0, 0.0, 1.0}, pi),
+                                     get_motor(vec2dp{0.0, 0.0, 1.0}, pi));
+            CHECK(is_same_motion(rexp(rlog(H2)), H2));
+            auto const L1 =
+                unitize(wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 1.0}));
+            auto const L2 =
+                unitize(wdg(vec3dp{1.0, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 1.0, 1.0}));
+            auto const H3 = s * rgpr(get_motor(L2, pi), get_motor(L1, pi));
+            CHECK(is_same_motion(rexp(rlog(H3)), H3));
+        }
+    }
+
+    TEST_CASE("pga2dp / pga3dp: a small object inverts and is projected onto")
+    {
+        // A SMALL object is not a degenerate one (2026-10-27). The storage types'
+        // operator/ refused any divisor below 5.5e-16, absolutely, and overruled the
+        // relative guards in front of it; the projections, angles and reciprocal frames
+        // carried their own absolute floors. Each answer here is the unit-size one,
+        // scaled as the contract says, and a ZERO object is still refused.
+        bivec3dp const B{0.3, 0.1, -0.2, 0.5, 0.7, -0.4};
+        auto const Bs = bivec3dp(1.0e-4 * B);
+        auto const P = Bs * inv(Bs);
+        CHECK(std::abs(value_t(gr0(P)) - 1.0) < 1.0e-12);
+        CHECK(is_close(inv(Bs), bivec3dp(1.0e4 * inv(B))));
+        // a projection onto a plane scaled by 1e-8 is the projection onto the plane
+        trivec3dp const pl =
+            wdg(wdg(vec3dp{0.0, 0.0, 1.0, 1.0}, vec3dp{1.0, 0.0, 1.0, 1.0}),
+                vec3dp{0.0, 1.0, 1.2, 1.0});
+        vec3dp const X{0.4, -0.3, 2.0, 1.0};
+        CHECK(is_close(unitize(project_onto(X, trivec3dp(1.0e-8 * pl))),
+                       unitize(project_onto(X, pl))));
+        // angle between small directions
+        CHECK(
+            std::abs(angle(vec3dp{1.0e-9, 0.0, 0.0, 0.0}, vec3dp{0.0, 1.0e-9, 0.0, 0.0}) -
+                     0.5 * pi) < 1.0e-12);
+        CHECK(std::abs(angle(vec2dp{1.0e-9, 0.0, 0.0}, vec2dp{0.0, 1.0e-9, 0.0}) -
+                       0.5 * pi) < 1.0e-12);
+        CHECK_THROWS(angle(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 0.0, 0.0}));
+    }
 }

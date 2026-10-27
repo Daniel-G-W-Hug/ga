@@ -1185,11 +1185,16 @@ TEST_SUITE("CGA 2dc Tests")
             rgpr(line_through(0.0, 0.0, 1.0, 1.0), line_through(0.0, 0.0, 1.0, 0.0));
         CHECK(is_close(unitize(sandwich(Mr, point2dc(1.0, 0.0))), point2dc(0.0, 1.0)));
 
-        // a full turn (2 pi) exponentiates to -I, where the principal
-        // logarithm is singular by construction
+        // a full turn (2 pi) exponentiates to -I, the far root, where the principal
+        // logarithm is singular: rlog returns the generator of -(-I) = I, the same
+        // transformation, the identity (it threw until 2026-10-27)
         auto Br = rlog(mvec2dc_e(1.0 / std::sqrt(2.0) * Mr)); // pi/2 generator
         CHECK(is_close(rexp(4.0 * Br), mvec2dc_e(pscalar2dc(-1.0))));
-        CHECK_THROWS(rlog(rexp(4.0 * Br)));
+        CHECK(is_close(rlog(rexp(4.0 * Br)), bivec2dc{}));
+        CHECK(is_same_transform(rexp(rlog(rexp(4.0 * Br))), rexp(4.0 * Br)));
+        // ... and the raw two-line versor, which is not unit, has the same generator:
+        // rlog normalizes its input (since 2026-10-27)
+        CHECK(is_close(rlog(Mr), Br));
 
         // DILATION: inversion in concentric circles r=1 then r=2 scales by 4
         auto Md = rgpr(circle2dc(0.0, 0.0, 2.0), circle2dc(0.0, 0.0, 1.0));

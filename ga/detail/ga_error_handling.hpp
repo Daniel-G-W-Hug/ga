@@ -65,16 +65,23 @@ constexpr U safe_epsilon() noexcept
     return U(5.0) * std::numeric_limits<U>::epsilon();
 }
 
-// Standardized error checking and throwing for division operations
+// A SCALAR DIVISION, v / s: only a zero (or NaN) divisor fails. Dividing by a merely
+// small number is representable -- v / 1e-16 is a large, exact result -- so the test is
+// the inv() argument, not a floor (see check_nonzero below). Until 2026-10-27 this was an
+// absolute floor at safe_epsilon, and it OVERRULED the relative guards in front of it:
+// inv() of a pga bivector or an sta bivector of size 1e-4 divides by its squared norm,
+// ~1e-16, through this operator, and threw after its own relative check had passed;
+// so did a projection onto a plane scaled by 1e-8. The storage types' operator/ and
+// operator/= are its callers; an operation that divides by a METRIC quantity states its
+// own guard (check_invertible / check_nonzero) before it divides.
 template <typename T>
     requires(std::floating_point<T>)
 inline void check_division_by_zero(T divisor, char const* operation_name = "division")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(divisor) < safe_epsilon<T>()) {
-        throw std::runtime_error(
-            std::string("GA Error: ") + operation_name +
-            " by value too small (near zero): " + std::to_string(divisor));
+    if (!(std::abs(divisor) > T(0.0))) {
+        throw std::runtime_error(std::string("GA Error: ") + operation_name +
+                                 " by zero: " + std::to_string(divisor));
     }
 #else
     // Suppress unused parameter warning when testing is disabled
@@ -83,16 +90,15 @@ inline void check_division_by_zero(T divisor, char const* operation_name = "divi
 #endif
 }
 
-// Standardized error checking for mixed-type division operations
+// Standardized error checking for mixed-type division operations (the same rule)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline void check_division_by_zero(U divisor, char const* operation_name = "division")
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(divisor) < safe_epsilon<T, U>()) {
-        throw std::runtime_error(
-            std::string("GA Error: ") + operation_name +
-            " by value too small (near zero): " + std::to_string(divisor));
+    if (!(std::abs(divisor) > U(0.0))) {
+        throw std::runtime_error(std::string("GA Error: ") + operation_name +
+                                 " by zero: " + std::to_string(divisor));
     }
 #else
     // Suppress unused parameter warning when testing is disabled
@@ -245,10 +251,11 @@ inline void check_simple_target(bool target_is_simple, char const* operation_nam
 // operands, with a floor of 1 so a component that should vanish is still compared
 // against the tolerance itself rather than against nothing.
 //
-// In ulps: eps is ulp(1), so eps * scale lies between ulp(scale) and 2 * ulp(scale)
-// depending on where scale sits inside its binade. The budget is therefore 5 to 10 ulps
-// of the operand -- constant in relative terms, which is the property that matters, and
-// the reason a measured threshold reads 5.5 at magnitude 1 and 9.8 at 1e3.
+// In ulps: eps (= safe_epsilon) is 5 ulp(1), so eps * scale lies between 5 ulp(scale)
+// and 10 ulp(scale) depending on where scale sits inside its binade. The budget is
+// therefore 5 to 10 ulps of the operand -- constant in relative terms, which is the
+// property that matters, and the reason a measured threshold reads 5.5 at magnitude 1
+// and 9.8 at 1e3.
 //
 // The scale is taken over the WHOLE object, not per component. A point at (1e6, 0) must
 // not require its second component to match to 1e-15 absolute: at that magnitude a

@@ -245,4 +245,41 @@ TEST_SUITE("CGA contracts")
         CHECK(is_congruent(pscalar3dc(0.0), pscalar3dc(0.0)));
         CHECK_FALSE(is_congruent(pscalar3dc(3.0), pscalar3dc(0.0)));
     }
+
+    TEST_CASE("cga2dc / cga3dc: rlog round-trips on both sheets, through both roots")
+    {
+        // A versor M and -M are ONE transformation (the double cover). exp(log(M)) must
+        // perform M's transformation at every angle -- across pi and 2 pi, where the
+        // sine of the half angle passes 0 -- and on BOTH sheets; it is checked by the
+        // transformation, not the representation. A systematic check of every
+        // algebra's logarithm, made 2026-10-27 after a far-sheet defect in one of them:
+        // it found the far sheet wrong in the pga2dp rlog, in sta4ds for boosts and null
+        // rotors, and in both cga rlogs, and a screw near a full turn 1e-7 off in pga3dp.
+        for (double const s : {1.0, -1.0}) {
+            CAPTURE(s);
+            for (double const a :
+                 {0.3, pi - 1.0e-9, pi, pi + 1.0e-9, 2.0 * pi - 1.0e-9, 2.0 * pi,
+                  2.0 * pi + 1.0e-9, 2.0 * pi + 0.3, 3.0 * pi, 4.0 * pi - 1.0e-9}) {
+                CAPTURE(a);
+                auto const R2 = s * get_rotation(1.0, 2.0, a);
+                CHECK(is_same_transform(rexp(rlog(R2)), R2));
+                auto const R3 = s * get_rotation(1.0, 2.0, 0.5, 0.3, -0.4, 0.866, a);
+                CHECK(is_same_transform(rexp(rlog(R3)), R3));
+            }
+            auto const T2 = s * get_translation(0.4, -1.1);
+            CHECK(is_same_transform(rexp(rlog(T2)), T2));
+            auto const T3 = s * get_translation(0.4, -1.1, 0.3);
+            CHECK(is_same_transform(rexp(rlog(T3)), T3));
+            auto const D2 = s * get_dilation(1.0, 2.0, 1.7);
+            CHECK(is_same_transform(rexp(rlog(D2)), D2));
+            auto const D3 = s * get_dilation(1.0, 2.0, 0.5, 1.7);
+            CHECK(is_same_transform(rexp(rlog(D3)), D3));
+            auto const H2 =
+                s * rgpr(get_rotation(1.0, 0.0, pi), get_rotation(0.0, 0.0, pi));
+            CHECK(is_same_transform(rexp(rlog(H2)), H2));
+            auto const H3 = s * rgpr(get_rotation(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi),
+                                     get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi));
+            CHECK(is_same_transform(rexp(rlog(H3)), H3));
+        }
+    }
 }

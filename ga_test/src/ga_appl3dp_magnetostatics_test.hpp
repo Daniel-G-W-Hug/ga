@@ -112,6 +112,29 @@ TEST_SUITE("magnetostatics 3d")
         CHECK(std::abs(worst[0] / worst[1] - 100.0) < 10.0);
     }
 
+    TEST_CASE("magnetostatics 3d: A on the segment's own line, beyond its ends")
+    {
+        // On the line through the segment, beyond its ends, A is finite: (mu0 I / 4 pi)
+        // ln(d_far / d_near) along u, with d the distances to the two ends -- the same on
+        // both sides. Its form ln(l_b / l_a), l = |R| - u . R, cancels to 0 / 0 there --
+        // NaN until 2026-10-27 -- and lost digits close to the line.
+        current_segment const s{vec3d{0.0, 0.0, 0.0}, vec3d{0.0, 0.0, 1.0}, 2.0};
+        value_t const k = mu0 * s.I / (4.0 * pi);
+        for (value_t const z : {2.0, 5.0, -1.0, -3.0}) {
+            CAPTURE(z);
+            vec3d const A = A_segment(vec3d{0.0, 0.0, z}, s);
+            value_t const ref = k * std::abs(std::log(std::abs(z / (z - 1.0))));
+            CHECK(std::isfinite(A.z));
+            CHECK(std::abs(A.z - ref) < 1.0e-12 * std::abs(ref));
+            CHECK(std::abs(A.x) + std::abs(A.y) == 0.0);
+        }
+        // ... and just off it, continuous with the line's value (at rho 1e-3 the old
+        // form was 7.8e-10 off; the exact value differs from the line's by O(rho^2))
+        vec3d const A0 = A_segment(vec3d{0.0, 0.0, 2.0}, s);
+        vec3d const A1 = A_segment(vec3d{1.0e-3, 0.0, 2.0}, s);
+        CHECK(std::abs(A1.z - A0.z) < 1.0e-6 * std::abs(A0.z));
+    }
+
     TEST_CASE("magnetostatics 3d: nabla b = mu0 dual(J) -- one equation for both laws")
     {
         // (a) inside a uniformly conducting round wire through c along J, the field

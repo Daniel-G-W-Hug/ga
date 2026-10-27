@@ -385,11 +385,18 @@ inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
     T const s4 = T(gr4(R)); // = sinh(f) sin(th); zero iff SIMPLE
 
     if (std::abs(s4) <= detail::safe_epsilon<T>()) {
-        // SIMPLE rotor -> single-plane logarithm
+        // SIMPLE rotor -> single-plane logarithm.
+        //
+        // R and -R are the same Lorentz transformation (the double cover). A rotation's
+        // angle carries the sign of s0 (atan2 below), but neither a boost nor a null
+        // rotor can: cosh a >= 1, and exp(B) = 1 + B for a null B. On the FAR sheet
+        // (s0 < 0) they are returned as the generator of -R -- the same transformation,
+        // as the PGA rlog does at its far root. Until 2026-10-27 -R of a boost came
+        // back as the boost REVERSED, and -(1 + B) as 1 - B.
         T const bn = T(nrm(Bv)); // |sin a| (rotation) / sinh a (boost) / 0
         if (bn <= detail::safe_epsilon<T>()) {
             // a ~ 0 -> identity (Bv ~ 0); or a lightlike (null) plane, exp(B) = 1 + B
-            return Bv;
+            return (s0 < T(0.0)) ? BiVec4ds<T>(-Bv) : Bv;
         }
         if (is_spacelike(Bv)) {
             T const a = std::atan2(bn, s0); // rotation by angle a in [0, pi]
@@ -397,7 +404,7 @@ inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
         }
         // timelike plane -> Lorentz boost (rapidity a); asinh(sinh a) is well-conditioned
         T const a = std::asinh(bn);
-        return (a / bn) * Bv;
+        return (s0 < T(0.0) ? -a / bn : a / bn) * Bv;
     }
 
     // NON-simple rotor: split gr2(R) into its two invariant planes via the Study
@@ -542,7 +549,9 @@ inline std::common_type_t<T, U> angle(Vec4ds<T> const& v1, Vec4ds<U> const& v2)
             "(use rapidity() for timelike vectors)");
     }
     ctype const nrm_prod = ctype(nrm(v1)) * ctype(nrm(v2));
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_invertible(
+        nrm_prod * nrm_prod, ctype(detail::coeff_sq(v1)) * ctype(detail::coeff_sq(v2)),
+        "angle: operand");
     return std::acos(std::clamp(-ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
@@ -564,7 +573,9 @@ inline std::common_type_t<T, U> rapidity(Vec4ds<T> const& u1, Vec4ds<U> const& u
             "(use angle() for spacelike vectors)");
     }
     ctype const nrm_prod = ctype(nrm(u1)) * ctype(nrm(u2));
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_invertible(
+        nrm_prod * nrm_prod, ctype(detail::coeff_sq(u1)) * ctype(detail::coeff_sq(u2)),
+        "rapidity: operand");
     return std::acosh(std::max(std::abs(ctype(dot(u1, u2))) / nrm_prod, ctype(1.0)));
 }
 
@@ -898,7 +909,8 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj4ds(arg1&& a, a
     // the expression is quadratic in b: remove b's scale, keep a's (a projection is
     // linear in what is projected)
     auto const nsq = nrm_sq(b);
-    detail::check_division_by_zero(nsq, "ortho_proj4ds");
+    detail::check_invertible(value_t(nsq), value_t(detail::coeff_sq(b)),
+                             "ortho_proj4ds target");
     return rwdg(b, r_expand4ds(std::forward<arg1>(a), b)) / nsq;
 }
 
@@ -953,7 +965,8 @@ constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const nsq = ctype(nrm_sq(v2));
-    detail::check_division_by_zero(nsq, "project_onto(Vec4ds, Vec4ds)");
+    detail::check_invertible(nsq, ctype(detail::coeff_sq(v2)),
+                             "project_onto(Vec4ds, Vec4ds) target");
     return Vec4ds<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
@@ -1196,10 +1209,10 @@ bool is_congruent(PScalar4ds<T> a, PScalar4ds<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates grow large, where a single ulp already exceeds it.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default.
 //
 // Distinct from is_congruent(), which allows an arbitrary scale factor between the
 // operands and so answers "same subspace", not "same value".
@@ -1369,7 +1382,11 @@ inline std::array<Vec4ds<T>, 4> reciprocal_frame(Vec4ds<T> const& a1, Vec4ds<T> 
 {
     using sta::operator*;
     PScalar4ds<T> const A = wdg(wdg(wdg(a1, a2), a3), a4);
-    if (std::abs(T(A)) <= detail::safe_epsilon<T>()) {
+    // (the wedge is metric-free, so Hadamard's bound holds on the coefficients here
+    // too; see the ega reciprocal_frame)
+    T const scale = std::sqrt(T(detail::coeff_sq(a1)) * T(detail::coeff_sq(a2)) *
+                              T(detail::coeff_sq(a3)) * T(detail::coeff_sq(a4)));
+    if (!(std::abs(T(A)) > detail::safe_epsilon<T>() * scale)) {
         throw std::invalid_argument("reciprocal_frame: degenerate frame");
     }
     PScalar4ds<T> const Ai = inv(A);

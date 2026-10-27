@@ -239,7 +239,7 @@ constexpr MVec3d<T> conj(MVec3d<T> const& M)
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
 // left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3  =>  l_cmpl(u) = I_3d * rev(u)
-// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(v) * I_3d
+// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(u) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_cmpl(u) == r_cmpl(u) == cmpl(u)

@@ -67,7 +67,7 @@ inline std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
     // (allows angle measurement between points and directions)
 
     ctype nrm_prod = ctype(bulk_nrm(v1)) * ctype(bulk_nrm(v2));
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -230,28 +230,25 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec3dp<T> rlog(MVec3dp_E<T> const& M_in)
 {
-    auto const M = unitize(M_in);
+    auto M = unitize(M_in);
+    // THE FAR ROOT, and near it (cos of the half angle within 64 eps of -1, a turn
+    // within ~1e-6 rad of a full one): -M -- the same motion on the near sheet -- is
+    // read instead. AT the root the rotation is the identity and the bulk of gr2(M) is
+    // the translation NEGATED (a branch of its own handled that until 2026-10-27); NEAR
+    // it the axis and the pitch are read through phi / sin(phi), which grows without
+    // bound (a screw 1e-9 off a full turn came back 1e-7 off until 2026-10-27). On the
+    // near sheet the quotient is ~1. The cga logarithms share the rule.
+    if (M.c7 <= T(-1.0) + T(64.0) * eps) M = -M;
     auto const Bm = gr2(M); // bivector part
     T const c0 = M.c0;      // scalar       = -dist*sin(phi)
     T const c7 = M.c7;      // pseudoscalar =  cos(phi)
 
     T const sin_phi = std::sqrt(Bm.vx * Bm.vx + Bm.vy * Bm.vy + Bm.vz * Bm.vz);
     if (sin_phi < eps) {
-        // sin(phi) ~ 0 has TWO roots, and they are different motions:
-        //
-        //   phi ~ 0  (c7 ~ +1): identity or pure translation -- the bulk of gr2(M) IS the
-        //                       translation generator.
-        //   phi ~ pi (c7 ~ -1): a FULL turn. The rotation is the identity, so the motion
-        //                       is again a pure translation -- but M sits on the far
-        //                       sheet of the motor double cover, where the bulk carries
-        //                       the opposite sign. -M is the same motion with phi ~ 0, so
-        //                       the generator is the bulk of gr2(-M).
-        //
-        // Treating both roots as the first branch returns the translation NEGATED for a
-        // full turn (an error of exactly twice the pitch). The rotation being dropped is
-        // correct -- a 2 pi turn is the identity; only the sign was wrong.
-        return (c7 < T(0.0)) ? BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -Bm.mx, -Bm.my, -Bm.mz)
-                             : BiVec3dp<T>(T(0.0), T(0.0), T(0.0), Bm.mx, Bm.my, Bm.mz);
+        // phi ~ 0 (c7 ~ +1): identity or pure translation -- the bulk of gr2(M) IS the
+        // translation generator. (The other root, phi ~ pi -- a full turn on the far
+        // sheet -- was taken to the near sheet above.)
+        return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), Bm.mx, Bm.my, Bm.mz);
     }
 
     T const phi = std::atan2(sin_phi, c7); // rotation angle in [0, pi]
@@ -292,13 +289,15 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U theta)
 {
     // line L must be unitized to avoid surprises
+    // (detail::has_weight, unitize()'s own predicate: until 2026-10-27 this refused
+    // below a squared weight of eps -- a line of weight 3e-8, which unitize() accepts)
     auto L_weight_nrm_sq = weight_nrm_sq(L);
-    if (L_weight_nrm_sq < eps) {
+    if (!detail::has_weight(L_weight_nrm_sq)) {
         throw std::invalid_argument(
             "get_motor: Cannot use ideal lines L with weight_nrm_sq(L) == 0.0");
     }
     auto l{L};
-    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
+    if (detail::has_weight(L_weight_nrm_sq) && (L_weight_nrm_sq != 1.0)) {
         l = unitize(L);
     }
 
@@ -347,10 +346,15 @@ template <typename T, typename U, typename V>
 constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L, U theta,
                                                            V dist)
 {
-    // line L must be unitized to avoid surprises
+    // line L must be unitized to avoid surprises -- and must be a line: an ideal one
+    // has no axis to screw about (refused since 2026-10-27, as get_motor(L, theta) does)
     auto L_weight_nrm_sq = weight_nrm_sq(L);
+    if (!detail::has_weight(L_weight_nrm_sq)) {
+        throw std::invalid_argument(
+            "get_motor: Cannot use ideal lines L with weight_nrm_sq(L) == 0.0");
+    }
     auto l{L};
-    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
+    if (detail::has_weight(L_weight_nrm_sq) && (L_weight_nrm_sq != 1.0)) {
         l = unitize(L);
     }
 
@@ -389,19 +393,19 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
     // planes t1 and t2 need to be unitized to avoid surprises
     auto w_nrm_sq = weight_nrm_sq(t1);
     auto tu1{t1};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         tu1 = unitize(tu1);
     }
     w_nrm_sq = weight_nrm_sq(t2);
     auto tu2{t2};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         tu2 = unitize(tu2);
     }
 
     // the resulting motor must be unitized to avoid surprises
     auto M{rgpr(tu2, tu1)};
     w_nrm_sq = weight_nrm_sq(M);
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
@@ -423,19 +427,19 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     // l1 and l2 need to be unitized to avoid surprises
     auto w_nrm_sq = weight_nrm_sq(l1);
     auto lu1{l1};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         lu1 = unitize(lu1);
     }
     w_nrm_sq = weight_nrm_sq(l2);
     auto lu2{l2};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         lu2 = unitize(lu2);
     }
 
     // the resulting motor must be unitized to avoid surprises
     auto M{rsqrt(rgpr(lu2, rrev(lu1)))}; // the UNITIZED lines (see above)
     w_nrm_sq = weight_nrm_sq(M);
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
@@ -1434,10 +1438,10 @@ bool is_congruent(PScalar3dp<T> a, PScalar3dp<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates reach the order of, say, an earth radius, where one ulp is already ~1e-10.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default.
 //
 // Distinct from is_congruent(), which allows an arbitrary scale factor between the
 // operands and so answers "same subspace", not "same value".

@@ -106,10 +106,10 @@ namespace hd::ga::cga {
 //
 // rlog() returns the principal generator: complex acosh of the central part,
 // then B = rgpr(V, S^-1) with V the bivector part and S = sinh(w)/w. It
-// expects an even UNIT versor (exp always produces one) and throws where the
-// logarithm is singular (S = 0, i.e. a full-turn versor with central part
-// -I). rsqrt(M) = rexp(0.5 * rlog(M)) inherits the principal branch and the
-// same guard.
+// normalizes its input to a unit even versor first. Where the logarithm is
+// singular (S = 0, central part -I: a full turn, or the far sheet of a
+// translation) it returns the generator of -M, the same transformation.
+// rsqrt(M) = rexp(0.5 * rlog(M)) inherits the principal branch.
 ////////////////////////////////////////////////////////////////////////////////
 // HINT: exp/log/sqrt cannot be constexpr (std::complex math; log may throw)
 
@@ -141,8 +141,25 @@ inline MVec2dc_E<T> rexp(BiVec2dc<T> const& B)
 
 template <typename T>
     requires(numeric_type<T>)
-inline BiVec2dc<T> rlog(MVec2dc_E<T> const& M)
+inline BiVec2dc<T> rlog(MVec2dc_E<T> const& M_in)
 {
+    // the input as a UNIT versor, M rrev(M) = I (see the cga3dc rlog)
+    T const sig = T(gr4(rgpr(M_in, rrev(M_in))));
+    if (!(sig > T(0.0)))
+        throw std::invalid_argument("cga2dc log: not a versor (M rrev(M) is not a "
+                                    "positive multiple of I)");
+    MVec2dc_E<T> M =
+        (std::abs(sig - T(1.0)) <= T(4.0) * std::numeric_limits<T>::epsilon())
+            ? M_in
+            : MVec2dc_E<T>((T(1.0) / std::sqrt(sig)) * M_in);
+    // THE FAR ROOT: where the central part is -I the principal logarithm is singular --
+    // a full turn, or the far sheet of a translation or of two half turns -- and the
+    // generator of -M, the same transformation, is returned (as the PGA rlog does;
+    // until 2026-10-27 this threw, or returned a wrong motion a rounding away from it).
+    // Off that root the complex arithmetic below covers both sheets itself.
+    if (std::abs(std::complex<T>(T(gr4(M)), T(gr0(M))) + T(1.0)) <=
+        T(64.0) * std::numeric_limits<T>::epsilon())
+        M = -M;
     std::complex<T> const c(T(gr4(M)), T(gr0(M))); // central part
     BiVec2dc<T> const V = gr2(M);                  // V = rgpr(B, sinh(w)/w)
     std::complex<T> const w = std::acosh(c);       // principal branch
@@ -956,10 +973,10 @@ bool is_congruent(PScalar2dc<T> a, PScalar2dc<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates grow large, where a single ulp already exceeds it. In a conformal
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default. In a conformal
 // algebra that regime is the default: the round (u) component of an embedded
 // point grows QUADRATICALLY with the coordinates.
 //

@@ -5272,10 +5272,14 @@ TEST_SUITE("PGA 3DP Tests")
             }
         }
 
-        // e) approaching the branch is ILL-CONDITIONED, and that is not a defect: any
-        //    versor logarithm divides by sin(phi) there. Documented as a domain
-        //    statement rather than "fixed" -- the error grows smoothly as the full turn
-        //    is approached and collapses to zero AT it (case d).
+        // e) approaching the branch is ILL-CONDITIONED on the principal branch: the
+        //    generator divides by sin(phi), and the screw's translation lies along an
+        //    axis the near-full turn barely defines. Within ~1e-6 rad of the full turn
+        //    rlog reads -M instead, the same motion on the near sheet, where the
+        //    quotient is ~1 (since 2026-10-27; until then d = 1e-8 was 1e-7 off). Just
+        //    outside that window the conditioning is still visible -- a wider window
+        //    would move the branch's jump, which is a question of the log's semantics,
+        //    not of its accuracy.
         {
             double const isr = 1.0 / std::sqrt(3.0);
             auto const L = wdg(vec3dp{1, 2, -1, 1}, vec3dp{isr, isr, isr, 0});
@@ -5288,9 +5292,12 @@ TEST_SUITE("PGA 3DP Tests")
                 return std::sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) +
                                  (a.z - b.z) * (a.z - b.z));
             };
-            CHECK(err(0.5) < 1.0e-12);   // far from the branch: exact
-            CHECK(err(1.0e-2) < 1.0e-9); // still exact for practical purposes
-            CHECK(err(1.0e-8) > 1.0e-9); // close in: conditioning is visible
+            CHECK(err(0.5) < 1.0e-12);    // far from the branch: exact
+            CHECK(err(1.0e-2) < 1.0e-9);  // still exact for practical purposes
+            CHECK(err(2.0e-6) > 1.0e-11); // just outside the window: still visible
+            CHECK(err(2.0e-6) < 1.0e-8);
+            CHECK(err(5.0e-7) < 1.0e-14); // inside it: read on the near sheet
+            CHECK(err(1.0e-8) < 1.0e-14);
         }
     }
 
@@ -6392,7 +6399,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("PGA3dp: the comparison contract");
 
         // operator== is RELATIVE: safe_epsilon measured against the larger operand,
-        // with a floor of 1. eps is ulp(1), so the budget is 5 to 10 ulps of the
+        // with a floor of 1. eps is 5 ulp(1), so the budget is 5 to 10 ulps of the
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.
@@ -6413,6 +6420,20 @@ TEST_SUITE("PGA 3DP Tests")
               vec3dp{1.0e-9 + 5.0e-16, 1.0e-9, 0.0, 1.0});
         CHECK(vec3dp{1.0e-9, 1.0e-9, 0.0, 1.0} !=
               vec3dp{1.0e-9 + 1.0e-13, 1.0e-9, 0.0, 1.0});
+
+        // A NaN IS CLOSE TO NOTHING AND CONGRUENT TO NOTHING (2026-10-27). Both
+        // comparators rejected with `difference >= tol`, which every comparison with NaN
+        // fails, so a NaN component passed -- and a vector of NaNs read as a zero one,
+        // congruent to another
+        double const nan = std::numeric_limits<double>::quiet_NaN();
+        CHECK_FALSE(is_close(vec3dp{nan, 0.0, 0.0, 1.0}, O_3dp));
+        CHECK_FALSE(is_close(O_3dp, vec3dp{nan, 0.0, 0.0, 1.0}));
+        CHECK_FALSE(is_congruent(vec3dp{nan, 1.0, 0.0, 0.0}, vec3dp{0.0, 1.0, 0.0, 0.0}));
+        CHECK_FALSE(
+            is_congruent(vec3dp{1.0, nan, nan, 0.0}, vec3dp{1.0, 0.5, 0.25, 0.0}));
+        CHECK_FALSE(is_congruent(vec3dp{nan, nan, nan, nan}, vec3dp{nan, nan, nan, nan}));
+        CHECK(is_close(vec3dp{1.0, 2.0, 3.0, 1.0}, vec3dp{1.0, 2.0, 3.0, 1.0}));
+        CHECK(is_congruent(vec3dp{1.0, 2.0, 3.0, 1.0}, vec3dp{2.0, 4.0, 6.0, 2.0}));
     }
 
 } // PGA 3DP Tests

@@ -222,7 +222,7 @@ inline auto nabla_wdg(F&& f, Vec3d<value_t> const& r, value_t h = value_t(0.0))
         return gr1(N); // grad
     }
     else if constexpr (std::is_same_v<ret_t, Vec3d<value_t>>) {
-        return gr2(N); // I * curl
+        return gr2(N); // dual(curl A); curl A = dual(nabla_wdg(A))
     }
     else if constexpr (std::is_same_v<ret_t, BiVec3d<value_t>>) {
         return gr3(N);

@@ -152,4 +152,58 @@ TEST_SUITE("EGA contracts")
         CHECK(sqrt(mvec3d_e(-1.0, 0.0, 0.0, 0.0)) == id3);
         CHECK(sqrt(mvec2d_e(-1.0, 0.0)) == mvec2d_e(1.0, 0.0));
     }
+
+    TEST_CASE("ega2d / ega3d: log round-trips on both sheets, through both roots")
+    {
+        // A versor M and -M are ONE transformation (the double cover). exp(log(M)) must
+        // perform M's transformation at every angle -- across pi and 2 pi, where the
+        // sine of the half angle passes 0 -- and on BOTH sheets; it is checked by the
+        // transformation, not the representation. A systematic check of every
+        // algebra's logarithm, made 2026-10-27 after a far-sheet defect in one of them:
+        // it found the far sheet wrong in the pga2dp rlog, in sta4ds for boosts and null
+        // rotors, and in both cga rlogs, and a screw near a full turn 1e-7 off in pga3dp.
+        bivec3d const B = bivec3d{0.3, -0.4, 0.866} / nrm(bivec3d{0.3, -0.4, 0.866});
+        for (double const a :
+             {0.3, pi - 1.0e-9, pi, pi + 1.0e-9, 2.0 * pi - 1.0e-9, 2.0 * pi,
+              2.0 * pi + 1.0e-9, 2.0 * pi + 0.3, 3.0 * pi, 4.0 * pi - 1.0e-9})
+            for (double const s : {1.0, -1.0}) {
+                CAPTURE(a);
+                CAPTURE(s);
+                auto const R2 = s * get_rotor(pscalar2d(1.0), a);
+                CHECK(is_same_rotation(exp(log(R2)), R2));
+                auto const R3 = s * get_rotor(B, a);
+                CHECK(is_same_rotation(exp(log(R3)), R3));
+            }
+    }
+
+    TEST_CASE("ega2d / ega3d: a small target, angle or frame is not a degenerate one")
+    {
+        // A SMALL object is not a degenerate one (2026-10-27). The storage types'
+        // operator/ refused any divisor below 5.5e-16, absolutely, and overruled the
+        // relative guards in front of it; the projections, angles and reciprocal frames
+        // carried their own absolute floors. Each answer here is the unit-size one,
+        // scaled as the contract says, and a ZERO object is still refused.
+        double const s = 1.0e-8;
+        vec3d const v{0.3, -0.7, 0.5}, w{1.0, 2.0, -0.5};
+        bivec3d const B{0.2, -0.4, 0.9};
+        CHECK(is_close(project_onto(v, vec3d(s * w)), project_onto(v, w)));
+        CHECK(is_close(project_onto(v, bivec3d(s * B)), project_onto(v, B)));
+        CHECK(std::abs(angle(vec3d(s * v), vec3d(s * w)) - angle(v, w)) < 1.0e-12);
+        CHECK(std::abs(angle(vec3d(s * v), bivec3d(s * B)) - angle(v, B)) < 1.0e-12);
+        vec2d const v2{0.3, -0.7}, w2{1.0, 2.0};
+        CHECK(is_close(project_onto(v2, vec2d(s * w2)), project_onto(v2, w2)));
+        CHECK(std::abs(angle(vec2d(s * v2), vec2d(s * w2)) - angle(v2, w2)) < 1.0e-12);
+        // a frame of vectors 1e-6 long: its reciprocal frame is 1e6 times the unit one's
+        auto const F = reciprocal_frame(vec3d(1.0e-6 * w), vec3d(1.0e-6 * v),
+                                        vec3d{0.0, 0.0, 1.0e-6});
+        auto const U = reciprocal_frame(w, v, vec3d{0.0, 0.0, 1.0});
+        for (size_t i = 0; i < 3; ++i)
+            CHECK(is_close(vec3d(1.0e-6 * F[i]), U[i]));
+        CHECK(is_close(reciprocal_frame(vec2d(1.0e-6 * v2), vec2d(1.0e-6 * w2))[0],
+                       vec2d(1.0e6 * reciprocal_frame(v2, w2)[0])));
+        // ... and zero, or a dependent frame, is refused
+        CHECK_THROWS(project_onto(v, vec3d{}));
+        CHECK_THROWS(angle(v, vec3d{}));
+        CHECK_THROWS(reciprocal_frame(w, vec3d(2.0 * w), v));
+    }
 }

@@ -1694,6 +1694,31 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         leaf.set_driven_rate(leaf.index_of("C"), 2.0);
         CHECK_NOTHROW(leaf.step(1.0e-3));
 
+        // ... and so does a mass ON its own hinge axis (refused since 2026-10-27, where
+        // its articulated inertia cancelled to +-1e-16 and passed `== 0`); a small mass a
+        // small distance off the axis is a real inertia and is not refused
+        for (value_t const r : {0.0, 1.0e-3}) {
+            dynamic_system3dp onaxis;
+            onaxis.set_gravity(vec3dp{}); // the spring alone: qdd in closed form
+            onaxis.add_frame(static_frame3dp("W"));
+            onaxis.add_frame(static_frame3dp("L1", vec3dp{0.3, 0.7, -0.2, 1.0},
+                                             vec3dp{0.1, 0.4, -0.3, 0.0}));
+            onaxis.add_revolute_body(static_frame3dp("B", vec3dp{0.11, -0.23, 0.05, 1.0},
+                                                     vec3dp{0.2, 0.0, 0.37, 0.0}),
+                                     make_point_body3dp(1.0e-3),
+                                     vec3dp{-r, 0.0, 0.0, 1.0}, ez, 0.2, 0.5, 1);
+            onaxis.set_joint_spring_damper(2, 5.0, 0.0, 0.0);
+            if (r == 0.0)
+                CHECK_THROWS_WITH_AS(onaxis.joint_accelerations(),
+                                     doctest::Contains("moves no inertia"),
+                                     std::runtime_error);
+            else {
+                auto const qdd = onaxis.joint_accelerations();
+                CHECK(std::abs(qdd[0] - (-5.0 * 0.2 / (1.0e-3 * r * r))) <
+                      1.0e-9 * 5.0 * 0.2 / (1.0e-3 * r * r));
+            }
+        }
+
         // a massless FREE body is inert
         dynamic_system3dp free;
         free.add_frame(static_frame3dp("W"));
@@ -2612,6 +2637,237 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: closed_loop_system3dp - driven joints advance with the step")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp - driven joints");
+
+        // the 2D case in space: a driven rotor about z carrying a pendulum about x, the
+        // closed-loop layer with no loop against the open tree (until 2026-10-27 the
+        // closed-loop step left the rotor where it was)
+        auto build = [](auto& s) {
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("rotor"),
+                                make_cuboid_body(1.0, 0.1, 0.1, 0.1), O_3dp,
+                                vec3dp{0.0, 0.0, 1.0, 0.0});
+            s.add_revolute_body(static_frame3dp("pend", vec3dp{0.0, 0.5, 0.0, 1.0}),
+                                make_cuboid_body(1.0, 0.1, 0.1, 0.1), O_3dp,
+                                vec3dp{1.0, 0.0, 0.0, 0.0});
+        };
+        dynamic_system3dp d;
+        d.set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        build(d);
+        d.set_driven_rate(1, 1.0);
+        closed_loop_system3dp c;
+        c.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        build(c);
+        c.system().set_driven_rate(1, 1.0);
+        for (int i = 0; i < 100; ++i) {
+            d.step(0.01);
+            c.step(0.01);
+        }
+        CHECK(std::abs(c.system().time() - 1.0) < 1.0e-12);
+        CHECK(std::abs(c.system().joint_phi(1) - 1.0) < 1.0e-12);
+        CHECK(std::abs(c.system().joint_phi(2) - d.joint_phi(2)) < 1.0e-9);
+        fmt::println("    after 1 s: rotor {:.6f} (open tree {:.6f}), pendulum {:.9f} "
+                     "({:.9f})",
+                     c.system().joint_phi(1), d.joint_phi(1), c.system().joint_phi(2),
+                     d.joint_phi(2));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: ground_contact3dp - reactions read at each loop's own rows")
+    {
+        fmt::println(
+            "pga3dp: ground_contact3dp - reactions behind a loop of another kind");
+
+        // the 2D case in space: a rod (one row) registered before a ball contact (three)
+        // shifted the contact's reading until 2026-10-27
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        cl.add_body(static_frame3dp("A", vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{}),
+                    make_cuboid_body(2.0, 0.2, 0.2, 0.2));
+        size_t const rod = cl.add_loop_constraint(
+            loop_constraint3dp{1, vec3dp{0.1, 0.0, 0.0, 1.0}, 0,
+                               vec3dp{0.1, 0.0, 1.0, 1.0}, constraint3dp::distance, 1.0});
+        ground_contact3dp gc(cl,
+                             ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{0.0, 1.0, 0.0, 1.0}));
+        size_t const c = gc.add({1, vec3dp{0.0, 0.0, 0.0, 1.0}});
+        gc.engage(c);
+        std::vector<value_t> lam;
+        cl.joint_accelerations(&lam);
+        REQUIRE(lam.size() == 4);
+        REQUIRE(cl.constraint_row_offset(rod) == 0);
+        size_t const off = cl.constraint_row_offset(gc.pin_loop(c));
+        REQUIRE(off == 1);
+        gc.read_reactions(lam);
+        CHECK(std::abs(gc.force(c).x + lam[off]) < 1.0e-12);
+        CHECK(std::abs(gc.force(c).y + lam[off + 1]) < 1.0e-12);
+        CHECK(std::abs(gc.force(c).z + lam[off + 2]) < 1.0e-12);
+        CHECK(std::abs(gc.normal_force(c) - 2.0 * 9.81) < 1.0e-9 * 2.0 * 9.81);
+        fmt::println("    the ball behind a rod: force ({:.4f}, {:.4f}, {:.4f}), normal "
+                     "{:.4f} N",
+                     gc.force(c).x, gc.force(c).y, gc.force(c).z, gc.normal_force(c));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: ground_contact3dp - the search reads the trial's state")
+    {
+        fmt::println("pga3dp: ground_contact3dp - a touchdown under a state-reading law");
+
+        // the 2D gate in space: a cube pulled onto z = 0 by a stiff spring law written
+        // the OLD way (a function of time reading the system through a captured
+        // reference); y(t) = y_e + (h - y_e) cos(w t) along z. The search on copies ran
+        // under a law frozen at the end of the interval until 2026-10-27
+        value_t const g = 9.81, K = 1.0e4, y_r = -0.5, h = 0.3, dt = 1.0e-3;
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -g, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        cl.add_body(static_frame3dp("D", vec3dp{0.0, 0.0, h, 1.0}),
+                    make_cuboid_body(1.0, 0.1, 0.1, 0.1), kin_state3dp{}, 0);
+        cl.system().set_applied_wrench(1, [&cl, K, y_r](value_t) {
+            vec3dp const P = unitize(move3dp(O_3dp, cl.system().get_pos_trafo(1, 0)));
+            return bivec3dp(wdg(P, vec3dp{0.0, 0.0, -K * (P.z - y_r), 0.0}));
+        });
+        ground_contact3dp gc(cl,
+                             ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{0.0, 1.0, 0.0, 1.0}));
+        gc.add({1, vec3dp{0.0, 0.0, 0.0, 1.0}});
+        for (int i = 0; i < 100 && gc.events().empty(); ++i)
+            gc.step(dt);
+        REQUIRE(gc.events().size() == 1);
+        value_t const y_e = y_r - g / K, w = std::sqrt(K);
+        value_t const t_exact = std::acos(-y_e / (h - y_e)) / w;
+        value_t const err = gc.events()[0].t - t_exact;
+        CHECK(std::abs(err) < 1.0e-7);
+        fmt::println("    touchdown at t = {:.12f} s, exact {:.12f} s: error {:.1e} s",
+                     gc.events()[0].t, t_exact, err);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: a law is handed the system it acts on - a forecast runs true")
+    {
+        fmt::println("pga3dp: a law, law(s, t), in a forecast copy");
+
+        // the 2D gate in space: a forecast copy with a feedback LAW runs exactly as the
+        // original then does; the same feedback through a captured reference reads the
+        // original in the copy and the forecast drifts (the falsification)
+        value_t const k = 40.0, c = 2.0, dt = 1.0e-3;
+        auto make = []() {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("b", vec3dp{0.3, 0.0, 0.0, 1.0}),
+                                make_cuboid_body(2.0, 0.6, 0.06, 0.06),
+                                vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                                0.9, 0.0, s.index_of("W"));
+            return s;
+        };
+        auto forecast_miss = [&](bool as_law) {
+            auto s = make();
+            size_t const b = s.index_of("b");
+            if (as_law)
+                s.set_joint_torque(b, [b, k, c](dynamic_system3dp const& q, value_t) {
+                    return -k * q.joint_phi(b) - c * q.joint_omega(b);
+                });
+            else
+                s.set_joint_torque(b, [&s, b, k, c](value_t) {
+                    return -k * s.joint_phi(b) - c * s.joint_omega(b);
+                });
+            for (int i = 0; i < 100; ++i)
+                s.step(dt);
+            auto f = s; // the forecast: a copy, run ahead
+            for (int i = 0; i < 300; ++i)
+                f.step(dt);
+            for (int i = 0; i < 300; ++i) // what then happens
+                s.step(dt);
+            return std::pair<value_t, value_t>{f.joint_phi(b) - s.joint_phi(b),
+                                               f.joint_omega(b) - s.joint_omega(b)};
+        };
+        auto const [dq_law, dw_law] = forecast_miss(true);
+        CHECK(dq_law == 0.0); // identical, not close
+        CHECK(dw_law == 0.0);
+        auto const [dq_ref, dw_ref] = forecast_miss(false);
+        CHECK(std::abs(dq_ref) > 1.0e-2);
+        fmt::println("    forecast minus actual after 0.3 s: law {:.1e} rad, captured "
+                     "reference {:.3e} rad",
+                     dq_law, dq_ref);
+
+        // ... and a WRENCH law in a forecast with a contact layer: a push through the
+        // rod's live centre, the copy attached to its copied system
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, 0.4, 1.0}),
+                    make_cuboid_body(2.0, 1.0, 0.02, 0.02), kin_state3dp{}, 0);
+        cl.system().set_applied_wrench(1, [](dynamic_system3dp const& q, value_t) {
+            vec3dp const P = unitize(move3dp(O_3dp, q.get_pos_trafo(1, 0)));
+            return bivec3dp(wdg(P, vec3dp{6.0, 0.0, 0.0, 0.0}));
+        });
+        ground_contact3dp gc(cl,
+                             ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{0.0, 1.0, 0.0, 1.0}));
+        gc.add({1, vec3dp{-0.5, 0.0, 0.0, 1.0}});
+        gc.add({1, vec3dp{0.5, 0.0, 0.0, 1.0}});
+        for (int i = 0; i < 100; ++i)
+            gc.step(dt);
+        closed_loop_system3dp cl_f = cl;
+        ground_contact3dp gc_f(gc, cl_f);
+        for (int i = 0; i < 500; ++i)
+            gc_f.step(dt);
+        for (int i = 0; i < 500; ++i)
+            gc.step(dt);
+        REQUIRE(!gc.events().empty());
+        REQUIRE(gc_f.events().size() == gc.events().size());
+        for (size_t e = 0; e < gc.events().size(); ++e)
+            CHECK(gc_f.events()[e].t == gc.events()[e].t);
+        vec3dp const P = unitize(move3dp(O_3dp, cl.system().get_pos_trafo(1, 0)));
+        vec3dp const Pf = unitize(move3dp(O_3dp, cl_f.system().get_pos_trafo(1, 0)));
+        CHECK(Pf.x == P.x);
+        CHECK(Pf.z == P.z);
+        fmt::println("    the pushed rod: {} events in the forecast and in the run, the "
+                     "centre at ({:+.9f}, {:+.9f}, {:+.9f}) in both",
+                     gc.events().size(), P.x, P.y, P.z);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: ground_contact3dp - one step resolves every event in it")
+    {
+        fmt::println("pga3dp: ground_contact3dp - one step, twenty touchdowns");
+
+        // the 2D gate in space: twenty cubes land at twenty instants inside ONE
+        // step(1.0); until 2026-10-27 the loop gave up after 16 events, half-way through
+        closed_loop_system3dp cl;
+        cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+        cl.add_frame(static_frame3dp("W"));
+        int const n = 20;
+        for (int i = 0; i < n; ++i)
+            cl.add_body(static_frame3dp("B" + std::to_string(i),
+                                        vec3dp{value_t(i), 0.0, 0.5 + 0.05 * i, 1.0}),
+                        make_cuboid_body(1.0, 0.1, 0.1, 0.1), kin_state3dp{},
+                        0); // each on the ground frame, not chained
+        ground_contact3dp gc(cl,
+                             ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                             vec3dp{0.0, 1.0, 0.0, 1.0}));
+        for (int i = 0; i < n; ++i)
+            gc.add({size_t(i + 1), vec3dp{0.0, 0.0, 0.0, 1.0}});
+        gc.step(1.0);
+        int landed = 0;
+        for (int i = 0; i < n; ++i)
+            landed += gc.active(size_t(i)) ? 1 : 0;
+        CHECK(std::abs(cl.system().time() - 1.0) < 1.0e-12);
+        CHECK(landed == n);
+        CHECK(gc.events().size() >= size_t(n));
+        fmt::println("    after step(1.0): clock {:.12f}, {} of {} landed, {} events",
+                     cl.system().time(), landed, n, gc.events().size());
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: ground_contact3dp - simultaneous touchdowns share one impact")
     {
         fmt::println("pga3dp: ground_contact3dp - simultaneous touchdowns");
@@ -3049,6 +3305,60 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("  200 ms of swing: q = {:.12f} stated, {:.12f} silent, "
                      "{:.12f} at another length",
                      phi_spec, phi_free, phi_other);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: a passive joint takes no actuator torque")
+    {
+        fmt::println("pga3dp: a passive joint takes no actuator torque");
+
+        // joint_drive3dp::actuated == false says the joint HAS no actuator. Until
+        // 2026-10-27 the flag was carried and printed and nothing read it: a torque
+        // registered on a passive joint drove it like any other. It is refused now,
+        // whichever of the two is stated first.
+        auto make = []() {
+            dynamic_system3dp s;
+            s.add_frame(static_frame3dp("W"));
+            s.add_revolute_body(static_frame3dp("b", vec3dp{0.3, 0.0, 0.0, 1.0}),
+                                make_cuboid_body(2.0, 0.6, 0.06, 0.06),
+                                vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                                0.4, 0.0, s.index_of("W"));
+            s.add_body(static_frame3dp("f", vec3dp{1.0, 0.0, 0.0, 1.0}),
+                       make_cuboid_body(1.0, 0.1, 0.1, 0.1), kin_state3dp{},
+                       s.index_of("W"));
+            return s;
+        };
+        joint_drive3dp passive{};
+        passive.actuated = false;
+        auto const torque = [](value_t) { return value_t(1.0); };
+        auto const torques = [](value_t) { return std::vector<value_t>(6, 0.0); };
+
+        auto s = make();
+        size_t const b = s.index_of("b"), f = s.index_of("f");
+        s.set_joint_drive(b, passive);
+        s.set_joint_drive(f, passive);
+        CHECK_THROWS_AS(s.set_joint_torque(b, torque), std::runtime_error);
+        CHECK_THROWS_AS(s.set_joint_torque(f, torques), std::runtime_error);
+        // the law forms too
+        CHECK_THROWS_AS(s.set_joint_torque(b, [](dynamic_system3dp const&,
+                                                 value_t) { return value_t(1.0); }),
+                        std::runtime_error);
+        CHECK_THROWS_AS(
+            s.set_joint_torque(f, [](dynamic_system3dp const&,
+                                     value_t) { return std::vector<value_t>(6, 0.0); }),
+            std::runtime_error);
+        // clearing is always allowed, and a passive joint keeps its passive physics
+        CHECK_NOTHROW(s.set_joint_torque(b, std::function<value_t(value_t)>{}));
+        CHECK_NOTHROW(s.set_joint_spring_damper(b, 10.0, 1.0, 0.0));
+
+        // the other order: a joint carrying a torque cannot be made passive
+        auto t = make();
+        t.set_joint_torque(b, torque);
+        t.set_joint_torque(f, torques);
+        CHECK_THROWS_AS(t.set_joint_drive(b, passive), std::runtime_error);
+        CHECK_THROWS_AS(t.set_joint_drive(f, passive), std::runtime_error);
+        t.set_joint_torque(b, std::function<value_t(value_t)>{});
+        CHECK_NOTHROW(t.set_joint_drive(b, passive));
         fmt::println("");
     }
 

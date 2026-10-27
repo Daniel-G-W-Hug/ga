@@ -62,7 +62,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
     // (allows angle measurement between points and directions)
 
     ctype nrm_prod = ctype(bulk_nrm(v1)) * ctype(bulk_nrm(v2));
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -130,14 +130,20 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Vec2dp<T> rlog(MVec2dp_U<T> const& M_in)
 {
-    auto const M = unitize(M_in);
+    auto M = unitize(M_in);
+    // THE FAR ROOT, and near it: -M -- the same motion on the near sheet -- is read
+    // instead. AT the root (a full turn of the motor, cos phi = -1) the vector part of
+    // M is the translation NEGATED, which this returned until 2026-10-27; NEAR it the
+    // centre is read through phi / sin(phi), which grows without bound (see the pga3dp
+    // rlog). On the near sheet the quotient is ~1.
+    if (M.c3 <= T(-1.0) + T(64.0) * eps) M = -M;
     T const vz = M.c2;                // e3 (weight) component = sin(phi)
     T const ps = M.c3;                // pseudoscalar          = cos(phi)
     T const phi = std::atan2(vz, ps); // rotation angle
     T const s = std::sin(phi);
     if (std::abs(s) < eps) {
-        // phi ~ 0: pure translation (or identity). rexp(arg) with arg.z = 0 gives (arg,
-        // 1).
+        // phi ~ 0: pure translation (or identity); rexp(arg) with arg.z = 0 gives (arg,
+        // 1). (The other root, phi ~ pi, was taken to the near sheet above.)
         return Vec2dp<T>(M.c0, M.c1, T(0.0));
     }
     T const scale = phi / s; // inverse of rexp()'s sin(phi)/phi
@@ -166,14 +172,17 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U theta)
 {
-    // point p must be unitized to avoid suprises
+    // point p must be unitized to avoid suprises. "Carries weight" is detail::has_weight,
+    // the predicate unitize() and try_unitize() share: until 2026-10-27 the unitization
+    // below tested the squared weight against eps, so a point of weight 1e-9 was used as
+    // it stood and the motor turned about the wrong point
     auto P_weight_nrm_sq = weight_nrm_sq(P);
-    if (P_weight_nrm_sq == 0.0) {
+    if (!detail::has_weight(P_weight_nrm_sq)) {
         throw std::invalid_argument(
             "get_motor: Cannot use ideal points P with P.z == 0.0");
     }
     auto Pn{P};
-    if ((P_weight_nrm_sq > eps) && (P_weight_nrm_sq != 1.0)) {
+    if (detail::has_weight(P_weight_nrm_sq) && (P_weight_nrm_sq != 1.0)) {
         Pn = unitize(P);
     }
 
@@ -231,18 +240,18 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
     // lines B1 and B2 need to be unitized to avoid surprises
     auto w_nrm_sq = weight_nrm_sq(B1);
     auto Bu1{B1};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         Bu1 = unitize(Bu1);
     }
     w_nrm_sq = weight_nrm_sq(B2);
     auto Bu2{B2};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         Bu2 = unitize(Bu2);
     }
 
     auto M = rgpr(Bu2, Bu1);
     w_nrm_sq = weight_nrm_sq(M);
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
+    if (detail::has_weight(w_nrm_sq) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
@@ -822,10 +831,10 @@ bool is_congruent(PScalar2dp<T> a, PScalar2dp<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates grow large, where a single ulp already exceeds it.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default.
 //
 // Distinct from is_congruent(), which allows an arbitrary scale factor between the
 // operands and so answers "same subspace", not "same value".

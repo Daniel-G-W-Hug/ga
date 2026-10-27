@@ -624,11 +624,21 @@ class closed_loop_system2dp {
     // for. That projection is for ROUND-OFF only: a constraint switched on while the
     // velocities disagree with it is an impact, and impact() (the mass-weighted jump)
     // must be applied before the next step -- see activate_loop_with_impact().
+    //
+    // Kinematically DRIVEN joints (set_driven_rate) are prescribed at every stage time
+    // and at the end, as the open tree's step does -- until 2026-10-27 this step never
+    // advanced them, and with no dof coordinate at all it did not advance the clock
+    // either.
     void step(value_t dt)
     {
         auto const rc = tree_.dof_coords();
         size_t const n = rc.size();
-        if (n == 0) return;
+        value_t const t0 = tree_.time();
+        if (n == 0) { // nothing to integrate: the clock and the driven joints still move
+            tree_.set_time(t0 + dt);
+            tree_.apply_driven_joints();
+            return;
+        }
 
         std::vector<value_t> u_mem, uh_mem(2 * 2 * n), rhs_mem(2 * n);
         tree_.read_state(rc, u_mem);
@@ -640,9 +650,9 @@ class closed_loop_system2dp {
         // thread the RK4 stage time into the tree's clock so a time-varying applied
         // wrench is sampled at the stage time (as dynamic_system's step does), and
         // advance it by dt at the end
-        value_t const t0 = tree_.time();
         for (size_t s = 1; s <= 4; ++s) {
             tree_.set_time(rk4_get_time(t0, dt, s - 1));
+            tree_.apply_driven_joints(); // the moving base at this stage time
             tree_.write_state(rc, u_mem);
             auto const qdd = kkt_dynamics(rc, nullptr);
             tree_.state_rates(rc, u_mem, qdd, rhs_mem);
@@ -650,6 +660,7 @@ class closed_loop_system2dp {
         }
         tree_.set_time(t0 + dt);
         tree_.commit_state(rc, u_mem);
+        tree_.apply_driven_joints(); // the driven joints at t + dt, before the projection
 
         // stabilisation: project (q, q-dot) back onto the constraint manifold
         if (constraint_rows() > 0) {

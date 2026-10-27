@@ -127,9 +127,11 @@ constexpr TriVec3dc<T> car(BiVec3dc<T> const& B);
 // motors as rgpr products of simple ones instead.
 //
 // rlog() returns the principal generator: complex acosh of the pseudoscalar
-// part, then t = V / (sinh(w)/w) with V the trivector part. It is restricted
-// to motors in the image of the simple exp (vanishing vector part) and throws
-// otherwise, and at the true singularity (full-turn versor, central part -I).
+// part, then t = V / (sinh(w)/w) with V the trivector part. It normalizes its
+// input to a unit versor first and is restricted to motors in the image of the
+// simple exp (vanishing vector part), throwing otherwise. At and beyond the far
+// root (central part -I or below) it returns the generator of -M, the same
+// transformation -- a full turn, or the far sheet of a translation or dilation.
 // rsqrt(M) = rexp(rlog(M)/2).
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -143,8 +145,12 @@ inline MVec3dc_U<T> rexp(TriVec3dc<T> const& t)
     // component norm (the metric dot is not definite on the null directions)
     T const nsp_nrm = std::sqrt(nsp.x * nsp.x + nsp.y * nsp.y + nsp.z * nsp.z +
                                 nsp.w * nsp.w + nsp.u * nsp.u);
+    // judged against the rounding of the product's own terms, which is QUADRATIC in the
+    // coefficients: until 2026-10-27 the gauge was |alpha| + 1, and a rotation about a
+    // line 1e3 from the origin -- coefficients ~1e3, rounding ~1e-10 -- was refused as
+    // non-simple
     if (nsp_nrm >
-        T(1e3) * std::numeric_limits<T>::epsilon() * (std::abs(alpha) + T(1.0))) {
+        T(1e3) * std::numeric_limits<T>::epsilon() * (detail::coeff_sq(t) + T(1.0))) {
         throw std::invalid_argument(
             "cga3dc exp: non-simple generator (rwdg(t,t) != 0) not supported -- "
             "compose motors of simple generators via rgpr instead");
@@ -161,13 +167,34 @@ inline MVec3dc_U<T> rexp(TriVec3dc<T> const& t)
 
 template <typename T>
     requires(numeric_type<T>)
-inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M)
+inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M_in)
 {
+    // the input as a UNIT versor, M rrev(M) = I -- as the PGA rlog unitizes. A versor at
+    // another scale is the same transformation, but read as it stands its central part
+    // is not cosh(w) (until 2026-10-27 such a translation was read as a rotation)
+    T const sig = T(gr5(rgpr(M_in, rrev(M_in))));
+    if (!(sig > T(0.0)))
+        throw std::invalid_argument("cga3dc log: not a versor (M rrev(M) is not a "
+                                    "positive multiple of I)");
+    MVec3dc_U<T> M =
+        (std::abs(sig - T(1.0)) <= T(4.0) * std::numeric_limits<T>::epsilon())
+            ? M_in
+            : MVec3dc_U<T>((T(1.0) / std::sqrt(sig)) * M_in);
+    // THE FAR SHEET: M and -M are the same transformation. Where the central part
+    // reaches -1 the principal logarithm is singular (a full turn, or the far sheet of
+    // a translation: sinh(w)/w = 0), and below -1 it is complex (the far sheet of a
+    // dilation); there the generator of -M is returned, as the PGA rlog does at its
+    // far root. Until 2026-10-27 the first threw and the second returned a wrong
+    // generator. The margin also takes a rotation within ~1e-6 rad of a full turn to
+    // the near sheet, where its logarithm is well conditioned.
+    if (T(gr5(M)) <= T(-1.0) + T(64.0) * std::numeric_limits<T>::epsilon()) M = -M;
     // restricted to the image of the simple exp: vector part must vanish
     auto const v = gr1(M);
     T const v_nrm = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w + v.u * v.u);
+    // the same gauge as rexp's, for the same reason (the motor's coefficients grow with
+    // the distance of its axis from the origin)
     if (v_nrm >
-        T(1e3) * std::numeric_limits<T>::epsilon() * (std::abs(T(gr5(M))) + T(1.0))) {
+        T(1e3) * std::numeric_limits<T>::epsilon() * (detail::coeff_sq(M) + T(1.0))) {
         throw std::invalid_argument(
             "cga3dc log: motor outside the simple-generator image (non-zero "
             "vector part)");
@@ -307,7 +334,12 @@ inline MVec3dc_U<T> get_translation(T dx, T dy, T dz)
     }
     T const nx = dx / n2, ny = dy / n2, nz = dz / n2;
     auto const M = rgpr(plane3dc(nx, ny, nz, T(0.5) * n2), plane3dc(nx, ny, nz, T(0.0)));
-    return gr1(M) + gr3(M) + gr5(M); // already grades {3, 5}; assembled as mv_u
+    MVec3dc_U<T> const R = gr1(M) + gr3(M) + gr5(M); // grades {3, 5}; assembled as mv_u
+    // ... as a UNIT versor, R rrev(R) = I: the form rexp produces and rlog reads. The
+    // product of the two planes is the same translation at a scale that depends on the
+    // distance (0.79 for (0.4, -1.1, 0.3)), and until 2026-10-27 it was returned so --
+    // rlog then read it as a rotation
+    return (T(1.0) / std::sqrt(T(gr5(rgpr(R, rrev(R)))))) * R;
 }
 
 // rotation about the line through (px, py, pz) with direction (vx, vy, vz)
@@ -1229,11 +1261,11 @@ bool is_congruent(PScalar3dc<T> a, PScalar3dc<U> b, value_t tolerance = eps)
 ////////////////////////////////////////////////////////////////////////////////
 // is_close(): equality within a RELATIVE tolerance
 //
-// operator== compares against an absolute eps and cannot resolve anything once
-// coordinates are large; is_close scales the per-component threshold by the
-// operands (see detail::coeffs_close). Reach for it whenever the values carry a
-// physical scale. Distinct from is_congruent(), which allows an arbitrary scale
-// factor between the operands.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default. Distinct from is_congruent(), which allows an arbitrary
+// scale factor between the operands.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename U>

@@ -73,7 +73,7 @@ inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
     using std::numbers::pi;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
-    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    hd::ga::detail::check_nonzero(nrm_prod, "angle: operand");
 
     // std::clamp must be used to take care of numerical inaccuracies
     auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
@@ -383,7 +383,7 @@ constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const nsq = ctype(nrm_sq(v2));
-    detail::check_division_by_zero(nsq, "project_onto(Vec2d, Vec2d)");
+    detail::check_nonzero(nsq, "project_onto(Vec2d, Vec2d) target");
     return Vec2d<ctype>(ctype(dot(v1, v2)) / nsq * v2);
 }
 
@@ -516,10 +516,10 @@ bool is_congruent(PScalar2d<T> a, PScalar2d<U> b, value_t tolerance = eps)
 // is_close(): equality within a RELATIVE tolerance
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Same question as operator==, but with the threshold scaled by the operands (see
-// detail::coeffs_close). Reach for it whenever the values carry a physical scale:
-// operator== measures against an absolute eps, which cannot resolve anything once
-// coordinates grow large, where a single ulp already exceeds it.
+// Same question as operator==, with a caller's relative tolerance (see
+// detail::coeffs_close): operator== allows a few ulps -- equal to rounding -- while
+// two independently computed values differ by far more; is_close takes
+// eps_congruent by default.
 //
 // Distinct from is_congruent(), which allows an arbitrary scale factor between the
 // operands and so answers "same subspace", not "same value".
@@ -634,7 +634,11 @@ template <typename T>
 inline std::array<Vec2d<T>, 2> reciprocal_frame(Vec2d<T> const& a1, Vec2d<T> const& a2)
 {
     PScalar2d<T> const A = wdg(a1, a2);
-    if (std::abs(T(A)) <= detail::safe_epsilon<T>()) {
+    // degenerate is judged against the frame's own scale -- Hadamard: |A| <= prod |a_i|
+    // -- so a frame of vectors 1e-6 long is not a degenerate one (until 2026-10-27 the
+    // floor was absolute, and it threw)
+    T const scale = std::sqrt(T(detail::coeff_sq(a1)) * T(detail::coeff_sq(a2)));
+    if (!(std::abs(T(A)) > detail::safe_epsilon<T>() * scale)) {
         throw std::invalid_argument("reciprocal_frame: degenerate frame");
     }
     PScalar2d<T> const Ai = inv(A);

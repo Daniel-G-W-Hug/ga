@@ -1604,6 +1604,31 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 
+    TEST_CASE("kkt_solve: the independent rows are chosen at G's scale, not a subset's")
+    {
+        fmt::println("kkt_solve: a negligible leading row does not mask the real ones");
+
+        // G = [[1e-14, 0], [1, 0], [0, 1]] has rank 2 at its own scale; its first row is
+        // negligible there. Until 2026-10-27 the greedy selection judged each subset's
+        // rank at that SUBSET's scale: the tiny row alone read as rank 1 and was kept,
+        // both real rows were then dependent on it and dropped, and x = (0, 1) violated
+        // the third row. The answer may not depend on where the tiny row stands.
+        std::vector<double> const M{1.0, 0.0, 0.0, 1.0};
+        std::vector<double> const f{1.0, 1.0}, g{0.0, 0.0, 0.0};
+        std::vector<double> lambda;
+        size_t rank = 0;
+        for (auto const& G : {std::vector<double>{1.0e-14, 0.0, 1.0, 0.0, 0.0, 1.0},
+                              std::vector<double>{1.0, 0.0, 0.0, 1.0, 1.0e-14, 0.0}}) {
+            auto const x = kkt_solve(M, G, f, g, 2, 3, &lambda, &rank);
+            CHECK(rank == 2);
+            CHECK(std::abs(x[0]) < 1.0e-12);
+            CHECK(std::abs(x[1]) < 1.0e-12);
+            CHECK(kkt_factorize(M, G, 2, 3).keep.size() == 2);
+            fmt::println("    rank {}, x = ({:.3e}, {:.3e})", rank, x[0], x[1]);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("lstsq_solve: damping is off by default and reduces to the exact solve")
     {
         fmt::println("lstsq_solve: damping is off by default and reduces to the exact "
@@ -1627,6 +1652,33 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         }
         CHECK(nd < n0);       // regularization shortens the solution
         CHECK(nd > 0.9 * n0); // but only slightly, at this damping
+        fmt::println("");
+    }
+
+    TEST_CASE("lstsq_solve: damping applies to a square system too")
+    {
+        fmt::println("lstsq_solve: damping applies to a square system too");
+
+        // A square system next to a singularity: the exact answer is the inverse of a
+        // small pivot, the damped one stays bounded. Until 2026-10-27 a square A ignored
+        // the damping and returned the exact answer for both.
+        double const d = 1.0e-8;
+        std::vector<double> const A{1.0, 1.0, 1.0, 1.0 + d};
+        std::vector<double> const b{1.0, 1.0 - 1.0e-6};
+        auto const x0 = lstsq_solve(A, b, 2);
+        auto const xd = lstsq_solve(A, b, 2, 1.0e-6);
+        double const n0 = std::hypot(x0[0], x0[1]), nd = std::hypot(xd[0], xd[1]);
+        CHECK(n0 > 50.0);
+        CHECK(nd < 2.0);
+        // the damped answer is the Tikhonov one, (A^T A + l^2 I) x = A^T b with
+        // l^2 = damping * trace(A^T A) / 2
+        double const g00 = 2.0, g01 = 2.0 + d, g11 = 1.0 + (1.0 + d) * (1.0 + d);
+        double const l2 = 1.0e-6 * (g00 + g11) / 2.0;
+        double const r0 = b[0] + b[1], r1 = b[0] + (1.0 + d) * b[1];
+        double const det = (g00 + l2) * (g11 + l2) - g01 * g01;
+        CHECK(xd[0] == doctest::Approx(((g11 + l2) * r0 - g01 * r1) / det).epsilon(1e-9));
+        CHECK(xd[1] == doctest::Approx(((g00 + l2) * r1 - g01 * r0) / det).epsilon(1e-9));
+        fmt::println("    |x| exact {:.3f}, damped {:.6f}", n0, nd);
         fmt::println("");
     }
 

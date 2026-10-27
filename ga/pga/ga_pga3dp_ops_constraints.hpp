@@ -591,20 +591,29 @@ class closed_loop_system3dp {
     // constraint switched on while the velocities disagree with it is an impact, and
     // impact() (the mass-weighted jump) must be applied before the next step -- see
     // activate_loop_with_impact().
+    //
+    // Kinematically DRIVEN joints are prescribed at every stage time and at the end, as
+    // the open tree's step does (until 2026-10-27 they were never advanced; see the 2D
+    // layer).
     void step(value_t dt)
     {
         auto const rc = tree_.dof_coords();
         size_t const n = rc.size();
-        if (n == 0) return;
+        value_t const t0 = tree_.time();
+        if (n == 0) { // nothing to integrate: the clock and the driven joints still move
+            tree_.set_time(t0 + dt);
+            tree_.apply_driven_joints();
+            return;
+        }
 
         std::vector<value_t> u;
         tree_.read_state(rc, u);
         // the stage time goes into the tree's clock so a time-varying applied wrench is
         // sampled at the stage time (as dynamic_system's step does); advanced by dt after
-        value_t const t0 = tree_.time();
         auto f = [&](value_t t, std::vector<value_t> const& uu,
                      std::vector<value_t>& du) {
             tree_.set_time(t);
+            tree_.apply_driven_joints(); // the moving base at this stage time
             tree_.write_state(rc, uu);
             auto const qdd = kkt_dynamics(rc, nullptr);
             tree_.state_rates(rc, uu, qdd, du);
@@ -612,6 +621,7 @@ class closed_loop_system3dp {
         rk4_integrator(2 * n).step(f, u, t0, dt);
         tree_.set_time(t0 + dt);
         tree_.commit_state(rc, u);
+        tree_.apply_driven_joints(); // the driven joints at t + dt, before the projection
 
         if (constraint_rows() > 0) {
             assemble(/*driven*/ {}); // position: min-norm Newton -> g ~ 0

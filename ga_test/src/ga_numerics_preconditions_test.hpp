@@ -149,15 +149,21 @@ TEST_SUITE("numerics: preconditions")
         CHECK_NOTHROW((void)scheme_at(x, 2, 1, fd_kind::compact_fd));
     }
 
-    TEST_CASE("dense solver: a damped lstsq_solve of a SQUARE system ignores the damping")
+    TEST_CASE("dense solver: a damped lstsq_solve of a SQUARE system is damped too")
     {
-        // no Gram matrix is formed for a square A, so there is nothing to regularize:
-        // the answer is the plain solution
+        // a square A takes the normal-equation route like an overdetermined one,
+        // (A^T A + l^2 I) x = A^T b with l^2 = damping * trace(A^T A) / n. Until
+        // 2026-10-27 this case pinned the opposite -- the damping ignored, the plain
+        // solution returned -- which is the behaviour that was changed
         std::vector<double> const A{4.0, 1.0, 1.0, 3.0};
         std::vector<double> const b{1.0, 2.0};
         auto const x = lstsq_solve(A, b, 2, 0.5);
-        auto const ref = lu_solve(A, b, 2);
+        double const l2 = 0.5 * (17.0 + 10.0) / 2.0; // trace(A^T A) = 17 + 10
+        std::vector<double> const G{17.0 + l2, 7.0, 7.0, 10.0 + l2};
+        auto const ref = lu_solve(G, std::vector<double>{6.0, 7.0}, 2); // A^T b
         CHECK(x[0] == doctest::Approx(ref[0]));
         CHECK(x[1] == doctest::Approx(ref[1]));
+        auto const plain = lu_solve(A, b, 2);
+        CHECK(std::abs(x[0] - plain[0]) > 0.01); // and it is not the plain solution
     }
 }

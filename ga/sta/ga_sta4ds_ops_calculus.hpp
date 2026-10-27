@@ -144,7 +144,11 @@ template <typename F>
 inline auto nabla(F&& f, Vec4ds<value_t> const& x, fd_scheme const& sc,
                   value_t h = value_t(0.0))
 {
-    if (h <= value_t(0.0)) h = fd_step(sc, nrm(x));
+    // the step follows the size of the event's COORDINATES, which is what round-off
+    // sees: not nrm(x), which in this metric vanishes on the whole light cone -- until
+    // 2026-10-27 an event at (1e8, 0, 0, 1e8) got the step of the origin, a few hundred
+    // ulps of its coordinates, and its gradient came out 1e-3 off
+    if (h <= value_t(0.0)) h = fd_step(sc, std::sqrt(detail::coeff_sq(x)));
 
     MVec4ds<value_t> acc{};
     for (int mu = 0; mu < 4; ++mu) {
@@ -223,7 +227,8 @@ template <typename F>
 inline auto dalembertian(F&& f, Vec4ds<value_t> const& x, fd_scheme const& sc,
                          value_t h = value_t(0.0))
 {
-    if (h <= value_t(0.0)) h = fd_step(sc, nrm(x));
+    // the coordinates' size, not nrm(x), as in nabla
+    if (h <= value_t(0.0)) h = fd_step(sc, std::sqrt(detail::coeff_sq(x)));
 
     MVec4ds<value_t> acc{};
     for (int mu = 0; mu < 4; ++mu) {

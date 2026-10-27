@@ -2848,6 +2848,32 @@ TEST_SUITE("STA 3D Tests")
         CHECK_THROWS_AS(nabla(sc, x0, compact_scheme(1)), std::invalid_argument);
     }
 
+    TEST_CASE("sta4ds calculus: the default step at an event on the light cone")
+    {
+        fmt::println("sta4ds calculus: the default step at an event on the light cone");
+
+        // An event far out ON the light cone has a Minkowski norm of zero. Until
+        // 2026-10-27 the default step was scaled by that norm, i.e. by 1: at coordinates
+        // of 1e8 it spanned a few hundred ulps, the gradient of a linear field came out
+        // 1e-3 off and the d'Alembertian of a quadratic one was noise. The fields below
+        // are differenced exactly by a central scheme, so only round-off remains.
+        vec4ds const x{1.0e8, 0.0, 0.0, 1.0e8};
+        REQUIRE(nrm(x) == 0.0);
+        auto phi = [](vec4ds const& p) { return scalar4ds(2.0 * p.x + 3.0 * p.w); };
+        vec4ds const g = nabla_wdg(phi, x);
+        CHECK(std::abs(g.x + 2.0) < 1.0e-8);
+        CHECK(std::abs(g.w - 3.0) < 1.0e-8);
+        CHECK(std::abs(g.y) + std::abs(g.z) < 1.0e-8);
+        auto q = [](vec4ds const& p) { return scalar4ds(p.w * p.w + 2.0 * p.x * p.x); };
+        value_t const box = value_t(gr0(dalembertian(q, x)));
+        CHECK(std::abs(box + 2.0) < 1.0e-6);
+        fmt::println(
+            "    grad(2x + 3t) = ({:.3e}, {:.3e}, {:.3e}, {:.3e}), box(t^2 + 2x^2) "
+            "= {:.9f}",
+            g.x, g.y, g.z, g.w, box);
+        fmt::println("");
+    }
+
     TEST_CASE("sta4ds calculus: Maxwell WITH sources -- nabla F = J from a potential")
     {
         fmt::println("sta4ds calculus: Maxwell WITH sources -- nabla F = J from a "
@@ -3302,7 +3328,7 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("sta4ds: the comparison contract");
 
         // operator== is RELATIVE: safe_epsilon measured against the larger operand,
-        // with a floor of 1. eps is ulp(1), so the budget is 5 to 10 ulps of the
+        // with a floor of 1. eps is 5 ulp(1), so the budget is 5 to 10 ulps of the
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.

@@ -99,4 +99,68 @@ TEST_SUITE("STA contracts")
         CHECK(is_congruent(pscalar4ds(0.0), pscalar4ds(0.0)));
         CHECK_FALSE(is_congruent(pscalar4ds(3.0), pscalar4ds(0.0)));
     }
+
+    TEST_CASE("sta4ds: log round-trips on both sheets -- rotations, boosts, null rotors")
+    {
+        // A versor M and -M are ONE transformation (the double cover). exp(log(M)) must
+        // perform M's transformation at every angle -- across pi and 2 pi, where the
+        // sine of the half angle passes 0 -- and on BOTH sheets; it is checked by the
+        // transformation, not the representation. A systematic check of every
+        // algebra's logarithm, made 2026-10-27 after a far-sheet defect in one of them:
+        // it found the far sheet wrong in the pga2dp rlog, in sta4ds for boosts and null
+        // rotors, and in both cga rlogs, and a screw near a full turn 1e-7 off in pga3dp.
+        bivec4ds const rot{0.0, 0.0, 0.0, 0.6, 0.0, 0.8},
+            bst{0.6, 0.0, 0.8, 0.0, 0.0, 0.0};
+        for (double const s : {1.0, -1.0}) {
+            CAPTURE(s);
+            for (double const a :
+                 {0.3, pi - 1.0e-9, pi, pi + 1.0e-9, 2.0 * pi - 1.0e-9, 2.0 * pi,
+                  2.0 * pi + 1.0e-9, 2.0 * pi + 0.3, 3.0 * pi, 4.0 * pi - 1.0e-9}) {
+                CAPTURE(a);
+                auto const R = s * get_rotor(rot, a);
+                CHECK(is_same_transform(exp(log(R)), R));
+            }
+            for (double const f : {0.3, 2.0, 7.0}) {
+                auto const R = s * get_boost(bst, f);
+                CHECK(is_same_transform(exp(log(R)), R));
+            }
+            // a null rotor 1 + B: until 2026-10-27 -(1 + B) came back as 1 - B
+            auto const N =
+                s * mvec4ds_e(scalar4ds(1.0), bivec4ds{0.5, 0.0, 0.0, 0.0, 0.0, 0.5},
+                              pscalar4ds(0.0));
+            CHECK(is_same_transform(exp(log(N)), N));
+            // a boost and a rotation in orthogonal planes (non-simple)
+            for (double const a : {0.3, 2.0}) {
+                auto const R = s * get_boost(bivec4ds{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}, a) *
+                               get_rotor(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}, 2.5 * a);
+                CHECK(is_same_transform(exp(log(R)), R));
+            }
+        }
+    }
+
+    TEST_CASE("sta4ds: a small object inverts, is projected onto and frames")
+    {
+        // A SMALL object is not a degenerate one (2026-10-27). The storage types'
+        // operator/ refused any divisor below 5.5e-16, absolutely, and overruled the
+        // relative guards in front of it; the projections, angles and reciprocal frames
+        // carried their own absolute floors. Each answer here is the unit-size one,
+        // scaled as the contract says, and a ZERO object is still refused.
+        bivec4ds const B{0.3, 0.1, -0.2, 0.5, 0.7, -0.4};
+        auto const Bs = bivec4ds(1.0e-4 * B);
+        CHECK(is_close(inv(Bs), bivec4ds(1.0e4 * inv(B))));
+        vec4ds const v{0.3, -0.7, 0.5, 2.0}, w{1.0, 2.0, -0.5, 0.2};
+        CHECK(is_close(project_onto(v, vec4ds(1.0e-8 * w)), project_onto(v, w)));
+        vec4ds const a{1.0, 0.0, 0.0, 0.0}, b{0.0, 1.0, 0.0, 0.0};
+        CHECK(std::abs(angle(vec4ds(1.0e-8 * a), vec4ds(1.0e-8 * b)) - 0.5 * pi) <
+              1.0e-12);
+        auto const F = reciprocal_frame(vec4ds(1.0e-6 * v), vec4ds(1.0e-6 * w),
+                                        vec4ds{0.0, 0.0, 1.0e-6, 0.0},
+                                        vec4ds{0.0, 1.0e-6, 0.0, 0.0});
+        auto const U = reciprocal_frame(v, w, vec4ds{0.0, 0.0, 1.0, 0.0},
+                                        vec4ds{0.0, 1.0, 0.0, 0.0});
+        for (size_t i = 0; i < 4; ++i)
+            CHECK(is_close(vec4ds(1.0e-6 * F[i]), U[i]));
+        // a NULL target is degenerate at any scale, and stays refused
+        CHECK_THROWS(project_onto(v, vec4ds{1.0, 0.0, 0.0, 1.0}));
+    }
 }

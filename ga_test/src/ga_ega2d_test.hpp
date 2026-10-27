@@ -3346,7 +3346,7 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("ega2d: the comparison contract");
 
         // operator== is RELATIVE: safe_epsilon measured against the larger operand,
-        // with a floor of 1. eps is ulp(1), so the budget is 5 to 10 ulps of the
+        // with a floor of 1. eps is 5 ulp(1), so the budget is 5 to 10 ulps of the
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.
