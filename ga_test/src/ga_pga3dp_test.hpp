@@ -5603,7 +5603,7 @@ TEST_SUITE("PGA 3DP Tests")
         // two screws given CLASSICALLY: unit axis direction, a point on the axis, a
         // pitch and a magnitude. Skew axes, opposite-signed pitches -- so that neither
         // term of the closed form can drop out unnoticed.
-        vec3dp const w1{0.0, 0.0, 1.0, 0.0}, q1{0.0, 0.0, 0.0, 0.0};
+        vec3dp const w1{0.0, 0.0, 1.0, 0.0}, q1{};
         double const h1 = 0.35, M1 = 1.7;
         vec3dp w2{1.0, 0.6, -0.2, 0.0};
         w2 = w2 / std::sqrt(d3(w2, w2));

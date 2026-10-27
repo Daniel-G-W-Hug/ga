@@ -442,7 +442,7 @@ class ground_contact2dp {
     // force and torque accumulator. A null bivector while nothing touches.
     bivec2dp reaction_wrench() const
     {
-        bivec2dp W{0.0, 0.0, 0.0};
+        bivec2dp W{};
         for (size_t i = 0; i < contacts_.size(); ++i) {
             if (!contacts_[i].active) continue;
             W += wdg(contact_point(i), contacts_[i].force) +

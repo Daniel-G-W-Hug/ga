@@ -162,8 +162,8 @@ TEST_SUITE("PGA2DP: physics tests prep")
 
         // Zero force (a bivector F = wdg(P,f)), zero omega (a vector rate of change)
         // -> zero omega_dot
-        BiVec2dp<double> F_zero{0.0, 0.0, 0.0};
-        Vec2dp<double> Omega_zero{0.0, 0.0, 0.0};
+        BiVec2dp<double> F_zero{};
+        Vec2dp<double> Omega_zero{};
 
         auto Omega_dot = compute_omega_dot(I_inv, F_zero, Omega_zero, I);
 
@@ -1421,7 +1421,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // body-frame reference point (e.g. body origin at body-frame (0,0,1))
         vec2dp const P_b{0.0, 0.0, 1.0}; // body origin
         // body-frame "pivot" anchor (z=0 means ideal point / pure direction)
-        vec2dp const Q_b{0.0, 0.0, 0.0}; // unused for translation; use O_b
+        vec2dp const Q_b{}; // unused for translation; use O_b
 
         // constant velocity generator in body frame:
         // translation in +x: encoding = (-vy, vx, 0) with vx=1, vy=0
@@ -1434,8 +1434,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  --- Case A: M0 = identity (body starts at world origin) ---");
         {
             mvec2dp_u const M0 = rexp(0.5 * vec2dp{}); // ps (identity)
-            vec2dp B_b{0.0, 0.0, 0.0};
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_b{};
+            vec2dp B_w{};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
@@ -1459,8 +1459,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             // Translation encoding: P_tra = (-ty, tx, 0) = (-1, 2, 0)
             vec2dp const cm0{2.0, 1.0, 1.0};
             mvec2dp_u const M0 = rexp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0});
-            vec2dp B_b{0.0, 0.0, 0.0};
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_b{};
+            vec2dp B_w{};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
@@ -1507,8 +1507,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  --- Case A: M0 = identity (Q_b is at world origin) ---");
         {
             mvec2dp_u const M0 = rexp(0.5 * vec2dp{});
-            vec2dp B_b{0.0, 0.0, 0.0};
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_b{};
+            vec2dp B_w{};
             // pivot world position (should stay fixed)
             [[maybe_unused]] vec2dp const Q_world_expected = move2dp(Q_b, M0);
 
@@ -1535,8 +1535,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             vec2dp const Q_world{2.0, 1.0, 1.0};
             vec2dp const trans{Q_world.x - Q_b.x, Q_world.y - Q_b.y, 1.0};
             mvec2dp_u const M0 = rexp(0.5 * vec2dp{-trans.y, trans.x, 0.0});
-            vec2dp B_b{0.0, 0.0, 0.0};
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_b{};
+            vec2dp B_w{};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
@@ -1581,8 +1581,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("  --- Case A: M0 = identity ---");
         {
             mvec2dp_u const M0 = rexp(0.5 * vec2dp{});
-            vec2dp B_b{0.0, 0.0, 0.0};
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_b{};
+            vec2dp B_w{};
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;

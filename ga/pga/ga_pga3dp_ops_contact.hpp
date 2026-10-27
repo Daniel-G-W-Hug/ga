@@ -351,7 +351,7 @@ class ground_contact3dp {
     // weight (att) and the moment as its bulk. Same expression as the 2D case.
     bivec3dp reaction_wrench() const
     {
-        bivec3dp W{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        bivec3dp W{};
         for (size_t i = 0; i < contacts_.size(); ++i) {
             if (!contacts_[i].active) continue;
             auto const& m = contacts_[i].moment;

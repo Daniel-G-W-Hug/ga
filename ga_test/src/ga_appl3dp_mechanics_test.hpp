@@ -218,8 +218,8 @@ TEST_SUITE("PGA3DP: physics tests prep")
         auto I_inv = get_inertia_inverse(I);
 
         // Zero force, zero omega -> zero omega_dot
-        BiVec3dp<double> F_zero{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        BiVec3dp<double> Omega_zero{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        BiVec3dp<double> F_zero{};
+        BiVec3dp<double> Omega_zero{};
 
         auto Omega_dot = compute_omega_dot(I_inv, F_zero, Omega_zero, I);
 

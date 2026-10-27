@@ -901,7 +901,7 @@ class kinematic_system2dp : public static_system2dp {
     // adjoint move2dp). Spatial twists add (Lie algebra), so V_i = V_parent + Ad(xi_i).
     twist2dp twist_world(size_t idx)
     {
-        twist2dp V{0.0, 0.0, 0.0};
+        twist2dp V{};
         for (size_t n = idx; parent(n) != n; n = parent(n)) {
             V = V + move2dp(rel_vtwist[n], get_pos_trafo(n, 0)); // Ad_{M_n}(xi_n)
         }
@@ -2289,11 +2289,11 @@ class dynamic_system2dp : public kinematic_system2dp {
             }
             js.rate[rc[c].k] = u[n + c];
             if (rc[c].k + 1 == js.screws.size()) {
-                twist2dp B{0.0, 0.0, 0.0};
+                twist2dp B{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
                 set_pose(rc[c].frame, pose2dp_from_motor(rgpr(js.M, rexp(0.5 * B))));
-                twist2dp V{0.0, 0.0, 0.0};
+                twist2dp V{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     V = V + js.rate[k] * js.screws[k];
                 set_twist(rc[c].frame, V);
@@ -2314,7 +2314,7 @@ class dynamic_system2dp : public kinematic_system2dp {
             }
             if (rc[c].k == 0) {
                 size_t const K = js.screws.size();
-                twist2dp B{0.0, 0.0, 0.0}, Om{0.0, 0.0, 0.0};
+                twist2dp B{}, Om{};
                 for (size_t k = 0; k < K; ++k) {
                     B = B + u[c + k] * js.screws[k];
                     Om = Om + u[n + c + k] * js.screws[k];
@@ -2341,7 +2341,7 @@ class dynamic_system2dp : public kinematic_system2dp {
             }
             js.rate[rc[c].k] = u[n + c];
             if (rc[c].k + 1 == js.screws.size()) {
-                twist2dp B{0.0, 0.0, 0.0};
+                twist2dp B{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
                 js.M = rgpr(js.M, rexp(0.5 * B)); // re-anchor: B restarts at 0
@@ -2372,7 +2372,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                 continue;
             }
             if (rc[c].k + 1 == js.screws.size()) {
-                twist2dp B{0.0, 0.0, 0.0};
+                twist2dp B{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     B = B + delta[c - (js.screws.size() - 1) + k] * js.screws[k];
                 js.M = rgpr(js.M, rexp(0.5 * B));
@@ -2416,7 +2416,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         auto const& js = joint[idx];
         if (!js.screws.empty()) { // motor joint: the motor IS the configuration
             set_pose(idx, pose2dp_from_motor(js.M));
-            twist2dp V{0.0, 0.0, 0.0};
+            twist2dp V{};
             for (size_t k = 0; k < js.screws.size(); ++k)
                 V = V + js.rate[k] * js.screws[k];
             set_twist(idx, V);
