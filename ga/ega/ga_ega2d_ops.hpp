@@ -177,7 +177,7 @@ inline MVec2d<T> exp(MVec2d<T> const& Z)
     Vec2d<T> const v = gr1(Z);
     T const p = T(gr2(Z));
     MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
-    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>{}, PScalar2d<T>(0.0));
 
     auto const [c, s] = detail::ega2d_euler_pair<T>(nrm_sq(v) - p * p);
     return std::exp(a) * (c * one + s * W);
@@ -191,7 +191,7 @@ inline MVec2d<T> cos(MVec2d<T> const& Z)
     Vec2d<T> const v = gr1(Z);
     T const p = T(gr2(Z));
     MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
-    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>{}, PScalar2d<T>(0.0));
 
     auto const [c, s] = detail::ega2d_euler_pair<T>(-(nrm_sq(v) - p * p));
     return std::cos(a) * (c * one) - std::sin(a) * (s * W);
@@ -205,7 +205,7 @@ inline MVec2d<T> sin(MVec2d<T> const& Z)
     Vec2d<T> const v = gr1(Z);
     T const p = T(gr2(Z));
     MVec2d<T> const W(Scalar2d<T>(0.0), v, PScalar2d<T>(p));
-    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>(0.0, 0.0), PScalar2d<T>(0.0));
+    MVec2d<T> const one(Scalar2d<T>(1.0), Vec2d<T>{}, PScalar2d<T>(0.0));
 
     auto const [c, s] = detail::ega2d_euler_pair<T>(-(nrm_sq(v) - p * p));
     return std::sin(a) * (c * one) + std::cos(a) * (s * W);

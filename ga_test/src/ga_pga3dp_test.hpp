@@ -66,7 +66,7 @@ TEST_SUITE("PGA 3DP Tests")
     TEST_CASE("Vec3dp: with curly braced intializer")
     {
         fmt::println("Vec3dp: with curly braced intializer");
-        vec3dp v{0.0, 0.0, 0.0, 0.0};
+        vec3dp v{};
         // fmt::println("   v = {}", v);
         CHECK(abs(v.x) < eps);
         CHECK(abs(v.y) < eps);
@@ -3504,8 +3504,8 @@ TEST_SUITE("PGA 3DP Tests")
 
         // G * rG = det * I = 0 (degenerate): bulk metric G and weight antimetric rG have
         // DISJOINT support, so the composition annihilates every element.
-        CHECK(rGx(Gx(v)) == vec3dp{0.0, 0.0, 0.0, 0.0});
-        CHECK(rGx(Gx(B)) == bivec3dp{0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK(rGx(Gx(v)) == vec3dp{});
+        CHECK(rGx(Gx(B)) == bivec3dp{});
 
         // (a) Gx (the bulk metric) is a WEDGE exomorphism -- holds through null e4 too
         CHECK(Gx(wdg(e1_3dp, e2_3dp)) == wdg(Gx(e1_3dp), Gx(e2_3dp))); // -> e12
@@ -3905,7 +3905,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(six_decimals == "Vec3dp(3.141590,2.718280,1.414210,1.732050)");
 
         // Test with different vector values for edge cases
-        vec3dp v_zero{0.0, 0.0, 0.0, 0.0};
+        vec3dp v_zero{};
         vec3dp v_negative{-1.5, -2.5, -3.5, -4.5};
 
         std::string zero_format = fmt::format("{:.1f}", v_zero);
@@ -4295,7 +4295,7 @@ TEST_SUITE("PGA 3DP Tests")
         vec3dp v2{0.0, 1.0, 0.0, 1.0};   // point on y-axis
         vec3dp v3{2.0, 0.0, 0.0, 2.0};   // parallel to v1
         vec3dp v4{-1.0, 0.0, 0.0, -1.0}; // antiparallel to v1
-        vec3dp v_zero{0.0, 0.0, 0.0, 0.0};
+        vec3dp v_zero{};
 
         CHECK(is_congruent(v1, v2) == false);        // different directions
         CHECK(is_congruent(v1, v3) == true);         // parallel directions
@@ -4308,7 +4308,7 @@ TEST_SUITE("PGA 3DP Tests")
         bivec3dp b2{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};  // different line orientation
         bivec3dp b3{2.0, 0.0, 0.0, 0.0, 0.0, 0.0};  // parallel to b1
         bivec3dp b4{-1.5, 0.0, 0.0, 0.0, 0.0, 0.0}; // antiparallel to b1
-        bivec3dp b_zero{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        bivec3dp b_zero{};
 
         CHECK(is_congruent(b1, b2) == false);        // different line orientations
         CHECK(is_congruent(b1, b3) == true);         // same line orientation
@@ -4321,7 +4321,7 @@ TEST_SUITE("PGA 3DP Tests")
         trivec3dp t2{0.0, 1.0, 0.0, 0.0};  // different plane orientation
         trivec3dp t3{2.0, 0.0, 0.0, 0.0};  // parallel to t1
         trivec3dp t4{-1.5, 0.0, 0.0, 0.0}; // antiparallel to t1
-        trivec3dp t_zero{0.0, 0.0, 0.0, 0.0};
+        trivec3dp t_zero{};
 
         CHECK(is_congruent(t1, t2) == false);        // different plane orientations
         CHECK(is_congruent(t1, t3) == true);         // same plane orientation

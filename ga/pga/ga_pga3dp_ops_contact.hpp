@@ -286,7 +286,7 @@ class ground_contact3dp {
         if (c.weld != npos) cl_->set_loop_active(c.weld, false);
         c.active = false;
         c.normal_force = 0.0;
-        c.moment = vec3dp{0.0, 0.0, 0.0, 0.0};
+        c.moment = vec3dp{};
         events_.push_back({cl_->system().time(), idx, false, contact_point(idx), {}});
     }
 
@@ -324,7 +324,7 @@ class ground_contact3dp {
     vec3dp cop(size_t idx) const
     {
         auto const& c = contacts_[idx];
-        if (c.normal_force <= 0.0) return vec3dp{0.0, 0.0, 0.0, 0.0};
+        if (c.normal_force <= 0.0) return vec3dp{};
         // the pressure centre r is where the normal force N alone reproduces the
         // weld's couple T about the contact point: T = r x (N e_z), so T_x = r_y N and
         // T_y = -r_x N, i.e. r = (-T_y, T_x) / N in the foot frame. (Written with the
@@ -434,8 +434,8 @@ class ground_contact3dp {
                 if (k != c.pin && k != c.weld) continue;
                 c.force = vec3dp{-lam[r], -lam[r + 1], -lam[r + 2], 0.0}; // on the foot
                 c.normal_force = c.force.x * n_.x + c.force.y * n_.y + c.force.z * n_.z;
-                c.moment = weld ? vec3dp{-lam[r + 3], -lam[r + 4], -lam[r + 5], 0.0}
-                                : vec3dp{0.0, 0.0, 0.0, 0.0};
+                c.moment =
+                    weld ? vec3dp{-lam[r + 3], -lam[r + 4], -lam[r + 5], 0.0} : vec3dp{};
             }
             r += rows;
         }
@@ -455,9 +455,9 @@ class ground_contact3dp {
         size_t weld{npos};   // the frame loop (flat), npos if none yet
         size_t ground{npos}; // the fixed ground frame of the weld
         bool active{false};
-        vec3dp force{0.0, 0.0, 0.0, 0.0};
+        vec3dp force{};
         value_t normal_force{0.0};
-        vec3dp moment{0.0, 0.0, 0.0, 0.0};
+        vec3dp moment{};
     };
 
     // the separation test of the lift-off rule: does the contact point move away from

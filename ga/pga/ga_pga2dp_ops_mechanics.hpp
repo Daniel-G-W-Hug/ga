@@ -464,7 +464,7 @@ inline screw_axis2dp screw_axis(vec2dp const& B)
     if (std::abs(B.z) < eps) {
         return screw_axis2dp{vec2dp{B.x, B.y, 0.0}, 0.0, vec2dp{B.y, -B.x, 0.0}};
     }
-    return screw_axis2dp{vec2dp{B.x / B.z, B.y / B.z, 1.0}, B.z, vec2dp{0.0, 0.0, 0.0}};
+    return screw_axis2dp{vec2dp{B.x / B.z, B.y / B.z, 1.0}, B.z, vec2dp{}};
 }
 
 // screw axis of a motor: the full angle, 2 * rlog(M)
@@ -800,10 +800,10 @@ using twist2dp = vec2dp;
 //
 // Carries NO pose -- the pose is held by the frame's static_frame2dp.
 struct kin_state2dp {
-    vec2dp vel{0.0, 0.0, 0.0}; // linear velocity of the frame origin vs. parent [1/s]
-    vec2dp acc{0.0, 0.0, 0.0}; // linear acceler. of the frame origin vs. parent [1/s^2]
-    value_t omega{0.0};        // angular velocity vs. parent [rad/s]
-    value_t alpha{0.0};        // angular acceleration vs. parent [rad/s^2]
+    vec2dp vel{};       // linear velocity of the frame origin vs. parent [1/s]
+    vec2dp acc{};       // linear acceler. of the frame origin vs. parent [1/s^2]
+    value_t omega{0.0}; // angular velocity vs. parent [rad/s]
+    value_t alpha{0.0}; // angular acceleration vs. parent [rad/s^2]
 };
 
 
@@ -1093,8 +1093,7 @@ class kinematic_system2dp : public static_system2dp {
         // root -> idx by recursion on the parent: the operations of a walk along the
         // path in the same order, without building the path (an allocation per call)
         if (parent(idx) == idx)
-            return {twist2dp{0.0, 0.0, 0.0},
-                    twist2dp{0.0, 0.0, 0.0}}; // the root contributes nothing
+            return {twist2dp{}, twist2dp{}}; // the root contributes nothing
         world_va2dp va = world_VA(parent(idx));
         auto const M = get_pos_trafo(idx, 0);
         auto const zeta = move2dp(rel_vtwist[idx], M);    // Ad(xi_n)     world rel. vel
@@ -1370,10 +1369,10 @@ struct joint_state2dp {
 // about the body origin) emerge from one element. Contributes its potential
 // 1/2 (k.x dx^2 + k.y dy^2) to potential_energy(); the damper is dissipative.
 struct grounded_spring2dp {
-    vec2dp anchor_b{O_2dp};  // body-fixed attachment point (z = 1, body frame)
-    vec2dp p0_world{O_2dp};  // inertial anchor / rest position (z = 1, world frame)
-    vec2dp k{0.0, 0.0, 0.0}; // anisotropic stiffness along world e1/e2
-    value_t c{0.0};          // linear (isotropic) damping on the point velocity
+    vec2dp anchor_b{O_2dp}; // body-fixed attachment point (z = 1, body frame)
+    vec2dp p0_world{O_2dp}; // inertial anchor / rest position (z = 1, world frame)
+    vec2dp k{};             // anisotropic stiffness along world e1/e2
+    value_t c{0.0};         // linear (isotropic) damping on the point velocity
 };
 
 
@@ -2091,7 +2090,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                 "dynamic_system2dp::inverse_dynamics: qdd needs one entry per dof "
                 "coordinate (" +
                 std::to_string(n) + "), got " + std::to_string(qdd.size()));
-        twist2dp const z{0.0, 0.0, 0.0};
+        twist2dp const z{};
         for (size_t c = 0; c < n; ++c)
             set_accel_twist(rc[c].frame, z);
         auto const w = world_forward_pass();
@@ -2107,7 +2106,7 @@ class dynamic_system2dp : public kinematic_system2dp {
             size_t const p = parent(f);
             A[f] = ((p == f) ? z : A[p]) + w.c[f] + Aq[f];
         }
-        std::vector<bivec2dp> F(nf, bivec2dp{0.0, 0.0, 0.0});
+        std::vector<bivec2dp> F(nf, bivec2dp{});
         for (size_t fb : inertia_bodies()) {
             auto const M = w.M[fb];
             F[fb] +=
@@ -2482,7 +2481,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         // velocity-product (bias) pass: zero the relative accel twists so the world accel
         // queries return only the q-ddot-independent Coriolis/centripetal part.
         for (size_t c = 0; c < n; ++c)
-            set_accel_twist(rc[c].frame, twist2dp{0.0, 0.0, 0.0});
+            set_accel_twist(rc[c].frame, twist2dp{});
 
         // World screws of the dof coordinates (the n unknowns).
         std::vector<vec2dp> S(n);
@@ -2681,7 +2680,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         size_t const n = rc.size();
         for (size_t c = 0; c < n; ++c)
-            set_accel_twist(rc[c].frame, twist2dp{0.0, 0.0, 0.0});
+            set_accel_twist(rc[c].frame, twist2dp{});
 
         size_t const nf = size();
         auto const wp = world_forward_pass();
@@ -2693,7 +2692,7 @@ class dynamic_system2dp : public kinematic_system2dp {
             S[c] = move2dp(screw_of(rc[c]), Mw[rc[c].frame]);
 
         std::vector<Inertia2dp<value_t>> Ic(nf);
-        std::vector<bivec2dp> Fc(nf, bivec2dp{0.0, 0.0, 0.0});
+        std::vector<bivec2dp> Fc(nf, bivec2dp{});
         for (size_t fb : inertia_bodies()) {
             auto const M = Mw[fb];
             add_world_inertia(Ic[fb], fb, M);
@@ -2742,7 +2741,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     world_pass world_forward_pass()
     {
         size_t const nf = size();
-        twist2dp const z{0.0, 0.0, 0.0};
+        twist2dp const z{};
         world_pass w{std::vector<mvec2dp_u>(nf), std::vector<twist2dp>(nf, z),
                      std::vector<twist2dp>(nf, z), std::vector<twist2dp>(nf, z)};
         for (size_t f = 0; f < nf; ++f) {
@@ -2835,7 +2834,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     std::vector<value_t> forward_dynamics(std::vector<coord> const& rc)
     {
         size_t const n = rc.size();
-        twist2dp const z{0.0, 0.0, 0.0};
+        twist2dp const z{};
         for (size_t c = 0; c < n; ++c)
             set_accel_twist(rc[c].frame, z);
         auto const w = world_forward_pass();
@@ -2848,7 +2847,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         add_joint_forces(rc, Q, /*with_joint_torques=*/true);
 
         std::vector<Inertia2dp<value_t>> IA(nf);
-        std::vector<bivec2dp> pA(nf, bivec2dp{0.0, 0.0, 0.0});
+        std::vector<bivec2dp> pA(nf, bivec2dp{});
         for (size_t fb : inertia_bodies()) {
             add_world_inertia(IA[fb], fb, w.M[fb]);
             pA[fb] += body_bias_wrench(fb, w);
@@ -2905,7 +2904,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                     }
                 }
                 for (size_t a = 0; a < k; ++a) {
-                    bivec2dp Wa = bivec2dp{0.0, 0.0, 0.0};
+                    bivec2dp Wa = bivec2dp{};
                     for (size_t b = 0; b < k; ++b)
                         Wa += ra.Dinv[a * k + b] * ra.U[b];
                     ra.W[a] = Wa;
@@ -2913,7 +2912,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                 // I^a = I^A - sum_a U_a <., W_a>, column by column on the twist basis
                 auto v = Ia.view();
                 for (size_t cc = 0; cc < 3; ++cc) {
-                    bivec2dp d = bivec2dp{0.0, 0.0, 0.0};
+                    bivec2dp d = bivec2dp{};
                     for (size_t a = 0; a < k; ++a)
                         d += spatial_dot(basis[cc], ra.W[a]) * ra.U[a];
                     v[0, cc] -= d.x;

@@ -214,7 +214,7 @@ TEST_SUITE("STA 3D Tests")
 
         // vector contraction axiom: v (.) v == v . v (scalar), v ^ v == 0
         CHECK(value_t(gr0(v * v)) == nrm_sq(v));
-        CHECK(gr2(v * v) == bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK(gr2(v * v) == bivec4ds{});
 
         fmt::println("signature (-,-,-,+) verified: dot == nrm_sq, g_i (.) g_i == g_ii");
     }
@@ -630,8 +630,7 @@ TEST_SUITE("STA 3D Tests")
         value_t const a = 0.7;
 
         // exp(0) == identity rotor (scalar 1, no bivector/pseudoscalar)
-        CHECK(exp(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}) ==
-              mvec4ds_e{scalar4ds{1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}});
+        CHECK(exp(bivec4ds{}) == mvec4ds_e{scalar4ds{1.0}, bivec4ds{}});
 
         // spatial plane g12 (B^2 < 0): exp(a*g12) = cos(a) + sin(a) g12  (circular)
         auto const Rs = exp(a * g12_4ds);
@@ -694,7 +693,7 @@ TEST_SUITE("STA 3D Tests")
         {
             auto const B = 0.9 * normalize(bivec4ds{0.0, 0.0, 0.0, 1.0, -2.0, 2.0});
             CHECK(nrm(log(exp(B)) - B) == doctest::Approx(0.0));
-            auto const I = exp(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}); // identity rotor
+            auto const I = exp(bivec4ds{});             // identity rotor
             CHECK(nrm(log(I)) == doctest::Approx(0.0)); // -> zero generator
         }
 
@@ -1134,7 +1133,7 @@ TEST_SUITE("STA 3D Tests")
         };
 
         auto const R_id = mvec4ds_e{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        auto const x_0 = vec4ds{0.0, 0.0, 0.0, 0.0};
+        auto const x_0 = vec4ds{};
 
         // ---- gate 1: cyclotron motion in a constant magnetic field ----------------
         {
@@ -1415,13 +1414,11 @@ TEST_SUITE("STA 3D Tests")
               doctest::Approx(0.0));
 
         // ---- identity rotor: sqrt(1) == 1 ----
-        mvec4ds_e id{scalar4ds{1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                     pscalar4ds{0.0}};
+        mvec4ds_e id{scalar4ds{1.0}, bivec4ds{}, pscalar4ds{0.0}};
         CHECK(rotor_diff(sqrt(id), id) == doctest::Approx(0.0));
 
         // ---- degenerate: sqrt(-1) (a 2*pi rotation rotor) -> identity, not a crash ----
-        mvec4ds_e neg_id{scalar4ds{-1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                         pscalar4ds{0.0}};
+        mvec4ds_e neg_id{scalar4ds{-1.0}, bivec4ds{}, pscalar4ds{0.0}};
         CHECK(rotor_diff(sqrt(neg_id), id) == doctest::Approx(0.0));
 
         fmt::println("sqrt: sqrt(R)^2 == R; halves angle/rapidity; unit rotor; "
@@ -1449,7 +1446,7 @@ TEST_SUITE("STA 3D Tests")
 
         // reference exp via truncated Taylor series (ground truth for moderate |B|)
         auto exp_series = [](bivec4ds const& B, int N) {
-            mvec4ds_e term{scalar4ds{1.0}, bivec4ds{0, 0, 0, 0, 0, 0}, pscalar4ds{0.0}};
+            mvec4ds_e term{scalar4ds{1.0}, bivec4ds{}, pscalar4ds{0.0}};
             mvec4ds_e sum = term;
             mvec4ds_e const Bmv{scalar4ds{0.0}, B, pscalar4ds{0.0}};
             for (int k = 1; k <= N; ++k) {
@@ -2738,7 +2735,7 @@ TEST_SUITE("STA 3D Tests")
         auto Tl = 0.6 * g14_4ds;
         auto Sp = 0.4 * g12_4ds;
         auto Nl = wdg(g4_4ds + g1_4ds, g2_4ds);
-        auto Z = bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        auto Z = bivec4ds{};
 
         for (auto const& B : {F, S, Tl, Sp, Nl, Z}) {
             auto R = exp(B);
@@ -2987,9 +2984,8 @@ TEST_SUITE("STA 3D Tests")
         // PARABOLIC: R - 1 is nilpotent. This is what separates the null rotor from the
         // other two kinds -- a boost or a rotation rotor has no nilpotent part.
         auto Rm1 = mvec4ds_e(scalar4ds(0.0), W, pscalar4ds(0.0));
-        CHECK(is_close(Rm1 * Rm1,
-                       mvec4ds_e(scalar4ds(0.0), bivec4ds(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                                 pscalar4ds(0.0))));
+        CHECK(
+            is_close(Rm1 * Rm1, mvec4ds_e(scalar4ds(0.0), bivec4ds{}, pscalar4ds(0.0))));
 
         // the book's defining property: k W = -W k = 0, so the null rotation FIXES its
         // own null direction while moving everything else -- the parabolic signature

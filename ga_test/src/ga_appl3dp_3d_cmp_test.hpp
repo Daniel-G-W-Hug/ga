@@ -636,8 +636,8 @@ TEST_SUITE("PGA3DP: comparison tests")
         double omega_s = 0.4; // rad/s
         double alpha_s = 0.1; // rad/s^2
 
-        vec3d v_cm = vec3d{0, 0, 0};
-        vec3d a_cm = vec3d{0, 0, 0};
+        vec3d v_cm = vec3d{};
+        vec3d a_cm = vec3d{};
 
         double v_b_s = 0.2; // m/s (speed of duck in rotating system)
         double a_b_s = 0.1; // m/s^2 (acceleration of duck in rotating system)

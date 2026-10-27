@@ -386,8 +386,8 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK_THROWS(get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, pi / 2.0));
 
         // and the zero element is not a conformal object: it is neither flat nor round
-        CHECK_THROWS(is_flat(quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0)));
-        CHECK_THROWS(is_round(vec3dc(0.0, 0.0, 0.0, 0.0, 0.0)));
+        CHECK_THROWS(is_flat(quadvec3dc{}));
+        CHECK_THROWS(is_round(vec3dc{}));
     }
 
     TEST_CASE("cga3dc: congruence and closeness")
@@ -460,8 +460,7 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK_THROWS(radius_sq(pl));
         CHECK_THROWS(unitize(l));
         // incidence of flats: q on the line / on the plane wedges to zero
-        CHECK(wdg(round_point3dc(5.0, 2.0, 3.0, 0.0), l) ==
-              quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(wdg(round_point3dc(5.0, 2.0, 3.0, 0.0), l) == quadvec3dc{});
         CHECK(wdg(round_point3dc(5.0, 7.0, 3.0, 0.0), pl) == pscalar3dc(0.0));
         CHECK(wdg(round_point3dc(5.0, 7.0, 4.0, 0.0), pl) != pscalar3dc(0.0));
 
@@ -1037,10 +1036,8 @@ TEST_SUITE("CGA 3dc Tests")
         // (reference 4.25); car of a flat is zero; car of the circle is
         // (congruent to) its plane, car of the dipole its line
         CHECK(car(a) == flat_point3dc(1.0, 2.0, 3.0));
-        CHECK(car(flat_point3dc(1.0, 2.0, 3.0)) ==
-              trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-        CHECK(car(line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)) ==
-              quadvec3dc(0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(car(flat_point3dc(1.0, 2.0, 3.0)) == trivec3dc{});
+        CHECK(car(line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)) == quadvec3dc{});
         CHECK(is_congruent(car(c), plane3dc(0.0, 0.0, 1.0, 3.0)));
         CHECK(is_congruent(car(d), line3dc(1.0, 2.0, 3.0, 1.0, 0.0, 0.0)));
 
@@ -1071,24 +1068,21 @@ TEST_SUITE("CGA 3dc Tests")
 
         // u ^ cen(u) = 0 (the center lies on every centered object's carrier
         // chain -- reference 4.58)
-        CHECK(wdg(a, cen(a)) ==
-              bivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        CHECK(wdg(a, cen(a)) == bivec3dc{});
     }
 
     TEST_CASE("cga3dc: exp/log/sqrt and conformal transformations")
     {
         fmt::println("cga3dc: exp/log/sqrt and conformal transformations");
 
-        auto const I_u = mvec3dc_u(
-            vec3dc(0.0, 0.0, 0.0, 0.0, 0.0),
-            trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), pscalar3dc(1.0));
+        auto const I_u = mvec3dc_u(vec3dc{}, trivec3dc{}, pscalar3dc(1.0));
         auto euclid = [](vec3dc const& q) {
             auto u = unitize(q);
             return vec3dc(u.x, u.y, u.z, 0.0, 0.0);
         };
 
         // rexp(0) = I; unit versors for all three builders
-        CHECK(rexp(trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)) == I_u);
+        CHECK(rexp(trivec3dc{}) == I_u);
         auto Tm = get_translation(2.0, 0.0, 0.0);
         auto Rm = get_rotation(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, pi / 2.0);
         auto Dm = get_dilation(0.0, 0.0, 0.0, 4.0);
@@ -1102,9 +1096,7 @@ TEST_SUITE("CGA 3dc Tests")
         // matches the two-plane reflection composition by construction; the
         // generator is exactly parabolic
         CHECK(rgpr(gr3(Tm), gr3(Tm)) ==
-              mvec3dc_u(vec3dc(0.0, 0.0, 0.0, 0.0, 0.0),
-                        trivec3dc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                        pscalar3dc(0.0)));
+              mvec3dc_u(vec3dc{}, trivec3dc{}, pscalar3dc(0.0)));
 
         // rotation: right-handed about +z; radius invariant under rigid motion
         CHECK(is_close(euclid(transform(round_point3dc(1.0, 0.0, 0.0, 0.0), Rm)),

@@ -495,9 +495,9 @@ class closed_loop_system2dp {
         // q-ddot prescribed (so G_drv q-ddot_drv folds into the point-acceleration
         // field).
         for (auto const& c : dep)
-            tree_.set_accel_twist(c.frame, twist2dp{0.0, 0.0, 0.0});
+            tree_.set_accel_twist(c.frame, twist2dp{});
         for (auto const& c : drv)
-            tree_.set_accel_twist(c.frame, twist2dp{0.0, 0.0, 0.0});
+            tree_.set_accel_twist(c.frame, twist2dp{});
         for (size_t k = 0; k < drv.size(); ++k) {
             value_t const qdd = (k < driven_accels.size()) ? driven_accels[k] : 0.0;
             tree_.set_accel_twist(drv[k].frame, tree_.relative_accel_twist(drv[k].frame) +
@@ -567,7 +567,7 @@ class closed_loop_system2dp {
     {
         auto const rc = tree_.dof_coords();
         for (auto const& c : rc)
-            tree_.set_accel_twist(c.frame, twist2dp{0.0, 0.0, 0.0});
+            tree_.set_accel_twist(c.frame, twist2dp{});
         for (size_t c = 0; c < rc.size(); ++c)
             tree_.set_accel_twist(rc[c].frame, tree_.relative_accel_twist(rc[c].frame) +
                                                    qdd[c] * tree_.screw_of(rc[c]));
@@ -868,7 +868,7 @@ class closed_loop_system2dp {
     std::vector<value_t> constraint_bias()
     {
         for (size_t const j : tree_.dof_joints())
-            tree_.set_accel_twist(j, twist2dp{0.0, 0.0, 0.0});
+            tree_.set_accel_twist(j, twist2dp{});
         return relative_accelerations();
     }
 
@@ -950,8 +950,8 @@ class closed_loop_system2dp {
                 size_t const j = dep[k].frame;
                 bool const on_a = tree_.is_ancestor(j, lc.frame_a);
                 bool const on_b = tree_.is_ancestor(j, lc.frame_b);
-                vec2dp dPa{0.0, 0.0, 0.0};
-                vec2dp dPb{0.0, 0.0, 0.0};
+                vec2dp dPa{};
+                vec2dp dPb{};
                 if (on_a) dPa = dynamic_system2dp::velocity_field(S[k], Pa);
                 if (on_b) dPb = dynamic_system2dp::velocity_field(S[k], Pb);
                 value_t const dx = dPa.x - dPb.x, dy = dPa.y - dPb.y;

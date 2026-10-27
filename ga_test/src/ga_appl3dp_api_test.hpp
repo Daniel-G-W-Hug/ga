@@ -281,7 +281,7 @@ TEST_SUITE("PGA3DP mechanics API")
         value_t const lo = -0.3, k = 400.0, omega0 = 1.0, dt = 1.0e-4;
         auto build = [&](value_t c_stop) {
             dynamic_system3dp s;
-            s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0)); // the default gravity is on
+            s.set_gravity(vec3dp{}); // the default gravity is on
             s.add_frame(static_frame3dp("W"));
             s.add_revolute_body(
                 static_frame3dp("P"), make_cuboid_body(1.0, 1.0, 0.1, 0.1),
@@ -347,7 +347,7 @@ TEST_SUITE("PGA3DP mechanics API")
         };
         value_t const m = 2.0, F = 3.0, T = 0.5;
         pushed s;
-        s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0));
+        s.set_gravity(vec3dp{});
         s.add_frame(static_frame3dp("W"));
         s.add_body(static_frame3dp("B"), make_cuboid_body(m, 0.2, 0.2, 0.2));
         s.W = wdg(vec3dp(0.0, 0.0, 0.0, 1.0), vec3dp(F, 0.0, 0.0, 0.0)); // through the cm
@@ -387,7 +387,7 @@ TEST_SUITE("PGA3DP mechanics API")
         // cleared it spins on at a constant rate
         auto build = [] {
             dynamic_system3dp s;
-            s.set_gravity(vec3dp(0.0, 0.0, 0.0, 0.0)); // the default gravity is on
+            s.set_gravity(vec3dp{}); // the default gravity is on
             s.add_frame(static_frame3dp("W"));
             s.add_revolute_body(
                 static_frame3dp("P"), make_cuboid_body(1.0, 1.0, 0.1, 0.1),

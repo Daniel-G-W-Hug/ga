@@ -263,8 +263,7 @@ inline MVec4ds_E<T> sta4ds_nearest_rotor(MVec4ds_E<T> const& X)
     T const nS = std::sqrt(s * s + t * t); // ||X rev(X)||_S
     if (nS <= safe_epsilon<T>()) {
         // singular (X ~ 0, e.g. X = 1 + R with R = -1): no unique nearest rotor
-        return MVec4ds_E<T>(Scalar4ds<T>(1.0), BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                            PScalar4ds<T>(0.0));
+        return MVec4ds_E<T>(Scalar4ds<T>(1.0), BiVec4ds<T>{}, PScalar4ds<T>(0.0));
     }
     T const c = std::sqrt(T(0.5) * (s + nS));       // c+ branch (natural for I^2 = -1)
     T const denom = T(4.0) * c * c * c * c + t * t; // 4 c^4 - <XX~>_4^2 = 4 c^4 + t^2

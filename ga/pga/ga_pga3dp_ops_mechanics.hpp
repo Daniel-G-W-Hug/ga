@@ -544,7 +544,7 @@ BiVec3dp<T> compute_omega_dot(Inertia3dp<T> const& I_inv, BiVec3dp<T> const& F,
 
 struct pose3dp {
     vec3dp origin{0.0, 0.0, 0.0, 1.0}; // origin of frame in parent coordinates (w = 1)
-    vec3dp rot{0.0, 0.0, 0.0, 0.0};    // orientation vs. parent: axis * angle (w = 0)
+    vec3dp rot{};                      // orientation vs. parent: axis * angle (w = 0)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -679,7 +679,7 @@ inline pose3dp pose3dp_from_motor(mvec3dp_e const& M)
     value_t const wn = std::sqrt(w.vx * w.vx + w.vy * w.vy + w.vz * w.vz); // sin(angle/2)
     value_t const c = value_t(gr4(M_rot)); // cos(angle/2) (pseudoscalar)
 
-    vec3dp rot{0.0, 0.0, 0.0, 0.0};
+    vec3dp rot{};
     if (wn > eps) {
         value_t const angle = 2.0 * std::atan2(wn, c);
         value_t const s = angle / wn; // angle / sin(angle/2): scales weight -> axis*angle
@@ -709,7 +709,7 @@ class static_frame3dp {
   public:
 
     static_frame3dp(std::string frame_name = "I", vec3dp const& origin_in_parent = O_3dp,
-                    vec3dp const& rot_vs_parent = vec3dp{0.0, 0.0, 0.0, 0.0}) :
+                    vec3dp const& rot_vs_parent = vec3dp{}) :
         name(frame_name), pose(origin_in_parent, rot_vs_parent)
     {
         if (pose.origin.w != 1.0) {
@@ -909,10 +909,10 @@ using twist3dp = bivec3dp;
 // vector
 // -- the natural lift.)
 struct kin_state3dp {
-    vec3dp vel{0.0, 0.0, 0.0, 0.0}; // linear velocity of the frame origin vs. parent
-    vec3dp acc{0.0, 0.0, 0.0, 0.0}; // linear acceleration of the frame origin vs. parent
-    vec3dp omega{0.0, 0.0, 0.0, 0.0}; // angular velocity vs. parent (axis * rate)
-    vec3dp alpha{0.0, 0.0, 0.0, 0.0}; // angular acceleration vs. parent (axis * rate)
+    vec3dp vel{};   // linear velocity of the frame origin vs. parent
+    vec3dp acc{};   // linear acceleration of the frame origin vs. parent
+    vec3dp omega{}; // angular velocity vs. parent (axis * rate)
+    vec3dp alpha{}; // angular acceleration vs. parent (axis * rate)
 };
 
 
@@ -1413,10 +1413,10 @@ struct joint_state3dp {
 // any separate torsional spring. The spring also contributes its potential
 // 1/2 (k.x dx^2 + k.y dy^2 + k.z dz^2) to potential_energy(); the damper is dissipative.
 struct grounded_spring3dp {
-    vec3dp anchor_b{O_3dp};       // body-fixed attachment point (w = 1, body frame)
-    vec3dp p0_world{O_3dp};       // inertial anchor / rest position (w = 1, world frame)
-    vec3dp k{0.0, 0.0, 0.0, 0.0}; // anisotropic stiffness along world e1/e2/e3
-    value_t c{0.0};               // linear (isotropic) damping on the point velocity
+    vec3dp anchor_b{O_3dp}; // body-fixed attachment point (w = 1, body frame)
+    vec3dp p0_world{O_3dp}; // inertial anchor / rest position (w = 1, world frame)
+    vec3dp k{};             // anisotropic stiffness along world e1/e2/e3
+    value_t c{0.0};         // linear (isotropic) damping on the point velocity
 };
 
 // Time-integration scheme selectable on dynamic_system3dp (see set_integrator):

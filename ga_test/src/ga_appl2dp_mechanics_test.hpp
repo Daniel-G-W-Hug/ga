@@ -802,7 +802,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B0=(0,0,0) => M0 = rexp(0.5 * B0) = pscalar2dp(1)
                 //                (=identity transformation at t=0)
                 //
-                u[0] = vec2dp(0.0, 0.0, 0.0);
+                u[0] = vec2dp{};
 
                 // initial rate of change transformation of "velocity" dB(t0)/dt = Omega0
                 // encoding:
@@ -1218,7 +1218,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B0=(0,0,0) => M0 = rexp(0.5 * B0) = pscalar(1)
                 //                (=identity transformation at t=0)
                 //
-                u[0] = vec2dp(0.0, 0.0, 0.0);
+                u[0] = vec2dp{};
 
                 // initial rate of change transformation of "velocity" dB/dt = Omega
                 // encoding:
@@ -1249,7 +1249,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
                 // no force f acting the body frame at the origin (F_b = O_2dp ^ f)
                 // internal forces not relevant for rigid body
-                auto F_b = bivec2dp{0.0, 0.0, 0.0};
+                auto F_b = bivec2dp{};
 
                 // gravitation acting through center of mass in in the body system
                 // with center of mass being the origin O_2dp of the body system
@@ -1343,8 +1343,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         std::vector<value_t> m = {1.0, 1.0};                             // mass
 
         // initial position and movement of body frame vs. world frame (in world frame)
-        auto cm_pos = O_2dp;           // world and body frame coincide at t=0
-        auto cm_spd = vec2dp{0, 0, 0}; // body frame is moving with v0 vs. world frame
+        auto cm_pos = O_2dp;    // world and body frame coincide at t=0
+        auto cm_spd = vec2dp{}; // body frame is moving with v0 vs. world frame
 
         // initial rotation and anguar velocity of body frame vs. world frame
         auto cm_phi = 0.0;    // no initial rotation
@@ -1433,7 +1433,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity (body starts at world origin) ---");
         {
-            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0}); // ps (identity)
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{}); // ps (identity)
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
@@ -1506,7 +1506,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity (Q_b is at world origin) ---");
         {
-            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
             // pivot world position (should stay fixed)
@@ -1580,7 +1580,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         fmt::println("  --- Case A: M0 = identity ---");
         {
-            mvec2dp_u const M0 = rexp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            mvec2dp_u const M0 = rexp(0.5 * vec2dp{});
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
 
@@ -1860,7 +1860,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         // initial position and movement of body frame vs. world frame (in world frame)
         auto cm_pos = vec2dp{-1, -1, 1}; // world and body frame coincide at t=0
-        auto cm_spd = vec2dp{0, 0, 0};   // body frame is moving with v0 vs. world frame
+        auto cm_spd = vec2dp{};          // body frame is moving with v0 vs. world frame
 
         // initial rotation and anguar velocity of body frame vs. world frame
         auto cm_phi = 0.0;   // no initial rotation
@@ -3657,7 +3657,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         value_t const A0 = 0.5;                               // initial q, zero velocity
 
         dynamic_system2dp sys;
-        sys.set_gravity(vec2dp{0.0, 0.0, 0.0}); // isolate the spring oscillator
+        sys.set_gravity(vec2dp{}); // isolate the spring oscillator
         sys.add_frame(static_frame2dp("W"));
         sys.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
                                make_plate_body(m, 1.0, 1.0), vec2dp{1.0, 0.0, 0.0}, A0,
@@ -3691,7 +3691,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // undamped variant: KE + spring potential 1/2 k q^2 conserved (spring PE term in
         // potential_energy)
         dynamic_system2dp usys;
-        usys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+        usys.set_gravity(vec2dp{});
         usys.add_frame(static_frame2dp("W"));
         usys.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
                                 make_plate_body(m, 1.0, 1.0), vec2dp{1.0, 0.0, 0.0}, A0,
@@ -3730,7 +3730,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // sign/magnitude check: a CONSTANT force F0 along e1 gives joint accel F0/mt
         {
             dynamic_system2dp s;
-            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.set_gravity(vec2dp{});
             s.add_frame(static_frame2dp("W"));
             s.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
                                  make_plate_body(mt, 1.0, 1.0), e1);
@@ -3747,7 +3747,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         };
         auto run = [&](value_t Om) {
             dynamic_system2dp s;
-            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.set_gravity(vec2dp{});
             s.add_frame(static_frame2dp("W"));
             s.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
                                  make_plate_body(mt, 1.0, 1.0), e1);
@@ -3794,7 +3794,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         value_t const m = 1.0, L = 1.0, Om = 2.0, k = 20.0, c = 2.0;
         auto const slider = make_plate_body(m, 0.05, 0.05); // near point mass
         dynamic_system2dp sys;
-        sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+        sys.set_gravity(vec2dp{});
         sys.add_frame(static_frame2dp("W"));
         sys.add_revolute_body(static_frame2dp("S"), make_plate_body(1.0, 0.1, 0.1),
                               O_2dp); // spin hinge about the origin
@@ -3827,7 +3827,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             value_t const m = 2.0, k = 800.0, x0 = 0.01;
             value_t const wn = std::sqrt(k / m);
             dynamic_system2dp sys;
-            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.set_gravity(vec2dp{});
             sys.add_frame(static_frame2dp("W"));
             sys.add_prismatic_body(static_frame2dp("B"), make_plate_body(m, 0.1, 0.1),
                                    vec2dp{1.0, 0.0, 0.0}, x0, 0.0);
@@ -3857,7 +3857,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         {
             value_t const k = 1000.0, l = 0.1, th0 = 1.0e-4;
             dynamic_system2dp sys;
-            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.set_gravity(vec2dp{});
             sys.add_frame(static_frame2dp("W"));
             sys.add_revolute_body(static_frame2dp("B"), make_plate_body(1.0, 0.4, 0.05),
                                   O_2dp, th0, 0.0);
@@ -5080,7 +5080,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // screw; the solve returns M q-ddot = tau (the fold lands on the right index)
         {
             dynamic_system2dp s;
-            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.set_gravity(vec2dp{});
             s.add_frame(static_frame2dp("W"));
             s.add_body(static_frame2dp("B", vec2dp{0.3, 0.2, 1.0}, 0.4),
                        make_plate_body(3.0, 0.2, 0.5));
@@ -5435,7 +5435,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         value_t const w_ref = -m * v * (L / 2.0) / I_pin; // clockwise: the pin is at -x
         auto build = [&](value_t vy) {
             closed_loop_system2dp cl;
-            cl.system().set_gravity(vec2dp{0.0, 0.0, 0.0});
+            cl.system().set_gravity(vec2dp{});
             cl.add_frame(static_frame2dp("W"));
             cl.add_body(static_frame2dp("rod", vec2dp{0.0, 0.0, 1.0}, 0.0), rod,
                         kin_state2dp{.vel = vec2dp{0.0, vy, 0.0}, .omega = 0.0});
@@ -5512,7 +5512,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             auto const hub = make_plate_body(40.0, 0.4, 0.4);
             auto const link = make_plate_body(0.1, 0.5, 0.02);
             closed_loop_system2dp cl;
-            cl.system().set_gravity(vec2dp{0.0, 0.0, 0.0});
+            cl.system().set_gravity(vec2dp{});
             cl.add_frame(static_frame2dp("W"));
             cl.add_body(static_frame2dp("hub", vec2dp{0.0, 0.0, 1.0}, 0.0), hub,
                         kin_state2dp{.vel = vec2dp{0.0, -v, 0.0}, .omega = 0.0});
@@ -6152,7 +6152,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         auto build = [&] {
             dynamic_system2dp sys;
-            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.set_gravity(vec2dp{});
             sys.add_frame(static_frame2dp("W"));
             sys.add_body(static_frame2dp("hub", vec2dp{0.0, 0.0, 1.0}, 0.0), hub,
                          kin_state2dp{.vel = vec2dp{0.1, -0.05, 0.0}, .omega = 0.3});

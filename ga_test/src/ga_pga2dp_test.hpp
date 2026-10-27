@@ -64,7 +64,7 @@ TEST_SUITE("PGA 2DP Tests")
     TEST_CASE("Vec2dp: with curly braced intializer")
     {
         fmt::println("Vec2dp: with curly braced intializer");
-        vec2dp v{0.0, 0.0, 0.0};
+        vec2dp v{};
         // fmt::println("   v = {}", v);
         CHECK(abs(v.x) < eps);
         CHECK(abs(v.y) < eps);
@@ -2617,7 +2617,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(l1 == l3);
         CHECK(l1 == l4);
         CHECK(l1 == l5);
-        CHECK(l6 == BiVec2dp<double>(0, 0, 0));
+        CHECK(l6 == BiVec2dp<double>{});
     }
 
     TEST_CASE("MVec2dp: bulk and weight")
@@ -2955,8 +2955,8 @@ TEST_SUITE("PGA 2DP Tests")
 
         // G * rG = det * I = 0 (degenerate): bulk metric G and weight antimetric rG have
         // DISJOINT support, so the composition annihilates every element.
-        CHECK(rGx(Gx(v)) == vec2dp{0.0, 0.0, 0.0});
-        CHECK(rGx(Gx(B)) == bivec2dp{0.0, 0.0, 0.0});
+        CHECK(rGx(Gx(v)) == vec2dp{});
+        CHECK(rGx(Gx(B)) == bivec2dp{});
 
         // (a) Gx (the bulk metric) is a WEDGE exomorphism -- holds through null e3 too
         CHECK(Gx(wdg(e1_2dp, e2_2dp)) == wdg(Gx(e1_2dp), Gx(e2_2dp))); // -> e12
@@ -3264,7 +3264,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(six_decimals == "Vec2dp(3.141590,2.718280,1.414210)");
 
         // Test with different vector values for edge cases
-        vec2dp v_zero{0.0, 0.0, 0.0};
+        vec2dp v_zero{};
         vec2dp v_negative{-1.5, -2.5, -3.5};
 
         std::string zero_format = fmt::format("{:.1f}", v_zero);
@@ -3625,7 +3625,7 @@ TEST_SUITE("PGA 2DP Tests")
         vec2dp v2{0.0, 1.0, 1.0};   // point on y-axis
         vec2dp v3{2.0, 0.0, 2.0};   // parallel to v1 (same direction from origin)
         vec2dp v4{-1.0, 0.0, -1.0}; // antiparallel to v1
-        vec2dp v_zero{0.0, 0.0, 0.0};
+        vec2dp v_zero{};
 
         CHECK(is_congruent(v1, v2) == false);        // different directions
         CHECK(is_congruent(v1, v3) == true);         // parallel directions
@@ -3638,7 +3638,7 @@ TEST_SUITE("PGA 2DP Tests")
         bivec2dp b2{0.0, 1.0, 0.0};  // line parallel to x-axis
         bivec2dp b3{2.0, 0.0, 0.0};  // parallel to b1
         bivec2dp b4{-1.5, 0.0, 0.0}; // antiparallel to b1
-        bivec2dp b_zero{0.0, 0.0, 0.0};
+        bivec2dp b_zero{};
 
         CHECK(is_congruent(b1, b2) == false);        // different line orientations
         CHECK(is_congruent(b1, b3) == true);         // same line orientation

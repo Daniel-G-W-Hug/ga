@@ -68,8 +68,8 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec3d<T> ega3d_central(std::complex<T> const& c)
 {
-    return MVec3d<T>(Scalar3d<T>(c.real()), Vec3d<T>(0.0, 0.0, 0.0),
-                     BiVec3d<T>(0.0, 0.0, 0.0), PScalar3d<T>(c.imag()));
+    return MVec3d<T>(Scalar3d<T>(c.real()), Vec3d<T>{}, BiVec3d<T>{},
+                     PScalar3d<T>(c.imag()));
 }
 
 // f(r)/r continued by its limit 1 at r = 0 (exact for a null W)
@@ -213,7 +213,7 @@ constexpr MVec3d_E<T> exp(BiVec3d<T> const& B)
     T const B_nrm = nrm(B);
     if (B_nrm <= detail::safe_epsilon<T>()) {
         return MVec3d_E<T>(Scalar3d<T>(1.0),
-                           BiVec3d<T>(0.0, 0.0, 0.0)); // return identity transformation
+                           BiVec3d<T>{}); // return identity transformation
     }
     auto B_hat{B / B_nrm};
 
@@ -255,8 +255,8 @@ constexpr MVec3d<T> exp(PScalar3d<T> ps)
 {
     // I_3d is a UNIT pseudoscalar, so the coefficient is the angle itself
     T const alpha = T(ps);
-    return MVec3d<T>(Scalar3d<T>(std::cos(alpha)), Vec3d<T>(0.0, 0.0, 0.0),
-                     BiVec3d<T>(0.0, 0.0, 0.0), PScalar3d<T>(std::sin(alpha)));
+    return MVec3d<T>(Scalar3d<T>(std::cos(alpha)), Vec3d<T>{}, BiVec3d<T>{},
+                     PScalar3d<T>(std::sin(alpha)));
 }
 
 
@@ -346,7 +346,7 @@ constexpr BiVec3d<T> log(MVec3d_E<T> const& R)
     BiVec3d<T> const Bv = gr2(R);
     T const s = nrm(Bv); // = |sin(phi)|
     if (s <= detail::safe_epsilon<T>()) {
-        return BiVec3d<T>(0.0, 0.0, 0.0); // phi ~ 0 -> identity transformation
+        return BiVec3d<T>{}; // phi ~ 0 -> identity transformation
     }
     T const phi = std::atan2(s, R.c0); // R.c0 = cos(phi)
     return (phi / s) * Bv;
@@ -414,7 +414,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& B, U theta)
     if ((nrm(B) <= detail::safe_epsilon<T>()) ||
         (std::abs(theta) <= detail::safe_epsilon<T>())) {
         return MVec3d_E<T>(Scalar3d<T>(1.0),
-                           BiVec3d<T>(0.0, 0.0, 0.0)); // return identity transformation
+                           BiVec3d<T>{}); // return identity transformation
     }
 
     // B must be normalized or otherwise it will not only be scaled with angle theta

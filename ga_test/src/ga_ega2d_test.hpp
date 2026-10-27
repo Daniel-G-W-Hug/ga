@@ -88,7 +88,7 @@ TEST_SUITE("EGA 2D Tests")
     TEST_CASE("Vec2d: with curly braced intializer")
     {
         fmt::println("Vec2d: with curly braced intializer");
-        vec2d v{0.0, 0.0};
+        vec2d v{};
         // fmt::println("   v = {}", v);
         CHECK(abs(v.x) < eps);
         CHECK(abs(v.y) < eps);
@@ -2013,7 +2013,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(dot(wdg(mv1, mv2), mv3) == dot(mv1, mv2 << mv3));
         CHECK(dot(mv3, wdg(mv2, mv1)) == dot(mv3 >> mv2, mv1));
         CHECK(rev(mv1 >> mv2) == rev(mv2) << rev(mv1));
-        CHECK((V1 >> B) == mvec2d{0.0, 0.0, 0.0, 0.0});
+        CHECK((V1 >> B) == mvec2d{});
         CHECK(dot(V1, B) == 0);
 
         // understanding the contraction (2.3.1)
@@ -2026,7 +2026,7 @@ TEST_SUITE("EGA 2D Tests")
 
         CHECK((mvec2d{s2, v2, pscalar2d{0.0}} << mvec2d{s1}) ==
               mvec2d{value_t(s1 * s2), 0.0, 0.0, 0.0});
-        CHECK((mvec2d{v2} << mvec2d{s1}) == mvec2d{0.0, 0.0, 0.0, 0.0});
+        CHECK((mvec2d{v2} << mvec2d{s1}) == mvec2d{});
 
         CHECK((wdg(v2, v3) >> v1) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
         // CHECK((wdg(v1, v2) << v3) == (v1 << scalar2d(v2 << v3)));
@@ -2194,7 +2194,7 @@ TEST_SUITE("EGA 2D Tests")
         vec2d v2{0.0, 1.0};  // y-axis (perpendicular)
         vec2d v3{2.0, 0.0};  // parallel to v1
         vec2d v4{-1.5, 0.0}; // antiparallel to v1
-        vec2d v_zero{0.0, 0.0};
+        vec2d v_zero{};
 
         CHECK(is_congruent(v1, v2) == false);        // perpendicular vectors
         CHECK(is_congruent(v1, v3) == true);         // parallel vectors
@@ -3422,7 +3422,7 @@ TEST_SUITE("EGA 2D Tests")
             // unlike the projective algebras there is no weight to test here: the target
             // enters through inv(), so a zero target is a division by zero and the
             // library's division guard is what answers
-            CHECK_THROWS(project_onto(v, vec2d{0.0, 0.0}));
+            CHECK_THROWS(project_onto(v, vec2d{}));
         }
     }
 

@@ -584,8 +584,8 @@ TEST_SUITE("CGA 2dc Tests")
         }
 
         // the zero element is not a conformal object: it is neither flat nor round
-        CHECK_THROWS(is_flat(vec2dc(0.0, 0.0, 0.0, 0.0)));
-        CHECK_THROWS(is_round(trivec2dc(0.0, 0.0, 0.0, 0.0)));
+        CHECK_THROWS(is_flat(vec2dc{}));
+        CHECK_THROWS(is_round(trivec2dc{}));
     }
 
     TEST_CASE("cga2dc: congruence and closeness")

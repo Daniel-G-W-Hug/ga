@@ -80,7 +80,7 @@ TEST_SUITE("magnetostatics 2d")
             return sum;
         };
         double const ref = mu0 * 40.0;
-        CHECK(std::abs(circulation(vec2d{0.0, 0.0}, 0.2) - ref) < 1e-12 * ref);
+        CHECK(std::abs(circulation(vec2d{}, 0.2) - ref) < 1e-12 * ref);
         CHECK(std::abs(circulation(vec2d{0.1, 0.05}, 0.3) - ref) < 1e-12 * ref);
         // a contour that does not enclose the wire: no circulation
         CHECK(std::abs(circulation(vec2d{0.6, 0.4}, 0.2)) < 1e-12 * ref);
@@ -111,7 +111,7 @@ TEST_SUITE("magnetostatics 2d")
         //     finite differences, so it is checked by convergence: the residual relative
         //     to the field's own scale |b|/rho must fall as h^2 (the default central
         //     scheme) -- a ratio of ~4 per halving of h
-        line_current const w{vec2d{0.0, 0.0}, pscalar2d(100.0)};
+        line_current const w{vec2d{}, pscalar2d(100.0)};
         auto outside = [&](vec2d const& r) { return b_line_current(r, w); };
         vec2d const r{0.3, 0.4};
         double const scale = nrm(outside(r)) / nrm(r);
@@ -263,7 +263,7 @@ TEST_SUITE("magnetostatics 2d")
     {
         // a uniformly magnetised disc: inside B = (mu0/2) m, outside the 2D dipole field,
         // (mu0 R^2 / (2 r^2)) (2 (m.r_hat) r_hat - m) -- written out classically
-        vec2d const c{0.0, 0.0}, m{6.0e5, 3.5e5}; // A/m
+        vec2d const c{}, m{6.0e5, 3.5e5}; // A/m
         double const R = 0.02;
         // the surface current of the text, K = m ^ n, written out
         vec2d const nn{0.6, 0.8};

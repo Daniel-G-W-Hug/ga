@@ -380,7 +380,7 @@ TEST_SUITE("magnetostatics 3d")
         // two point dipoles; the stress over a sphere around dipole j in the total field
         // gives wdg(P_j, F) + couple(mu_j x b_i(P_j)), F from Yung et al.; a SCREW, the
         // couple coming out of the sum of force lines with no couple term written
-        vec3d const pi_{0.0, 0.0, 0.0}, pj{0.06, -0.02, 0.03};
+        vec3d const pi_{}, pj{0.06, -0.02, 0.03};
         vec3d const mi{0.0, 0.0, 2.0}, mj{0.5, 1.2, -0.4}; // A m^2
         auto b = [&](vec3d const& r) {
             return b_dipole(r - pi_, mi) + b_dipole(r - pj, mj);

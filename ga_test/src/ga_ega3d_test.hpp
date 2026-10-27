@@ -62,7 +62,7 @@ TEST_SUITE("EGA 3D Tests")
     TEST_CASE("Vec3d: with curly braced intializer")
     {
         fmt::println("Vec3d: with curly braced intializer");
-        vec3d v{0.0, 0.0, 0.0};
+        vec3d v{};
         // fmt::println("   v = {}", v);
         CHECK(abs(v.x) < eps);
         CHECK(abs(v.y) < eps);
@@ -2520,8 +2520,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK((mvec3d{s2, v2, b2, pscalar3d{0.0}} << mvec3d{s1}) ==
               mvec3d{value_t(s1 * s2), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
 
-        CHECK((mvec3d{v2} << mvec3d{s1}) ==
-              mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK((mvec3d{v2} << mvec3d{s1}) == mvec3d{});
 
         CHECK((wdg(v2, v3) >> v1) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
         CHECK((wdg(v1, v2) << b1) == (v1 << (v2 << b1)));
@@ -2796,7 +2795,7 @@ TEST_SUITE("EGA 3D Tests")
         vec3d v2{0.0, 1.0, 0.0};  // y-axis (perpendicular)
         vec3d v3{2.0, 0.0, 0.0};  // parallel to v1
         vec3d v4{-1.5, 0.0, 0.0}; // antiparallel to v1
-        vec3d v_zero{0.0, 0.0, 0.0};
+        vec3d v_zero{};
 
         CHECK(is_congruent(v1, v2) == false);        // perpendicular vectors
         CHECK(is_congruent(v1, v3) == true);         // parallel vectors
@@ -2809,7 +2808,7 @@ TEST_SUITE("EGA 3D Tests")
         bivec3d b2{0.0, 1.0, 0.0};  // e31 plane (different)
         bivec3d b3{2.0, 0.0, 0.0};  // e23 plane (parallel to b1)
         bivec3d b4{-1.5, 0.0, 0.0}; // e23 plane (antiparallel to b1)
-        bivec3d b_zero{0.0, 0.0, 0.0};
+        bivec3d b_zero{};
 
         CHECK(is_congruent(b1, b2) == false);        // different planes
         CHECK(is_congruent(b1, b3) == true);         // same plane
@@ -3834,7 +3833,7 @@ TEST_SUITE("EGA 3D Tests")
 
         // classical references, computed independently
         auto curlA = [&](vec3d const& q) {
-            vec3d c{0.0, 0.0, 0.0};
+            vec3d c{};
             double const h = 1.0e-5;
             for (int i = 0; i < 3; ++i) {
                 auto e = i == 0 ? e1_3d : (i == 1 ? e2_3d : e3_3d);
@@ -4193,7 +4192,7 @@ TEST_SUITE("EGA 3D Tests")
 
         // (d) and sampling AT the singularity returns a finite-difference artefact of
         // order 1/h^2, not a delta: ~3e12 for h = 1e-4. Never read it as a value.
-        CHECK(std::abs(value_t(nabla_dot(E, vec3d{0.0, 0.0, 0.0}, 1.0e-4))) > 1.0e10);
+        CHECK(std::abs(value_t(nabla_dot(E, vec3d{}, 1.0e-4))) > 1.0e10);
 
         fmt::println("delta trap: div = 0 pointwise, flux = 4 pi; a numerical Gauss law "
                      "must be a flux, never a volume integral of nabla_dot");
@@ -4726,10 +4725,10 @@ TEST_SUITE("EGA 3D Tests")
         }
 
         // the zero blade has no inverse, at any type
-        CHECK_THROWS(inv(vec3d{0.0, 0.0, 0.0}));
-        CHECK_THROWS(inv(bivec3d{0.0, 0.0, 0.0}));
+        CHECK_THROWS(inv(vec3d{}));
+        CHECK_THROWS(inv(bivec3d{}));
         CHECK_THROWS(inv(scalar3d{0.0}));
-        CHECK_THROWS(normalize(vec3d{0.0, 0.0, 0.0}));
+        CHECK_THROWS(normalize(vec3d{}));
     }
 
     TEST_CASE("ega3d: the projection contract")
@@ -4814,9 +4813,9 @@ TEST_SUITE("EGA 3D Tests")
 
         SUBCASE("a degenerate target is reported, not silently absorbed")
         {
-            CHECK_THROWS(project_onto(v, vec3d{0.0, 0.0, 0.0}));
-            CHECK_THROWS(project_onto(v, bivec3d{0.0, 0.0, 0.0}));
-            CHECK_THROWS(project_onto(A, bivec3d{0.0, 0.0, 0.0}));
+            CHECK_THROWS(project_onto(v, vec3d{}));
+            CHECK_THROWS(project_onto(v, bivec3d{}));
+            CHECK_THROWS(project_onto(A, bivec3d{}));
         }
     }
 

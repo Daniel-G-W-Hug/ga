@@ -61,7 +61,7 @@ TEST_SUITE("PGA2DP mechanics formatting")
               "rest = MVec2dp_U(0.0,0.0,0.5,1.0), phi = 0.2, omega = -1.0)");
         same_at_runtime(j);
 
-        screw_axis2dp const s{vec2dp(1, 2, 1), 0.5, vec2dp(0, 0, 0)};
+        screw_axis2dp const s{vec2dp(1, 2, 1), 0.5, vec2dp{}};
         CHECK(fmt::format("{}", s) ==
               "screw_axis2dp(centre = Vec2dp(1,2,1), angle = 0.5, "
               "translation = Vec2dp(0,0,0))");

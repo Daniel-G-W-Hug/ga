@@ -49,11 +49,11 @@ int main()
     // turbo/thermal settling not to be the thing measured (400 passes was ~10 ms and read
     // 4.2 -> 2.5 ns across three rounds on the same binary)
     constexpr int REPS = 30000;
-    vec3d acc(0.0, 0.0, 0.0);
+    vec3d acc{};
     auto const t0 = std::chrono::steady_clock::now();
     for (int rep = 0; rep < REPS; ++rep) {
         for (std::size_t j = 0; j < NT; ++j) {
-            vec3d f(0.0, 0.0, 0.0);
+            vec3d f{};
             for (std::size_t i = 0; i < NS; ++i) {
                 vec3d const r = p[j] - q[i];
                 double const rn = nrm(r);

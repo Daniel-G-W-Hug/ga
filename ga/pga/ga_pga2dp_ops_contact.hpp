@@ -538,7 +538,7 @@ class ground_contact2dp {
         size_t weld{npos};   // the frame loop (flat), npos if none yet
         size_t ground{npos}; // the fixed ground frame of the weld
         bool active{false};
-        vec2dp force{0.0, 0.0, 0.0};
+        vec2dp force{};
         value_t normal_force{0.0};
         value_t moment{0.0};
         int pinned_end{-1}; // a segment: the end its pin holds (-1: off, or flat)

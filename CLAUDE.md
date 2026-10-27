@@ -483,6 +483,15 @@ don't re-derive them.
 - Function call arguments for scalar and pscalar use `Scalar2d<T> a`, etc. directly
   instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc.
   use `Vec2d<T> const&` for unmodifiable arguments
+- **A zero value is `T{}`** (value-initialisation): every storage template declares its
+  members `T x{};` and defaults its default constructor, so `vec3dp{}`, `bivec3dp{}`,
+  `mvec2d{}` and, in templates, `Vec3d<T>{}` are the zero of their type. Write that, not
+  `vec3dp{0.0, 0.0, 0.0, 0.0}`, and not a local `zero` alias used only once (a name is
+  worth it where the zero is reused, e.g. `{z, z, z}`). Two exceptions: the named
+  constants in `ga_usr_consts.hpp` (`O_2d`, `O_3d`) spell their components like every
+  other entry of that table, and a POINT is never written `{}` -- `point2dc(0.0, 0.0)`
+  is the conformal point at the origin, a null vector, not zero.
+  Swept on 2026-10-27 across the tree: every suite's output identical before and after.
 - **CRITICAL**: ALWAYS use "east const" convention (see dedicated section below)
 
 ### Prefer the GA formulation when one exists at equal effort

@@ -162,7 +162,7 @@ TEST_SUITE("PGA2DP mechanics API")
         value_t const hi = 0.3, k = 400.0, omega0 = 1.0, dt = 1.0e-4;
         auto build = [&](value_t c_stop) {
             dynamic_system2dp s;
-            s.set_gravity(vec2dp(0.0, 0.0, 0.0)); // the default gravity is on
+            s.set_gravity(vec2dp{}); // the default gravity is on
             s.add_frame(static_frame2dp("W"));
             s.add_revolute_body(static_frame2dp("P"), make_plate_body(1.0, 1.0, 0.1),
                                 vec2dp(-0.5, 0.0, 1.0), 0.0, omega0);

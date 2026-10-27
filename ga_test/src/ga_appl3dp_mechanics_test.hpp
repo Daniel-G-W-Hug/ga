@@ -438,14 +438,14 @@ TEST_SUITE("PGA3DP: physics tests prep")
         std::vector<vec3d> u{vec3d{1, 2, 3}};
         std::array<std::vector<vec3d>, 2> uh{std::vector<vec3d>(1),
                                              std::vector<vec3d>(1)};
-        std::vector<vec3d> const rhs{vec3d{0, 0, 0}};
+        std::vector<vec3d> const rhs{vec3d{}};
 
         // rk_step out of [1,4] must throw.
         CHECK_THROWS_AS(rk4_step(u, uh, rhs, 0.01, 0), std::invalid_argument);
         CHECK_THROWS_AS(rk4_step(u, uh, rhs, 0.01, 5), std::invalid_argument);
 
         // Length mismatch must throw.
-        std::vector<vec3d> const rhs_bad{vec3d{0, 0, 0}, vec3d{0, 0, 0}};
+        std::vector<vec3d> const rhs_bad{vec3d{}, vec3d{}};
         CHECK_THROWS_AS(rk4_step(u, uh, rhs_bad, 0.01, 1), std::invalid_argument);
     }
 
@@ -903,7 +903,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
         auto const body = make_cuboid_body(m, 1.0, 2.0, 3.0);
 
         dynamic_system3dp sys;
-        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0}); // torque-free
+        sys.set_gravity(vec3dp{}); // torque-free
         sys.add_frame(static_frame3dp("W"));
 
         // spin mostly about e2 (intermediate) with a small e1 perturbation; no
@@ -967,7 +967,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
         auto const body = make_cuboid_body(2.0, 0.1, 0.3, 0.6); // three distinct moments
         auto make = [&] {
             dynamic_system3dp sys;
-            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.set_gravity(vec3dp{});
             sys.add_frame(static_frame3dp("W"));
             sys.add_body(static_frame3dp("B"), body,
                          kin_state3dp{.omega = vec3dp{0.05, 3.0, 0.02, 0.0}});
@@ -1169,7 +1169,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         auto const cube = make_cuboid_body(m, 1.0, 1.0, 1.0);
 
         dynamic_system3dp sys;
-        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0}); // isolate the spring oscillator
+        sys.set_gravity(vec3dp{}); // isolate the spring oscillator
         sys.add_frame(static_frame3dp("W"));
         sys.add_prismatic_body(static_frame3dp("B"), cube, vec3dp{1.0, 0.0, 0.0, 0.0}, A0,
                                0.0);          // slide along e1; q0 = A0, v0 = 0
@@ -1211,7 +1211,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         auto const cube = make_cuboid_body(m, 1.0, 1.0, 1.0);
 
         dynamic_system3dp sys;
-        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.set_gravity(vec3dp{});
         sys.add_frame(static_frame3dp("W"));
         sys.add_prismatic_body(static_frame3dp("B"), cube, vec3dp{1.0, 0.0, 0.0, 0.0}, A0,
                                0.0);
@@ -1256,7 +1256,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         // sign/magnitude check: a CONSTANT force F0 along e2 gives joint accel F0/mt
         {
             dynamic_system3dp s;
-            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.set_gravity(vec3dp{});
             s.add_frame(static_frame3dp("W"));
             s.add_prismatic_body(static_frame3dp("B"),
                                  make_cuboid_body(mt, 1.0, 1.0, 1.0),
@@ -1277,7 +1277,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         auto run_axis = [&](value_t Om, vec3dp const& dir, value_t K, value_t R,
                             bool use_sin) {
             dynamic_system3dp s;
-            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.set_gravity(vec3dp{});
             s.add_frame(static_frame3dp("W"));
             s.add_prismatic_body(static_frame3dp("B"),
                                  make_cuboid_body(mt, 1.0, 1.0, 1.0), dir);
@@ -1374,7 +1374,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         value_t const m = 1.0, L = 1.0, Om = 2.0, k = 20.0, c = 2.0;
         auto const cube = make_cuboid_body(m, 0.05, 0.05, 0.05); // near point mass
         dynamic_system3dp sys;
-        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.set_gravity(vec3dp{});
         sys.add_frame(static_frame3dp("W"));
         sys.add_revolute_body(static_frame3dp("S"), make_cuboid_body(1.0, 0.1, 0.1, 0.1),
                               O_3dp, vec3dp{1.0, 0.0, 0.0, 0.0}); // spin hinge about e1
@@ -1414,7 +1414,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
             auto const cube = make_cuboid_body(m, 0.1, 0.1, 0.1);
 
             dynamic_system3dp sys;
-            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.set_gravity(vec3dp{});
             sys.add_frame(static_frame3dp("W"));
             sys.add_prismatic_body(static_frame3dp("B"), cube, vec3dp{1.0, 0.0, 0.0, 0.0},
                                    x0, 0.0); // q0 = x0
@@ -1455,7 +1455,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
             auto const cube = make_cuboid_body(1.0, 0.05, 0.05, 0.4);
 
             dynamic_system3dp sys;
-            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.set_gravity(vec3dp{});
             sys.add_frame(static_frame3dp("W"));
             // revolute hinge about e1 through the origin (the tilt DOF), start tilted th0
             sys.add_revolute_body(static_frame3dp("B"), cube, O_3dp,
@@ -1926,8 +1926,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             dynamic_system3dp s;
             s.set_gravity(vec3dp{0.0, -gg, 0.0, 0.0});
             s.add_frame(static_frame3dp("W"));
-            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
-                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0}, vec3dp{}),
                                 make_cuboid_body(m, w, 2.0 * l, w),
                                 vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0});
             return s;
@@ -1996,12 +1995,11 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         // per screw; the solve returns M q-ddot = tau (the fold lands on the right index)
         {
             dynamic_system3dp s;
-            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.set_gravity(vec3dp{});
             s.add_frame(static_frame3dp("W"));
-            s.add_spherical_body(static_frame3dp("B", vec3dp{0.0, -0.4, 0.0, 1.0},
-                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
-                                 make_cuboid_body(3.0, 0.2, 0.8, 0.1),
-                                 vec3dp{0.0, 0.4, 0.0, 1.0});
+            s.add_spherical_body(
+                static_frame3dp("B", vec3dp{0.0, -0.4, 0.0, 1.0}, vec3dp{}),
+                make_cuboid_body(3.0, 0.2, 0.8, 0.1), vec3dp{0.0, 0.4, 0.0, 1.0});
             std::vector<value_t> const tau{0.3, -2.0, 0.5};
             s.set_joint_torque(1, [tau](value_t) { return tau; });
             auto const M = s.mass_matrix();
@@ -2026,11 +2024,10 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         auto make = [](value_t mismatch) {
             closed_loop_system3dp cl;
             cl.add_frame(static_frame3dp("W"));
-            cl.add_revolute_body(static_frame3dp("bar", vec3dp{0.3, 0.0, 0.0, 1.0},
-                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
-                                 make_cuboid_body(2.0, 0.6, 0.06, 0.06),
-                                 vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
-                                 0.0, 0.0, 0);
+            cl.add_revolute_body(
+                static_frame3dp("bar", vec3dp{0.3, 0.0, 0.0, 1.0}, vec3dp{}),
+                make_cuboid_body(2.0, 0.6, 0.06, 0.06), vec3dp{-0.3, 0.0, 0.0, 1.0},
+                vec3dp{0.0, 0.0, 1.0, 0.0}, 0.0, 0.0, 0);
             cl.add_loop_constraint(loop_constraint3dp{
                 1, vec3dp{0.3, 0.0, 0.0, 1.0}, 0, vec3dp{0.6 + mismatch, 0.0, 0.0, 1.0},
                 constraint3dp::coincidence});
@@ -2064,8 +2061,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             dynamic_system3dp s;
             s.set_gravity(vec3dp{0.0, -g, 0.0, 0.0});
             s.add_frame(static_frame3dp("W"));
-            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
-                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0}, vec3dp{}),
                                 make_cuboid_body(m, w, 2.0 * l, w),
                                 vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 0.4,
                                 0.7);
@@ -2105,13 +2101,11 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             dynamic_system3dp s;
             s.set_gravity(vec3dp{0.0, -g, 0.0, 0.0});
             s.add_frame(static_frame3dp("W"));
-            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0},
-                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+            s.add_revolute_body(static_frame3dp("P", vec3dp{0.0, -l, 0.0, 1.0}, vec3dp{}),
                                 make_cuboid_body(m, w, 2.0 * l, w),
                                 vec3dp{0.0, l, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 0.3,
                                 0.0);
-            s.add_revolute_body(static_frame3dp("D", vec3dp{0.0, -l, 0.0, 1.0},
-                                                vec3dp{0.0, 0.0, 0.0, 0.0}),
+            s.add_revolute_body(static_frame3dp("D", vec3dp{0.0, -l, 0.0, 1.0}, vec3dp{}),
                                 make_cuboid_body(1.5, 0.3, 0.3, 0.05),
                                 vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
                                 0.0, 0.0, 1);
@@ -2134,20 +2128,18 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
             };
             closed_loop_system3dp cl;
             cl.add_frame(static_frame3dp("W"));
-            cl.add_revolute_body(static_frame3dp("b1", vec3dp{0.3, 0.0, 0.0, 1.0},
-                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
-                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
-                                 vec3dp{0.0, 0.0, 1.0, 0.0}, 0.35, 0.0, cl.index_of("W"));
-            cl.add_revolute_body(static_frame3dp("b2", vec3dp{0.6, 0.0, 0.0, 1.0},
-                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
-                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
-                                 vec3dp{0.0, 1.0, 0.0, 0.0}, -0.55, 0.0,
-                                 cl.index_of("b1"));
-            cl.add_revolute_body(static_frame3dp("b3", vec3dp{0.6, 0.0, 0.0, 1.0},
-                                                 vec3dp{0.0, 0.0, 0.0, 0.0}),
-                                 seg, vec3dp{-0.3, 0.0, 0.0, 1.0},
-                                 vec3dp{1.0, 0.0, 0.0, 0.0}, 0.25, 0.0,
-                                 cl.index_of("b2"));
+            cl.add_revolute_body(
+                static_frame3dp("b1", vec3dp{0.3, 0.0, 0.0, 1.0}, vec3dp{}), seg,
+                vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 0.35, 0.0,
+                cl.index_of("W"));
+            cl.add_revolute_body(
+                static_frame3dp("b2", vec3dp{0.6, 0.0, 0.0, 1.0}, vec3dp{}), seg,
+                vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0}, -0.55, 0.0,
+                cl.index_of("b1"));
+            cl.add_revolute_body(
+                static_frame3dp("b3", vec3dp{0.6, 0.0, 0.0, 1.0}, vec3dp{}), seg,
+                vec3dp{-0.3, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 0.0, 0.0}, 0.25, 0.0,
+                cl.index_of("b2"));
             size_t const W = cl.index_of("W");
             size_t const b2 = cl.index_of("b2"), b3 = cl.index_of("b3");
             vec3dp const tip_b{0.3, 0.0, 0.0, 1.0};
@@ -2346,7 +2338,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         vec3dp const end_b{-0.5, 0.0, 0.0, 1.0};
         auto build = [&](value_t vy) {
             closed_loop_system3dp cl;
-            cl.system().set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            cl.system().set_gravity(vec3dp{});
             cl.add_frame(static_frame3dp("W"));
             cl.add_body(static_frame3dp("rod", vec3dp{0.0, 0.0, 0.0, 1.0}), rod,
                         kin_state3dp{.vel = vec3dp{0.0, vy, 0.0, 0.0}});
@@ -2757,7 +2749,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         vec3dp const ez{0.0, 0.0, 1.0, 0.0}, ey{0.0, 1.0, 0.0, 0.0};
 
         dynamic_system3dp sys;
-        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.set_gravity(vec3dp{});
         sys.add_frame(static_frame3dp("W"));
         sys.add_body(static_frame3dp("hub", vec3dp{0.0, 0.0, 0.0, 1.0}), hub,
                      kin_state3dp{.vel = vec3dp{0.1, 0.0, -0.05, 0.0},
@@ -2934,7 +2926,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         //    h * q along the axis -- a screw joint driven at constant rate is a helix
         {
             dynamic_system3dp hel;
-            hel.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            hel.set_gravity(vec3dp{});
             hel.add_frame(static_frame3dp("W"));
             value_t const pitch = 0.05;
             // the screw axis is the WORLD z axis, given in the nut's own frame: the nut
@@ -5284,10 +5276,10 @@ TEST_SUITE("PGA3DP: coordinate transformation")
                 sys.set_state(
                     i_sat, kin_state3dp{vec3dp{value_t(dot(v, bx)), value_t(dot(v, by)),
                                                value_t(dot(v, bz)), 0.0},
-                                        vec3dp{0.0, 0.0, 0.0, 0.0},
+                                        vec3dp{},
                                         vec3dp{value_t(dot(Om, bx)), value_t(dot(Om, by)),
                                                value_t(dot(Om, bz)), 0.0},
-                                        vec3dp{0.0, 0.0, 0.0, 0.0}});
+                                        vec3dp{}});
 
                 // ---- read everything off the tree -------------------------------------
 
@@ -5358,10 +5350,10 @@ TEST_SUITE("PGA3DP: coordinate transformation")
                 sys.set_state(
                     i_sat, kin_state3dp{vec3dp{value_t(dot(v, bx)), value_t(dot(v, by)),
                                                value_t(dot(v, bz)), 0.0},
-                                        vec3dp{0.0, 0.0, 0.0, 0.0},
+                                        vec3dp{},
                                         vec3dp{value_t(dot(Om, bx)), value_t(dot(Om, by)),
                                                value_t(dot(Om, bz)), 0.0},
-                                        vec3dp{0.0, 0.0, 0.0, 0.0}});
+                                        vec3dp{}});
 
                 auto const qB =
                     unitize(move3dp(O_3dp, sys.get_pos_trafo("Sat", "Berlin")));
@@ -5414,8 +5406,8 @@ TEST_SUITE("PGA3DP: coordinate transformation")
 
         // near zero the floor of 1 keeps the test absolute, so a component that should
         // vanish is still measured against rel_tol and not against nothing
-        CHECK(is_close(vec3dp{0.0, 0.0, 0.0, 0.0}, vec3dp{1e-15, 0.0, 0.0, 0.0}));
-        CHECK(!is_close(vec3dp{0.0, 0.0, 0.0, 0.0}, vec3dp{1e-6, 0.0, 0.0, 0.0}));
+        CHECK(is_close(vec3dp{}, vec3dp{1e-15, 0.0, 0.0, 0.0}));
+        CHECK(!is_close(vec3dp{}, vec3dp{1e-6, 0.0, 0.0, 0.0}));
 
         // distinct from is_congruent, which allows an arbitrary scale factor
         auto const dir = vec3dp{1.0, 2.0, 3.0, 0.0};
@@ -6994,7 +6986,7 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
         CHECK(off_dist < 1.0e-4);
         CHECK(bulge > 1.0e6);
         CHECK(err_trip < 1.0e-6);
-        CHECK(dist2d(aeqd_forward(fra, m, wgs84), vec2d{0.0, 0.0}) < 1.0e-9);
+        CHECK(dist2d(aeqd_forward(fra, m, wgs84), vec2d{}) < 1.0e-9);
     }
 
     TEST_CASE("geodesics: the Helmert transformation in both conventions against PROJ")
