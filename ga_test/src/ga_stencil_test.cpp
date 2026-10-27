@@ -1629,6 +1629,36 @@ TEST_SUITE("dense solver: lstsq_solve / nullspace_project")
         fmt::println("");
     }
 
+    TEST_CASE("kkt_solve: the kept rows are the best-conditioned independent subset")
+    {
+        fmt::println(
+            "kkt_solve: a nearly dependent row is not kept when a better one exists");
+
+        // G = [[1, 0], [1, d], [0, 1]], rank 2. In the given order the second row is
+        // independent only to d = 1e-10; the best pair is the first and the third. Until
+        // 2026-10-27 the rows were kept greedily in order -- the first two here -- and
+        // the reduced system amplified rounding by 1/d: x[1] came out 5.8e-8 off. The
+        // pivoted QR of G^T keeps the well-conditioned pair (a body on four corners
+        // presented exactly this, at 7e-11, and its accelerations reached 1e11).
+        double const d = 1.0e-10;
+        std::vector<double> const G{1.0, 0.0, 1.0, d, 0.0, 1.0}, M{1.0, 0.0, 0.0, 1.0};
+        double const q0 = 0.3, q1 = -0.7;
+        std::vector<double> const g{q0, q0 + d * q1, q1}, f{0.0, 0.0};
+        std::vector<double> lambda;
+        size_t rank = 0;
+        auto const x = kkt_solve(M, G, f, g, 2, 3, &lambda, &rank);
+        CHECK(rank == 2);
+        CHECK(std::abs(x[0] - q0) < 1.0e-12);
+        CHECK(std::abs(x[1] - q1) < 1.0e-12);
+        auto const keep = kkt_factorize(M, G, 2, 3).keep;
+        REQUIRE(keep.size() == 2);
+        CHECK(keep[0] != 1); // the nearly dependent row is not among the kept
+        CHECK(keep[1] != 1);
+        fmt::println("    rank {}, error ({:.1e}, {:.1e}), kept rows {} and {}", rank,
+                     std::abs(x[0] - q0), std::abs(x[1] - q1), keep[0], keep[1]);
+        fmt::println("");
+    }
+
     TEST_CASE("lstsq_solve: damping is off by default and reduces to the exact solve")
     {
         fmt::println("lstsq_solve: damping is off by default and reduces to the exact "

@@ -1513,6 +1513,23 @@ class dynamic_system3dp : public kinematic_system3dp {
     // (stored as laws, as wrench_ is)
     std::unordered_map<size_t, torque_law> torque_;
     std::unordered_map<size_t, torque_vec_law> torque_v_;
+
+    // a motor joint's configuration at the integrator stage being evaluated: during a
+    // step its motor M stays the step's start (the generator B accumulates on top of
+    // it), so joint_motor() returns this instead while a step runs. Written by
+    // write_state, cleared by commit_state; empty between steps.
+    std::unordered_map<size_t, mvec3dp_e> stage_M_;
+
+    // A spring + damper on a MOTOR joint (set_joint_spring_damper), the twin of the
+    // coordinate joint's stiffness / damping / q_rest: its constants and its REST, the
+    // joint's motor when the spring was attached. Kept beside the joint record rather
+    // than in it, so the bound joint_state3dp keeps its fields.
+    struct motor_spring {
+        value_t k{0.0};
+        value_t c{0.0};
+        mvec3dp_e rest;
+    };
+    std::unordered_map<size_t, motor_spring> motor_springs_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
 
     // a PASSIVE joint (joint_drive3dp::actuated == false) has no actuator, so a torque
@@ -1848,10 +1865,21 @@ class dynamic_system3dp : public kinematic_system3dp {
         apply_joint_state(idx);
     }
     // motor joints: the body->parent motor (the configuration); set + refresh the pose
-    mvec3dp_e const& joint_motor(size_t idx) const { return joint[idx].M; }
+    //
+    // Inside a step -- in a force law evaluated at an RK4 stage -- joint_motor() is the
+    // stage's configuration, as joint_phi() / joint_rates() are; the joint's committed
+    // motor M is the step's start until the step ends (until 2026-10-27 joint_motor()
+    // returned M there too, so a law reading it saw the configuration frozen at the
+    // step's start).
+    mvec3dp_e const& joint_motor(size_t idx) const
+    {
+        auto const it = stage_M_.find(idx);
+        return it != stage_M_.end() ? it->second : joint[idx].M;
+    }
     void set_joint_motor(size_t idx, mvec3dp_e const& M)
     {
         joint[idx].M = M;
+        stage_M_.erase(idx);
         apply_joint_state(idx);
     }
 
@@ -1876,15 +1904,66 @@ class dynamic_system3dp : public kinematic_system3dp {
         apply_joint_state(idx);
     }
 
-    // Attach a linear spring + damper to a 1-DOF joint's generalised coordinate q:
-    // tau += -k*(q - q0) - c*q-dot. Additive to the gravity/bias generalised forces; the
-    // coupled forward dynamics and step() pick it up automatically. Only revolute /
-    // prismatic joints consume it (a free/rigid frame ignores these fields).
+    // Attach a linear spring + damper to a joint. On a 1-DOF joint (revolute, prismatic,
+    // helical) it acts on the coordinate q: tau += -k*(q - q0) - c*q-dot. On a MOTOR
+    // joint it acts on the joint's own coordinates theta_k of the motion from its rest,
+    // the motor M_0 it holds when the spring is attached (q0 does not apply and must be
+    // 0):
+    //
+    //     2 rlog(rrev(M_0) (x) M) = sum_k theta_k S_k,   tau_k += -k theta_k - c rate_k
+    //
+    // with S_k the joint's screws. Its potential, 1/2 k (q - q0)^2 or 1/2 k |theta|^2,
+    // is counted in potential_energy(); the damper dissipates. Additive to the
+    // gravity/bias generalised forces and stored physics, not a law: allowed on a
+    // passive joint, carried along by a copy. k = c = 0 removes a motor joint's spring.
+    //
+    // A SPHERICAL or CYLINDRICAL joint takes one: there -k theta is the force of the
+    // potential (the rotation vector is fixed by the exponential's Jacobian; the
+    // cylindrical screws commute), and the energy is conserved to the integrator's order.
+    // A PLANAR or FREE joint does not: its rotation and translation do not commute, and
+    // the same spring drifts in energy by an amount that does not shrink with the step
+    // (measured 2026-10-27: 9.5e-3 / 2.4e-4 relative over 2 s at every dt) -- refused.
     void set_joint_spring_damper(size_t idx, value_t k, value_t c, value_t q0 = 0.0)
     {
-        joint[idx].stiffness = k;
-        joint[idx].damping = c;
-        joint[idx].q_rest = q0;
+        if (joint[idx].screws.empty()) {
+            joint[idx].stiffness = k;
+            joint[idx].damping = c;
+            joint[idx].q_rest = q0;
+            return;
+        }
+        if (q0 != 0.0)
+            throw std::runtime_error("dynamic_system3dp: a motor joint's spring rests at "
+                                     "the joint's motor when "
+                                     "it is attached; q0 does not apply.");
+        if (k == 0.0 && c == 0.0) {
+            motor_springs_.erase(idx);
+            return;
+        }
+        if (joint[idx].type != joint3dp::spherical &&
+            joint[idx].type != joint3dp::cylindrical)
+            throw std::runtime_error(
+                "dynamic_system3dp: a spring is provided on a spherical or cylindrical "
+                "motor joint only (on a planar or free joint, rotation and translation "
+                "do not commute and the spring is not conservative).");
+        motor_springs_[idx] = motor_spring{k, c, joint_motor(idx)};
+    }
+
+    // a motor joint's spring coordinates theta_k (see set_joint_spring_damper): the
+    // joint's motion from its rest as a twist, resolved onto its screws
+    std::vector<value_t> motor_spring_coords(size_t idx) const
+    {
+        auto const& js = joint[idx];
+        twist3dp const B =
+            2.0 * rlog(rgpr(rrev(motor_springs_.at(idx).rest), joint_motor(idx)));
+        size_t const k = js.screws.size();
+        std::vector<value_t> A(6 * k), b{B.vx, B.vy, B.vz, B.mx, B.my, B.mz};
+        for (size_t s = 0; s < k; ++s) {
+            twist3dp const& S = js.screws[s];
+            value_t const col[6] = {S.vx, S.vy, S.vz, S.mx, S.my, S.mz};
+            for (size_t r = 0; r < 6; ++r)
+                A[r * k + s] = col[r];
+        }
+        return minnorm_solve(A, b, k);
     }
 
     // Attach the joint's own SPECIFICATION: its RESTRICTION (where the coordinate may
@@ -2154,6 +2233,13 @@ class dynamic_system3dp : public kinematic_system3dp {
                 pe +=
                     0.5 * (sp.k.x * d.x * d.x + sp.k.y * d.y * d.y + sp.k.z * d.z * d.z);
             }
+        }
+        // motor-joint springs: 1/2 k |theta|^2
+        for (auto const& [fi, ms] : motor_springs_) {
+            value_t th2 = 0.0;
+            for (value_t const th : motor_spring_coords(fi))
+                th2 += th * th;
+            pe += 0.5 * ms.k * th2;
         }
         return pe;
     }
@@ -2668,7 +2754,8 @@ class dynamic_system3dp : public kinematic_system3dp {
                 twist3dp B{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
-                set_pose(rc[c].frame, pose3dp_from_motor(rgpr(js.M, rexp(0.5 * B))));
+                auto const& Ms = stage_M_[rc[c].frame] = rgpr(js.M, rexp(0.5 * B));
+                set_pose(rc[c].frame, pose3dp_from_motor(Ms));
                 twist3dp V{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     V = V + js.rate[k] * js.screws[k];
@@ -2724,6 +2811,7 @@ class dynamic_system3dp : public kinematic_system3dp {
                 apply_joint_state(rc[c].frame);
             }
         }
+        stage_M_.clear(); // the step is committed: joint_motor() is M again
     }
 
     // the coordinates of the given joint frames, in dof_coords() order (a driven or rigid
@@ -2901,12 +2989,26 @@ class dynamic_system3dp : public kinematic_system3dp {
                           bool with_joint_torques)
     {
         size_t const n = rc.size();
+        std::vector<value_t> theta; // a motor joint's spring coordinates, ...
+        size_t theta_of = size();   // ... and the frame they were computed for
         // linear spring/damper generalised forces on each joint coordinate (additive,
         // diagonal in joint space): tau_j += -k_j (q_j - q0_j) - c_j q-dot_j. Zero unless
         // a spring/damper was attached via set_joint_spring_damper.
         for (size_t j = 0; j < n; ++j) {
             auto const& js = joint[rc[j].frame];
-            if (!js.screws.empty()) continue; // motor joints carry no coordinate spring
+            if (!js.screws.empty()) {
+                // a motor joint's spring acts on its coordinates theta (computed once
+                // per joint)
+                auto const it = motor_springs_.find(rc[j].frame);
+                if (it == motor_springs_.end()) continue;
+                if (theta_of != rc[j].frame) {
+                    theta = motor_spring_coords(rc[j].frame);
+                    theta_of = rc[j].frame;
+                }
+                RHS[j] +=
+                    -it->second.k * theta[rc[j].k] - it->second.c * js.rate[rc[j].k];
+                continue;
+            }
             RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
             // the joint's own STOP: a one-sided spring-damper that engages only outside
             // the restriction and may only push the coordinate back INTO it, never pull
@@ -3374,6 +3476,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         size_t const dim = 2 * n; // state = [positions..., rates...]
         std::vector<value_t> u_mem;
         read_state(rc, u_mem);
+        stage_M_.clear(); // (a step that threw may have left a stage behind)
 
         // shared derivative f(t, u) -> du for both integrators: prescribe the moving base
         // and write u into the joints at the (sub-)step time, then solve the coupled

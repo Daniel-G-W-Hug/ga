@@ -1449,6 +1449,12 @@ class dynamic_system2dp : public kinematic_system2dp {
     // (stored as laws, as wrench_ is)
     std::unordered_map<size_t, torque_law> torque_;
     std::unordered_map<size_t, torque_vec_law> torque_v_;
+
+    // a motor joint's configuration at the integrator stage being evaluated: during a
+    // step its motor M stays the step's start (the generator B accumulates on top of
+    // it), so joint_motor() returns this instead while a step runs. Written by
+    // write_state, cleared by commit_state; empty between steps.
+    std::unordered_map<size_t, mvec2dp_u> stage_M_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
 
     // a PASSIVE joint (joint_drive2dp::actuated == false) has no actuator, so a torque
@@ -1709,10 +1715,21 @@ class dynamic_system2dp : public kinematic_system2dp {
         apply_joint_state(idx);
     }
     // motor joints: the body->parent motor (the configuration); set + refresh the pose
-    mvec2dp_u const& joint_motor(size_t idx) const { return joint[idx].M; }
+    //
+    // Inside a step -- in a force law evaluated at an RK4 stage -- joint_motor() is the
+    // stage's configuration, as joint_phi() / joint_rates() are; the joint's committed
+    // motor M is the step's start until the step ends (until 2026-10-27 joint_motor()
+    // returned M there too, so a law reading it saw the configuration frozen at the
+    // step's start).
+    mvec2dp_u const& joint_motor(size_t idx) const
+    {
+        auto const it = stage_M_.find(idx);
+        return it != stage_M_.end() ? it->second : joint[idx].M;
+    }
     void set_joint_motor(size_t idx, mvec2dp_u const& M)
     {
         joint[idx].M = M;
+        stage_M_.erase(idx);
         apply_joint_state(idx);
     }
 
@@ -1739,10 +1756,23 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // Attach a linear spring + damper to a 1-DOF joint's generalised coordinate q:
     // tau += -k*(q - q0) - c*q-dot. Additive to the gravity/bias generalised forces; the
-    // coupled forward dynamics and step() pick it up automatically. Only revolute /
-    // prismatic joints consume it (a free/rigid frame ignores these fields).
+    // coupled forward dynamics and step() pick it up automatically. A revolute or
+    // prismatic joint takes one. The planar FREE joint, the only motor joint in 2D, does
+    // not: its rotation and translation do not commute, and -k theta on the coordinates
+    // of its motion is not the force of the potential 1/2 k |theta|^2 there (the 3D
+    // planar and free joints, measured, drift in energy independently of the step).
+    // Until 2026-10-27 a spring set on it was ignored silently; now it is refused, and
+    // k = c = 0 (taking springs down) stays allowed.
     void set_joint_spring_damper(size_t idx, value_t k, value_t c, value_t q0 = 0.0)
     {
+        if (!joint[idx].screws.empty()) {
+            if (k != 0.0 || c != 0.0 || q0 != 0.0)
+                throw std::runtime_error(
+                    "dynamic_system2dp: a spring on a free joint is not provided (its "
+                    "rotation and translation do not commute; no conservative spring "
+                    "on its coordinates).");
+            return;
+        }
         joint[idx].stiffness = k;
         joint[idx].damping = c;
         joint[idx].q_rest = q0;
@@ -2400,7 +2430,8 @@ class dynamic_system2dp : public kinematic_system2dp {
                 twist2dp B{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     B = B + u[c - (js.screws.size() - 1) + k] * js.screws[k];
-                set_pose(rc[c].frame, pose2dp_from_motor(rgpr(js.M, rexp(0.5 * B))));
+                auto const& Ms = stage_M_[rc[c].frame] = rgpr(js.M, rexp(0.5 * B));
+                set_pose(rc[c].frame, pose2dp_from_motor(Ms));
                 twist2dp V{};
                 for (size_t k = 0; k < js.screws.size(); ++k)
                     V = V + js.rate[k] * js.screws[k];
@@ -2456,6 +2487,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                 apply_joint_state(rc[c].frame);
             }
         }
+        stage_M_.clear(); // the step is committed: joint_motor() is M again
     }
 
     // the coordinates of the given joint frames, in dof_coords() order
@@ -3088,6 +3120,7 @@ class dynamic_system2dp : public kinematic_system2dp {
         size_t const n = rc.size();
         std::vector<value_t> u_mem, uh_mem(2 * 2 * n), rhs_mem(2 * n);
         read_state(rc, u_mem);
+        stage_M_.clear(); // (a step that threw may have left a stage behind)
         auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 2 * n);
         auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2 * n);
         auto const rhs =

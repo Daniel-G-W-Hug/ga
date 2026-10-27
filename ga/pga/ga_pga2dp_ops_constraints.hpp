@@ -642,6 +642,7 @@ class closed_loop_system2dp {
 
         std::vector<value_t> u_mem, uh_mem(2 * 2 * n), rhs_mem(2 * n);
         tree_.read_state(rc, u_mem);
+        tree_.stage_M_.clear(); // (a step that threw may have left a stage behind)
         auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 2 * n);
         auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2 * n);
         auto const rhs =

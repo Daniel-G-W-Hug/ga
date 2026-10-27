@@ -2835,6 +2835,52 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: ground_contact3dp - a box lands on four corners")
+    {
+        fmt::println("pga3dp: ground_contact3dp - a box lands flat on its four corners");
+
+        // A box tipped about one edge lands on that edge, rotates about it and lands on
+        // the opposite one: four point contacts on one body, 12 rows on 6 freedoms. With
+        // the box nearly level some rows are nearly dependent; until 2026-10-27 the KKT
+        // solve kept rows greedily in their given order, took a row independent only to
+        // ~1e-10, and the accelerations diverged in the step after the landing (the
+        // position Newton then failed on a residual of 1e42). Now it lands at any tilt
+        // and lies at half its height.
+        value_t const a = 0.4, b = 0.3, c = 0.1;
+        for (value_t const tilt : {value_t(1.0e-10), value_t(1.0e-3)}) {
+            closed_loop_system3dp cl;
+            cl.system().set_gravity(vec3dp{0.0, 0.0, -9.81, 0.0});
+            cl.add_frame(static_frame3dp("W"));
+            cl.add_body(static_frame3dp("box", vec3dp{0.0, 0.0, 0.2, 1.0},
+                                        vec3dp{tilt, 0.25, 0.0, 0.0}),
+                        make_cuboid_body(2.0, a, b, c), kin_state3dp{}, 0);
+            ground_contact3dp gc(
+                cl, ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                    vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                    vec3dp{0.0, 1.0, 0.0, 1.0}));
+            for (value_t sx : {-0.5 * a, 0.5 * a})
+                for (value_t sy : {-0.5 * b, 0.5 * b})
+                    gc.add({1, vec3dp{sx, sy, -0.5 * c, 1.0}});
+            CAPTURE(tilt);
+            bool threw = false;
+            try {
+                for (int i = 0; i < 1500; ++i)
+                    gc.step(1.0e-3);
+            }
+            catch (std::exception const&) {
+                threw = true;
+            }
+            CHECK_FALSE(threw);
+            vec3dp const O = unitize(move3dp(O_3dp, cl.system().get_pos_trafo(1, 0)));
+            CHECK(gc.events().size() == 4);
+            CHECK(cl.constraint_rows() == 12);
+            CHECK(std::abs(O.z - 0.5 * c) < 1.0e-9);
+            fmt::println("    tilt {:.0e} rad: {} touchdowns, the centre at z = {:.9f}",
+                         tilt, gc.events().size(), O.z);
+        }
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: ground_contact3dp - one step resolves every event in it")
     {
         fmt::println("pga3dp: ground_contact3dp - one step, twenty touchdowns");
@@ -3305,6 +3351,101 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("  200 ms of swing: q = {:.12f} stated, {:.12f} silent, "
                      "{:.12f} at another length",
                      phi_spec, phi_free, phi_other);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: a spring on a motor joint - conservative where it is provided")
+    {
+        fmt::println("pga3dp: a spring on a spherical or cylindrical joint");
+
+        // set_joint_spring_damper on a motor joint: tau_k = -k theta_k - c rate_k with
+        // theta the coordinates of 2 rlog(rrev(M_0) M) on the joint's screws, M_0 the
+        // motor at registration. Gated by energy: with no gravity and no damping the
+        // drift must fall at the integrator's order as the step halves (measured x32).
+        auto make = [](int type) {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{});
+            s.add_frame(static_frame3dp("W"));
+            auto const b = make_cuboid_body(2.0, 0.5, 0.2, 0.1);
+            vec3dp const piv{-0.25, 0.0, 0.0, 1.0}, ax{0.0, 0.6, 0.8, 0.0};
+            static_frame3dp const f("b", vec3dp{0.3, 0.1, 0.0, 1.0});
+            if (type == 0) s.add_spherical_body(f, b, piv, 0);
+            if (type == 1) s.add_cylindrical_body(f, b, piv, ax, 0);
+            if (type == 2) s.add_planar_body(f, b, piv, ax, 0);
+            if (type == 3) s.add_body(f, b, kin_state3dp{}, 0);
+            return s;
+        };
+        // law = true: the spring written as a torque LAW reading s.joint_motor(), the
+        // form a user writes -- it sees the stage's configuration only since
+        // joint_motor() returns it inside a step (2026-10-27; it was frozen at the step's
+        // start)
+        auto drift = [&](int type, value_t dt, bool law) {
+            auto s = make(type);
+            size_t const b = s.index_of("b");
+            if (law) {
+                mvec3dp_e const M0 = s.joint_motor(b);
+                s.set_joint_torque(b, [b, M0](dynamic_system3dp const& q, value_t) {
+                    vec3d const th =
+                        2.0 * to_vec3d(rlog(rgpr(rrev(M0), q.joint_motor(b))));
+                    return std::vector<value_t>{-20.0 * th.x, -20.0 * th.y, -20.0 * th.z};
+                });
+            }
+            else s.set_joint_spring_damper(b, 20.0, 0.0);
+            std::vector<value_t> r{1.3, -0.7, 0.9};
+            r.resize(s.joint_props(b).screws.size());
+            s.set_joint_rates(b, r);
+            value_t const E0 = law ? s.kinetic_energy() : s.total_energy();
+            value_t worst = 0.0;
+            for (int i = 0; i < int(2.0 / dt + 0.5); ++i) {
+                s.step(dt);
+                value_t const E = law ? s.kinetic_energy() : s.total_energy();
+                if (!law) worst = std::max(worst, std::abs(E - E0) / E0);
+            }
+            if (law) { // the law's potential is not counted: compare with the spring
+                auto t = make(type);
+                t.set_joint_spring_damper(t.index_of("b"), 20.0, 0.0);
+                t.set_joint_rates(t.index_of("b"), r);
+                for (int i = 0; i < int(2.0 / dt + 0.5); ++i)
+                    t.step(dt);
+                worst = std::abs(s.kinetic_energy() - t.kinetic_energy()) / E0;
+            }
+            return worst;
+        };
+        for (int type : {0, 1}) {
+            value_t const d1 = drift(type, 2.0e-3, false),
+                          d2 = drift(type, 1.0e-3, false);
+            CAPTURE(type);
+            CHECK(d2 < 1.0e-7);
+            CHECK(d1 / d2 > 16.0); // the integrator's order, not a structural drift
+            fmt::println(
+                "    {}: energy drift over 2 s {:.2e} at dt 2 ms, {:.2e} at 1 ms",
+                type == 0 ? "spherical  " : "cylindrical", d1, d2);
+        }
+        // the same spring as a law reading joint_motor(): the same physics, so it follows
+        // the stored spring to round-off (both read joint_motor(); the energy check above
+        // is the one that sees a motor frozen at the step's start -- 7.4 at dt 2 ms then)
+        value_t const l1 = drift(0, 2.0e-3, true), l2 = drift(0, 1.0e-3, true);
+        CHECK(l1 < 1.0e-12);
+        CHECK(l2 < 1.0e-12);
+        fmt::println(
+            "    a law reading joint_motor(): {:.1e} / {:.1e} from the stored spring", l1,
+            l2);
+
+        // refused where it would not be conservative, and a rest other than the motor
+        for (int type : {2, 3}) {
+            auto s = make(type);
+            size_t const b = s.index_of("b");
+            CHECK_THROWS_AS(s.set_joint_spring_damper(b, 20.0, 0.0), std::runtime_error);
+            CHECK_NOTHROW(s.set_joint_spring_damper(b, 0.0, 0.0)); // taking it down
+        }
+        auto s = make(0);
+        size_t const b = s.index_of("b");
+        CHECK_THROWS_AS(s.set_joint_spring_damper(b, 20.0, 1.0, 0.3), std::runtime_error);
+        // ... and a passive ball joint carries one: it is physics, not an actuator
+        joint_drive3dp passive{};
+        passive.actuated = false;
+        s.set_joint_drive(b, passive);
+        CHECK_NOTHROW(s.set_joint_spring_damper(b, 20.0, 1.0));
         fmt::println("");
     }
 

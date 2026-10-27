@@ -1708,44 +1708,31 @@ kkt_factor<T> kkt_factorize(std::vector<T> const& M, std::vector<T> const& G, si
     F.multipliers = multipliers;
     F.rank = (m > 0) ? matrix_rank(G, m, n) : 0;
 
-    // full row rank: every row; a rank drop: a maximal independent subset (greedy: a row
-    // is kept when it raises the rank) -- see kkt_solve for why
+    // full row rank: every row; a rank drop: the best-conditioned maximal independent
+    // subset -- see kkt_solve for why
     if (F.rank == m) {
         F.keep.resize(m);
         for (size_t c = 0; c < m; ++c)
             F.keep[c] = c;
     }
     else {
-        // each trial judged at G's OWN scale. matrix_rank's tolerance is relative to the
-        // largest column of the matrix it is handed, so until 2026-10-27 a tiny leading
-        // row alone read as rank 1 and was kept -- and every real row after it was then
-        // dependent at the trial's scale and dropped (G = [[1e-14, 0], [1, 0], [0, 1]]
-        // kept one row of a rank-2 G, and q-dd violated the third). The tolerance is
-        // rescaled so the test |R_kk| <= rtol * r00 compares against G's r00.
-        auto col_scale = [n](std::vector<T> const& A, size_t rows) {
-            double s = 0.0;
-            for (size_t j = 0; j < n; ++j) {
-                double c = 0.0;
-                for (size_t i = 0; i < rows; ++i)
-                    c += static_cast<double>(A[i * n + j]) *
-                         static_cast<double>(A[i * n + j]);
-                s = std::max(s, c);
-            }
-            return std::sqrt(s);
-        };
-        double const sG = col_scale(G, m);
-        std::vector<T> Gk; // the kept rows
-        for (size_t c = 0; c < m && F.keep.size() < F.rank; ++c) {
-            std::vector<T> trial = Gk;
-            trial.insert(trial.end(), G.begin() + c * n, G.begin() + (c + 1) * n);
-            double const st = col_scale(trial, F.keep.size() + 1);
-            if (!(st > 0.0)) continue; // a zero row raises nothing
-            if (matrix_rank(trial, F.keep.size() + 1, n, 1.0e-12 * sG / st) >
-                F.keep.size()) {
-                F.keep.push_back(c);
-                Gk = std::move(trial);
-            }
-        }
+        // the subset is chosen by the pivoted QR of G^T: its column pivots are G's rows
+        // in the order of their independence, so the first `rank` of them are the
+        // best-conditioned maximal subset. Until 2026-10-27 the rows were taken greedily
+        // in their given order, each kept if it raised the rank above 1e-12 of G's scale:
+        // that admitted rows independent only to 7e-11 while a subset independent to 0.25
+        // existed (a body landing on four corners, the line between two of them tilted
+        // by ~1e-10), and the reduced system amplified the accelerations by 1e11. The
+        // pivoting also keeps a tiny leading row from displacing a real one, which the
+        // greedy order needed a rescaled tolerance for. Sorted, so the rows enter the
+        // bordered system in G's order.
+        std::vector<double> GT(n * m);
+        for (size_t c = 0; c < m; ++c)
+            for (size_t j = 0; j < n; ++j)
+                GT[j * m + c] = static_cast<double>(G[c * n + j]);
+        detail::qr_factor const q = detail::qr_decomp(std::move(GT), n, m, 1.0e-12);
+        F.keep.assign(q.perm.begin(), q.perm.begin() + F.rank);
+        std::sort(F.keep.begin(), F.keep.end());
     }
     size_t const rk = F.keep.size(), Nk = n + rk;
     F.lu.assign(Nk * Nk, 0.0);

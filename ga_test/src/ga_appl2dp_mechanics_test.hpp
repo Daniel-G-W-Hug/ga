@@ -6588,6 +6588,23 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: no spring on a free joint")
+    {
+        fmt::println("pga2dp: a spring on the free joint is refused");
+
+        // the free joint, 2D's only motor joint, rotates and translates in a plane;
+        // the two do not commute, and a spring on its coordinates is not conservative
+        // (the 3D planar joint, the same group, measured). Until 2026-10-27 it was
+        // ignored silently
+        dynamic_system2dp s;
+        s.add_frame(static_frame2dp("W"));
+        s.add_body(static_frame2dp("f", vec2dp{1.0, 0.0, 1.0}, 0.0),
+                   make_disc_body(1.0, 0.1), kin_state2dp{}, 0);
+        CHECK_THROWS_AS(s.set_joint_spring_damper(1, 20.0, 0.0), std::runtime_error);
+        CHECK_NOTHROW(s.set_joint_spring_damper(1, 0.0, 0.0)); // taking springs down
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: a passive joint takes no actuator torque")
     {
         fmt::println("pga2dp: a passive joint takes no actuator torque");

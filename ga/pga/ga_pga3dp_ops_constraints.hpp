@@ -608,6 +608,7 @@ class closed_loop_system3dp {
 
         std::vector<value_t> u;
         tree_.read_state(rc, u);
+        tree_.stage_M_.clear(); // (a step that threw may have left a stage behind)
         // the stage time goes into the tree's clock so a time-varying applied wrench is
         // sampled at the stage time (as dynamic_system's step does); advanced by dt after
         auto f = [&](value_t t, std::vector<value_t> const& uu,
