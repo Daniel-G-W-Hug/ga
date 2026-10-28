@@ -126,8 +126,9 @@ constexpr TriVec3dc<T> car(BiVec3dc<T> const& B);
 // loxodromics) are NOT covered yet -- exp throws for them; compose their
 // motors as rgpr products of simple ones instead.
 //
-// rlog() returns the principal generator: complex acosh of the pseudoscalar
-// part, then t = V / (sinh(w)/w) with V the trivector part. It normalizes its
+// rlog() returns the principal generator: w = log(cosh(w) + sinh(w)) from the
+// pseudoscalar part and the root of rgpr(V, V) = sinh(w)^2 I, then
+// t = V / (sinh(w)/w) with V the trivector part. It normalizes its
 // input to a unit versor first and is restricted to motors in the image of the
 // simple exp (vanishing vector part), throwing otherwise. At and beyond the far
 // root (central part -I or below) it returns the generator of -M, the same
@@ -185,9 +186,11 @@ inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M_in)
     // a translation: sinh(w)/w = 0), and below -1 it is complex (the far sheet of a
     // dilation); there the generator of -M is returned, as the PGA rlog does at its
     // far root. Until 2026-10-27 the first threw and the second returned a wrong
-    // generator. The margin also takes a rotation within ~1e-6 rad of a full turn to
-    // the near sheet, where its logarithm is well conditioned.
-    if (T(gr5(M)) <= T(-1.0) + T(64.0) * std::numeric_limits<T>::epsilon()) M = -M;
+    // generator. The margin, the PGA rlog's 64 eps (the library's equality tolerance),
+    // also takes a rotation within 7.5e-7 rad of a full turn to the near sheet, where its
+    // logarithm is well conditioned (until 2026-10-28 it was 64 machine epsilons, a band
+    // of 3.4e-7).
+    if (T(gr5(M)) <= T(-1.0) + T(64.0) * eps) M = -M;
     // restricted to the image of the simple exp: vector part must vanish
     auto const v = gr1(M);
     T const v_nrm = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w + v.u * v.u);
@@ -199,13 +202,17 @@ inline TriVec3dc<T> rlog(MVec3dc_U<T> const& M_in)
             "cga3dc log: motor outside the simple-generator image (non-zero "
             "vector part)");
     }
-    T const c = T(gr5(M));
-    TriVec3dc<T> const V = gr3(M); // V = (sinh(w)/w) * t
-    std::complex<T> const w = std::acosh(std::complex<T>(c, T(0.0)));
+    std::complex<T> const c(T(gr5(M)), T(0.0)); // central part, cosh(w)
+    TriVec3dc<T> const V = gr3(M);              // V = (sinh(w)/w) * t
+    // w from BOTH parts (see the cga2dc rlog): sinh(w) is a square root of
+    // rgpr(V, V) = sinh(w)^2 I, and w = log(cosh(w) + sinh(w)). Until 2026-10-28 w was
+    // acosh(c), and a rotation 8e-7 short of a full turn was read 1.8e-3 rad off.
+    std::complex<T> s = std::sqrt(std::complex<T>(T(gr5(rgpr(V, V))), T(0.0)));
+    if (std::abs(c + s) < std::abs(c - s)) s = -s;
+    std::complex<T> const w = std::log(c + s);
     std::complex<T> const w2 = w * w;
-    std::complex<T> const sh_ow = (std::abs(w) > T(1e-2))
-                                      ? std::sinh(w) / w
-                                      : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
+    std::complex<T> const sh_ow =
+        (std::abs(w) > T(1e-2)) ? s / w : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
     // singular exactly at the full-turn versors (central part -I); sh_ow is a
     // dimensionless series value of natural scale one, so the floor is absolute
     hd::ga::detail::check_normalization<T>(std::abs(sh_ow),

@@ -104,8 +104,9 @@ namespace hd::ga::cga {
 // transversions (translations are the parabolic case rgpr(B,B) = 0, where the
 // series terminates as rexp(B) = I + B).
 //
-// rlog() returns the principal generator: complex acosh of the central part,
-// then B = rgpr(V, S^-1) with V the bivector part and S = sinh(w)/w. It
+// rlog() returns the principal generator: w = log(cosh(w) + sinh(w)) from the
+// central part and the root of rgpr(V, V) = sinh(w)^2, then B = rgpr(V, S^-1) with V
+// the bivector part and S = sinh(w)/w. It
 // normalizes its input to a unit even versor first. Where the logarithm is
 // singular (S = 0, central part -I: a full turn, or the far sheet of a
 // translation) it returns the generator of -M, the same transformation.
@@ -156,17 +157,28 @@ inline BiVec2dc<T> rlog(MVec2dc_E<T> const& M_in)
     // a full turn, or the far sheet of a translation or of two half turns -- and the
     // generator of -M, the same transformation, is returned (as the PGA rlog does;
     // until 2026-10-27 this threw, or returned a wrong motion a rounding away from it).
-    // Off that root the complex arithmetic below covers both sheets itself.
-    if (std::abs(std::complex<T>(T(gr4(M)), T(gr0(M))) + T(1.0)) <=
-        T(64.0) * std::numeric_limits<T>::epsilon())
-        M = -M;
-    std::complex<T> const c(T(gr4(M)), T(gr0(M))); // central part
+    // Off that root the complex arithmetic below covers both sheets itself. The margin
+    // is the PGA rlog's, 64 eps (the library's equality tolerance): a rotation within
+    // 7.5e-7 rad of a full turn is read on the near sheet (until 2026-10-28 it was 64
+    // machine epsilons, a band of 3.4e-7).
+    if (std::abs(std::complex<T>(T(gr4(M)), T(gr0(M))) + T(1.0)) <= T(64.0) * eps) M = -M;
+    std::complex<T> const c(T(gr4(M)), T(gr0(M))); // central part, cosh(w)
     BiVec2dc<T> const V = gr2(M);                  // V = rgpr(B, sinh(w)/w)
-    std::complex<T> const w = std::acosh(c);       // principal branch
+    // w from BOTH parts, as the PGA rlog takes its half angle by atan2: sinh(w) is a
+    // square root of the central rgpr(V, V) = sinh(w)^2, and w = log(cosh(w) + sinh(w)).
+    // Until 2026-10-28 w was acosh(c), read from the central part alone, which near a
+    // full turn (c -> -1) loses digits as 1/sqrt(1 + c); sinh(w)/w, which goes to zero
+    // there, then carried that loss divided by its own size, and a rotation 8e-7 short
+    // of a full turn was read 1.8e-3 rad off. Of the two roots +-sinh(w) the one with
+    // |c + sinh(w)| >= 1 is taken (Re w >= 0, the principal half), so that the sum does
+    // not cancel; the generator, V w / sinh(w), is the same for both.
+    auto const VV = rgpr(V, V);
+    std::complex<T> s = std::sqrt(std::complex<T>(T(gr4(VV)), T(gr0(VV))));
+    if (std::abs(c + s) < std::abs(c - s)) s = -s;
+    std::complex<T> const w = std::log(c + s);
     std::complex<T> const w2 = w * w;
-    std::complex<T> const sh_ow = (std::abs(w) > T(1e-2))
-                                      ? std::sinh(w) / w
-                                      : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
+    std::complex<T> const sh_ow =
+        (std::abs(w) > T(1e-2)) ? s / w : T(1.0) + w2 / T(6.0) + w2 * w2 / T(120.0);
     // singular exactly at the full-turn versors (central part -I): any
     // generator with rgpr(B,B) = -pi^2 * I exponentiates to -I. sh_ow is a
     // dimensionless series value of natural scale one, so the floor is absolute

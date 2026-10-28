@@ -290,11 +290,12 @@ TEST_SUITE("CGA contracts")
         // A translation is the product of the reflections in two parallel planes at half
         // its distance. That product carries a scale s that depends on the distance,
         // M rrev(M) = s^2 I, so its central part is s cosh(w) = s instead of 1 (w = 0 for
-        // a translation). The CGA logarithm reads the angle from the central part through
-        // the inverse hyperbolic cosine -- unlike PGA's, which takes it from a ratio of
-        // two components -- and read as it stands the scaled translation is a rotation by
-        // 2 acos(s) (ga_docu.pdf, "Conditioning near a full turn"). rlog divides s out
-        // first, and get_translation returns the unit motor.
+        // a translation). Read as its inverse hyperbolic cosine, the scaled translation
+        // is a rotation by 2 acos(s); rlog, which takes w = log(cosh w + sinh w) from
+        // both parts, would read w + log(s) -- unlike PGA's atan2, a ratio of two
+        // components, the logarithm does not divide the scale out (ga_docu.pdf,
+        // "Conditioning near a full turn"). rlog divides s out first, and get_translation
+        // returns the unit motor.
         double const dx = 0.4, dy = -1.1, dz = 0.3;
         double const d = std::sqrt(dx * dx + dy * dy + dz * dz);
         double const nx = dx / d, ny = dy / d, nz = dz / d;
@@ -325,6 +326,62 @@ TEST_SUITE("CGA contracts")
             "    working (rlog divides by s): the unit translation's generator, to "
             "{:.1e}",
             std::sqrt(detail::coeff_sq(diff)));
+        fmt::println("");
+    }
+
+    TEST_CASE("cga2dc / cga3dc: reading a motor near a full turn - far sheet, band")
+    {
+        fmt::println(
+            "cga2dc / cga3dc: reading a motor near a full turn - far sheet, band");
+
+        // A rotation by 2 pi - d. Its generator's square is rgpr(t, t) = alpha I with
+        // alpha = -(angle / 2)^2, so the angle read back is 2 sqrt(-alpha).
+        //
+        // failing (the half angle from the central part alone, w = acosh(cosh w), the
+        // CGA rlog until 2026-10-28): near a full turn acosh loses digits as
+        // 1 / sqrt(1 + cosh w), and sinh(w)/w, which goes to zero there, carries that
+        // loss divided by its own size -- 1.8e-3 rad at 8e-7 short of a full turn.
+        //
+        // working (rlog): w = log(cosh w + sinh w), sinh(w) the root of rgpr(V, V), as
+        // the PGA rlog takes its half angle from both parts by atan2. Within 64 eps of -1
+        // (a full angle within 7.5e-7 of a full turn, the PGA rlog's band) it reads -M,
+        // the remainder d the short way round (ga_docu.pdf, "Conditioning near a full
+        // turn").
+        fmt::println("    {:>13s} {:>14s} {:>14s} {:>14s}", "short of 2 pi",
+                     "acosh (3dc)", "rlog cga2dc", "rlog cga3dc");
+        for (double const d : {1.0e-3, 1.0e-6, 8.0e-7, 7.0e-7, 1.0e-9}) {
+            CAPTURE(d);
+            bool const inside = d < 7.5e-7;
+            double const expect = inside ? d : 2.0 * pi - d;
+            auto const R2 = get_rotation(1.0, 2.0, 2.0 * pi - d);
+            auto const t2 = rlog(R2);
+            double const e2 =
+                std::abs(2.0 * std::sqrt(-double(gr4(rgpr(t2, t2)))) - expect);
+            auto const R3 = get_rotation(1.0, 2.0, 0.5, 0.3, -0.4, 0.866, 2.0 * pi - d);
+            auto const t3 = rlog(R3);
+            double const e3 =
+                std::abs(2.0 * std::sqrt(-double(gr5(rgpr(t3, t3)))) - expect);
+            CHECK(e2 < 1.0e-13);
+            CHECK(e3 < 1.0e-13);
+            CHECK(is_same_transform(rexp(t2), R2));
+            CHECK(is_same_transform(rexp(t3), R3));
+            if (inside) {
+                fmt::println("    {:13.1e} {:>14s} {:14.1e} {:14.1e}  (inside the band: "
+                             "the remainder)",
+                             d, "-", e2, e3);
+                continue;
+            }
+            // the failing arm, on the far sheet only (inside the band the old rlog read
+            // -M as well)
+            std::complex<double> const w =
+                std::acosh(std::complex<double>(double(gr5(R3)), 0.0));
+            auto const t_acosh = (1.0 / (std::sinh(w) / w).real()) * gr3(R3);
+            double const e_acosh =
+                std::abs(2.0 * std::sqrt(-double(gr5(rgpr(t_acosh, t_acosh)))) - expect);
+            if (d <= 1.0e-6) CHECK(e_acosh > 1.0e-6);
+            fmt::println("    {:13.1e} {:14.1e} {:14.1e} {:14.1e}  (the far sheet)", d,
+                         e_acosh, e2, e3);
+        }
         fmt::println("");
     }
 }
