@@ -443,8 +443,9 @@ struct pose2dp {
 //
 // so the twist's z slot is the angle (rate) and its x, y slots are the centre's
 // coordinates times it: the centre is the generator unitized. rexp/rlog work on the
-// HALF generator; screw_axis() returns the full angle from a motor -- what
-// get_motor(C, angle) takes, so the two round-trip -- and the rate from a twist. For a
+// HALF generator; screw_axis() returns the full angle from a motor, of its shortest
+// representative (|angle| <= pi) -- what get_motor(C, angle) takes, so the motion
+// round-trips -- and the rate from a twist. For a
 // translation (angle == 0) the generator is an ideal point and `translation` carries
 // the displacement vector (a direction, z = 0): twist2dp is (-v.y, v.x, omega), so the
 // displacement is (B.y, -B.x).
@@ -467,8 +468,13 @@ inline screw_axis2dp screw_axis(vec2dp const& B)
     return screw_axis2dp{vec2dp{B.x / B.z, B.y / B.z, 1.0}, B.z, vec2dp{}};
 }
 
-// screw axis of a motor: the full angle, 2 * rlog(M)
-inline screw_axis2dp screw_axis(mvec2dp_u const& M) { return screw_axis(2.0 * rlog(M)); }
+// screw axis of a motor: the full angle of the motion's SHORTEST representative,
+// 2 * rlog_shortest(M), in [-pi, pi]. M and -M are one motion and give the same answer;
+// rlog() would read them a full turn apart (until 2026-10-28)
+inline screw_axis2dp screw_axis(mvec2dp_u const& M)
+{
+    return screw_axis(2.0 * rlog_shortest(M));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Screw systems and mobility in the plane (see the 3D header for the account): the

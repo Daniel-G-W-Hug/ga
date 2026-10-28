@@ -282,4 +282,49 @@ TEST_SUITE("CGA contracts")
             CHECK(is_same_transform(rexp(rlog(H3)), H3));
         }
     }
+
+    TEST_CASE("cga3dc: a motor at another scale - read as it stands, a translation turns")
+    {
+        fmt::println("cga3dc: a translation built from two planes, and its scale");
+
+        // A translation is the product of the reflections in two parallel planes at half
+        // its distance. That product carries a scale s that depends on the distance,
+        // M rrev(M) = s^2 I, so its central part is s cosh(w) = s instead of 1 (w = 0 for
+        // a translation). The CGA logarithm reads the angle from the central part through
+        // the inverse hyperbolic cosine -- unlike PGA's, which takes it from a ratio of
+        // two components -- and read as it stands the scaled translation is a rotation by
+        // 2 acos(s) (ga_docu.pdf, "Conditioning near a full turn"). rlog divides s out
+        // first, and get_translation returns the unit motor.
+        double const dx = 0.4, dy = -1.1, dz = 0.3;
+        double const d = std::sqrt(dx * dx + dy * dy + dz * dz);
+        double const nx = dx / d, ny = dy / d, nz = dz / d;
+        auto const P = rgpr(plane3dc(nx, ny, nz, 0.5 * d), plane3dc(nx, ny, nz, 0.0));
+        mvec3dc_u const M = gr1(P) + gr3(P) + gr5(P);
+        double const s = double(gr5(M));                  // the central part
+        double const sig = double(gr5(rgpr(M, rrev(M)))); // M rrev(M) = sig I
+        CHECK(std::abs(sig - s * s) < 1.0e-12);           // sig = s^2
+        CHECK(std::abs(s - 0.7928) < 1.0e-4);
+        // FAILING: read as it stands, the central part s is cosh(w) with w imaginary --
+        // a rotation by 2 acos(s)
+        double const as_rotation = 2.0 * std::acos(s);
+        CHECK(as_rotation > 1.3);
+        // WORKING: rlog divides s out; the generator is the unit translation's, and it
+        // generates the same transformation
+        auto const T = get_translation(dx, dy, dz);
+        CHECK(std::abs(double(gr5(rgpr(T, rrev(T)))) - 1.0) < 1.0e-12); // a unit motor
+        CHECK(is_same_transform(M, T));
+        auto const diff = rlog(M) - rlog(T);
+        CHECK(std::sqrt(detail::coeff_sq(diff)) < 1.0e-12);
+        CHECK(is_same_transform(rexp(rlog(M)), M));
+        fmt::println(
+            "    |d| = {:.4f}: central part s = {:.4f}, M rrev(M) = {:.4f} I = s^2 I", d,
+            s, sig);
+        fmt::println("    failing (read as it stands): a rotation by {:.4f} rad",
+                     as_rotation);
+        fmt::println(
+            "    working (rlog divides by s): the unit translation's generator, to "
+            "{:.1e}",
+            std::sqrt(detail::coeff_sq(diff)));
+        fmt::println("");
+    }
 }

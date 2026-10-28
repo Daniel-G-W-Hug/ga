@@ -3354,89 +3354,337 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
-    TEST_CASE("pga3dp: reading a motion off a motor - application examples")
+    // READING A MOTION OFF A MOTOR (ga_docu.pdf, "Reading an angle off a motor"). Five
+    // cases: why an absolute logarithm misreads a small roll, then one per read-off
+    // function, each a PAIR -- the failing way with rlog() and the working way with the
+    // function. The failing arm is checked to fail, so the pair stays a demonstration.
+    TEST_CASE(
+        "pga3dp: reading a motion off a motor - why an absolute log misreads a roll")
     {
-        fmt::println("pga3dp: which logarithm for which task");
+        fmt::println("pga3dp: why an absolute log misreads a small roll");
+
+        // A roll eps about the body's x axis under a heading psi about the vertical
+        // through the origin, M = Y(psi) (x) R(eps). With the half angles a = psi / 2,
+        // b = eps / 2 the product has the pseudoscalar part w = cos a cos b and the line
+        // part, as a direction,
+        //
+        //     v = (cos a sin b, sin a sin b, sin a cos b)
+        //
+        // So the horizontal part of the absolute logarithm 2 rlog(M) points at psi / 2 in
+        // world axes, halfway between the world's x axis and the body's (at psi),
+        // whatever eps, and its length is
+        //
+        //     h = 2 atan2(|v|, w) sin(b) / |v|,     |v|^2 = sin^2 a + cos^2 a sin^2 b
+        //
+        // For eps -> 0, h / eps -> (psi / 2) / sin(psi / 2), the first order. Near a full
+        // turn the first order fails: the motor is -1 times a SMALL rotation, of angle
+        // Theta = sqrt(delta^2 + eps^2) with delta = 2 pi - psi, whose axis is tipped by
+        // atan(eps / delta) from the vertical; rlog reads it on the far sheet as a turn
+        // of 2 pi - Theta about that tipped axis, and h / eps -> (2 pi - Theta) / Theta.
+        value_t const deg = pi / 180.0, eps_roll = 0.01;
+        auto yaw = [](value_t a) {
+            return rexp(0.5 * bivec3dp{0.0, 0.0, a, 0.0, 0.0, 0.0});
+        };
+        auto const R = rexp(0.5 * bivec3dp{eps_roll, 0.0, 0.0, 0.0, 0.0, 0.0});
+        fmt::println("    heading   rlog reads      exact   1st order   near-turn   "
+                     "direction   relative motor");
+        for (value_t const psi_deg :
+             {0.0, 45.0, 90.0, 180.0, 270.0, 350.0, 355.0, 359.0, 360.0}) {
+            CAPTURE(psi_deg);
+            value_t const psi = psi_deg * deg, a = 0.5 * psi, b = 0.5 * eps_roll;
+            auto const Y = yaw(psi);
+            auto const M = rgpr(Y, R);
+            bivec3dp const r = 2.0 * rlog(M);
+            value_t const h = std::hypot(r.vx, r.vy) / eps_roll;
+            value_t const v =
+                std::sqrt(std::sin(a) * std::sin(a) +
+                          std::cos(a) * std::cos(a) * std::sin(b) * std::sin(b));
+            value_t const w = std::cos(a) * std::cos(b);
+            value_t const exact = 2.0 * std::atan2(v, w) * std::sin(b) / v / eps_roll;
+            value_t const first = (psi == 0.0) ? 1.0 : a / std::sin(a);
+            value_t const theta = std::hypot(2.0 * pi - psi, eps_roll);
+            value_t const near_turn = (2.0 * pi - theta) / theta;
+            value_t const dir = std::atan2(r.vy, r.vx);
+            // the relative motor reads the roll itself
+            bivec3dp const e = motion_error_body(Y, M);
+            CHECK(std::abs(e.vx - eps_roll) < 1.0e-15);
+            CHECK(std::abs(e.vy) + std::abs(e.vz) < 1.0e-15);
+            // the closed form IS what rlog reads, direction included
+            CHECK(std::abs(h - exact) < 1.0e-9 * exact);
+            CHECK(std::abs(dir - a) < 1.0e-12);
+            if (psi_deg <= 270.0) CHECK(std::abs(h - first) < 1.0e-3 * first);
+            if (psi_deg >= 359.0) CHECK(std::abs(h - near_turn) < 1.0e-2 * near_turn);
+            // each limit printed where it applies
+            std::string const first_s = psi_deg < 360.0 ? fmt::format("{:10.3f}", first)
+                                                        : fmt::format("{:>10}", "-");
+            std::string const near_s = psi_deg >= 350.0
+                                           ? fmt::format("{:10.3f}", near_turn)
+                                           : fmt::format("{:>10}", "-");
+            fmt::println("    {:5.0f} deg  {:8.3f} eps  {:9.3f}  {}  {}  {:6.1f} deg   "
+                         "{:.10f}",
+                         psi_deg, h, exact, first_s, near_s, dir / deg, e.vx);
+        }
+        // the first order fails near the full turn, by more than 10 %
+        value_t const p359 = 359.0 * deg;
+        bivec3dp const r359 = 2.0 * rlog(rgpr(yaw(p359), R));
+        CHECK(std::hypot(r359.vx, r359.vy) / eps_roll <
+              0.9 * (0.5 * p359) / std::sin(0.5 * p359));
+        fmt::println("");
+    }
+
+    TEST_CASE(
+        "pga3dp: reading a motion off a motor - rlog_shortest: interpolating two poses")
+    {
+        fmt::println("pga3dp: rlog_shortest -- interpolating between two poses");
+
+        // M(t) = M_0 (x) rexp(t L), L the logarithm of the RELATIVE motor rrev(M_0) M_1:
+        // t = 0 is M_0, t = 1 is M_1. The target pose is the start turned by 90 degrees
+        // about a vertical axis off the origin -- once as the motor of that quarter turn
+        // and once as the motor of a quarter turn plus a full turn, which is its
+        // negative: the SAME two poses.
         value_t const deg = pi / 180.0;
-        bivec3dp const z_axis = unitize(wdg(O_3dp, vec3dp{0.0, 0.0, 1.0, 1.0}));
-        auto heading_of = [](mvec3dp_e const& M) { // where the body's x axis points
-            vec3dp const x = move3dp(vec3dp{1.0, 0.0, 0.0, 0.0}, M);
-            return std::atan2(x.y, x.x);
+        bivec3dp const axis =
+            unitize(wdg(vec3dp{0.3, -0.2, 0.0, 1.0}, vec3dp{0.3, -0.2, 1.0, 1.0}));
+        mvec3dp_e const M0 =
+            rgpr(get_motor(vec3dp{2.0, 1.0, 0.0, 0.0}), get_motor(axis, 30.0 * deg));
+        mvec3dp_e const M1a = rgpr(M0, get_motor(axis, 90.0 * deg));
+        mvec3dp_e const M1b = rgpr(M0, get_motor(axis, 450.0 * deg));
+        REQUIRE(is_same_motion(M1a, M1b));
+        REQUIRE(M1a == mvec3dp_e(-M1b)); // one motion, the two sheets of its motor
+        auto turned_halfway = [&](mvec3dp_e const& M1, bool shortest) {
+            mvec3dp_e const Mrel = rgpr(rrev(M0), M1);
+            bivec3dp const L = shortest ? rlog_shortest(Mrel) : rlog(Mrel);
+            CHECK(is_same_motion(rgpr(M0, rexp(L)), M1)); // every variant arrives
+            // the turn at t = 1/2, relative to the start
+            return motion_error_body(M0, rgpr(M0, rexp(0.5 * L))).vz;
         };
 
-        // (1) INTERPOLATING A MOTION -- rlog or rlog_shortest. From the identity to a
-        // pose turned by 270 degrees: M(t) = M_0 (x) rexp(t L), L the logarithm of the
-        // relative motor. rlog() goes the way the motor was built, 270 degrees;
-        // rlog_shortest() the other way round, 90. Both arrive at the same pose.
-        mvec3dp_e const M0 = rexp(bivec3dp{});
-        mvec3dp_e const M1 =
-            rgpr(get_motor(vec3dp{1.0, 0.5, 0.0, 0.0}), get_motor(z_axis, 270.0 * deg));
-        bivec3dp const L_long = rlog(rgpr(rrev(M0), M1)),
-                       L_short = rlog_shortest(rgpr(rrev(M0), M1));
-        value_t const mid_long = heading_of(rgpr(M0, rexp(0.5 * L_long)));
-        value_t const mid_short = heading_of(rgpr(M0, rexp(0.5 * L_short)));
-        CHECK(std::abs(mid_long - 135.0 * deg) < 1.0e-12);
-        CHECK(std::abs(mid_short + 45.0 * deg) < 1.0e-12);
-        CHECK(is_same_motion(rgpr(M0, rexp(L_long)), M1));
-        CHECK(is_same_motion(rgpr(M0, rexp(L_short)), M1));
-        fmt::println(
-            "    (1) halfway: rlog has turned {:.1f} deg, rlog_shortest {:.1f} deg; "
-            "both end at the target",
-            mid_long / deg, mid_short / deg);
+        // FAILING: rlog() reads the target's motor, not the pose -- the quarter turn
+        // reads +90 degrees, the same pose through the other sheet -270: two different
+        // motions between the same two poses, decided by the history of the motor
+        value_t const fa = turned_halfway(M1a, false), fb = turned_halfway(M1b, false);
+        CHECK(std::abs(fa - 45.0 * deg) < 1.0e-12);
+        CHECK(std::abs(fb + 135.0 * deg) < 1.0e-12);
+        fmt::println("    failing (rlog):          halfway turned {:+.1f} / {:+.1f} deg "
+                     "for one target pose",
+                     fa / deg, fb / deg);
 
-        // (2) A POSE SERVO IN BODY AXES -- motion_error_body. The commanded twist in the
-        // body's own axes is V_b = -k e_b, the form a body-Jacobian controller takes:
-        // M <- M (x) rexp(1/2 dt V_b). The error decays as exp(-k t) at ANY reference
-        // heading, including just short of a full turn.
-        // (3) THE SAME IN WORLD AXES -- motion_error_world: V_w = -k e_w, M <- rexp(1/2
-        // dt V_w) (x) M, the form a space-Jacobian controller takes. The same motion.
+        // WORKING: rlog_shortest() reads the shortest of the two motors -- the one whose
+        // pseudoscalar part, the identity's, is not negative: one motion, at most a half
+        // turn, whatever the motor's history
+        value_t const wa = turned_halfway(M1a, true), wb = turned_halfway(M1b, true);
+        CHECK(std::abs(wa - 45.0 * deg) < 1.0e-12);
+        CHECK(std::abs(wb - 45.0 * deg) < 1.0e-12);
+        fmt::println("    working (rlog_shortest): halfway turned {:+.1f} / {:+.1f} deg",
+                     wa / deg, wb / deg);
+        fmt::println("");
+    }
+
+    // A LEVELLING SERVO: the body's heading is free, its tilt is corrected. The error is
+    // the horizontal part of a rotation read off the motor; the correction is a rotation
+    // about the horizontal axes of the same frame, at rate k. Started tilted by 0.112 rad
+    // (0.10 roll, 0.05 pitch) under a heading psi, run for 2 s at k = 5 (the tilt should
+    // fall as exp(-k t), to 4.95e-6).
+    struct levelling_run {
+        value_t final_tilt;
+        value_t peak_tilt;
+    };
+
+    // tilt of the body: the angle between its z axis and the vertical (atan2, not acos:
+    // acos amplifies the rounding of z.z by 1 / tilt near the vertical)
+    inline value_t body_tilt_of(mvec3dp_e const& M)
+    {
+        vec3dp const z = move3dp(vec3dp{0.0, 0.0, 1.0, 0.0}, M);
+        return std::atan2(std::hypot(z.x, z.y), z.z);
+    }
+
+    // `error(Y, M)` reads the error, `world` says on which side the correction acts:
+    // M <- M (x) rexp(..) in body frame, M <- rexp(..) (x) M in world frame
+    template <typename Error>
+    levelling_run run_levelling(value_t psi, Error error, bool world)
+    {
+        value_t const k = 5.0, dt = 1.0e-3;
+        mvec3dp_e const Y = rexp(0.5 * bivec3dp{0.0, 0.0, psi, 0.0, 0.0, 0.0});
+        mvec3dp_e M = rgpr(Y, rexp(0.5 * bivec3dp{0.10, 0.05, 0.0, 0.0, 0.0, 0.0}));
+        value_t peak = body_tilt_of(M);
+        for (int i = 0; i < 2000; ++i) {
+            bivec3dp const e = error(Y, M);
+            mvec3dp_e const D =
+                rexp(0.5 * dt * (-k) * bivec3dp{e.vx, e.vy, 0.0, 0.0, 0.0, 0.0});
+            M = world ? rgpr(D, M) : rgpr(M, D);
+            peak = std::max(peak, body_tilt_of(M));
+        }
+        return {body_tilt_of(M), peak};
+    }
+
+    TEST_CASE(
+        "pga3dp: reading a motion off a motor - motion_error_body: a levelling servo")
+    {
+        fmt::println("pga3dp: motion_error_body -- a levelling servo in the body frame");
+        value_t const deg = pi / 180.0;
+        auto absolute = [](mvec3dp_e const&, mvec3dp_e const& M) {
+            return bivec3dp(2.0 * rlog(M));
+        };
+        auto relative = [](mvec3dp_e const& Y, mvec3dp_e const& M) {
+            return motion_error_body(Y, M);
+        };
+        levelling_run const g0 = run_levelling(0.0, relative, false);
+        CHECK(g0.final_tilt < 1.0e-5); // exp(-10) of the start
+        fmt::println("    heading    failing (absolute rlog)      working "
+                     "(motion_error_body)");
+        fmt::println("               final tilt   peak tilt       final tilt");
+        for (value_t const psi : {0.0, 90.0, 180.0, 270.0, 350.0}) {
+            CAPTURE(psi);
+            // FAILING: the horizontal part of 2 rlog(M) points at psi / 2 from the body's
+            // own axes and is (psi / 2) / sin(psi / 2) too long, so the correction is
+            // turned by psi / 2: it still levels at 90 deg (slower), only circles at 180,
+            // and past 180 it TIPS the body over before it comes round
+            levelling_run const f = run_levelling(psi * deg, absolute, false);
+            // WORKING: the error of M from the heading frame Y, in Y's -- the body's --
+            // axes, rrev(Y) (x) M; the same exp(-k t) at every heading
+            levelling_run const g = run_levelling(psi * deg, relative, false);
+            CHECK(std::abs(g.final_tilt - g0.final_tilt) < 1.0e-9 * g0.final_tilt);
+            CHECK(g.peak_tilt < 0.1119);
+            if (psi == 0.0) CHECK(std::abs(f.final_tilt - g.final_tilt) < 1.0e-15);
+            if (psi == 180.0) CHECK(f.final_tilt > 0.05); // no levelling
+            if (psi >= 270.0) CHECK(f.peak_tilt > 1.5);   // over 86 deg: tipped over
+            fmt::println("    {:5.0f} deg  {:10.3e}  {:10.3f}        {:10.3e}", psi,
+                         f.final_tilt, f.peak_tilt, g.final_tilt);
+        }
+
+        // and a full POSE servo, translation included: Omega_b = -k B_b, M <- M (x)
+        // rexp(1/2 dt Omega_b), the form a body-Jacobian controller takes. Started 150
+        // deg and 0.55 m off, at references heading 0 .. 359 deg
+        bivec3dp const z_axis = unitize(wdg(O_3dp, vec3dp{0.0, 0.0, 1.0, 1.0}));
         value_t const k = 5.0, dt = 0.01;
         mvec3dp_e const offset =
             rgpr(get_motor(vec3dp{0.5, -0.2, 0.1, 0.0}),
                  rgpr(get_motor(z_axis, -150.0 * deg),
                       rexp(0.5 * bivec3dp{0.3, 0.0, 0.0, 0.0, 0.0, 0.0})));
-        value_t worst_b = 0.0, worst_w = 0.0, worst_bw = 0.0;
+        value_t worst = 0.0;
         for (value_t const h : {0.0, 90.0, 270.0, 359.0}) {
-            mvec3dp_e const M_ref =
+            mvec3dp_e const M0 =
                 rgpr(get_motor(vec3dp{2.0, 1.0, 0.0, 0.0}), get_motor(z_axis, h * deg));
-            mvec3dp_e Mb = rgpr(M_ref, offset), Mw = Mb;
-            for (int i = 0; i < 1000; ++i) {
-                Mb = rgpr(Mb, rexp(0.5 * dt * (-k) * motion_error_body(M_ref, Mb)));
-                Mw = rgpr(rexp(0.5 * dt * (-k) * motion_error_world(M_ref, Mw)), Mw);
-            }
-            bivec3dp const eb = motion_error_body(M_ref, Mb),
-                           ew = motion_error_world(M_ref, Mw);
-            worst_b = std::max(worst_b,
-                               std::sqrt(value_t(bulk_nrm_sq(eb) + weight_nrm_sq(eb))));
-            worst_w = std::max(worst_w,
-                               std::sqrt(value_t(bulk_nrm_sq(ew) + weight_nrm_sq(ew))));
-            worst_bw = std::max(worst_bw, std::abs(heading_of(Mb) - heading_of(Mw)));
+            mvec3dp_e M = rgpr(M0, offset);
+            for (int i = 0; i < 1000; ++i)
+                M = rgpr(M, rexp(0.5 * dt * (-k) * motion_error_body(M0, M)));
+            bivec3dp const e = motion_error_body(M0, M);
+            worst =
+                std::max(worst, std::sqrt(value_t(bulk_nrm_sq(e) + weight_nrm_sq(e))));
         }
-        CHECK(worst_b < 1.0e-12);
-        CHECK(worst_w < 1.0e-12);
-        fmt::println(
-            "    (2) / (3) servo from 150 deg off, 10 s at k = 5, references at 0 .. "
-            "359 deg: error left {:.1e} (body) / {:.1e} (world)",
-            worst_b, worst_w);
+        CHECK(worst < 1.0e-12);
+        fmt::println("    a pose servo from 150 deg and 0.55 m off, 10 s at k = 5, "
+                     "M_0 at headings 0 .. 359 deg: error left {:.1e}",
+                     worst);
+        fmt::println("");
+    }
 
-        // (4) COUNTING TURNS -- rlog_continued. A turntable read every 90 degrees for 41
-        // reads, 10.25 revolutions: the continued generator holds the whole angle, rlog
-        // alone the last quarter turn.
+    TEST_CASE(
+        "pga3dp: reading a motion off a motor - motion_error_world: the servo in the "
+        "world frame")
+    {
+        fmt::println(
+            "pga3dp: motion_error_world -- the levelling servo in the world frame");
+        value_t const deg = pi / 180.0;
+        auto absolute = [](mvec3dp_e const&, mvec3dp_e const& M) {
+            return bivec3dp(2.0 * rlog(M));
+        };
+        auto body_error = [](mvec3dp_e const& Y, mvec3dp_e const& M) {
+            return motion_error_body(Y, M);
+        };
+        auto world_error = [](mvec3dp_e const& Y, mvec3dp_e const& M) {
+            return motion_error_world(Y, M);
+        };
+        levelling_run const g0 = run_levelling(0.0, world_error, true);
+        CHECK(g0.final_tilt < 1.0e-5);
+        fmt::println("    heading    failing (absolute rlog)   failing (body error)    "
+                     "working (motion_error_world)");
+        fmt::println("               peak tilt                 final / peak tilt       "
+                     "final tilt");
+        for (value_t const psi : {0.0, 90.0, 180.0, 270.0, 350.0}) {
+            CAPTURE(psi);
+            // FAILING: the absolute logarithm, now applied on the world side. It lies
+            // halfway between body and world frame, so it fails here exactly as it does
+            // in body frame
+            levelling_run const f = run_levelling(psi * deg, absolute, true);
+            // FAILING: the right error in the wrong frame. motion_error_body's components
+            // are along the BODY's axes; applied on the world side they turn by the whole
+            // heading: neutral at 90 and 270 deg, tipping the body over at 180
+            levelling_run const m = run_levelling(psi * deg, body_error, true);
+            // WORKING: the error in world frame, M (x) rrev(Y), for the world-side update
+            levelling_run const g = run_levelling(psi * deg, world_error, true);
+            CHECK(std::abs(g.final_tilt - g0.final_tilt) < 1.0e-9 * g0.final_tilt);
+            if (psi >= 270.0) CHECK(f.peak_tilt > 1.5);
+            if (psi == 90.0 || psi == 270.0) CHECK(m.final_tilt > 0.05);
+            if (psi == 180.0) CHECK(m.peak_tilt > 3.0);
+            fmt::println("    {:5.0f} deg  {:10.3f}               {:9.3e} / {:6.3f}      "
+                         "{:10.3e}",
+                         psi, f.peak_tilt, m.final_tilt, m.peak_tilt, g.final_tilt);
+        }
+
+        // the two errors are one twist in two frames: B_w = M_0 B_b rrev(M_0)
+        bivec3dp const L =
+            unitize(wdg(vec3dp{1.0, 2.0, 0.5, 1.0}, vec3dp{1.3, 1.6, 1.4, 1.0}));
+        mvec3dp_e const M0 = get_motor(L, 2.3, 0.4);
+        mvec3dp_e const M = rgpr(M0, get_motor(vec3dp{0.2, -0.1, 0.3, 0.0}));
+        CHECK(is_close(motion_error_world(M0, M), move3dp(motion_error_body(M0, M), M0)));
+
+        // and the full POSE servo in world frame: Omega_w = -k B_w, M <- rexp(1/2 dt
+        // Omega_w) (x) M, the form a space-Jacobian controller takes
+        bivec3dp const z_axis = unitize(wdg(O_3dp, vec3dp{0.0, 0.0, 1.0, 1.0}));
+        value_t const k = 5.0, dt = 0.01;
+        mvec3dp_e const offset =
+            rgpr(get_motor(vec3dp{0.5, -0.2, 0.1, 0.0}),
+                 rgpr(get_motor(z_axis, -150.0 * deg),
+                      rexp(0.5 * bivec3dp{0.3, 0.0, 0.0, 0.0, 0.0, 0.0})));
+        value_t worst = 0.0;
+        for (value_t const h : {0.0, 90.0, 270.0, 359.0}) {
+            mvec3dp_e const Mr =
+                rgpr(get_motor(vec3dp{2.0, 1.0, 0.0, 0.0}), get_motor(z_axis, h * deg));
+            mvec3dp_e Mw = rgpr(Mr, offset);
+            for (int i = 0; i < 1000; ++i)
+                Mw = rgpr(rexp(0.5 * dt * (-k) * motion_error_world(Mr, Mw)), Mw);
+            bivec3dp const e = motion_error_world(Mr, Mw);
+            worst =
+                std::max(worst, std::sqrt(value_t(bulk_nrm_sq(e) + weight_nrm_sq(e))));
+        }
+        CHECK(worst < 1.0e-12);
+        fmt::println("    a pose servo in the world frame, same start: error left {:.1e}",
+                     worst);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: reading a motion off a motor - rlog_continued: counting turns")
+    {
+        fmt::println("pga3dp: rlog_continued -- counting the turns of a turntable");
+
+        // A turntable turning about a vertical axis off the origin, read every 90 deg for
+        // 41 reads: 10.25 revolutions. The motor holds the pose, not the turns.
+        value_t const deg = pi / 180.0;
         bivec3dp const table =
             unitize(wdg(vec3dp{0.3, 0.2, 0.0, 1.0}, vec3dp{0.3, 0.2, 1.0, 1.0}));
         bivec3dp L{};
         mvec3dp_e M{};
+        value_t worst = 0.0;
         for (int i = 1; i <= 41; ++i) {
             M = get_motor(table, i * 90.0 * deg);
+            // WORKING: rlog_continued() fed its own previous value: rlog(M) plus the
+            // whole turns about M's own axis that bring it nearest the previous read
             L = rlog_continued(M, L);
+            CHECK(is_same_motion(rexp(L), M));
+            worst = std::max(worst, std::abs(2.0 * L.vz - i * 90.0 * deg));
         }
+        // FAILING: rlog() alone reads the last motor: a quarter turn
         value_t const rev = 2.0 * L.vz / (2.0 * pi),
                       rev_plain = 2.0 * rlog(M).vz / (2.0 * pi);
-        CHECK(std::abs(rev - 10.25) < 1.0e-12);
         CHECK(std::abs(rev_plain - 0.25) < 1.0e-12);
-        fmt::println("    (4) the turntable after 41 reads of 90 deg: {:.4f} revolutions "
-                     "(rlog alone: {:.4f})",
-                     rev, rev_plain);
+        CHECK(std::abs(rev - 10.25) < 1.0e-12);
+        CHECK(worst < 1.0e-12);
+        fmt::println("    failing (rlog):           {:.4f} revolutions", rev_plain);
+        fmt::println(
+            "    working (rlog_continued): {:.4f} revolutions, every read within "
+            "{:.1e} rad",
+            rev, worst);
         fmt::println("");
     }
 
@@ -3532,6 +3780,108 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         passive.actuated = false;
         s.set_joint_drive(b, passive);
         CHECK_NOTHROW(s.set_joint_spring_damper(b, 20.0, 1.0));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: a spring on a motor joint - wound past a full turn")
+    {
+        fmt::println("pga3dp: a motor-joint spring wound past a full turn");
+
+        // A body on a joint about the vertical through its centre, a spring k on the
+        // joint, and a start rate that winds it 1.5 turns before it turns back:
+        // 1/2 I w0^2 = 1/2 k (3 pi)^2. The winding is integrated from the joint rate as
+        // the reference; run for half a period, when a torsion spring has brought the
+        // body back to its rest.
+        value_t const k = 0.5, dt = 1.0e-3;
+        auto make = [](bool cylindrical) {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{});
+            s.add_frame(static_frame3dp("W"));
+            static_frame3dp const f("b", O_3dp);
+            auto const b = make_cuboid_body(2.0, 0.5, 0.2, 0.1);
+            if (cylindrical) s.add_cylindrical_body(f, b, O_3dp, e3_3dp, 0);
+            else s.add_spherical_body(f, b, O_3dp, 0);
+            return s;
+        };
+        struct wound {
+            value_t peak;  // largest winding reached [turns]
+            value_t last;  // winding after half a period [turns]
+            value_t drift; // relative energy drift (stored spring only)
+        };
+        // `old_law`: the spring read off the motor alone, 2 rlog(rrev(M_0) M), as a
+        // torque law on a joint without a stored spring -- the cylindrical spring until
+        // 2026-10-28
+        auto run = [&](bool cylindrical, bool old_law) {
+            auto s = make(cylindrical);
+            size_t const b = s.index_of("b");
+            size_t const r = cylindrical ? 0 : 2; // the screw of the rotation about z
+            size_t const nscr = s.joint_props(b).screws.size();
+            std::vector<value_t> rates(nscr, 0.0);
+            rates[r] = 1.0;
+            s.set_joint_rates(b, rates);
+            value_t const I = 2.0 * s.kinetic_energy();
+            rates[r] = 3.0 * pi * std::sqrt(k / I);
+            s.set_joint_rates(b, rates);
+            if (old_law) {
+                mvec3dp_e const M0 = s.joint_motor(b);
+                twist3dp const S = s.joint_props(b).screws[r];
+                s.set_joint_torque(b, [=](dynamic_system3dp const& q, value_t) {
+                    twist3dp const B = 2.0 * rlog(rgpr(rrev(M0), q.joint_motor(b)));
+                    std::vector<value_t> tau(nscr, 0.0);
+                    tau[r] = -k * B.vz / S.vz;
+                    return tau;
+                });
+            }
+            else s.set_joint_spring_damper(b, k, 0.0);
+            value_t const E0 = s.total_energy();
+            value_t const half_period = pi * std::sqrt(I / k);
+            value_t w = 0.0, peak = 0.0, drift = 0.0;
+            value_t rate_prev = s.joint_rates(b)[r];
+            for (int i = 0; i < int(half_period / dt + 0.5); ++i) {
+                s.step(dt);
+                value_t const rate = s.joint_rates(b)[r];
+                w += 0.5 * (rate_prev + rate) * dt;
+                rate_prev = rate;
+                peak = std::max(peak, w);
+                if (!old_law)
+                    drift = std::max(drift, std::abs(s.total_energy() - E0) / E0);
+            }
+            return wound{peak / (2.0 * pi), w / (2.0 * pi), drift};
+        };
+
+        // FAILING: read off the motor, the spring pulls back until one full turn and
+        // pushes on after it -- its rest is at two turns as much as at none, so the body
+        // winds through. The energy is conserved all the same: the energy gate cannot
+        // see it
+        wound const f = run(true, true);
+        CHECK(f.peak > 2.0);
+        CHECK(f.last > 2.0);
+        fmt::println("    failing (rlog, cylindrical):     wound through {:.2f} turns, "
+                     "still {:.2f} after half a period",
+                     f.peak, f.last);
+
+        // WORKING: the cylindrical spring continues its winding from the committed step:
+        // it turns back at 1.5 turns and is home after half a period
+        wound const g = run(true, false);
+        CHECK(std::abs(g.peak - 1.5) < 1.0e-3);
+        // home to the step's resolution: half a period is not a whole number of steps
+        // (half a step at 30 rad/s is 0.0024 turns)
+        CHECK(std::abs(g.last) < 5.0e-3);
+        CHECK(g.drift < 1.0e-6);
+        fmt::println("    working (continued, cylindrical): turns back at {:.4f} turns, "
+                     "{:+.4f} after half a period, energy drift {:.1e}",
+                     g.peak, g.last, g.drift);
+
+        // THE SPHERICAL SPRING, as documented: its potential is a function of the motor,
+        // maximal at a full turn about any axis. Wound about a fixed axis past it, the
+        // joint unwinds towards two full turns -- conservative, but not a torsion spring
+        wound const h = run(false, false);
+        CHECK(h.peak > 2.0);
+        CHECK(h.drift < 1.0e-2); // one step straddles the kink at the full turn
+        fmt::println(
+            "    spherical (a potential on the motor): wound through {:.2f} turns, "
+            "energy drift {:.1e}",
+            h.peak, h.drift);
         fmt::println("");
     }
 

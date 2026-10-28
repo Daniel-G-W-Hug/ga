@@ -860,4 +860,287 @@ TEST_SUITE("PGA contracts")
         CHECK(rlog_continued(T2, vec2dp{}) == rlog(T2));
         fmt::println("");
     }
+
+    TEST_CASE("pga2dp / pga3dp: screw_axis reads the motion, not the motor's sheet")
+    {
+        fmt::println("pga2dp / pga3dp: screw_axis of a motor and of its negative");
+
+        // M and -M are one motion: the sandwich is quadratic in M. FAILING: the screw
+        // read through rlog(), what screw_axis() did until 2026-10-28, gives a quarter
+        // turn about l for M and three quarters about -l for -M. WORKING: screw_axis()
+        // reads the shortest representative and gives one answer for the one motion.
+        value_t const deg = pi / 180.0;
+        bivec3dp const l =
+            unitize(wdg(vec3dp{0.3, -0.2, 0.5, 1.0}, vec3dp{0.6, 0.8, 0.0, 0.0}));
+        mvec3dp_e const M = get_motor(l, 90.0 * deg, 0.35);
+        mvec3dp_e const Mn{-M};
+        REQUIRE(is_same_motion(M, Mn));
+        auto const old_p = screw_axis(bivec3dp(2.0 * rlog(M)));
+        auto const old_n = screw_axis(bivec3dp(2.0 * rlog(Mn)));
+        CHECK(std::abs(old_p.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(old_n.angle - 270.0 * deg) < 1.0e-12);
+        CHECK(is_close(old_n.axis, bivec3dp(-old_p.axis)));
+        auto const sp = screw_axis(M), sn = screw_axis(Mn);
+        CHECK(std::abs(sp.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(sn.angle - sp.angle) < 1.0e-12);
+        CHECK(std::abs(sn.dist - sp.dist) < 1.0e-12);
+        CHECK(std::abs(sp.dist - 0.35) < 1.0e-12);
+        CHECK(is_close(sn.axis, sp.axis));
+        CHECK(is_same_motion(get_motor(sn.axis, sn.angle, sn.dist), M));
+        // a screw built past a half turn comes back as its complement about the reversed
+        // axis, with the translation along that axis: the same motion
+        auto const s270 = screw_axis(get_motor(l, 270.0 * deg, 0.35));
+        CHECK(std::abs(s270.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(is_close(s270.axis, bivec3dp(-l)));
+        CHECK(std::abs(s270.dist + 0.35) < 1.0e-12);
+        CHECK(is_same_motion(get_motor(s270.axis, s270.angle, s270.dist),
+                             get_motor(l, 270.0 * deg, 0.35)));
+        // the same in the plane
+        mvec2dp_u const P = get_motor(vec2dp{1.0, 2.0, 1.0}, 90.0 * deg);
+        mvec2dp_u const Pn{-P};
+        auto const old2 = screw_axis(vec2dp(2.0 * rlog(Pn)));
+        CHECK(std::abs(old2.angle + 270.0 * deg) < 1.0e-12);
+        auto const s2 = screw_axis(P), s2n = screw_axis(Pn);
+        CHECK(std::abs(s2.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(s2n.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(is_close(s2n.centre, vec2dp{1.0, 2.0, 1.0}));
+        fmt::println(
+            "    failing (rlog):       M reads {:.0f} deg, -M {:.0f} deg about the "
+            "reversed axis; plane {:.0f} / {:.0f} deg",
+            old_p.angle / deg, old_n.angle / deg,
+            screw_axis(vec2dp(2.0 * rlog(P))).angle / deg, old2.angle / deg);
+        fmt::println("    working (screw_axis): M and -M read {:.0f} / {:.0f} deg; plane "
+                     "{:.0f} / {:.0f} deg",
+                     sp.angle / deg, sn.angle / deg, s2.angle / deg, s2n.angle / deg);
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp / pga3dp: the rate of a motor and the rate of its generator")
+    {
+        fmt::println("pga2dp / pga3dp: the rate of a motor against the rate of its "
+                     "generator");
+
+        // M(t) = rexp(1/2 B(t)) (x) M_0 in the world frame, M_0 (x) rexp(1/2 B(t)) in the
+        // body frame, with B(t) = B_0 + t B_1 (ga_docu.pdf, "Motion in PGA"). The rate of
+        // the motor is DEFINED by Mdot = 1/2 Omega_w (x) M = 1/2 M (x) Omega_b, and it is
+        // the rate of the generator, Bdot = B_1, only where B and Bdot commute: a FIXED
+        // SCREW AXIS (rotation about and translation along one line), or translations in
+        // any directions. Otherwise, to first order in B,
+        //
+        //     Omega_w = Bdot + 1/2 rcmt(B, Bdot) + ...
+        //     Omega_b = Bdot - 1/2 rcmt(B, Bdot) + ...
+        //
+        // -- opposite signs, since the exponential stands on opposite sides of M_0. Here
+        // the rates are taken from the motor itself, by central differences, Omega_w =
+        // 2 Mdot rrev(M) and Omega_b = 2 rrev(M) Mdot. Each formula is checked by its
+        // ORDER: halving B_0 must cut its residual by ~4 (second order); the uncorrected
+        // Bdot and the wrong sign stay first order (~2).
+        value_t const h = 1.0e-6;
+        mvec3dp_e const M0 = get_motor(
+            unitize(wdg(vec3dp{0.2, 0.1, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0})), 0.7);
+        auto n3 = [](bivec3dp const& b) {
+            return std::sqrt(value_t(bulk_nrm_sq(b) + weight_nrm_sq(b)));
+        };
+        // the four residuals of one (B_0, B_1): world against Bdot and against the
+        // corrected form, body likewise
+        auto residuals3 = [&](bivec3dp const& B0, bivec3dp const& B1) {
+            auto Mw = [&](value_t t) { return rgpr(rexp(0.5 * (B0 + t * B1)), M0); };
+            auto Mb = [&](value_t t) { return rgpr(M0, rexp(0.5 * (B0 + t * B1))); };
+            mvec3dp_e const dMw = (0.5 / h) * (Mw(h) - Mw(-h));
+            mvec3dp_e const dMb = (0.5 / h) * (Mb(h) - Mb(-h));
+            bivec3dp const Ow = gr2(2.0 * rgpr(dMw, rrev(Mw(0.0))));
+            bivec3dp const Ob = gr2(2.0 * rgpr(rrev(Mb(0.0)), dMb));
+            bivec3dp const c = rcmt(B0, B1);
+            return std::array<value_t, 6>{n3(Ow - B1),           n3(Ow - B1 - 0.5 * c),
+                                          n3(Ow - B1 + 0.5 * c), n3(Ob - B1),
+                                          n3(Ob - B1 + 0.5 * c), n3(Ob - B1 - 0.5 * c)};
+        };
+        bivec3dp const l =
+            unitize(wdg(vec3dp{0.3, -0.2, 0.0, 1.0}, vec3dp{0.6, 0.8, 0.0, 0.0}));
+        bivec3dp const z0 = unitize(wdg(O_3dp, vec3dp{0.0, 0.0, 1.0, 0.0}));
+        bivec3dp const z1 =
+            unitize(wdg(vec3dp{0.5, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}));
+        struct case3 {
+            char const* name;
+            bivec3dp B0, B1;
+            bool commute;
+        };
+        std::vector<case3> const cases{
+            {"one screw axis, two pitches", 2.0 * rlog(get_motor(l, 0.4, 0.3)),
+             2.0 * rlog(get_motor(l, 1.2, -0.5)), true},
+            {"translations in two directions",
+             2.0 * rlog(get_motor(vec3dp{0.4, -1.1, 0.3, 0.0})),
+             2.0 * rlog(get_motor(vec3dp{-0.2, 0.5, 0.7, 0.0})), true},
+            {"rotations about two parallel axes", 0.4 * z0, 1.2 * z1, false},
+            {"a general screw and rate", bivec3dp{0.36, 0.16, -0.12, 0.08, -0.2, 0.24},
+             bivec3dp{0.3, -0.2, 0.5, 0.1, 0.4, -0.2}, false}};
+        fmt::println("    3D, |B_0| as given; residual of each formula (and its ratio on "
+                     "halving B_0)");
+        fmt::println("    {:38s} {:>9s}  {:>17s}  {:>17s}  {:>17s}  {:>17s}", "motion",
+                     "rcmt", "Omega_w - Bdot", "... - 1/2 rcmt", "Omega_b - Bdot",
+                     "... + 1/2 rcmt");
+        for (auto const& k : cases) {
+            CAPTURE(k.name);
+            auto const r1 = residuals3(k.B0, k.B1);
+            auto const r2 = residuals3(0.5 * k.B0, k.B1);
+            value_t const c = n3(rcmt(k.B0, k.B1));
+            if (k.commute) {
+                // B and Bdot commute: the rate of the motor IS the rate of the generator
+                CHECK(c < 1.0e-15);
+                for (value_t const r : r1)
+                    CHECK(r < 1.0e-8);
+            }
+            else {
+                CHECK(c > 0.05);
+                CHECK(r1[0] / r2[0] < 2.5); // Omega_w = Bdot: first order
+                CHECK(r1[1] / r2[1] > 3.5); // Omega_w = Bdot + 1/2 rcmt: second order
+                CHECK(r1[2] / r2[2] < 2.5); // the wrong sign: first order
+                CHECK(r1[3] / r2[3] < 2.5); // Omega_b = Bdot: first order
+                CHECK(r1[4] / r2[4] > 3.5); // Omega_b = Bdot - 1/2 rcmt: second order
+                CHECK(r1[5] / r2[5] < 2.5); // the wrong sign: first order
+            }
+            fmt::println(
+                "    {:38s} {:9.2e}  {:9.2e} ({:4.1f})  {:9.2e} ({:4.1f})  {:9.2e} "
+                "({:4.1f})  {:9.2e} ({:4.1f})",
+                k.name, c, r1[0], r1[0] / r2[0], r1[1], r1[1] / r2[1], r1[3],
+                r1[3] / r2[3], r1[4], r1[4] / r2[4]);
+        }
+        // both rates of ONE motor are one velocity in two frames: Omega_w = M Omega_b
+        // rrev(M)
+        {
+            bivec3dp const B0 = cases[3].B0, B1 = cases[3].B1;
+            auto M = [&](value_t t) { return rgpr(rexp(0.5 * (B0 + t * B1)), M0); };
+            mvec3dp_e const dM = (0.5 / h) * (M(h) - M(-h));
+            bivec3dp const Ow = gr2(2.0 * rgpr(dM, rrev(M(0.0))));
+            bivec3dp const Ob = gr2(2.0 * rgpr(rrev(M(0.0)), dM));
+            CHECK(n3(Ow - move3dp(Ob, M(0.0))) < 1.0e-8);
+        }
+
+        // 2D: the generators are vectors, and se(2) has no screw -- a rotation and a
+        // translation never commute; rotations about one point do, and translations
+        mvec2dp_u const P0 = get_motor(vec2dp{0.3, 0.2, 1.0}, 0.6);
+        auto n2 = [](vec2dp const& v) {
+            return std::sqrt(value_t(bulk_nrm_sq(v) + weight_nrm_sq(v)));
+        };
+        auto residuals2 = [&](vec2dp const& B0, vec2dp const& B1) {
+            auto Mw = [&](value_t t) { return rgpr(rexp(0.5 * (B0 + t * B1)), P0); };
+            auto Mb = [&](value_t t) { return rgpr(P0, rexp(0.5 * (B0 + t * B1))); };
+            mvec2dp_u const dMw = (0.5 / h) * (Mw(h) - Mw(-h));
+            mvec2dp_u const dMb = (0.5 / h) * (Mb(h) - Mb(-h));
+            vec2dp const Ow = gr1(2.0 * rgpr(dMw, rrev(Mw(0.0))));
+            vec2dp const Ob = gr1(2.0 * rgpr(rrev(Mb(0.0)), dMb));
+            vec2dp const c = rcmt(B0, B1);
+            return std::array<value_t, 4>{n2(Ow - B1), n2(Ow - B1 - 0.5 * c), n2(Ob - B1),
+                                          n2(Ob - B1 + 0.5 * c)};
+        };
+        struct case2 {
+            char const* name;
+            vec2dp B0, B1;
+            bool commute;
+        };
+        std::vector<case2> const cases2{
+            {"rotations about one point", 0.4 * vec2dp{0.5, -0.3, 1.0},
+             1.2 * vec2dp{0.5, -0.3, 1.0}, true},
+            {"translations in two directions", vec2dp{0.4, -1.1, 0.0},
+             vec2dp{-0.2, 0.5, 0.0}, true},
+            {"a rotation and a translation", 0.4 * vec2dp{0.5, -0.3, 1.0},
+             vec2dp{0.4, 1.0, 0.0}, false},
+            {"rotations about two points", 0.4 * vec2dp{0.5, -0.3, 1.0},
+             1.2 * vec2dp{-0.2, 0.4, 1.0}, false}};
+        fmt::println("    2D (no screw: a rotation and a translation never commute)");
+        for (auto const& k : cases2) {
+            CAPTURE(k.name);
+            auto const r1 = residuals2(k.B0, k.B1);
+            auto const r2 = residuals2(0.5 * k.B0, k.B1);
+            value_t const c = n2(rcmt(k.B0, k.B1));
+            if (k.commute) {
+                CHECK(c < 1.0e-15);
+                for (value_t const r : r1)
+                    CHECK(r < 1.0e-8);
+            }
+            else {
+                CHECK(c > 0.05);
+                CHECK(r1[0] / r2[0] < 2.5);
+                CHECK(r1[1] / r2[1] > 3.5);
+                CHECK(r1[2] / r2[2] < 2.5);
+                CHECK(r1[3] / r2[3] > 3.5);
+            }
+            fmt::println(
+                "    {:38s} {:9.2e}  {:9.2e} ({:4.1f})  {:9.2e} ({:4.1f})  {:9.2e} "
+                "({:4.1f})  {:9.2e} ({:4.1f})",
+                k.name, c, r1[0], r1[0] / r2[0], r1[1], r1[1] / r2[1], r1[2],
+                r1[2] / r2[2], r1[3], r1[3] / r2[3]);
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: reading a motor near a full turn - far sheet, band, shortest")
+    {
+        fmt::println("pga3dp: the logarithm's conditioning near a full turn");
+
+        // A screw about a line off the origin, full angle 2 pi - d, pitch 0.3
+        // (ga_docu.pdf, "Conditioning near a full turn"). Read on the FAR sheet -- rlog's
+        // formulas without its switch to -M, as until 2026-10-27 -- the rounding of the
+        // motor's components (~1e-16) reaches the result multiplied by phi / sin(phi),
+        // phi the half angle, which grows as 2 pi / d. rlog reads -M once 1 + cos(phi) <=
+        // 64 eps (a full angle within 7.5e-7 of a full turn) and keeps its error below
+        // ~1e-10 outside that band; rlog_shortest reads the shortest representative, half
+        // angle <= pi / 2, factor <= pi / 2, at every angle.
+        bivec3dp const l =
+            unitize(wdg(vec3dp{0.3, -0.2, 0.0, 1.0}, vec3dp{0.5, 0.4, 1.0, 1.0}));
+        auto err = [](mvec3dp_e const& M, bivec3dp const& B) { // the motion read back
+            bivec3dp const e = motion_error_body(M, rexp(B));
+            return std::sqrt(value_t(bulk_nrm_sq(e) + weight_nrm_sq(e)));
+        };
+        auto far_sheet = [](mvec3dp_e const& M) { // rlog without the switch to -M
+            auto const Bm = gr2(M);
+            value_t const s = std::sqrt(Bm.vx * Bm.vx + Bm.vy * Bm.vy + Bm.vz * Bm.vz);
+            value_t const phi = std::atan2(s, value_t(M.c7));
+            value_t const lx = Bm.vx / s, ly = Bm.vy / s, lz = Bm.vz / s,
+                          dist = -M.c0 / s;
+            value_t const mx = (Bm.mx - lx * dist * M.c7) / s,
+                          my = (Bm.my - ly * dist * M.c7) / s,
+                          mz = (Bm.mz - lz * dist * M.c7) / s;
+            return bivec3dp{phi * lx,
+                            phi * ly,
+                            phi * lz,
+                            phi * mx + dist * lx,
+                            phi * my + dist * ly,
+                            phi * mz + dist * lz};
+        };
+        fmt::println("    {:>18s} {:>10s} {:>10s} {:>8s} {:>10s} {:>14s}",
+                     "short of 2 pi", "phi/sin", "far sheet", "switch", "rlog",
+                     "rlog_shortest");
+        for (value_t const d : {1.0e-3, 1.0e-6, 8.0e-7, 7.0e-7, 1.0e-7, 1.0e-9}) {
+            CAPTURE(d);
+            auto const M = get_motor(l, 2.0 * pi - d, 0.3);
+            auto const g = gr2(M);
+            value_t const s = std::sqrt(g.vx * g.vx + g.vy * g.vy + g.vz * g.vz);
+            value_t const phi = std::atan2(s, value_t(M.c7));
+            bool const switched = value_t(M.c7) <= -1.0 + 64.0 * eps;
+            value_t const e_far = err(M, far_sheet(M));
+            value_t const e_rlog = err(M, rlog(M));
+            value_t const e_short = err(M, rlog_shortest(M));
+            CHECK(switched == (d < 7.5e-7));         // the band
+            CHECK(e_rlog < 2.0e-10);                 // rlog, both sides of it
+            CHECK(e_short < 1.0e-15);                // the shortest, everywhere
+            if (d <= 1.0e-6) CHECK(e_far > 1.0e-11); // the far sheet loses digits
+            if (switched) CHECK(e_rlog < 1.0e-15);   // inside the band: none
+            // inside the band rlog reads the short remainder, not nearly a full turn
+            bivec3dp const B = 2.0 * rlog(M);
+            value_t const angle = std::sqrt(B.vx * B.vx + B.vy * B.vy + B.vz * B.vz);
+            CHECK(std::abs(angle - (switched ? d : 2.0 * pi - d)) < 1.0e-9);
+            fmt::println("    {:18.1e} {:10.2e} {:10.2e} {:>8s} {:10.2e} {:14.2e}", d,
+                         phi / s, e_far, switched ? "yes" : "no", e_rlog, e_short);
+        }
+        // the shortest representative's worst case: a half turn, factor pi / 2
+        auto const H = get_motor(l, pi, 0.3);
+        auto const gh = gr2(H);
+        value_t const sh = std::sqrt(gh.vx * gh.vx + gh.vy * gh.vy + gh.vz * gh.vz);
+        CHECK(std::abs(std::atan2(sh, value_t(H.c7)) / sh - 0.5 * pi) < 1.0e-12);
+        CHECK(err(H, rlog_shortest(H)) < 1.0e-15);
+        fmt::println("    a half turn: phi/sin {:.2f}, rlog_shortest {:.2e}",
+                     std::atan2(sh, value_t(H.c7)) / sh, err(H, rlog_shortest(H)));
+        fmt::println("");
+    }
 }

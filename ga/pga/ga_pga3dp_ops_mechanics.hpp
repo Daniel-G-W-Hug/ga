@@ -557,11 +557,13 @@ struct pose3dp {
 //
 // with l the unit axis line (weight = direction, bulk = moment), and rexp/rlog work on
 // the HALF generator (the sandwich is quadratic in M). screw_axis() undoes both: from a
-// motor it returns the full angle and distance -- what get_motor(l, angle, dist) takes,
-// so the two round-trip; from a twist (a generator, e.g. a joint screw or a velocity)
-// it returns the axis, the angular rate as `angle` and the linear rate along the axis
-// as `dist`. pitch() = dist / angle is the screw pitch (a pure rotation has 0, a pure
-// translation has no finite pitch: angle == 0, axis = the direction at infinity).
+// motor it returns the full angle and distance of the shortest representative (angle
+// <= pi) -- what get_motor(l, angle, dist) takes, so the MOTION round-trips (an angle
+// past pi comes back as its complement about the reversed axis); from a twist (a
+// generator, e.g. a joint screw or a velocity) it returns the axis, the angular rate as
+// `angle` and the linear rate along the axis as `dist`. pitch() = dist / angle is the
+// screw pitch (a pure rotation has 0, a pure translation has no finite pitch: angle == 0,
+// axis = the direction at infinity).
 ////////////////////////////////////////////////////////////////////////////////
 
 struct screw_axis3dp {
@@ -593,8 +595,15 @@ inline screw_axis3dp screw_axis(bivec3dp const& B)
                          w, dist};
 }
 
-// screw axis of a motor: the full angle and distance, 2 * rlog(M)
-inline screw_axis3dp screw_axis(mvec3dp_e const& M) { return screw_axis(2.0 * rlog(M)); }
+// screw axis of a motor: the full angle and distance of the motion's SHORTEST
+// representative, 2 * rlog_shortest(M) -- an angle in [0, pi] about an axis whose
+// direction carries the sense. M and -M are one motion and give the same answer; rlog()
+// would read them a full turn apart, 90 and 270 degrees about opposite axes (until
+// 2026-10-28). get_motor(axis, angle, dist) reproduces the motion either way.
+inline screw_axis3dp screw_axis(mvec3dp_e const& M)
+{
+    return screw_axis(2.0 * rlog_shortest(M));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Screw systems and mobility (Selig ch. 8, Featherstone 8.10). A set of joint screws
@@ -1523,11 +1532,15 @@ class dynamic_system3dp : public kinematic_system3dp {
     // A spring + damper on a MOTOR joint (set_joint_spring_damper), the twin of the
     // coordinate joint's stiffness / damping / q_rest: its constants and its REST, the
     // joint's motor when the spring was attached. Kept beside the joint record rather
-    // than in it, so the bound joint_state3dp keeps its fields.
+    // than in it, so the bound joint_state3dp keeps its fields. A cylindrical joint's
+    // spring also carries its WINDING, the twist from the rest at the last committed
+    // step: the motor holds the pose, not the turns, so the winding is state, continued
+    // from this value (rlog_continued) at every evaluation and updated by commit_state.
     struct motor_spring {
         value_t k{0.0};
         value_t c{0.0};
         mvec3dp_e rest;
+        twist3dp wind{};
     };
     std::unordered_map<size_t, motor_spring> motor_springs_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
@@ -1920,6 +1933,18 @@ class dynamic_system3dp : public kinematic_system3dp {
     // A SPHERICAL or CYLINDRICAL joint takes one: there -k theta is the force of the
     // potential (the rotation vector is fixed by the exponential's Jacobian; the
     // cylindrical screws commute), and the energy is conserved to the integrator's order.
+    //
+    // Past a full turn the two differ. A CYLINDRICAL joint's rotation can wind any
+    // number of turns, and its spring is a torsion spring: theta is continued from the
+    // last committed step (rlog_continued), so the torque keeps growing with the
+    // winding -- read off the motor alone it would reverse at one turn, the energy still
+    // conserved, as if the rest lay at two turns. The winding holds while a step turns
+    // the joint by less than half a turn. A SPHERICAL joint's potential is a function of
+    // the motor itself, which has no winding to continue: 1/2 k |theta|^2 with theta in
+    // the ball of radius 2 pi, the same value over its whole boundary (the motor -1, a
+    // full turn about any axis), which is the potential's MAXIMUM. Wound past it about a
+    // fixed axis the joint unwinds towards two full turns, which the motor cannot tell
+    // from none. A ball joint needing a multi-turn torsion spring is a revolute chain.
     // A PLANAR or FREE joint does not: its rotation and translation do not commute, and
     // the same spring drifts in energy by an amount that does not shrink with the step
     // (measured 2026-10-27: 9.5e-3 / 2.4e-4 relative over 2 s at every dt) -- refused.
@@ -1948,13 +1973,25 @@ class dynamic_system3dp : public kinematic_system3dp {
         motor_springs_[idx] = motor_spring{k, c, joint_motor(idx)};
     }
 
+    // a motor joint's spring twist: the joint's motion from its rest, 2 rlog of the
+    // relative motor -- on a cylindrical joint continued from the committed winding, so
+    // it follows any number of turns while a step turns the joint by less than half a
+    // turn
+    twist3dp motor_spring_twist(size_t idx) const
+    {
+        auto const& ms = motor_springs_.at(idx);
+        mvec3dp_e const rel = rgpr(rrev(ms.rest), joint_motor(idx));
+        if (joint[idx].type == joint3dp::cylindrical)
+            return 2.0 * rlog_continued(rel, 0.5 * ms.wind);
+        return 2.0 * rlog(rel);
+    }
+
     // a motor joint's spring coordinates theta_k (see set_joint_spring_damper): the
     // joint's motion from its rest as a twist, resolved onto its screws
     std::vector<value_t> motor_spring_coords(size_t idx) const
     {
         auto const& js = joint[idx];
-        twist3dp const B =
-            2.0 * rlog(rgpr(rrev(motor_springs_.at(idx).rest), joint_motor(idx)));
+        twist3dp const B = motor_spring_twist(idx);
         size_t const k = js.screws.size();
         std::vector<value_t> A(6 * k), b{B.vx, B.vy, B.vz, B.mx, B.my, B.mz};
         for (size_t s = 0; s < k; ++s) {
@@ -2812,6 +2849,9 @@ class dynamic_system3dp : public kinematic_system3dp {
             }
         }
         stage_M_.clear(); // the step is committed: joint_motor() is M again
+        // a cylindrical spring's winding follows the committed motor
+        for (auto& [fi, ms] : motor_springs_)
+            if (joint[fi].type == joint3dp::cylindrical) ms.wind = motor_spring_twist(fi);
     }
 
     // the coordinates of the given joint frames, in dof_coords() order (a driven or rigid

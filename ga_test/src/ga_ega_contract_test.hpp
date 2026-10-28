@@ -3,6 +3,7 @@
 
 #include "ga_test_arith_check.hpp"
 
+#include <array>
 #include <cmath>
 #include <type_traits>
 #include <vector>
@@ -205,5 +206,76 @@ TEST_SUITE("EGA contracts")
         CHECK_THROWS(project_onto(v, vec3d{}));
         CHECK_THROWS(angle(v, vec3d{}));
         CHECK_THROWS(reciprocal_frame(w, vec3d(2.0 * w), v));
+    }
+
+    TEST_CASE("ega3d: the rate of a rotor and the rate of its generator")
+    {
+        fmt::println("ega3d: the rate of a rotor against the rate of its generator");
+
+        // R(t) = exp(-1/2 B(t)) R_0 in the world frame, R_0 exp(-1/2 B(t)) in the body
+        // frame, with B(t) = B_0 + t B_1 (ga_docu.pdf, "Motion in EGA"). The rate of the
+        // rotor is DEFINED by Rdot = -1/2 Omega_w R = -1/2 R Omega_b, and it is the rate
+        // of the generator, Bdot = B_1, only where B and Bdot commute: a FIXED plane of
+        // rotation. When the plane turns, to first order in B,
+        //
+        //     Omega_w = Bdot - 1/2 cmt(B, Bdot) + ...
+        //     Omega_b = Bdot + 1/2 cmt(B, Bdot) + ...
+        //
+        // -- the signs of PGA's reversed, since the exponent carries -1/2 B. The rates
+        // are taken from the rotor by central differences, Omega_w = -2 Rdot rev(R) and
+        // Omega_b = -2 rev(R) Rdot; each formula is checked by its ORDER: halving B_0
+        // cuts the residual by ~4 when it is right, by ~2 when it is not.
+        value_t const h = 1.0e-6;
+        mvec3d_e const R0 = exp(-0.5 * bivec3d{0.2, -0.4, 0.3});
+        auto n = [](bivec3d const& b) {
+            return std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
+        };
+        auto residuals = [&](bivec3d const& B0, bivec3d const& B1) {
+            auto Rw = [&](value_t t) { return exp(-0.5 * (B0 + t * B1)) * R0; };
+            auto Rb = [&](value_t t) { return R0 * exp(-0.5 * (B0 + t * B1)); };
+            mvec3d_e const dRw = (0.5 / h) * (Rw(h) - Rw(-h));
+            mvec3d_e const dRb = (0.5 / h) * (Rb(h) - Rb(-h));
+            bivec3d const Ow = gr2(-2.0 * (dRw * rev(Rw(0.0))));
+            bivec3d const Ob = gr2(-2.0 * (rev(Rb(0.0)) * dRb));
+            bivec3d const c = cmt(B0, B1);
+            return std::array<value_t, 4>{n(Ow - B1), n(Ow - B1 + 0.5 * c), n(Ob - B1),
+                                          n(Ob - B1 - 0.5 * c)};
+        };
+        struct rate_case {
+            char const* name;
+            bivec3d B0, B1;
+            bool commute;
+        };
+        std::vector<rate_case> const cases{{"a fixed plane", 0.4 * bivec3d{0.6, 0.0, 0.8},
+                                            1.2 * bivec3d{0.6, 0.0, 0.8}, true},
+                                           {"a turning plane", bivec3d{0.36, 0.16, -0.12},
+                                            bivec3d{0.3, -0.2, 0.5}, false}};
+        fmt::println("    {:18s} {:>9s}  {:>17s}  {:>17s}  {:>17s}  {:>17s}", "rotation",
+                     "cmt", "Omega_w - Bdot", "... + 1/2 cmt", "Omega_b - Bdot",
+                     "... - 1/2 cmt");
+        for (auto const& k : cases) {
+            CAPTURE(k.name);
+            auto const r1 = residuals(k.B0, k.B1);
+            auto const r2 = residuals(0.5 * k.B0, k.B1);
+            value_t const c = n(cmt(k.B0, k.B1));
+            if (k.commute) {
+                CHECK(c < 1.0e-15);
+                for (value_t const r : r1)
+                    CHECK(r < 1.0e-8);
+            }
+            else {
+                CHECK(c > 0.05);
+                CHECK(r1[0] / r2[0] < 2.5); // Omega_w = Bdot: first order
+                CHECK(r1[1] / r2[1] > 3.5); // Omega_w = Bdot - 1/2 cmt: second order
+                CHECK(r1[2] / r2[2] < 2.5); // Omega_b = Bdot: first order
+                CHECK(r1[3] / r2[3] > 3.5); // Omega_b = Bdot + 1/2 cmt: second order
+            }
+            fmt::println(
+                "    {:18s} {:9.2e}  {:9.2e} ({:4.1f})  {:9.2e} ({:4.1f})  {:9.2e} "
+                "({:4.1f})  {:9.2e} ({:4.1f})",
+                k.name, c, r1[0], r1[0] / r2[0], r1[1], r1[1] / r2[1], r1[2],
+                r1[2] / r2[2], r1[3], r1[3] / r2[3]);
+        }
+        fmt::println("");
     }
 }
