@@ -4433,6 +4433,29 @@ void register_functions(sol::state& lua)
     pga.set_function("rlog",
                      sol::overload(sol::resolve<vec2dp(mvec2dp_u const&)>(rlog),
                                    sol::resolve<bivec3dp(mvec3dp_e const&)>(rlog)));
+    // reading a motion off a motor as a number: the shortest motion, the error between
+    // two motors in body / world axes, the generator continued through whole turns
+    pga.set_function(
+        "rlog_shortest",
+        sol::overload(sol::resolve<vec2dp(mvec2dp_u const&)>(rlog_shortest),
+                      sol::resolve<bivec3dp(mvec3dp_e const&)>(rlog_shortest)));
+    pga.set_function(
+        "motion_error_body",
+        sol::overload(
+            sol::resolve<vec2dp(mvec2dp_u const&, mvec2dp_u const&)>(motion_error_body),
+            sol::resolve<bivec3dp(mvec3dp_e const&, mvec3dp_e const&)>(
+                motion_error_body)));
+    pga.set_function(
+        "motion_error_world",
+        sol::overload(
+            sol::resolve<vec2dp(mvec2dp_u const&, mvec2dp_u const&)>(motion_error_world),
+            sol::resolve<bivec3dp(mvec3dp_e const&, mvec3dp_e const&)>(
+                motion_error_world)));
+    pga.set_function(
+        "rlog_continued",
+        sol::overload(
+            sol::resolve<vec2dp(mvec2dp_u const&, vec2dp const&)>(rlog_continued),
+            sol::resolve<bivec3dp(mvec3dp_e const&, bivec3dp const&)>(rlog_continued)));
     cga.set_function("rlog", sol::overload(
                                  // cga
                                  sol::resolve<bivec2dc(mvec2dc_e const&)>(rlog),

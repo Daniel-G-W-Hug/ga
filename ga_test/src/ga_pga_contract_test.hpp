@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_test_arith_check.hpp"
+#include "ga_test_equivariance.hpp"
 
 #include <array>
 #include <bit>
@@ -688,5 +689,175 @@ TEST_SUITE("PGA contracts")
         CHECK(std::abs(angle(vec2dp{1.0e-9, 0.0, 0.0}, vec2dp{0.0, 1.0e-9, 0.0}) -
                        0.5 * pi) < 1.0e-12);
         CHECK_THROWS(angle(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 0.0, 0.0}));
+    }
+    TEST_CASE("pga2dp / pga3dp: reading a motion off a motor -- the shortest motion")
+    {
+        // rlog() reads the full angle in (-2 pi, 2 pi] and -M a full turn off;
+        // rlog_shortest() reads the motion's shortest representative, [-pi, pi], the
+        // same for M and -M
+        auto yaw = [](value_t a) {
+            return rexp(0.5 * bivec3dp{0.0, 0.0, a, 0.0, 0.0, 0.0});
+        };
+        value_t const deg = pi / 180.0;
+        for (auto const [a, e] :
+             {std::pair{90.0, 90.0}, std::pair{270.0, -90.0}, std::pair{359.0, -1.0},
+              std::pair{361.0, 1.0}, std::pair{450.0, 90.0}, std::pair{-200.0, 160.0}}) {
+            CAPTURE(a);
+            auto const Y = yaw(a * deg);
+            CHECK(std::abs(2.0 * rlog_shortest(Y).vz - e * deg) < 1.0e-12);
+            CHECK(std::abs(2.0 * rlog_shortest(mvec3dp_e(-Y)).vz - e * deg) < 1.0e-12);
+            auto const R = get_motor(vec2dp{0.0, 0.0, 1.0}, a * deg);
+            CHECK(std::abs(2.0 * rlog_shortest(R).z - e * deg) < 1.0e-12);
+            CHECK(std::abs(2.0 * rlog_shortest(mvec2dp_u(-R)).z - e * deg) < 1.0e-12);
+        }
+        // the shortest generator still generates the motion, a screw included
+        bivec3dp const L =
+            unitize(wdg(vec3dp{1.0, 2.0, 0.5, 1.0}, vec3dp{1.3, 1.6, 1.4, 1.0}));
+        for (value_t const a : {0.4, 2.0, 3.5, 6.0, 9.0}) {
+            auto const S = get_motor(L, a, 0.7);
+            CHECK(is_same_motion(rexp(rlog_shortest(S)), S));
+            auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, a);
+            CHECK(is_same_motion(rexp(rlog_shortest(P)), P));
+        }
+    }
+
+    TEST_CASE("pga2dp / pga3dp: reading a motion off a motor -- the error between two")
+    {
+        fmt::println("pga2dp / pga3dp: motion_error_body / motion_error_world");
+
+        // A roll of 0.01 under a heading psi, M = Y(psi) R(0.01): the error from Y in
+        // body axes is the roll, at every heading. The difference of the ABSOLUTE
+        // logarithms is not (the falsification): the log of a product is not the sum
+        // of the logs, and the roll reads turned by psi / 2 and scaled by
+        // (psi / 2) / sin(psi / 2) -- 311 times too large at 359 degrees.
+        value_t const deg = pi / 180.0, eps_roll = 0.01;
+        auto yaw = [](value_t a) {
+            return rexp(0.5 * bivec3dp{0.0, 0.0, a, 0.0, 0.0, 0.0});
+        };
+        auto const R = rexp(0.5 * bivec3dp{eps_roll, 0.0, 0.0, 0.0, 0.0, 0.0});
+        value_t worst_rel = 0.0, worst_abs = 0.0;
+        for (value_t const psi : {0.0, 90.0, 180.0, 270.0, 350.0, 359.0, 365.0}) {
+            auto const Y = yaw(psi * deg);
+            auto const M = rgpr(Y, R);
+            bivec3dp const e = motion_error_body(Y, M);
+            worst_rel = std::max(
+                worst_rel,
+                equivariance::max_diff(e, bivec3dp{eps_roll, 0.0, 0.0, 0.0, 0.0, 0.0}));
+            bivec3dp const d = 2.0 * rlog(M) - 2.0 * rlog(Y);
+            worst_abs = std::max(worst_abs, std::hypot(d.vx, d.vy) / eps_roll);
+            // what the errors mean: M = M_ref (x) rexp(e_b / 2) = rexp(e_w / 2) (x) M_ref
+            CHECK(is_same_motion(rgpr(Y, rexp(0.5 * e)), M));
+            CHECK(is_same_motion(rgpr(rexp(0.5 * motion_error_world(Y, M)), Y), M));
+        }
+        CHECK(worst_rel < 1.0e-14);
+        CHECK(worst_abs > 100.0);
+        fmt::println(
+            "    the roll from the relative motor: off by {:.1e}; from the absolute "
+            "logarithms: up to {:.0f} times the roll",
+            worst_rel, worst_abs);
+
+        // THE EQUIVARIANCE PATTERN (ga_test_equivariance.hpp): the whole scene turned by
+        // 0, 90, 180, 270, 365 and 719 degrees about a vertical axis off the origin. The
+        // body error does not change, the world error turns with the scene; the
+        // difference of absolute logarithms does neither.
+        bivec3dp const L1 =
+            unitize(wdg(vec3dp{1.0, 2.0, 0.5, 1.0}, vec3dp{1.3, 1.6, 1.4, 1.0}));
+        bivec3dp const L2 =
+            unitize(wdg(vec3dp{-0.5, 0.2, 0.0, 1.0}, vec3dp{0.1, 0.9, 0.3, 1.0}));
+        std::vector<mvec3dp_e> const scene3{get_motor(L1, 0.8, 0.3),
+                                            get_motor(L2, 2.6, -0.4)};
+        auto body3 = [](std::vector<mvec3dp_e> const& m) {
+            return motion_error_body(m[0], m[1]);
+        };
+        auto world3 = [](std::vector<mvec3dp_e> const& m) {
+            return motion_error_world(m[0], m[1]);
+        };
+        auto absolute3 = [](std::vector<mvec3dp_e> const& m) {
+            return bivec3dp(2.0 * rlog(m[1]) - 2.0 * rlog(m[0]));
+        };
+        CHECK(equivariance::body_invariance3dp(body3, scene3) < 1.0e-12);
+        CHECK(equivariance::world_covariance3dp(world3, scene3) < 1.0e-12);
+        CHECK(equivariance::body_invariance3dp(absolute3, scene3) > 0.1);
+        CHECK(equivariance::world_covariance3dp(absolute3, scene3) > 0.1);
+        std::vector<mvec2dp_u> const scene2{get_motor(vec2dp{1.0, 2.0, 1.0}, 0.8),
+                                            get_motor(vec2dp{-0.5, 0.3, 1.0}, 2.6)};
+        auto body2 = [](std::vector<mvec2dp_u> const& m) {
+            return motion_error_body(m[0], m[1]);
+        };
+        auto world2 = [](std::vector<mvec2dp_u> const& m) {
+            return motion_error_world(m[0], m[1]);
+        };
+        auto absolute2 = [](std::vector<mvec2dp_u> const& m) {
+            return vec2dp(2.0 * rlog(m[1]) - 2.0 * rlog(m[0]));
+        };
+        CHECK(equivariance::body_invariance2dp(body2, scene2) < 1.0e-12);
+        CHECK(equivariance::world_covariance2dp(world2, scene2) < 1.0e-12);
+        CHECK(equivariance::body_invariance2dp(absolute2, scene2) > 0.1);
+        CHECK(equivariance::world_covariance2dp(absolute2, scene2) > 0.1);
+        fmt::println(
+            "    turned scenes: body error invariant to {:.1e}, world error covariant "
+            "to {:.1e}; absolute logs off by {:.2f}",
+            equivariance::body_invariance3dp(body3, scene3),
+            equivariance::world_covariance3dp(world3, scene3),
+            equivariance::body_invariance3dp(absolute3, scene3));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp / pga3dp: reading a motion off a motor -- following the turns")
+    {
+        fmt::println(
+            "pga2dp / pga3dp: rlog_continued follows a heading through four turns");
+
+        // A heading growing by 37 degrees per read, about 4 turns, and one falling by 23
+        // per read: rlog_continued, fed its own previous value, reads the accumulated
+        // angle; rlog alone wraps (the falsification). A screw keeps its axis and pitch.
+        value_t const deg = pi / 180.0;
+        bivec3dp const Lz =
+            unitize(wdg(vec3dp{0.7, -0.4, 0.0, 1.0}, vec3dp{0.7, -0.4, 1.0, 1.0}));
+        for (value_t const step : {37.0, -23.0}) {
+            CAPTURE(step);
+            bivec3dp L3{};
+            vec2dp L2{};
+            value_t worst = 0.0, worst_plain = 0.0;
+            for (int k = 1; k <= 40; ++k) {
+                value_t const psi = k * step * deg;
+                auto const S = get_motor(Lz, psi, 0.25); // a screw about a vertical axis
+                L3 = rlog_continued(S, L3);
+                CHECK(is_same_motion(rexp(L3), S));
+                auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, psi);
+                L2 = rlog_continued(P, L2);
+                CHECK(is_same_motion(rexp(L2), P));
+                worst = std::max(
+                    {worst, std::abs(2.0 * L3.vz - psi), std::abs(2.0 * L2.z - psi)});
+                worst_plain = std::max(worst_plain, std::abs(2.0 * rlog(S).vz - psi));
+            }
+            CHECK(worst < 1.0e-12);
+            CHECK(worst_plain > 6.0); // whole turns lost
+            fmt::println(
+                "    {:+.0f} deg per read, 40 reads: the continued angle off by {:.1e} "
+                "rad, rlog alone by up to {:.1f}",
+                step, worst, worst_plain);
+        }
+        // exactly at whole turns (a read every 90 degrees) the motor is +-identity and
+        // has no axis; the turns continue along the previous axis. Exact for a rotation
+        // and for a screw, whose translation runs along the axis
+        bivec3dp L3{};
+        vec2dp L2{};
+        for (int k = 1; k <= 41; ++k) {
+            auto const S = get_motor(Lz, k * 90.0 * deg, 0.25);
+            L3 = rlog_continued(S, L3);
+            CHECK(is_same_motion(rexp(L3), S));
+            auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, k * 90.0 * deg);
+            L2 = rlog_continued(P, L2);
+            CHECK(is_same_motion(rexp(L2), P));
+        }
+        CHECK(std::abs(2.0 * L3.vz - 41 * 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(2.0 * L2.z - 41 * 90.0 * deg) < 1.0e-12);
+        // a translation, with no turns behind it, is rlog's
+        auto const T = get_motor(vec3dp{0.4, -1.1, 0.3, 0.0});
+        CHECK(rlog_continued(T, bivec3dp{}) == rlog(T));
+        auto const T2 = get_motor(vec2dp{0.4, -1.1, 0.0});
+        CHECK(rlog_continued(T2, vec2dp{}) == rlog(T2));
+        fmt::println("");
     }
 }

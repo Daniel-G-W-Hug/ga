@@ -490,6 +490,32 @@ void emit_pga_cases()
         add_case("pga_move3dp_point", "pga", "move3dp", move3dp(pt, motor), 1e-9, pt,
                  motor);
     }
+
+    // --- reading a motion off a motor: shortest, relative error, continued ---
+    {
+        bivec3dp const ax =
+            unitize(wdg(vec3dp{0.3, 0.2, 0.0, 1.0}, vec3dp{0.3, 0.2, 1.0, 1.0}));
+        mvec3dp_e const Y = get_motor(ax, 4.5); // more than half a turn
+        mvec3dp_e const S = get_motor(ax, 0.7, 0.2);
+        bivec3dp const L_prev{0.0, 0.0, 9.0, 0.0, 0.0, 0.0};
+        add("pga_rlog_shortest3dp", "pga", "rlog_shortest", rlog_shortest(Y), Y);
+        add("pga_motion_error_body3dp", "pga", "motion_error_body",
+            motion_error_body(S, Y), S, Y);
+        add("pga_motion_error_world3dp", "pga", "motion_error_world",
+            motion_error_world(S, Y), S, Y);
+        add("pga_rlog_continued3dp", "pga", "rlog_continued", rlog_continued(Y, L_prev),
+            Y, L_prev);
+        mvec2dp_u const P = get_motor(vec2dp{1.0, 2.0, 1.0}, 4.5);
+        mvec2dp_u const Q = get_motor(vec2dp{-0.5, 0.3, 1.0}, 0.7);
+        vec2dp const l_prev{0.0, 0.0, 9.0};
+        add("pga_rlog_shortest2dp", "pga", "rlog_shortest", rlog_shortest(P), P);
+        add("pga_motion_error_body2dp", "pga", "motion_error_body",
+            motion_error_body(Q, P), Q, P);
+        add("pga_motion_error_world2dp", "pga", "motion_error_world",
+            motion_error_world(Q, P), Q, P);
+        add("pga_rlog_continued2dp", "pga", "rlog_continued", rlog_continued(P, l_prev),
+            P, l_prev);
+    }
 }
 
 // --------------------------------------------------------------------------- //

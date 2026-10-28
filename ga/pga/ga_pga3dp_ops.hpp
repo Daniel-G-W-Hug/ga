@@ -7,6 +7,7 @@
 #include "ga_pga3dp_ops_basics.hpp"
 #include "ga_pga3dp_ops_products.hpp"
 
+#include <numbers> // std::numbers::pi_v
 #include <utility> // std::forward
 #include <vector>  // std::vector
 
@@ -16,6 +17,10 @@
 // - angle()                              -> angle operations
 // - rexp()                               -> exponential (w.r.t. rgpr)
 // - rlog()                               -> logarithm (w.r.t. rgpr, inverse of rexp)
+// - rlog_shortest()                      -> the shortest motion's generator (|angle| <=
+// pi)
+// - motion_error_body(), motion_error_world() -> the twist from M_ref to M (relative log)
+// - rlog_continued()                     -> the generator nearest a previous one (turns)
 // - rsqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
 //
 // - get_motor()                          -> provide a motor from (line, phi), or (delta),
@@ -262,6 +267,101 @@ constexpr BiVec3dp<T> rlog(MVec3dp_E<T> const& M_in)
     // B = phi*l + dist*att(weight(l))  (axis direction copied into the bulk slots)
     return BiVec3dp<T>(phi * lx, phi * ly, phi * lz, phi * mlx + dist * lx,
                        phi * mly + dist * ly, phi * mlz + dist * lz);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// READING A MOTION OFF A MOTOR. rlog() inverts rexp() on the motors themselves, both
+// sheets: the full angle (twice the weight of the generator) lies in (-2 pi, 2 pi], and
+// M and -M -- the same motion -- read a full turn apart. Three functions read a motion
+// for use as a number (ga_docu.pdf, "Reading an angle off a motor"):
+//
+//   - rlog_shortest(M): the generator of the motion's SHORTEST representative, the one
+//     of +-M whose pseudoscalar component (the identity's) is not negative -- a full
+//     angle in [-pi, pi]. Same convention as rlog(): rexp(rlog_shortest(M)) == +-M.
+//
+//   - motion_error_body(M_ref, M) / motion_error_world(M_ref, M): the TWIST that carries
+//     M_ref to M, in M_ref's body axes or in world axes,
+//
+//         M == M_ref (x) rexp(1/2 e_b),       M == rexp(1/2 e_w) (x) M_ref    (as
+//         motions)
+//
+//     the logarithm of a RELATIVE motor, near the identity where the chart is good, and
+//     read as its shortest motion. The absolute logarithms' difference is NOT this: the
+//     logarithm of a product is not the sum of the logarithms (a 0.01 roll under a 359
+//     deg heading reads 311 times too large from an absolute logarithm).
+//
+//   - rlog_continued(M, L_prev): the generator of M (rlog() convention) nearest a
+//     previous one, over whole turns about M's own screw axis: rlog(M) + k pi l, with l
+//     the unit axis line and k the integer that brings the rotation closest to L_prev's.
+//     A read-out fed its own previous value follows any number of turns, provided the
+//     motion changes by less than half a turn between reads. At a whole number of turns
+//     the motion has no axis of its own; the turns continue along L_prev's axis, which
+//     generates M when its translation runs along that axis (a turntable, a screw) --
+//     a translation across it cannot share one generator with whole turns, and then the
+//     turn count is kept and M is generated only up to that translation.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> rlog_shortest(MVec3dp_E<T> const& M)
+{
+    return rlog(M.c7 >= T(0.0) ? M : MVec3dp_E<T>(-M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> motion_error_body(MVec3dp_E<T> const& M_ref, MVec3dp_E<T> const& M)
+{
+    return T(2.0) * rlog_shortest(rgpr(rrev(M_ref), M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> motion_error_world(MVec3dp_E<T> const& M_ref, MVec3dp_E<T> const& M)
+{
+    return T(2.0) * rlog_shortest(rgpr(M, rrev(M_ref)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> rlog_continued(MVec3dp_E<T> const& M, BiVec3dp<T> const& L_prev)
+{
+    BiVec3dp<T> const L0 = rlog(M);
+    // L0 = phi l + dist att(l): the rotation phi >= 0 about the unit axis line l (weight
+    // u, moment m) and the pitch dist along it
+    T const phi = std::sqrt(L0.vx * L0.vx + L0.vy * L0.vy + L0.vz * L0.vz);
+    if (phi == T(0.0)) {
+        // no rotation of its own: a translation, or a WHOLE NUMBER OF TURNS (the
+        // identity's rotation, whose axis is undefined). The turns L_prev carries
+        // continue along L_prev's axis -- rexp of the result is +-M when M's translation
+        // runs along that axis or vanishes (a turntable, a screw); a translation ACROSS
+        // the axis cannot share one generator with whole turns, and then the turns are
+        // kept and the result generates M only up to that translation
+        T const pp = std::sqrt(L_prev.vx * L_prev.vx + L_prev.vy * L_prev.vy +
+                               L_prev.vz * L_prev.vz);
+        if (pp == T(0.0)) return L0;
+        T const px = L_prev.vx / pp, py = L_prev.vy / pp, pz = L_prev.vz / pp;
+        T const dp = L_prev.mx * px + L_prev.my * py + L_prev.mz * pz;
+        BiVec3dp<T> const lp{px,
+                             py,
+                             pz,
+                             (L_prev.mx - dp * px) / pp,
+                             (L_prev.my - dp * py) / pp,
+                             (L_prev.mz - dp * pz) / pp};
+        return L0 + (std::round(pp / std::numbers::pi_v<T>) * std::numbers::pi_v<T>)*lp;
+    }
+    T const ux = L0.vx / phi, uy = L0.vy / phi, uz = L0.vz / phi;
+    T const dist = L0.mx * ux + L0.my * uy + L0.mz * uz;
+    BiVec3dp<T> const l{ux,
+                        uy,
+                        uz,
+                        (L0.mx - dist * ux) / phi,
+                        (L0.my - dist * uy) / phi,
+                        (L0.mz - dist * uz) / phi};
+    // whole turns (k pi in this half-angle convention) bring the rotation along u
+    // closest to L_prev's; L0 + k pi l is +-M (the shift commutes with L0)
+    T const phi_prev = L_prev.vx * ux + L_prev.vy * uy + L_prev.vz * uz;
+    T const k = std::round((phi_prev - phi) / std::numbers::pi_v<T>);
+    return L0 + (k * std::numbers::pi_v<T>)*l;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

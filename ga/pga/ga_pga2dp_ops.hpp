@@ -7,6 +7,7 @@
 #include "ga_pga2dp_ops_basics.hpp"
 #include "ga_pga2dp_ops_products.hpp"
 
+#include <numbers> // std::numbers::pi_v
 #include <utility> // std::forward
 #include <vector>  // std::vector
 
@@ -16,6 +17,10 @@
 // - angle()                             -> angle operations
 // - rexp()                              -> exponential (w.r.t. rgpr)
 // - rlog()                              -> logarithm (w.r.t. rgpr, inverse of rexp)
+// - rlog_shortest()                     -> the shortest motion's generator (|angle| <=
+// pi)
+// - motion_error_body(), motion_error_world() -> the twist from M_ref to M (relative log)
+// - rlog_continued()                    -> the generator nearest a previous one (turns)
 // - rsqrt(M)                            -> sqrt of a motor (w.r.t. rgpr)
 //
 // - get_motor()                         -> provide a motor from (point, phi), or (delta),
@@ -150,6 +155,67 @@ constexpr Vec2dp<T> rlog(MVec2dp_U<T> const& M_in)
     return Vec2dp<T>(M.c0 * scale, M.c1 * scale, phi);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// READING A MOTION OFF A MOTOR -- the 2D twins of the pga3dp functions, see there and
+// ga_docu.pdf, "Reading an angle off a motor". rlog() inverts rexp() on the motors
+// themselves, both sheets: the full angle (twice arg.z) lies in (-2 pi, 2 pi], and M and
+// -M read a full turn apart.
+//
+//   - rlog_shortest(M): the generator of the representative of +-M whose pseudoscalar
+//     component is not negative -- a full angle in [-pi, pi].
+//
+//   - motion_error_body(M_ref, M) / motion_error_world(M_ref, M): the twist carrying
+//     M_ref to M, in M_ref's body axes or in world axes, 2 rlog_shortest of
+//     rrev(M_ref) (x) M or M (x) rrev(M_ref).
+//
+//   - rlog_continued(M, L_prev): rlog(M) over whole turns about its own pivot, the one
+//     nearest the previous generator L_prev; a read-out fed its own previous value
+//     follows any number of turns while the motion changes by less than half a turn
+//     between reads. At a whole number of turns the turns continue about L_prev's pivot
+//     (see the pga3dp twin for when that generates M).
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dp<T> rlog_shortest(MVec2dp_U<T> const& M)
+{
+    return rlog(M.c3 >= T(0.0) ? M : MVec2dp_U<T>(-M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dp<T> motion_error_body(MVec2dp_U<T> const& M_ref, MVec2dp_U<T> const& M)
+{
+    return T(2.0) * rlog_shortest(rgpr(rrev(M_ref), M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dp<T> motion_error_world(MVec2dp_U<T> const& M_ref, MVec2dp_U<T> const& M)
+{
+    return T(2.0) * rlog_shortest(rgpr(M, rrev(M_ref)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dp<T> rlog_continued(MVec2dp_U<T> const& M, Vec2dp<T> const& L_prev)
+{
+    Vec2dp<T> const L0 = rlog(M);
+    T const phi = L0.z; // the half angle about the pivot L0 / L0.z
+    if (phi == T(0.0)) {
+        // no rotation of its own: a translation, or a whole number of turns -- the turns
+        // L_prev carries continue about L_prev's pivot (exact for a rotation; a
+        // translation cannot share one generator with whole turns: see the pga3dp twin)
+        if (L_prev.z == T(0.0)) return L0;
+        return L0 + (std::round(L_prev.z / std::numbers::pi_v<T>) *
+                     std::numbers::pi_v<T> / L_prev.z) *
+                        L_prev;
+    }
+    // whole turns (k pi in this half-angle convention) about the same pivot: the
+    // generator scales, and rexp of it is +-M
+    T const k = std::round((L_prev.z - phi) / std::numbers::pi_v<T>);
+    return L0 * ((phi + k * std::numbers::pi_v<T>) / phi);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)

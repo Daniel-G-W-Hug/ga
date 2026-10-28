@@ -500,6 +500,18 @@ void register_functions_pga(nb::module_& m)
           [](vec2dp const& a0, bivec2dp const& a1) { return moment_about(a0, a1); });
     m.def("moment_about",
           [](vec3dp const& a0, bivec3dp const& a1) { return moment_about(a0, a1); });
+    m.def("motion_error_body", [](mvec2dp_u const& a0, mvec2dp_u const& a1) {
+        return motion_error_body(a0, a1);
+    });
+    m.def("motion_error_body", [](mvec3dp_e const& a0, mvec3dp_e const& a1) {
+        return motion_error_body(a0, a1);
+    });
+    m.def("motion_error_world", [](mvec2dp_u const& a0, mvec2dp_u const& a1) {
+        return motion_error_world(a0, a1);
+    });
+    m.def("motion_error_world", [](mvec3dp_e const& a0, mvec3dp_e const& a1) {
+        return motion_error_world(a0, a1);
+    });
     m.def("motor_from_pose2dp", [](pose2dp const& a0) { return motor_from_pose2dp(a0); });
     m.def("motor_from_pose3dp", [](pose3dp const& a0) { return motor_from_pose3dp(a0); });
     m.def("move2dp",
@@ -820,6 +832,12 @@ void register_functions_pga(nb::module_& m)
     m.def("rinv", [](mvec3dp const& a0) { return rinv(a0); });
     m.def("rlog", [](mvec2dp_u const& a0) { return rlog(a0); });
     m.def("rlog", [](mvec3dp_e const& a0) { return rlog(a0); });
+    m.def("rlog_continued",
+          [](mvec2dp_u const& a0, vec2dp const& a1) { return rlog_continued(a0, a1); });
+    m.def("rlog_continued",
+          [](mvec3dp_e const& a0, bivec3dp const& a1) { return rlog_continued(a0, a1); });
+    m.def("rlog_shortest", [](mvec2dp_u const& a0) { return rlog_shortest(a0); });
+    m.def("rlog_shortest", [](mvec3dp_e const& a0) { return rlog_shortest(a0); });
     m.def("rrev", [](scalar2dp const& a0) { return rrev(a0); });
     m.def("rrev", [](vec2dp const& a0) { return rrev(a0); });
     m.def("rrev", [](bivec2dp const& a0) { return rrev(a0); });

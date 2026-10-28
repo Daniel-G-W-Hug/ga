@@ -3354,6 +3354,92 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: reading a motion off a motor - application examples")
+    {
+        fmt::println("pga3dp: which logarithm for which task");
+        value_t const deg = pi / 180.0;
+        bivec3dp const z_axis = unitize(wdg(O_3dp, vec3dp{0.0, 0.0, 1.0, 1.0}));
+        auto heading_of = [](mvec3dp_e const& M) { // where the body's x axis points
+            vec3dp const x = move3dp(vec3dp{1.0, 0.0, 0.0, 0.0}, M);
+            return std::atan2(x.y, x.x);
+        };
+
+        // (1) INTERPOLATING A MOTION -- rlog or rlog_shortest. From the identity to a
+        // pose turned by 270 degrees: M(t) = M_0 (x) rexp(t L), L the logarithm of the
+        // relative motor. rlog() goes the way the motor was built, 270 degrees;
+        // rlog_shortest() the other way round, 90. Both arrive at the same pose.
+        mvec3dp_e const M0 = rexp(bivec3dp{});
+        mvec3dp_e const M1 =
+            rgpr(get_motor(vec3dp{1.0, 0.5, 0.0, 0.0}), get_motor(z_axis, 270.0 * deg));
+        bivec3dp const L_long = rlog(rgpr(rrev(M0), M1)),
+                       L_short = rlog_shortest(rgpr(rrev(M0), M1));
+        value_t const mid_long = heading_of(rgpr(M0, rexp(0.5 * L_long)));
+        value_t const mid_short = heading_of(rgpr(M0, rexp(0.5 * L_short)));
+        CHECK(std::abs(mid_long - 135.0 * deg) < 1.0e-12);
+        CHECK(std::abs(mid_short + 45.0 * deg) < 1.0e-12);
+        CHECK(is_same_motion(rgpr(M0, rexp(L_long)), M1));
+        CHECK(is_same_motion(rgpr(M0, rexp(L_short)), M1));
+        fmt::println(
+            "    (1) halfway: rlog has turned {:.1f} deg, rlog_shortest {:.1f} deg; "
+            "both end at the target",
+            mid_long / deg, mid_short / deg);
+
+        // (2) A POSE SERVO IN BODY AXES -- motion_error_body. The commanded twist in the
+        // body's own axes is V_b = -k e_b, the form a body-Jacobian controller takes:
+        // M <- M (x) rexp(1/2 dt V_b). The error decays as exp(-k t) at ANY reference
+        // heading, including just short of a full turn.
+        // (3) THE SAME IN WORLD AXES -- motion_error_world: V_w = -k e_w, M <- rexp(1/2
+        // dt V_w) (x) M, the form a space-Jacobian controller takes. The same motion.
+        value_t const k = 5.0, dt = 0.01;
+        mvec3dp_e const offset =
+            rgpr(get_motor(vec3dp{0.5, -0.2, 0.1, 0.0}),
+                 rgpr(get_motor(z_axis, -150.0 * deg),
+                      rexp(0.5 * bivec3dp{0.3, 0.0, 0.0, 0.0, 0.0, 0.0})));
+        value_t worst_b = 0.0, worst_w = 0.0, worst_bw = 0.0;
+        for (value_t const h : {0.0, 90.0, 270.0, 359.0}) {
+            mvec3dp_e const M_ref =
+                rgpr(get_motor(vec3dp{2.0, 1.0, 0.0, 0.0}), get_motor(z_axis, h * deg));
+            mvec3dp_e Mb = rgpr(M_ref, offset), Mw = Mb;
+            for (int i = 0; i < 1000; ++i) {
+                Mb = rgpr(Mb, rexp(0.5 * dt * (-k) * motion_error_body(M_ref, Mb)));
+                Mw = rgpr(rexp(0.5 * dt * (-k) * motion_error_world(M_ref, Mw)), Mw);
+            }
+            bivec3dp const eb = motion_error_body(M_ref, Mb),
+                           ew = motion_error_world(M_ref, Mw);
+            worst_b = std::max(worst_b,
+                               std::sqrt(value_t(bulk_nrm_sq(eb) + weight_nrm_sq(eb))));
+            worst_w = std::max(worst_w,
+                               std::sqrt(value_t(bulk_nrm_sq(ew) + weight_nrm_sq(ew))));
+            worst_bw = std::max(worst_bw, std::abs(heading_of(Mb) - heading_of(Mw)));
+        }
+        CHECK(worst_b < 1.0e-12);
+        CHECK(worst_w < 1.0e-12);
+        fmt::println(
+            "    (2) / (3) servo from 150 deg off, 10 s at k = 5, references at 0 .. "
+            "359 deg: error left {:.1e} (body) / {:.1e} (world)",
+            worst_b, worst_w);
+
+        // (4) COUNTING TURNS -- rlog_continued. A turntable read every 90 degrees for 41
+        // reads, 10.25 revolutions: the continued generator holds the whole angle, rlog
+        // alone the last quarter turn.
+        bivec3dp const table =
+            unitize(wdg(vec3dp{0.3, 0.2, 0.0, 1.0}, vec3dp{0.3, 0.2, 1.0, 1.0}));
+        bivec3dp L{};
+        mvec3dp_e M{};
+        for (int i = 1; i <= 41; ++i) {
+            M = get_motor(table, i * 90.0 * deg);
+            L = rlog_continued(M, L);
+        }
+        value_t const rev = 2.0 * L.vz / (2.0 * pi),
+                      rev_plain = 2.0 * rlog(M).vz / (2.0 * pi);
+        CHECK(std::abs(rev - 10.25) < 1.0e-12);
+        CHECK(std::abs(rev_plain - 0.25) < 1.0e-12);
+        fmt::println("    (4) the turntable after 41 reads of 90 deg: {:.4f} revolutions "
+                     "(rlog alone: {:.4f})",
+                     rev, rev_plain);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: a spring on a motor joint - conservative where it is provided")
     {
         fmt::println("pga3dp: a spring on a spherical or cylindrical joint");

@@ -507,3 +507,20 @@ local u_pf, f_pf = pga.try_unitize(vec3dp.new(2, 4, 6, 2))
 print("pga.try_unitize(point)    =", u_pf, f_pf)
 local i_pf, g_pf = pga.try_unitize(vec3dp.new(2, 4, 6, 0))
 print("pga.try_unitize(ideal)    =", i_pf, g_pf)
+
+-- reading a motion off a motor: the shortest motion, the error between two motors,
+-- the generator continued through whole turns
+local yaw270 = pga.get_motor(bivec3dp.new(0, 0, 1, 0, 0, 0), 1.5 * math.pi)
+local short = pga.rlog_shortest(yaw270)
+print("pga.rlog_shortest(yaw 270 deg) =", short)
+assert(math.abs(2 * short.vz + 0.5 * math.pi) < 1e-12) -- reads -90 deg
+local roll = pga.get_motor(bivec3dp.new(1, 0, 0, 0, 0, 0), 0.01)
+local err = pga.motion_error_body(yaw270, pga.rgpr(yaw270, roll))
+print("pga.motion_error_body(Y, Y roll 0.01) =", err)
+assert(math.abs(err.vx - 0.01) < 1e-14 and math.abs(err.vy) < 1e-14)
+local L = bivec3dp.new()
+for k = 1, 20 do
+    L = pga.rlog_continued(pga.get_motor(bivec3dp.new(0, 0, 1, 0, 0, 0), k * 0.7), L)
+end
+print("pga.rlog_continued after 20 x 0.7 rad: 2 L.vz =", 2 * L.vz)
+assert(math.abs(2 * L.vz - 14.0) < 1e-12)
