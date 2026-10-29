@@ -442,7 +442,7 @@ constexpr MVec3dp_E<T> get_motor(Vector3d<T> const& delta)
 // => screw motion with axis l, turnging angle theta and movement along l by dist
 // see e.g. E. Lengyel, "PGA Illuminated", p. 143 (equation 3.93)
 template <typename T, typename U, typename V>
-    requires(numeric_type<T> && numeric_type<U>)
+    requires(numeric_type<T> && numeric_type<U> && numeric_type<V>)
 constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L, U theta,
                                                            V dist)
 {

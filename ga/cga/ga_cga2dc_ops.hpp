@@ -114,14 +114,23 @@ namespace hd::ga::cga {
 ////////////////////////////////////////////////////////////////////////////////
 // HINT: exp/log/sqrt cannot be constexpr (std::complex math; log may throw)
 
-// helper: map a + i b back to the central element a*I + b*1 and multiply a
-// bivector by a central element: rgpr(B, a*I + b*1) = a*B + b*rgpr(B, 1)
+} // namespace hd::ga::cga
+
+namespace hd::ga::detail {
+
+// helper of rexp / rlog below, so in detail (out of the public surface and the binding
+// scan): map a + i b back to the central element a*I + b*1 and multiply a bivector by
+// a central element: rgpr(B, a*I + b*1) = a*B + b*rgpr(B, 1)
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec2dc<T> rgpr_central(BiVec2dc<T> const& B, std::complex<T> const& s)
 {
-    return s.real() * B + s.imag() * rgpr(B, Scalar2dc<T>(T(1.0)));
+    return s.real() * B + s.imag() * cga::rgpr(B, Scalar2dc<T>(T(1.0)));
 }
+
+} // namespace hd::ga::detail
+
+namespace hd::ga::cga {
 
 template <typename T>
     requires(numeric_type<T>)
@@ -136,7 +145,7 @@ inline MVec2dc_E<T> rexp(BiVec2dc<T> const& B)
     std::complex<T> const sh_ow = (std::abs(z) > T(1e-4))
                                       ? std::sinh(w) / w
                                       : T(1.0) + z / T(6.0) + z * z / T(120.0);
-    return MVec2dc_E<T>(Scalar2dc<T>(ch.imag()), rgpr_central(B, sh_ow),
+    return MVec2dc_E<T>(Scalar2dc<T>(ch.imag()), detail::rgpr_central(B, sh_ow),
                         PScalar2dc<T>(ch.real()));
 }
 
@@ -184,7 +193,7 @@ inline BiVec2dc<T> rlog(MVec2dc_E<T> const& M_in)
     // dimensionless series value of natural scale one, so the floor is absolute
     hd::ga::detail::check_normalization<T>(std::abs(sh_ow),
                                            "regressive logarithm (full-turn versor)");
-    return rgpr_central(V, T(1.0) / sh_ow);
+    return detail::rgpr_central(V, T(1.0) / sh_ow);
 }
 
 template <typename T>
