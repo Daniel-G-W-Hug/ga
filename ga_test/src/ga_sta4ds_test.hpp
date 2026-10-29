@@ -37,9 +37,9 @@ TEST_SUITE("STA 3D Tests")
         // Space-Time Algebra with signature (-,-,-,+)
         const algebra<1, 3, 0> alg;
         CHECK(alg.p() == 1);
-        CHECK(alg.n() == 3);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+        CHECK(alg.q() == 3);
+        CHECK(alg.r() == 0);
+        CHECK(alg.dim_space() == 4);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 16);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
         fmt::println("   sta4ds: dim_grade = {}",

@@ -37,9 +37,9 @@ TEST_SUITE("PGA 3DP Tests")
         // algebra embedding it in a four-dimensional representational space
         const algebra<3, 0, 1> alg;
         CHECK(alg.p() == 3);
-        CHECK(alg.n() == 0);
-        CHECK(alg.z() == 1);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+        CHECK(alg.q() == 0);
+        CHECK(alg.r() == 1);
+        CHECK(alg.dim_space() == 4);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 16);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
         fmt::println("   pga3dp: dim_grade = {}",

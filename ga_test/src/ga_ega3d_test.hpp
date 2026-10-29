@@ -35,9 +35,9 @@ TEST_SUITE("EGA 3D Tests")
         // 3d euklidean geometric algebra
         const algebra<3> alg;
         CHECK(alg.p() == 3);
-        CHECK(alg.n() == 0);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
+        CHECK(alg.q() == 0);
+        CHECK(alg.r() == 0);
+        CHECK(alg.dim_space() == 3);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 8);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
         fmt::println("   ega3d: dim_grade = {}",

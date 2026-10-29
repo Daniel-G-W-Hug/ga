@@ -18,7 +18,7 @@
 #include <string>    // std::string
 
 // Core GA infrastructure
-#include "../ga_algebra.hpp"     // Algebra definitions G(P,N,Z)
+#include "../ga_algebra.hpp"     // Algebra definitions G(P,Q,R)
 #include "../ga_value_t.hpp"     // Default scalar type (float/double)
 #include "ga_error_handling.hpp" // Centralized error handling utilities
 
@@ -33,6 +33,6 @@
 // Now you have access to:
 // - All common standard library facilities
 // - value_t type and eps constant
-// - algebra<P,N,Z> template
+// - algebra<P,Q,R> template
 // - Error checking functions (check_division_by_zero, etc.)
 /////////////////////////////////////////////////////////////////////////////////////////

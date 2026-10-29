@@ -35,9 +35,9 @@ TEST_SUITE("PGA 2DP Tests")
         // embedding it in a three-dimensional representational space
         const algebra<2, 0, 1> alg;
         CHECK(alg.p() == 2);
-        CHECK(alg.n() == 0);
-        CHECK(alg.z() == 1);
-        CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
+        CHECK(alg.q() == 0);
+        CHECK(alg.r() == 1);
+        CHECK(alg.dim_space() == 3);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 8);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
         fmt::println("   pga2dp: dim_grade = {}",

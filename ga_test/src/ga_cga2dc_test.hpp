@@ -65,9 +65,9 @@ TEST_SUITE("CGA 2dc Tests")
         // metric (e3.e3 = e4.e4 = 0, e3.e4 = -1) diagonalizes to G(3,1,0)
         const algebra<3, 1, 0> alg;
         CHECK(alg.p() == 3);
-        CHECK(alg.n() == 1);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+        CHECK(alg.q() == 1);
+        CHECK(alg.r() == 0);
+        CHECK(alg.dim_space() == 4);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 16);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
         fmt::println("   cga2dc: dim_grade = {}",

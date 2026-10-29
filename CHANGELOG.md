@@ -546,3 +546,10 @@
            the motor-joint values of joint3dp (helical, cylindrical, spherical, planar),
            which the enum had been missing. Lua stands at 1834/1864, the rest skipped
            by decision (ga_lua/utilities/README.md).
+- 2026/10: the signature is written G(p,q,r) -- p, q and r basis vectors squaring to
+           +1, -1 and 0 -- so that n names the dimension n = p + q + r, as the
+           documentation uses it throughout. algebra<P,Q,R> follows: its accessors
+           n() and z() are now q() and r() (p() and dim_space() unchanged). The
+           documentation's introduction now defines multivectors, grades, blades and
+           the grade projection before using them, with a sketch of the grades of
+           EGA3D and the component count per grade of every algebra.

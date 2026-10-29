@@ -1723,7 +1723,8 @@ it deliberately.
 
 ### Core GA Conventions
 
-- **G(p,n,z)**: p positive, n negative, z null (degenerate) basis vectors.
+- **G(p,q,r)**: p positive, q negative, r null (degenerate) basis vectors; the dimension
+  is n = p + q + r (so `n` is free for the dimension, as the documentation uses it).
 - **Grades**: scalar 0, vector 1, bivector 2, trivector 3, … pseudoscalar n.
 - **Products**: geometric (full, carries metric), wedge `^` (antisymmetric, 0 on
   repeats), dot (symmetric, extended-metric contraction).

@@ -28,9 +28,9 @@ TEST_SUITE("CGA 3dc Tests")
         // metric (e4.e4 = e5.e5 = 0, e4.e5 = -1) diagonalizes to G(4,1,0)
         const algebra<4, 1, 0> alg;
         CHECK(alg.p() == 4);
-        CHECK(alg.n() == 1);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 5);                 // dim_space == p+n+z
+        CHECK(alg.q() == 1);
+        CHECK(alg.r() == 0);
+        CHECK(alg.dim_space() == 5);                 // dim_space == p+q+r
         CHECK(alg.num_components() == 32);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 6); // == dim_space + 1
         CHECK(alg.num_components_grade[2] == 10);
