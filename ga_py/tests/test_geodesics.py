@@ -153,6 +153,23 @@ def test_helmert_both_conventions_against_proj():
     assert "helmert7(" in repr(h)
 
 
+def test_helmert_exact_inverse():
+    # each inverse undoes its namesake to the rounding of the coordinates; negating the
+    # parameters inverts only to first order (9 mm), the other convention not at all
+    h = pga.make_helmert7(598.1, 73.7, 418.2, 0.202, 0.045, -2.455, 6.7)
+    X = pga.vec3dp(4157222.543, 664789.307, 4774952.099, 1.0)
+
+    def dist(A, B):
+        return math.hypot(A.x - B.x, A.y - B.y, A.z - B.z)
+
+    pv, cf = pga.helmert_position_vector(X, h), pga.helmert_coordinate_frame(X, h)
+    assert dist(pga.helmert_position_vector_inverse(pv, h), X) < 1e-8
+    assert dist(pga.helmert_coordinate_frame_inverse(cf, h), X) < 1e-8
+    neg = pga.helmert7(-h.tx, -h.ty, -h.tz, -h.rx, -h.ry, -h.rz, -h.ds)
+    assert dist(pga.helmert_position_vector(pv, neg), X) > 1e-3
+    assert dist(pga.helmert_coordinate_frame_inverse(pv, h), X) > 100.0
+
+
 def test_geodesic_inverse_and_direct_against_geographiclib():
     # PROJ 9.9: geod +ellps=WGS84 -I -f %.12f -F %.9f (GeographicLib); the second azimuth
     # geod prints is the back azimuth, azi2 + 180 deg
@@ -183,3 +200,26 @@ def test_azimuthal_equidistant_against_proj():
         q = ga_py.aeqd_inverse(X, m, ga_py.wgs84)
         assert abs(q.lat - p.lat) < 1e-13 and abs(q.lon - p.lon) < 1e-13
     assert "azimuthal_equidistant(" in repr(m)
+
+
+def test_degree_minute_second_text():
+    # the angles as quoted in degree/minute/second text, and the positions built from
+    # them (bound since 2026-10-29: to_geo_pos(geo_pos_dms) had been bound but could not
+    # be called, its argument type was not)
+    lat = ga_py.geo_angle.latitude
+    lon = ga_py.geo_angle.longitude
+    assert abs(ga_py.dms2deg("52°31'12\"N", lat) - 52.52) < 1e-12
+    assert abs(ga_py.dms2deg("13°24'36\"W", lon) + 13.41) < 1e-12
+    assert abs(ga_py.dms2rad("52°31'12\"N", lat) - 52.52 * DEG) < 1e-15
+    assert ga_py.deg2dms(52.52, lat, 1) == "52°31'12.0\"N"
+    assert ga_py.rad2dms(-13.41 * DEG, lon, 0) == "13°24'36\"W"
+
+    d = ega.geo_pos_dms("52°31'12\"N", "13°24'36\"E", 34.0)
+    p = ga_py.to_geo_pos(d, 0.0)
+    assert abs(p.lat - 52.52 * DEG) < 1e-15 and abs(p.lon - 13.41 * DEG) < 1e-15
+    assert p.height == 34.0
+    assert "geo_pos_dms(" in repr(d) and d == ega.geo_pos_dms(d.lat, d.lon, d.height)
+
+    d2 = pga.geo_pos_dms2dp("52°31'12\"N", 34.0)
+    p2 = ga_py.to_geo_pos(d2, 0.0)
+    assert abs(p2.lat - 52.52 * DEG) < 1e-15 and p2.height == 34.0

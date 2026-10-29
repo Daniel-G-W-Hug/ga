@@ -55,6 +55,8 @@ void register_functions_top(nb::module_& m)
                             double a4) { return circle_loop(a0, a1, a2, a3, a4); });
     m.def("critical_damping",
           [](double a0, double a1) { return critical_damping(a0, a1); });
+    m.def("deg2dms",
+          [](double a0, geo_angle const& a1, int a2) { return deg2dms(a0, a1, a2); });
     m.def("deg2rad", [](double a0) { return deg2rad(a0); });
     m.def("densify", [](geo_pos const& a0, geo_pos const& a1, double a2) {
         return densify(a0, a1, a2);
@@ -68,6 +70,10 @@ void register_functions_top(nb::module_& m)
     m.def("distance_from_geocenter", [](geo_pos2dp const& a0, ellipsoid const& a1) {
         return distance_from_geocenter(a0, a1);
     });
+    m.def("dms2deg",
+          [](std::string const& a0, geo_angle const& a1) { return dms2deg(a0, a1); });
+    m.def("dms2rad",
+          [](std::string const& a0, geo_angle const& a1) { return dms2rad(a0, a1); });
     m.def("etrs89_laea", []() { return etrs89_laea(); });
     m.def("fact", [](int a0) { return fact(a0); });
     m.def("fd_derivative",
@@ -150,6 +156,8 @@ void register_functions_top(nb::module_& m)
           [](std::vector<double> const& a0, std::vector<double> const& a1, int a2, int a3,
              double a4) { return nullspace_project(a0, a1, a2, a3, a4); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
+    m.def("rad2dms",
+          [](double a0, geo_angle const& a1, int a2) { return rad2dms(a0, a1, a2); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });
     m.def("rgr", [](scalar2dp const& a0) { return rgr(a0); });

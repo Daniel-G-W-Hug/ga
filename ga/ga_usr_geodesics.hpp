@@ -112,6 +112,9 @@
 //                          datums, one motor sandwich plus a scale; the two EPSG
 //                          conventions differ in the sign of the rotation, so each has
 //                          its own name
+// - helmert_position_vector_inverse() / helmert_coordinate_frame_inverse() : the exact
+//                          inverse of each -- the motor's reverse, the scale divided back
+//                          out
 // - azimuthal            : the projections onto the tangent plane -- orthographic,
 //                          gnomonic, stereographic, perspective (what each preserves and
 //                          what it is used for is stated at the enum)
@@ -1742,10 +1745,20 @@ inline mvec3dp_e enu_motor_at(vec3dp const& P, ellipsoid const& el = wgs84)
 // two differ by second-order terms, at most |r|^2 |X| / 2: 0.33 mm for the DHDN set, and
 // 0.04 mm from PROJ's exact form, which composes three axis rotations instead of turning
 // about one axis -- far below the accuracy of any published parameter set (both measured
-// and tested). The inverse transformation is, to first order, the same function with
-// every parameter negated (EPSG's "reversible" methods) -- only to first order: for the
-// DHDN set the round trip misses by 9 mm (measured), the rotation acting on a
-// translation of 740 m.
+// and tested).
+//
+// THE INVERSE. EPSG calls these methods "reversible": the same function with every
+// parameter negated undoes the transformation -- but only to first order. For the DHDN
+// set that round trip misses by 9 mm (measured), the rotation acting on a translation of
+// 740 m. The exact inverse undoes the sandwich instead: the motor's reverse takes the
+// point back through the rotation and the translation, and the weight multiplied by
+// (1 + ds) divides the scale back out,
+//
+//     Y = move3dp(X', rrev(M)),    X = unitize(vec3dp(Y.x, Y.y, Y.z, Y.w (1 + ds)))
+//
+// one function per convention, helmert_position_vector_inverse() and
+// helmert_coordinate_frame_inverse(), each the exact inverse of its namesake: the round
+// trip is a few roundings of the ECEF coordinates, 3.7e-9 m on the surface (measured).
 
 // the seven parameters: translation [m], rotation angles [rad], scale correction (ppm
 // times 1e-6). Published sets give the angles in arc seconds and the scale in ppm --
@@ -1767,14 +1780,28 @@ inline helmert7 make_helmert7(value_t tx, value_t ty, value_t tz, value_t rx_arc
 
 namespace detail {
 
-// X' = T + (1 + ds) R(sign * r) X, as one motor sandwich of the re-weighted point
-inline vec3dp helmert_apply(vec3dp const& X, helmert7 const& h, value_t sign)
+// the rigid part T (x) R(sign * r) as one motor
+inline mvec3dp_e helmert_motor(helmert7 const& h, value_t sign)
 {
     auto const M_rot = rexp(0.5 * sign * bivec3dp{h.rx, h.ry, h.rz, 0.0, 0.0, 0.0});
     auto const M_tra = get_motor(vec3dp{h.tx, h.ty, h.tz, 0.0});
     // concatenation order is rgpr(applied_last, applied_first)
-    auto const M = rgpr(M_tra, M_rot);
-    return unitize(move3dp(vec3dp{X.x, X.y, X.z, X.w / (1.0 + h.ds)}, M));
+    return rgpr(M_tra, M_rot);
+}
+
+// X' = T + (1 + ds) R(sign * r) X, as one motor sandwich of the re-weighted point
+inline vec3dp helmert_apply(vec3dp const& X, helmert7 const& h, value_t sign)
+{
+    return unitize(
+        move3dp(vec3dp{X.x, X.y, X.z, X.w / (1.0 + h.ds)}, helmert_motor(h, sign)));
+}
+
+// its exact inverse, X = R(sign * r)^-1 (X' - T) / (1 + ds): the reversed motor, then
+// the weight multiplied back
+inline vec3dp helmert_unapply(vec3dp const& X, helmert7 const& h, value_t sign)
+{
+    auto const Y = move3dp(X, rrev(helmert_motor(h, sign)));
+    return unitize(vec3dp{Y.x, Y.y, Y.z, Y.w * (1.0 + h.ds)});
 }
 
 } // namespace detail
@@ -1789,6 +1816,18 @@ inline vec3dp helmert_position_vector(vec3dp const& X, helmert7 const& h)
 inline vec3dp helmert_coordinate_frame(vec3dp const& X, helmert7 const& h)
 {
     return detail::helmert_apply(X, h, -1.0);
+}
+
+// the exact inverse of helmert_position_vector() with the same parameters
+inline vec3dp helmert_position_vector_inverse(vec3dp const& X, helmert7 const& h)
+{
+    return detail::helmert_unapply(X, h, 1.0);
+}
+
+// the exact inverse of helmert_coordinate_frame() with the same parameters
+inline vec3dp helmert_coordinate_frame_inverse(vec3dp const& X, helmert7 const& h)
+{
+    return detail::helmert_unapply(X, h, -1.0);
 }
 
 

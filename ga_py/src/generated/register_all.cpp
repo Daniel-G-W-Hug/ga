@@ -23,6 +23,8 @@ void bind_dualnum3dp(nb::module_& m);
 void bind_enu_frame(nb::module_& m);
 void bind_geo_pos(nb::module_& m);
 void bind_geo_pos2dp(nb::module_& m);
+void bind_geo_pos_dms(nb::module_& m);
+void bind_geo_pos_dms2dp(nb::module_& m);
 void bind_geodesic_destination(nb::module_& m);
 void bind_geodesic_solution(nb::module_& m);
 void bind_helmert7(nb::module_& m);
@@ -144,6 +146,8 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_enu_frame(pga);
     bind_geo_pos(ega);
     bind_geo_pos2dp(pga);
+    bind_geo_pos_dms(ega);
+    bind_geo_pos_dms2dp(pga);
     bind_geodesic_destination(ega);
     bind_geodesic_solution(ega);
     bind_helmert7(pga);

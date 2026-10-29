@@ -240,9 +240,40 @@ fall.
 
 ## Status
 
-`ga_lua` is at `ga_py` parity except for deliberate skips — **630/653** bound
-(`lua_coverage.py --summary`). EGA, CGA and STA are 100%; PGA is complete bar the
-`inertia2dp/3dp` matrix type and the 8 dynamics functions; the top-level remainder is
-the solver/integrator helpers plus `linear_step`/`smooth_step`/`smoother_step`,
-`to_geo_pos` and the `geo_angle` type. Re-run `lua_coverage.py` after any library API change
-to catch new gaps.
+`ga_lua` is at `ga_py` parity except for deliberate skips — **1834/1864** bound
+(`lua_coverage.py --summary`, 2026-10-29; the totals count operator pairs since the
+`operators` kind was added). EGA, CGA and STA are 100%. The 30 that remain are all
+skipped by decision:
+
+- **PGA, 16:** the `inertia2dp/3dp` matrix type, the `body2dp/3dp` records built from
+  it, and the 12 dynamics functions (`make_*_body`, `get_*_inertia`,
+  `get_inertia_inverse`, `compute_omega_dot`).
+- **Top level, 14:** the solver / integrator helpers (`lu_solve`, `lstsq_solve`,
+  `rk4_step`, `rk4_get_time`), the step functions (`linear_step`, `smooth_step`,
+  `smoother_step`), and -- the same class, added to the decision on 2026-10-29 -- the
+  rank and null-space solves and the finite-difference substrate (`matrix_rank`,
+  `nullspace_project`, `tridiag_solve`, `fd_derivative`, `fact`, and the enums `fd_kind`,
+  `stencil_lhs`). They operate on spans and matrices and do not map to a Lua REPL.
+
+**Closed on 2026-10-29**, by an audit of the whole binding surface (C++ -> Python ->
+Lua): the transwedge products and `coeff_sq` in the cga / sta tables, `ega.cos` /
+`ega.sin`, the screw records and functions (`screw_axis{2,3}dp`, `screw_system{2,3}dp`,
+`pga.screw_axis`, `pga.screw_system`), the `contact_kind{2,3}dp` enums,
+`stopping_accel_bound`, the degree/minute/second text (`dms2deg`, `dms2rad`, `deg2dms`,
+`rad2dms`, `geo_pos_dms2dp`), the CGA expansions (prelude forwarders) and the Helmert
+inverse. Each has a live assert in `ga_lua/input/` (`test_geodesics.lua` is new).
+
+**Three gap classes `lua_coverage.py` cannot see**, found by that audit -- check them by
+hand after an API change:
+
+- **What `ga_py` itself lacks.** The target is the built Python module, so a function
+  the Python generator drops never appears as missing here. Four had been dropped (the
+  screw motor `get_motor(L, theta, dist)`, `screw_axis3dp` with the 3D `screw_axis`, the
+  string-typed geodesy, the CGA expansions); compare the manifest against `ga_py` first.
+- **Enum VALUES.** `joint3dp` was bound with three of its seven values -- the motor
+  joints added on 2026-08-26 (`helical`, `cylindrical`, `spherical`, `planar`) were
+  missing, while the enum counted as bound.
+- **Struct FIELDS.** None missing on 2026-10-29 (69 bound structs compared against the
+  manifest), but the tool compares names of types only.
+
+Re-run `lua_coverage.py` after any library API change to catch new gaps.

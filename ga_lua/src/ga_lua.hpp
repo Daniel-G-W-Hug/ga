@@ -4529,6 +4529,91 @@ void register_functions(sol::state& lua)
             sol::resolve<vec3dp(bivec3dp const&, vec3dp const&)>(rtwdg1),
             sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(rtwdg1)));
 
+    // the transwedge products in CGA and STA too (all seven algebras have them; until
+    // 2026-10-29 Lua bound only the ega and pga tables), drafted by
+    // utilities/gen_lua_overloads.py
+    cga.set_function(
+        "twdg1",
+        sol::overload(sol::resolve<trivec2dc(pscalar2dc, vec2dc const&)>(twdg1),
+                      sol::resolve<trivec2dc(vec2dc const&, pscalar2dc)>(twdg1),
+                      sol::resolve<bivec2dc(trivec2dc const&, vec2dc const&)>(twdg1),
+                      sol::resolve<bivec2dc(vec2dc const&, trivec2dc const&)>(twdg1),
+                      sol::resolve<trivec2dc(trivec2dc const&, bivec2dc const&)>(twdg1),
+                      sol::resolve<trivec2dc(bivec2dc const&, trivec2dc const&)>(twdg1),
+                      sol::resolve<bivec2dc(bivec2dc const&, bivec2dc const&)>(twdg1),
+                      sol::resolve<vec2dc(bivec2dc const&, vec2dc const&)>(twdg1),
+                      sol::resolve<vec2dc(vec2dc const&, bivec2dc const&)>(twdg1),
+                      sol::resolve<scalar2dc(vec2dc const&, vec2dc const&)>(twdg1),
+                      sol::resolve<quadvec3dc(pscalar3dc, vec3dc const&)>(twdg1),
+                      sol::resolve<quadvec3dc(vec3dc const&, pscalar3dc)>(twdg1),
+                      sol::resolve<bivec3dc(trivec3dc const&, vec3dc const&)>(twdg1),
+                      sol::resolve<bivec3dc(vec3dc const&, trivec3dc const&)>(twdg1),
+                      sol::resolve<trivec3dc(trivec3dc const&, bivec3dc const&)>(twdg1),
+                      sol::resolve<trivec3dc(bivec3dc const&, trivec3dc const&)>(twdg1),
+                      sol::resolve<bivec3dc(bivec3dc const&, bivec3dc const&)>(twdg1),
+                      sol::resolve<vec3dc(bivec3dc const&, vec3dc const&)>(twdg1),
+                      sol::resolve<vec3dc(vec3dc const&, bivec3dc const&)>(twdg1),
+                      sol::resolve<scalar3dc(vec3dc const&, vec3dc const&)>(twdg1)));
+    cga.set_function(
+        "rtwdg1",
+        sol::overload(
+            sol::resolve<pscalar2dc(trivec2dc const&, trivec2dc const&)>(rtwdg1),
+            sol::resolve<trivec2dc(trivec2dc const&, bivec2dc const&)>(rtwdg1),
+            sol::resolve<trivec2dc(bivec2dc const&, trivec2dc const&)>(rtwdg1),
+            sol::resolve<bivec2dc(trivec2dc const&, vec2dc const&)>(rtwdg1),
+            sol::resolve<bivec2dc(vec2dc const&, trivec2dc const&)>(rtwdg1),
+            sol::resolve<vec2dc(trivec2dc const&, scalar2dc)>(rtwdg1),
+            sol::resolve<vec2dc(scalar2dc, trivec2dc const&)>(rtwdg1),
+            sol::resolve<bivec2dc(bivec2dc const&, bivec2dc const&)>(rtwdg1),
+            sol::resolve<vec2dc(bivec2dc const&, vec2dc const&)>(rtwdg1),
+            sol::resolve<vec2dc(vec2dc const&, bivec2dc const&)>(rtwdg1),
+            sol::resolve<trivec3dc(trivec3dc const&, trivec3dc const&)>(rtwdg1),
+            sol::resolve<bivec3dc(trivec3dc const&, bivec3dc const&)>(rtwdg1),
+            sol::resolve<bivec3dc(bivec3dc const&, trivec3dc const&)>(rtwdg1),
+            sol::resolve<vec3dc(trivec3dc const&, vec3dc const&)>(rtwdg1),
+            sol::resolve<vec3dc(vec3dc const&, trivec3dc const&)>(rtwdg1),
+            sol::resolve<vec3dc(bivec3dc const&, bivec3dc const&)>(rtwdg1)));
+    sta.set_function(
+        "twdg1",
+        sol::overload(sol::resolve<trivec4ds(pscalar4ds, vec4ds const&)>(twdg1),
+                      sol::resolve<trivec4ds(vec4ds const&, pscalar4ds)>(twdg1),
+                      sol::resolve<bivec4ds(trivec4ds const&, vec4ds const&)>(twdg1),
+                      sol::resolve<bivec4ds(vec4ds const&, trivec4ds const&)>(twdg1),
+                      sol::resolve<trivec4ds(trivec4ds const&, bivec4ds const&)>(twdg1),
+                      sol::resolve<trivec4ds(bivec4ds const&, trivec4ds const&)>(twdg1),
+                      sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(twdg1),
+                      sol::resolve<vec4ds(bivec4ds const&, vec4ds const&)>(twdg1),
+                      sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(twdg1),
+                      sol::resolve<scalar4ds(vec4ds const&, vec4ds const&)>(twdg1)));
+    sta.set_function(
+        "rtwdg1",
+        sol::overload(
+            sol::resolve<pscalar4ds(trivec4ds const&, trivec4ds const&)>(rtwdg1),
+            sol::resolve<trivec4ds(trivec4ds const&, bivec4ds const&)>(rtwdg1),
+            sol::resolve<trivec4ds(bivec4ds const&, trivec4ds const&)>(rtwdg1),
+            sol::resolve<bivec4ds(trivec4ds const&, vec4ds const&)>(rtwdg1),
+            sol::resolve<bivec4ds(vec4ds const&, trivec4ds const&)>(rtwdg1),
+            sol::resolve<vec4ds(trivec4ds const&, scalar4ds)>(rtwdg1),
+            sol::resolve<vec4ds(scalar4ds, trivec4ds const&)>(rtwdg1),
+            sol::resolve<bivec4ds(bivec4ds const&, bivec4ds const&)>(rtwdg1),
+            sol::resolve<vec4ds(bivec4ds const&, vec4ds const&)>(rtwdg1),
+            sol::resolve<vec4ds(vec4ds const&, bivec4ds const&)>(rtwdg1)));
+    // STA's metric-free gauge, the sum of the squared coefficients
+    sta.set_function("coeff_sq",
+                     sol::overload(sol::resolve<value_t(scalar4ds)>(coeff_sq),
+                                   sol::resolve<value_t(vec4ds const&)>(coeff_sq),
+                                   sol::resolve<value_t(bivec4ds const&)>(coeff_sq),
+                                   sol::resolve<value_t(trivec4ds const&)>(coeff_sq),
+                                   sol::resolve<value_t(pscalar4ds)>(coeff_sq),
+                                   sol::resolve<value_t(mvec4ds_e const&)>(coeff_sq),
+                                   sol::resolve<value_t(mvec4ds_u const&)>(coeff_sq),
+                                   sol::resolve<value_t(mvec4ds const&)>(coeff_sq)));
+    // cos / sin of an EGA multivector
+    ega.set_function("cos", sol::overload(sol::resolve<mvec2d(mvec2d const&)>(cos),
+                                          sol::resolve<mvec3d(mvec3d const&)>(cos)));
+    ega.set_function("sin", sol::overload(sol::resolve<mvec2d(mvec2d const&)>(sin),
+                                          sol::resolve<mvec3d(mvec3d const&)>(sin)));
+
     // ---- Phase 2a: PGA function parity with ga_py (generated via
     // utilities/gen_lua_overloads.py) ----
 
@@ -4821,6 +4906,9 @@ void register_functions(sol::state& lua)
                       [](value_t I, value_t dt, value_t ratio) {
                           return max_explicit_stiffness(I, dt, ratio);
                       }));
+    // the viability (braking) bound: the largest acceleration from which a stop within
+    // `distance` is still possible at the braking acceleration a_max, one step of dt late
+    lua.set_function("stopping_accel_bound", &stopping_accel_bound);
 
     // Note:
     // - Geometric product is only available as operator*, not as
@@ -5942,6 +6030,15 @@ void register_forwarders(sol::state& lua)
         --   l_expand4ds(a,b) = wdg(l_dual(a), b) ;  r_expand4ds(a,b) = wdg(a, r_dual(b))
         function sta.l_expand4ds(a, b) return sta.wdg(sta.l_dual(a), b) end
         function sta.r_expand4ds(a, b) return sta.wdg(a, sta.r_dual(b)) end
+
+        -- CGA expansions (generic C++ templates, mirroring ga_py's forwarders); the
+        -- 5d algebra takes the one dual for both sides, as its C++ forms do:
+        --   l_expand2dc(a,b) = wdg(l_dual(a), b) ;  r_expand2dc(a,b) = wdg(a, r_dual(b))
+        --   l_expand3dc(a,b) = wdg(dual(a), b)   ;  r_expand3dc(a,b) = wdg(a, dual(b))
+        function cga.l_expand2dc(a, b) return cga.wdg(cga.l_dual(a), b) end
+        function cga.r_expand2dc(a, b) return cga.wdg(a, cga.r_dual(b)) end
+        function cga.l_expand3dc(a, b) return cga.wdg(cga.dual(a), b) end
+        function cga.r_expand3dc(a, b) return cga.wdg(a, cga.dual(b)) end
     )lua");
 }
 
@@ -6212,9 +6309,15 @@ void register_physics_pods(sol::state& lua)
     lua.new_enum<joint2dp>("joint2dp", {{"free", joint2dp::free},
                                         {"revolute", joint2dp::revolute},
                                         {"prismatic", joint2dp::prismatic}});
+    // the motor joints (helical .. planar) since 2026-08-26; Lua listed only the first
+    // three until 2026-10-29
     lua.new_enum<joint3dp>("joint3dp", {{"free", joint3dp::free},
                                         {"revolute", joint3dp::revolute},
-                                        {"prismatic", joint3dp::prismatic}});
+                                        {"prismatic", joint3dp::prismatic},
+                                        {"helical", joint3dp::helical},
+                                        {"cylindrical", joint3dp::cylindrical},
+                                        {"spherical", joint3dp::spherical},
+                                        {"planar", joint3dp::planar}});
     lua.new_enum<constraint2dp>("constraint2dp",
                                 {{"coincidence", constraint2dp::coincidence},
                                  {"distance", constraint2dp::distance},
@@ -6223,6 +6326,76 @@ void register_physics_pods(sol::state& lua)
                                 {{"coincidence", constraint3dp::coincidence},
                                  {"distance", constraint3dp::distance},
                                  {"frame", constraint3dp::frame}});
+    // the kind of a ground contact: a pin or a welded flat foot
+    lua.new_enum<contact_kind2dp>("contact_kind2dp", {{"point", contact_kind2dp::point},
+                                                      {"flat", contact_kind2dp::flat}});
+    lua.new_enum<contact_kind3dp>("contact_kind3dp", {{"point", contact_kind3dp::point},
+                                                      {"flat", contact_kind3dp::flat}});
+
+    // Chasles' screw axis of a motor or twist, and the mobility of a set of screws
+    lua.new_usertype<screw_axis2dp>(
+        "screw_axis2dp",
+        sol::constructors<screw_axis2dp(), screw_axis2dp(vec2dp, value_t, vec2dp)>(),
+        "centre", &screw_axis2dp::centre, "angle", &screw_axis2dp::angle, "translation",
+        &screw_axis2dp::translation, sol::meta_function::to_string,
+        [](screw_axis2dp const& s) { return fmt::format("{}", s); });
+    lua.new_usertype<screw_axis3dp>(
+        "screw_axis3dp",
+        sol::constructors<screw_axis3dp(), screw_axis3dp(bivec3dp, value_t, value_t)>(),
+        "axis", &screw_axis3dp::axis, "angle", &screw_axis3dp::angle, "dist",
+        &screw_axis3dp::dist, "pitch", &screw_axis3dp::pitch,
+        sol::meta_function::to_string,
+        [](screw_axis3dp const& s) { return fmt::format("{}", s); });
+    lua.new_usertype<screw_system2dp>(
+        "screw_system2dp",
+        sol::constructors<screw_system2dp(), screw_system2dp(size_t, size_t)>(), "span",
+        &screw_system2dp::span, "closure", &screw_system2dp::closure,
+        sol::meta_function::to_string,
+        [](screw_system2dp const& s) { return fmt::format("{}", s); });
+    lua.new_usertype<screw_system3dp>(
+        "screw_system3dp",
+        sol::constructors<screw_system3dp(), screw_system3dp(size_t, size_t)>(), "span",
+        &screw_system3dp::span, "closure", &screw_system3dp::closure,
+        sol::meta_function::to_string,
+        [](screw_system3dp const& s) { return fmt::format("{}", s); });
+    {
+        auto pga = lua["pga"].get_or_create<sol::table>();
+        pga.set_function(
+            "screw_axis",
+            sol::overload(sol::resolve<screw_axis2dp(vec2dp const&)>(screw_axis),
+                          sol::resolve<screw_axis2dp(mvec2dp_u const&)>(screw_axis),
+                          sol::resolve<screw_axis3dp(bivec3dp const&)>(screw_axis),
+                          sol::resolve<screw_axis3dp(mvec3dp_e const&)>(screw_axis)));
+        // the screws as a Lua table -- sol2 does not convert a table into a container
+        // of usertypes by itself, so it is read here, and the first element's type picks
+        // the dimension; without rtol the C++ default applies
+        auto screws_of = [](sol::table const& t, auto proto) {
+            std::vector<decltype(proto)> v;
+            v.reserve(t.size());
+            for (size_t i = 1; i <= t.size(); ++i)
+                v.push_back(t.get<decltype(proto)>(i));
+            return v;
+        };
+        auto is_2d = [](sol::table const& t) {
+            return t.size() > 0 && t.get<sol::object>(1).is<vec2dp>();
+        };
+        pga.set_function(
+            "screw_system",
+            sol::overload(
+                [=](sol::table const& t, sol::this_state L) {
+                    return is_2d(t)
+                               ? sol::make_object(L, screw_system(screws_of(t, vec2dp{})))
+                               : sol::make_object(L,
+                                                  screw_system(screws_of(t, bivec3dp{})));
+                },
+                [=](sol::table const& t, value_t rtol, sol::this_state L) {
+                    return is_2d(t)
+                               ? sol::make_object(
+                                     L, screw_system(screws_of(t, vec2dp{}), rtol))
+                               : sol::make_object(
+                                     L, screw_system(screws_of(t, bivec3dp{}), rtol));
+                }));
+    }
 
     // pose: rigid placement (origin + orientation)
     lua.new_usertype<pose2dp>(
@@ -7535,6 +7708,17 @@ void register_geodesics(sol::state& lua)
         "lat", &geo_pos_dms::lat, "lon", &geo_pos_dms::lon, "height",
         &geo_pos_dms::height, sol::meta_function::to_string,
         [](geo_pos_dms const& p) { return fmt::format("{}", p); });
+    // the meridian-section twin: a latitude in dms text and a height
+    lua.new_usertype<geo_pos_dms2dp>(
+        "geo_pos_dms2dp", sol::call_constructor,
+        sol::factories(
+            [](std::string const& lat, value_t h) { return geo_pos_dms2dp{lat, h}; }),
+        "new", sol::factories([](std::string const& lat, value_t h) {
+            return geo_pos_dms2dp{lat, h};
+        }),
+        "lat", &geo_pos_dms2dp::lat, "height", &geo_pos_dms2dp::height,
+        sol::meta_function::to_string,
+        [](geo_pos_dms2dp const& p) { return fmt::format("{}", p); });
 
     lua.new_usertype<enu_frame>("enu_frame", sol::no_constructor, "east",
                                 &enu_frame::east, "north", &enu_frame::north, "up",
@@ -7764,8 +7948,31 @@ void register_geodesics(sol::state& lua)
                       }));
     lua.set_function(
         "to_geo_pos",
-        sol::overload([](geo_pos_dms const& p) { return to_geo_pos(p); },
-                      [](geo_pos_dms const& p, value_t n) { return to_geo_pos(p, n); }));
+        sol::overload(
+            [](geo_pos_dms const& p) { return to_geo_pos(p); },
+            [](geo_pos_dms const& p, value_t n) { return to_geo_pos(p, n); },
+            [](geo_pos_dms2dp const& p) { return to_geo_pos(p); },
+            [](geo_pos_dms2dp const& p, value_t n) { return to_geo_pos(p, n); }));
+    // angles in degree/minute/second text (e.g. "52°31'12\"N"); the seconds' decimals
+    // default to 1 as in C++
+    lua.set_function("dms2deg", [](std::string const& s, geo_angle which) {
+        return dms2deg(s, which);
+    });
+    lua.set_function("dms2rad", [](std::string const& s, geo_angle which) {
+        return dms2rad(s, which);
+    });
+    lua.set_function(
+        "deg2dms",
+        sol::overload([](value_t d, geo_angle which) { return deg2dms(d, which); },
+                      [](value_t d, geo_angle which, int decimals) {
+                          return deg2dms(d, which, decimals);
+                      }));
+    lua.set_function(
+        "rad2dms",
+        sol::overload([](value_t r, geo_angle which) { return rad2dms(r, which); },
+                      [](value_t r, geo_angle which, int decimals) {
+                          return rad2dms(r, which, decimals);
+                      }));
     lua.set_function("utm_zone", sol::overload([](int zone) { return utm_zone(zone); },
                                                [](int zone, bool north) {
                                                    return utm_zone(zone, north);
@@ -7849,6 +8056,14 @@ void register_geodesics(sol::state& lua)
     pga.set_function("helmert_coordinate_frame", [](vec3dp const& X, helmert7 const& h) {
         return helmert_coordinate_frame(X, h);
     });
+    pga.set_function("helmert_position_vector_inverse",
+                     [](vec3dp const& X, helmert7 const& h) {
+                         return helmert_position_vector_inverse(X, h);
+                     });
+    pga.set_function("helmert_coordinate_frame_inverse",
+                     [](vec3dp const& X, helmert7 const& h) {
+                         return helmert_coordinate_frame_inverse(X, h);
+                     });
 
     // ---- constants (after their type)
     lua["wgs84"] = wgs84;

@@ -104,6 +104,14 @@ print("sta.rev(g12_4ds):", sta.rev(g12_4ds), "reversion flips a bivector's sign"
 assert(g1_4ds ^ g2_4ds == g12_4ds)
 assert(sta.rev(g12_4ds) == -g12_4ds)
 
+-- the transwedge products and the metric-free gauge (bound in the sta table since
+-- 2026-10-29): twdg1 of two vectors is their dot product, coeff_sq the plain sum of the
+-- squared coefficients, whatever the metric's signs
+local ta, tb = vec4ds.new(1.0, 2.0, 3.0, 4.0), vec4ds.new(-2.0, 0.5, 1.0, 3.0)
+assert(sta.twdg1(ta, tb) == sta.dot(ta, tb))
+assert(approx(sta.coeff_sq(ta), 30.0))
+print("sta.rtwdg1(B, B) =", sta.rtwdg1(sta.wdg(ta, tb), sta.wdg(ta, tb)))
+
 print("\n=======================================================")
 print("STA tests completed successfully")
 print("=======================================================")

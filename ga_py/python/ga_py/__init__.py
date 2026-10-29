@@ -179,6 +179,38 @@ sta.r_expand4ds = _sta_r_expand4ds
 
 
 # ---------------------------------------------------------------------------
+# CGA2DC / CGA3DC — expansion forwarders (generic C++ templates)
+# Sources: ga/cga/ga_cga2dc_ops_products.hpp, ga/cga/ga_cga3dc_ops_products.hpp
+# (the 5d algebra takes the one dual for both sides, as its C++ forms do)
+# ---------------------------------------------------------------------------
+
+def _cga_l_expand2dc(a, b):
+    """Left expansion (CGA2DC). Equals `wdg(l_dual(a), b)`."""
+    return cga.wdg(cga.l_dual(a), b)
+
+
+def _cga_r_expand2dc(a, b):
+    """Right expansion (CGA2DC). Equals `wdg(a, r_dual(b))`."""
+    return cga.wdg(a, cga.r_dual(b))
+
+
+def _cga_l_expand3dc(a, b):
+    """Left expansion (CGA3DC). Equals `wdg(dual(a), b)`."""
+    return cga.wdg(cga.dual(a), b)
+
+
+def _cga_r_expand3dc(a, b):
+    """Right expansion (CGA3DC). Equals `wdg(a, dual(b))`."""
+    return cga.wdg(a, cga.dual(b))
+
+
+cga.l_expand2dc = _cga_l_expand2dc
+cga.r_expand2dc = _cga_r_expand2dc
+cga.l_expand3dc = _cga_l_expand3dc
+cga.r_expand3dc = _cga_r_expand3dc
+
+
+# ---------------------------------------------------------------------------
 # Pure-Python reconstruction of the stateful multibody system classes.
 # The C++ static_/kinematic_/dynamic_system3dp classes are not bound (by
 # design); `ga_py.systems` rebuilds them from the primitives above. Imported

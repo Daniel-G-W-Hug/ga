@@ -167,3 +167,27 @@ def test_inertia_format_spec():
     # Numeric spec: each component formatted accordingly.
     s = format(I, ".3f")
     assert "0.000" in s or "1.000" in s or "0.667" in s
+
+
+def test_screw_motor_and_its_3d_screw_axis():
+    # the screw motor get_motor(L, theta, dist) and screw_axis3dp, both bound since
+    # 2026-10-29: the motor turns by theta about the line L and moves dist along it,
+    # i.e. the turn about L composed with the translation along it
+    pga = ga_py.pga
+    L = pga.bivec3dp(0.0, 0.0, 1.0, 1.0, -2.0, 0.0)  # through (2, 1, 0), along z
+    M = pga.get_motor(L, 0.7, 1.5)
+    turn = pga.get_motor(L, 0.7)
+    shift = pga.get_motor(pga.vec3dp(0.0, 0.0, 1.5, 0.0))
+    assert pga.is_same_motion(M, pga.rgpr(shift, turn), 1e-12)
+
+    s = pga.screw_axis(M)
+    assert isinstance(s, pga.screw_axis3dp)
+    assert abs(s.angle - 0.7) < 1e-12 and abs(s.dist - 1.5) < 1e-12
+    assert abs(s.pitch() - 1.5 / 0.7) < 1e-12
+    assert pga.is_congruent(s.axis, L, 1e-12)
+    assert "screw_axis3dp(" in repr(s)
+    assert s == pga.screw_axis3dp(s.axis, s.angle, s.dist)
+
+    # the generator's screw axis reads the same line and amounts: M = rexp(B / 2)
+    t = pga.screw_axis(2.0 * pga.rlog(M))
+    assert abs(t.angle - 0.7) < 1e-12 and abs(t.dist - 1.5) < 1e-12

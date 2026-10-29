@@ -1,6 +1,10 @@
 // Hand-written bindings for the PGA rigid-body mechanics surface:
 // inertia2dp / inertia3dp plus the four free functions that build / invert /
-// apply them and compute the angular acceleration in body-frame integration.
+// apply them and compute the angular acceleration in body-frame integration,
+// and screw_axis3dp (Chasles' axis of a 3D motor or twist): a record like the
+// generated screw_axis2dp, but its pitch() member makes it no pure-data struct, so
+// the generator skips it -- and with it the 3D screw_axis() overloads, which return
+// it, unless the name is registered as hand-bound in emit_nanobind.py (it is).
 //
 // Why hand-written: the Inertia* types are struct shapes (std::array<T, N>
 // storage, two operator() overloads in 2dp, view() returning std::mdspan)
@@ -197,4 +201,40 @@ void bind_mechanics(nb::module_& pga)
         nb::arg("I_inv"), nb::arg("F"), nb::arg("Omega"), nb::arg("I"),
         "Right-hand side of the body-frame Euler ODE in 3dp:\n"
         "  Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]");
+
+    // ----- screw_axis3dp ---------------------------------------------------
+    // the shape the generator gives screw_axis2dp (two constructors, the fields
+    // read/write, repr/str/format through the fmt formatter, field-wise ==), plus the
+    // pitch the member function computes
+    nb::class_<screw_axis3dp>(pga, "screw_axis3dp")
+        .def("__init__", [](screw_axis3dp* self) { new (self) screw_axis3dp{}; })
+        .def(
+            "__init__",
+            [](screw_axis3dp* self, bivec3dp const& axis, double angle, double dist) {
+                new (self) screw_axis3dp(axis, angle, dist);
+            },
+            nb::arg("axis"), nb::arg("angle"), nb::arg("dist"))
+        .def_rw("axis", &screw_axis3dp::axis)
+        .def_rw("angle", &screw_axis3dp::angle)
+        .def_rw("dist", &screw_axis3dp::dist)
+        .def("pitch", &screw_axis3dp::pitch,
+             "Translation per radian of rotation, dist / angle (inf / nan for a pure "
+             "translation).")
+        .def("__repr__", [](screw_axis3dp const& v) { return fmt::format("{}", v); })
+        .def("__str__", [](screw_axis3dp const& v) { return fmt::format("{}", v); })
+        .def(
+            "__format__",
+            [](screw_axis3dp const& v, std::string_view spec) {
+                try {
+                    if (spec.empty()) return fmt::format("{}", v);
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"), v);
+                }
+                catch (fmt::format_error const& e) {
+                    throw std::invalid_argument(e.what());
+                }
+            },
+            nb::arg("format_spec"))
+        .def("__eq__", [](screw_axis3dp const& a, screw_axis3dp const& b) {
+            return a.axis == b.axis && a.angle == b.angle && a.dist == b.dist;
+        });
 }

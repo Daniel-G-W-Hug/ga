@@ -141,6 +141,16 @@ print("r2 @0 & r2 @(2,0,0)    :",
 print("r1 @0 & r2 @(3,0,0)    :",
       classify(cga.sphere3dc(o, 1.0), cga.sphere3dc(vec3d.new(3, 0, 0), 2.0)))
 
+-- the transwedge products (bound in the cga table since 2026-10-29): for two vectors
+-- the geometric product splits into the wedge and the first transwedge product, so
+-- twdg1 is the dot product there
+local ta, tb = cga.round_point3dc(1.0, 2.0, 3.0, 0.5), cga.round_point3dc(-1.0, 0.0, 2.0, 1.0)
+assert(cga.twdg1(ta, tb) == cga.dot(ta, tb))
+assert(cga.twdg1(cga.round_point2dc(1.0, 2.0, 0.5), cga.round_point2dc(0.0, 1.0, 0.0)) ==
+       cga.dot(cga.round_point2dc(1.0, 2.0, 0.5), cga.round_point2dc(0.0, 1.0, 0.0)))
+print("cga.rtwdg1(circle, circle) =", cga.rtwdg1(cga.circle2dc(0.0, 0.0, 2.0),
+                                                cga.circle2dc(3.0, 0.0, 2.0)))
+
 print("\n=======================================================")
 print("CGA tests completed successfully")
 print("=======================================================")

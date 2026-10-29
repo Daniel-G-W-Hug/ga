@@ -79,3 +79,25 @@ assert(math.abs(max_explicit_stiffness(I, 1e-3, 2.0) - I * (2.0 / 2e-3) ^ 2) < 1
 print("critical_damping(4, I) = ", critical_damping(4.0, I))
 print("max_explicit_stiffness(I, 1 ms) = ", max_explicit_stiffness(I, 1e-3))
 print("OK - joint range and drive round-trip through joint_state, is_unrestricted, the stop sizing")
+
+-- the screw records and the contact kinds (bound since 2026-10-29), and the motor joints
+-- of joint3dp, which Lua listed only in part until then
+print("\nscrew axes, screw systems, contact kinds, joint families:")
+local L = bivec3dp.new(0.0, 0.0, 1.0, 1.0, -2.0, 0.0)   -- through (2, 1, 0), along z
+local s3 = pga.screw_axis(pga.get_motor(L, 0.7, 1.5))  -- the screw motor
+assert(math.abs(s3.angle - 0.7) < 1e-12 and math.abs(s3.dist - 1.5) < 1e-12)
+assert(math.abs(s3:pitch() - 1.5 / 0.7) < 1e-12)
+local s2 = pga.screw_axis(pga.get_motor(vec2dp.new(1.0, 2.0, 1.0), 0.4))
+assert(math.abs(s2.angle - 0.4) < 1e-12)
+local sys = pga.screw_system({bivec3dp.new(0, 0, 1, 0, 0, 0), bivec3dp.new(0, 0, 1, 1, 0, 0)})
+assert(sys.span == 2)
+print("screw axis:", s3, "  screw system:", sys)
+assert(contact_kind3dp.flat ~= contact_kind3dp.point and contact_kind2dp.point ~= nil)
+for _, k in ipairs({"helical", "cylindrical", "spherical", "planar"}) do
+    assert(joint3dp[k] ~= nil, "joint3dp." .. k .. " is not bound")
+end
+
+-- the viability bound: (sqrt(2 a_max d) - rate) / dt
+assert(math.abs(stopping_accel_bound(0.5, 1.0, 4.0, 0.01) - (2.0 - 1.0) / 0.01) < 1e-12)
+assert(stopping_accel_bound(-0.1, 0.5, 4.0, 0.01) == -50.0) -- past the wall: brake only
+print("OK - screw records, contact kinds, the joint families, the viability bound")

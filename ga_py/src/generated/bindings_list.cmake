@@ -20,6 +20,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enu_frame.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos_dms.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geo_pos_dms2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geodesic_destination.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_geodesic_solution.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_helmert7.cpp

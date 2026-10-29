@@ -525,3 +525,24 @@
            3e-14); bound to Python and Lua (in Lua, stress_wrench takes the field
            as a function). The 12-point Gauss-Legendre rule moved to
            detail/ga_quadrature.hpp.
+- 2026/10: the exact inverse of the Helmert transformation, one per convention:
+           helmert_position_vector_inverse() and helmert_coordinate_frame_inverse() --
+           the reversed motor, then the scale divided back out of the weight. Negating
+           every parameter (EPSG's "reversible" methods) inverts only to first order and
+           misses by 9 mm for the DHDN set; the exact inverse closes the round trip to
+           3.7e-9 m on the surface, gated with an independent Rodrigues inverse (7e-9 m)
+           and three falsifiers (negated parameters, the other convention, the scale left
+           in). Bound to Python and Lua.
+- 2026/10: an audit of the binding surface, C++ -> Python -> Lua, and the gaps it found
+           closed. Python: the screw motor get_motor(L, theta, dist) (its third numeric
+           template parameter was unknown to the generator), screw_axis3dp and the 3D
+           screw_axis() (hand-bound: its pitch() member makes it no pure-data struct),
+           the degree/minute/second geodesy (the generator learned std::string:
+           dms2deg / dms2rad / deg2dms / rad2dms, geo_pos_dms{,2dp} -- to_geo_pos had
+           been bound but could not be called), and the CGA expansions as forwarders
+           (cross-checked against C++ with the STA ones). Lua: the transwedge products
+           and coeff_sq in cga / sta, ega.cos / sin, the screw records and functions, the
+           contact kinds, stopping_accel_bound, the dms text, the CGA expansions, and
+           the motor-joint values of joint3dp (helical, cylindrical, spherical, planar),
+           which the enum had been missing. Lua stands at 1834/1864, the rest skipped
+           by decision (ga_lua/utilities/README.md).

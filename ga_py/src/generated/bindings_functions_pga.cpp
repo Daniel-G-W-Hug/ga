@@ -278,6 +278,8 @@ void register_functions_pga(nb::module_& m)
     m.def("get_motor", [](bivec3dp const& a0, double a1) { return get_motor(a0, a1); });
     m.def("get_motor", [](vec3dp const& a0) { return get_motor(a0); });
     m.def("get_motor", [](vector3d const& a0) { return get_motor(a0); });
+    m.def("get_motor",
+          [](bivec3dp const& a0, double a1, double a2) { return get_motor(a0, a1, a2); });
     m.def("get_motor_from_lines", [](bivec2dp const& a0, bivec2dp const& a1) {
         return get_motor_from_lines(a0, a1);
     });
@@ -312,8 +314,14 @@ void register_functions_pga(nb::module_& m)
     m.def("helmert_coordinate_frame", [](vec3dp const& a0, helmert7 const& a1) {
         return helmert_coordinate_frame(a0, a1);
     });
+    m.def("helmert_coordinate_frame_inverse", [](vec3dp const& a0, helmert7 const& a1) {
+        return helmert_coordinate_frame_inverse(a0, a1);
+    });
     m.def("helmert_position_vector", [](vec3dp const& a0, helmert7 const& a1) {
         return helmert_position_vector(a0, a1);
+    });
+    m.def("helmert_position_vector_inverse", [](vec3dp const& a0, helmert7 const& a1) {
+        return helmert_position_vector_inverse(a0, a1);
     });
     m.def("inv", [](scalar2dp const& a0) { return inv(a0); });
     m.def("inv", [](vec2dp const& a0) { return inv(a0); });
@@ -997,6 +1005,8 @@ void register_functions_pga(nb::module_& m)
     m.def("rwdg", [](scalar3dp const& a0, scalar3dp const& a1) { return rwdg(a0, a1); });
     m.def("screw_axis", [](vec2dp const& a0) { return screw_axis(a0); });
     m.def("screw_axis", [](mvec2dp_u const& a0) { return screw_axis(a0); });
+    m.def("screw_axis", [](bivec3dp const& a0) { return screw_axis(a0); });
+    m.def("screw_axis", [](mvec3dp_e const& a0) { return screw_axis(a0); });
     m.def("screw_system",
           [](std::vector<vec2dp> const& a0, double a1) { return screw_system(a0, a1); });
     m.def("screw_system", [](std::vector<bivec3dp> const& a0, double a1) {

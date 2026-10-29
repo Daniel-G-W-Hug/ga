@@ -7972,6 +7972,100 @@ TEST_SUITE("PGA3DP: projections onto the tangent plane")
         CHECK(dist3(id, vec3d{X.x, X.y, X.z}) < 1.0e-8);
     }
 
+    TEST_CASE("geodesics: the exact inverse of the Helmert transformation")
+    {
+        fmt::println("geodesics: the exact inverse of the Helmert transformation");
+        using namespace azimuthal_test;
+
+        // the DHDN set of the case above; points on the surface around the globe and one
+        // far out, so the rotation acts on every direction and on a long lever
+        auto const hp = make_helmert7(598.1, 73.7, 418.2, 0.202, 0.045, -2.455, 6.7);
+        auto const dist3 = [](vec3dp const& a, vec3dp const& b) {
+            return std::hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+        };
+        std::vector<vec3dp> pts{vec3dp{4157222.543, 664789.307, 4774952.099, 1.0}};
+        for (auto const& [lat, lon] : {std::pair{0.0, 0.0},
+                                       {0.0, 90.0},
+                                       {-45.0, -120.0},
+                                       {89.0, 170.0},
+                                       {-89.9, 10.0}}) {
+            pts.push_back(geo_to_ecef(geo_pos{deg2rad(lat), deg2rad(lon), 0.0}, grs80));
+        }
+        pts.push_back(vec3dp{4.2e7, -1.0e6, 3.0e5, 1.0}); // geostationary distance
+
+        // each inverse undoes its namesake, either way round
+        value_t err_trip = 0.0, err_trip_far = 0.0;
+        for (size_t i = 0; i < pts.size(); ++i) {
+            auto const& X = pts[i];
+            value_t& err = (i + 1 < pts.size()) ? err_trip : err_trip_far;
+            err = std::max(
+                {err,
+                 dist3(
+                     helmert_position_vector_inverse(helmert_position_vector(X, hp), hp),
+                     X),
+                 dist3(helmert_coordinate_frame_inverse(helmert_coordinate_frame(X, hp),
+                                                        hp),
+                       X),
+                 dist3(
+                     helmert_position_vector(helmert_position_vector_inverse(X, hp), hp),
+                     X),
+                 dist3(helmert_coordinate_frame(helmert_coordinate_frame_inverse(X, hp),
+                                                hp),
+                       X)});
+        }
+
+        // an independent reference: x = R(-r) (x' - t) / (1 + ds), the rotation by
+        // Rodrigues' formula about the axis k = r / |r| with the angle negated
+        auto const rodrigues_back = [&](vec3dp const& Y, value_t sign) {
+            value_t const th = std::sqrt(hp.rx * hp.rx + hp.ry * hp.ry + hp.rz * hp.rz);
+            vec3d const k{sign * hp.rx / th, sign * hp.ry / th, sign * hp.rz / th};
+            value_t const sc = 1.0 + hp.ds;
+            vec3d const x{(Y.x - hp.tx) / sc, (Y.y - hp.ty) / sc, (Y.z - hp.tz) / sc};
+            vec3d const kx{k.y * x.z - k.z * x.y, k.z * x.x - k.x * x.z,
+                           k.x * x.y - k.y * x.x};
+            value_t const kd = k.x * x.x + k.y * x.y + k.z * x.z;
+            value_t const c = std::cos(th), s = -std::sin(th);
+            return vec3dp{x.x * c + kx.x * s + k.x * kd * (1.0 - c),
+                          x.y * c + kx.y * s + k.y * kd * (1.0 - c),
+                          x.z * c + kx.z * s + k.z * kd * (1.0 - c), 1.0};
+        };
+        value_t err_rod = 0.0;
+        for (auto const& Y : pts) {
+            err_rod = std::max(
+                {err_rod,
+                 dist3(helmert_position_vector_inverse(Y, hp), rodrigues_back(Y, 1.0)),
+                 dist3(helmert_coordinate_frame_inverse(Y, hp),
+                       rodrigues_back(Y, -1.0))});
+        }
+
+        // the falsifiers: the first-order inverse (every parameter negated) misses by
+        // millimetres, the other convention's inverse by the confusion of the two, and
+        // an inverse that leaves the scale in by ds |X|
+        auto const& X = pts.front();
+        auto const pv = helmert_position_vector(X, hp);
+        pga::helmert7 const neg{-hp.tx, -hp.ty, -hp.tz, -hp.rx, -hp.ry, -hp.rz, -hp.ds};
+        value_t const err_neg = dist3(helmert_position_vector(pv, neg), X);
+        value_t const err_conv = dist3(helmert_coordinate_frame_inverse(pv, hp), X);
+        pga::helmert7 no_scale = hp;
+        no_scale.ds = 0.0;
+        value_t const err_scale = dist3(helmert_position_vector_inverse(pv, no_scale), X);
+
+        fmt::println("    round trip {:.2e} m on the surface, {:.2e} m at 4.2e7 m; vs "
+                     "Rodrigues {:.2e} m; "
+                     "negated parameters {:.2e} m, the other convention {:.1f} m, the "
+                     "scale left in {:.1f} m",
+                     err_trip, err_trip_far, err_rod, err_neg, err_conv, err_scale);
+        CHECK(err_trip < 1.0e-8);
+        CHECK(err_trip_far < 1.0e-7);
+        CHECK(err_rod < 1.0e-7);
+        CHECK(err_neg > 1.0e-3);
+        CHECK(err_conv > 100.0);
+        CHECK(err_scale > 10.0);
+
+        // no parameters, no change
+        CHECK(dist3(helmert_position_vector_inverse(X, pga::helmert7{}), X) < 1.0e-8);
+    }
+
     TEST_CASE("geodesics: densify an edge that is straight in (lat, lon)")
     {
         fmt::println("geodesics: densify an edge that is straight in (lat, lon)");

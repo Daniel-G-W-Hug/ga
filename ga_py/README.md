@@ -464,7 +464,7 @@ ga_py/
 ├── src/
 │   ├── module.cpp              # hand-written entry point (NB_MODULE)
 │   ├── bindings_rk4_step.cpp   # hand-written: rk4_step per VecType (§6.5)
-│   ├── bindings_mechanics.cpp  # hand-written: the inertia surface (§6.6)
+│   ├── bindings_mechanics.cpp  # hand-written: the inertia surface (§6.6), screw_axis3dp
 │   ├── bindings_projections.cpp # hand-written: the generic templates (§6.10)
 │   ├── bindings_geodesics.cpp  # hand-written: the ellipsoid and unproject (geodesy)
 │   └── generated/              # produced by ga_bindgen — do not edit

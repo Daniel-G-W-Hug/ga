@@ -592,6 +592,24 @@ void emit_cga_cases()
         add("cga_sphere_plane_rwdg", "cga", "rwdg", rwdg(s, pl), s, pl);
     }
 
+    // --- the expansions, generic C++ templates bound as Python forwarders: a
+    // round point against a circle (2dc) / a sphere (3dc), each order where the
+    // result is not zero ---
+    {
+        vec2dc const p2 = round_point2dc(0.5, -1.0, 0.0);
+        trivec2dc const c2 = circle2dc(1.0, 2.0, 1.5);
+        add("cga_l_expand2dc_circle_point", "cga", "l_expand2dc", l_expand2dc(c2, p2), c2,
+            p2);
+        add("cga_r_expand2dc_point_circle", "cga", "r_expand2dc", r_expand2dc(p2, c2), p2,
+            c2);
+        vec3dc const p3 = round_point3dc(0.5, -1.0, 2.0, 0.0);
+        quadvec3dc const s3 = sphere3dc(1.0, 2.0, 3.0, 1.5);
+        add("cga_l_expand3dc_sphere_point", "cga", "l_expand3dc", l_expand3dc(s3, p3), s3,
+            p3);
+        add("cga_r_expand3dc_point_sphere", "cga", "r_expand3dc", r_expand3dc(p3, s3), p3,
+            s3);
+    }
+
     // --- cga3dc: complements and duals (odd-dimensional --- single variant) ---
     {
         vec3dc a = round_point3dc(1.0, 2.0, 3.0, 1.0);
@@ -671,6 +689,14 @@ void emit_cga_cases()
 
 void emit_sta_cases()
 {
+    // --- the expansions, bound as Python forwarders ---
+    {
+        bivec4ds const B{1.0, -2.0, 0.5, 3.0, 1.0, -1.0};
+        vec4ds const v{2.0, 1.0, -1.0, 3.0};
+        add("sta_l_expand4ds_bivec_vec", "sta", "l_expand4ds", l_expand4ds(B, v), B, v);
+        add("sta_r_expand4ds_vec_bivec", "sta", "r_expand4ds", r_expand4ds(v, B), v, B);
+    }
+
     // --- vec4ds basic algebra ---
     {
         vec4ds a{1.0, 2.0, 3.0, 4.0}, b{5.0, -6.0, 7.0, -8.0};

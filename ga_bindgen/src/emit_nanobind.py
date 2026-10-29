@@ -134,6 +134,11 @@ def build_type_name_map(types: list[TypeAlias]) -> dict[str, str]:
 _PRIMITIVE_SCALAR_NAMES = {
     "T",
     "U",
+    # a third numeric template parameter: the screw motor get_motor(L, theta, dist)
+    # takes the distance as `V`, and without this entry the overload was dropped
+    # without a message (unbound from 2025-11 to 2026-10). Checked when added: no
+    # other overload in the manifest spells a parameter `V`.
+    "V",
     "double",
     "float",
     "value_t",
@@ -225,6 +230,12 @@ def resolve_param_to_user_type(p: str, type_map: dict[str, str]) -> str | None:
         return "int"
     if base in _NATIVE_NAMES:
         return base
+    # std::string (nanobind/stl/string.h, in GENERATED_HEADER): the angles in
+    # degree/minute/second text of the geodesy layer -- dms2deg(), deg2dms() and the
+    # geo_pos_dms structs, whose absence left to_geo_pos(geo_pos_dms) bound but
+    # uncallable
+    if base == "string":
+        return "std::string"
 
     # Fallback: when libclang gives us the underlying class template form
     # (e.g. `Vec3_t<double, hd::ga::bivec2dp_tag>` instead of `BiVec2dp<...>`),
@@ -1561,6 +1572,11 @@ def main() -> int:
         # enu_at, the projections onto the tangent plane, tm_forward, ...) and the
         # azimuthal_map struct were dropped without a message.
         type_map.setdefault("ellipsoid", "ellipsoid")
+        # screw_axis3dp is HAND-bound (ga_py/src/bindings_mechanics.cpp) for the same
+        # reason: its pitch() member makes it no pure-data struct, and without this
+        # entry the 3D screw_axis() overloads, which return it, were dropped silently
+        # while the 2D ones (screw_axis2dp is pure data) were bound.
+        type_map.setdefault("screw_axis3dp", "screw_axis3dp")
         grade_methods_per_type = collect_grade_extractors(manifest, type_map)
         binary_ops_per_type = collect_binary_operators(manifest, type_map)
         types_by_name: dict[str, TypeAlias] = {t.name: t for t in eligible}

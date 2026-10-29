@@ -349,3 +349,14 @@ print("mvs2 =", mvs2)
 print("ega.dot(s1,s2)=", ega.dot(s1, s2))
 print("ega.wdg(s1,s2)=", ega.wdg(s1, s2))
 print("mvs1 * mvs2 =", mvs1 * mvs2)
+
+-- cos / sin of a multivector (bound since 2026-10-29): a pure scalar gives the ordinary
+-- functions, and cos(Z)^2 + sin(Z)^2 = 1 for any Z (Z commutes with itself)
+local zs = mvec2d.new(0.5, 0.0, 0.0, 0.0)
+assert(math.abs(ega.cos(zs).c0 - math.cos(0.5)) < 1e-15)
+assert(math.abs(ega.sin(zs).c0 - math.sin(0.5)) < 1e-15)
+local Z = mvec2d.new(0.3, -0.7, 0.4, 1.1)
+local one = ega.cos(Z) * ega.cos(Z) + ega.sin(Z) * ega.sin(Z)
+assert(math.abs(one.c0 - 1.0) < 1e-12 and math.abs(one.c1) < 1e-12 and
+       math.abs(one.c2) < 1e-12 and math.abs(one.c3) < 1e-12)
+print("cos(Z)^2 + sin(Z)^2 =", one)
