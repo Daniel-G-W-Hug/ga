@@ -2448,11 +2448,9 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             "pga2dp: multibody system transformation - branching tree of frames)");
 
         // Tree topology with explicit parents:
-
-        // Tree topology with explicit parents:
         //
         //              rf[0] (root)
-        //              /          \
+        //              /          \      (two children of the root)
         //         cfA[1]           cfB[2]   (cfB branches off the root, NOT off cfA)
         //            |
         //         cfC[3]
@@ -2539,9 +2537,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         //                 ground[0] (root)
         //                     |
         //                 platform[1]              (rotates about its centre by theta)
-        //               /     |      \
-        //          tt0[2]   tt1[3]   tt2[4]        (mounted at r, 120 deg apart, own
-        //          spin)
+        //               /     |      \      (three turntables)
+        //          tt0[2]   tt1[3]   tt2[4]        (at r, 120 deg apart, own spin)
         //
         static_frame2dp ground; // inertial root
 

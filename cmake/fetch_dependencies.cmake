@@ -14,8 +14,9 @@ function(setup_fmt_fetchcontent)
     FetchContent_Declare(
         fmt
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG        10.2.1  # Use a stable release tag
+        GIT_TAG        12.2.0  # as macOS (Homebrew) and Windows (vcpkg)
         GIT_SHALLOW    TRUE
+        SYSTEM         # third-party headers: our warnings (-Werror) stay on our code
     )
     
     # Configure fmt options
@@ -35,8 +36,9 @@ function(setup_doctest_fetchcontent)
     FetchContent_Declare(
         doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
-        GIT_TAG        v2.4.11  # Use a stable release tag
+        GIT_TAG        v2.5.3  # as macOS (Homebrew) and Windows (vcpkg)
         GIT_SHALLOW    TRUE
+        SYSTEM         # third-party headers: our warnings (-Werror) stay on our code
     )
     
     # Configure doctest options
@@ -64,6 +66,7 @@ function(setup_sol2_fetchcontent)
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
         GIT_TAG        develop  # Use development branch for latest C++23 fixes
         GIT_SHALLOW    TRUE
+        SYSTEM         # third-party headers: our warnings (-Werror) stay on our code
     )
 
     # Configure sol2 options

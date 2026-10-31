@@ -18,8 +18,9 @@
 //
 // Build target: ga_export_python_cases
 // Regenerate via:
-//   cd build && cmake --build . --target ga_export_python_cases \
-//     && ./ga_test/ga_export_python_cases
+//   cd build
+//   cmake --build . --target ga_export_python_cases
+//   ./ga_test/ga_export_python_cases
 
 #include "ga/ga_cga.hpp"
 #include "ga/ga_ega.hpp"

@@ -60,7 +60,13 @@ function(find_fmt_tiered)
         list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x86-windows")
     endif()
 
-    find_package(fmt CONFIG QUIET)
+    # 12.0 is the minimum. The code needs 10.2 (the formatters derive from
+    # fmt::nested_formatter), but fmt 10.x fails with current Clang's consteval rules
+    # ("call to consteval function ... is not a constant expression", Clang 23), and 12.2
+    # is what macOS (Homebrew) and Windows (vcpkg) run. An older system fmt (Ubuntu 26.04
+    # ships 10.1) is passed over and the FetchContent tier supplies 12.2.0. fmt's version
+    # file accepts any newer version.
+    find_package(fmt 12.0 CONFIG QUIET)
 
     # Restore original CMAKE_PREFIX_PATH
     if(WIN32 AND CMAKE_PREFIX_PATH_BACKUP)
@@ -106,7 +112,10 @@ function(find_doctest_tiered)
         list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x86-windows")
     endif()
 
-    find_package(doctest QUIET)
+    # 2.5 is the minimum: 2.4.x includes <ciso646> under Clang, no longer a standard
+    # header since C++20 (libstdc++ 16 says so in a #warning, which -Werror turns into an
+    # error); 2.5 includes <version> instead. Older ones fall through to FetchContent.
+    find_package(doctest 2.5 QUIET)
 
     # Restore original CMAKE_PREFIX_PATH
     if(WIN32 AND CMAKE_PREFIX_PATH_BACKUP)

@@ -133,6 +133,20 @@ call. To drop it for one target:
 ga_blade_guard(my_fast_target OFF)
 ```
 
+## Compiler requirements
+
+C++23, including `std::mdspan` in the standard library. Built and tested (all suites) on:
+
+| Platform              | Compiler                  | Standard library |
+|-----------------------|---------------------------|------------------|
+| macOS (Apple Silicon) | Homebrew Clang 23         | libc++           |
+| Windows               | MSVC 2022 (17.14)         | MSVC STL         |
+| Linux (Ubuntu 26.04)  | GCC 16, Clang 23          | libstdc++ 16     |
+
+GCC 15 and older do not build the library: libstdc++ provides `<mdspan>` only from
+GCC 16 on. Clang on Linux uses the newest installed libstdc++, so it needs GCC 16 installed
+as well.
+
 ## Dependencies
 
 Only **fmt** is needed to use the library (header-only; FetchContent fallback if it is not
@@ -141,9 +155,9 @@ dependency simply skips that target and the build stays green.
 
 | Dependency        | Enables                                   | macOS (brew)     | Linux (apt)        | Fallback              |
 |-------------------|-------------------------------------------|------------------|--------------------|-----------------------|
-| fmt               | the library + every target                | `fmt`            | `libfmt-dev`       | FetchContent          |
-| doctest           | the test suite (`ga_test`)                | `doctest`        | `libdoctest-dev`   | FetchContent          |
-| Lua + sol2        | the Lua shell (`ga_lua`, `_GA_USE_LUA`)   | `lua`            | `lua5.1-dev`       | sol2 via FetchContent |
+| fmt ≥ 12.0        | the library + every target                | `fmt`            | `libfmt-dev`       | FetchContent (12.2.0) |
+| doctest ≥ 2.5     | the test suite (`ga_test`)                | `doctest`        | `doctest-dev`      | FetchContent (2.5.3)  |
+| Lua + sol2        | the Lua shell (`ga_lua`, `_GA_USE_LUA`)   | `lua`            | `liblua5.4-dev`    | sol2 via FetchContent |
 | readline          | nicer `ga_lua` interactive editing        | `readline`       | `libreadline-dev`  | optional              |
 | Python + nanobind | the Python wrapper (`ga_py`, opt-in `-D_GA_BUILD_PYTHON=ON`) | `python` | `python3-dev` | see `ga_py/README.md` |
 
@@ -165,8 +179,13 @@ vcpkg install fmt doctest sol2 readline-win32 --triplet x64-windows
 ### Linux (Ubuntu/Debian)
 
 ```bash
-sudo apt-get install libfmt-dev libdoctest-dev lua5.1-dev libreadline-dev
+sudo apt-get install g++-16 cmake ninja-build libfmt-dev doctest-dev liblua5.4-dev libreadline-dev
 ```
+
+Ubuntu 26.04 ships fmt 10.1 and doctest 2.4, older than the minimums above; the build
+then fetches fmt 12.2.0 and doctest 2.5.3 itself (FetchContent), so nothing has to be
+installed by hand. Configure with the compiler named explicitly, e.g.
+`-DCMAKE_CXX_COMPILER=g++-16` (Ubuntu's default `g++` is GCC 15).
 
 ## Configuration Summary
 

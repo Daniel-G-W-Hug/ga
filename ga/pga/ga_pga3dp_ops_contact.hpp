@@ -145,20 +145,20 @@ class ground_contact3dp {
 
     // register a contact (its loop constraints are added to the system, inactive);
     // returns the contact index
-    size_t add(spec const& spec)
+    size_t add(spec const& sp)
     {
         contact c;
-        c.spec = spec;
-        vec3dp const P = point_world(spec.frame, spec.point_b);
+        c.spec = sp;
+        vec3dp const P = point_world(sp.frame, sp.point_b);
         c.pin = cl_->add_loop_constraint(loop_constraint3dp{
-            spec.frame, spec.point_b, ground_frame_, P, constraint3dp::coincidence});
+            sp.frame, sp.point_b, ground_frame_, P, constraint3dp::coincidence});
         cl_->set_loop_active(c.pin, false);
-        if (spec.kind == contact_kind3dp::flat) {
+        if (sp.kind == contact_kind3dp::flat) {
             std::string const name = "ground_contact_" + std::to_string(contacts_.size());
             cl_->add_frame(static_frame3dp(name, P), ground_frame_);
             c.ground = cl_->index_of(name);
             c.weld = cl_->add_loop_constraint(loop_constraint3dp{
-                spec.frame, spec.point_b, c.ground, O_3dp, constraint3dp::frame});
+                sp.frame, sp.point_b, c.ground, O_3dp, constraint3dp::frame});
             cl_->set_loop_active(c.weld, false);
         }
         contacts_.push_back(c);
@@ -487,7 +487,9 @@ class ground_contact3dp {
     static constexpr size_t npos = size_t(-1);
 
     struct contact {
-        spec spec;
+        // the type qualified: named `spec` unqualified, the member would change what
+        // `spec` means inside contact (ill-formed, no diagnostic required; GCC warns)
+        ground_contact3dp::spec spec;
         size_t pin{npos};    // the coincidence loop
         size_t weld{npos};   // the frame loop (flat), npos if none yet
         size_t ground{npos}; // the fixed ground frame of the weld

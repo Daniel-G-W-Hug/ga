@@ -2574,12 +2574,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto s = scalar3dp{5.0};
         auto v = vec3dp{1.0, 2.0, 3.0, 1.0};
         auto B = bivec3dp{-1.0, 2.0, 1.0, -10.0, 20.0, 10.0};
-        auto t = trivec3dp{3.0, 6.0, 9.0, 3.0};
         auto ps = pscalar3dp{-5.0};
-
-        auto mv = mvec3dp{s, v, B, t, ps};
-        auto mv_e = mvec3dp_e{s, B, ps};
-        auto mv_u = mvec3dp{v, t};
 
         auto s2 = scalar3dp{2.5};
         // auto v2 = vec3dp{0.5, 1.0, 1.5, 2.0};

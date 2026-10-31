@@ -4448,9 +4448,9 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (L2 -- the recursive assembly)")
 //                          forearm  / \  forearm        ^
 //                                  /   \                 |
 //                          elbow  E1    E2  elbow        +---> e1
-//                                /       \
+//                                /       \          (two links per arm)
 //                       upperarm/         \upperarm
-//                              /           \
+//                              /           \        (S1, S2 fixed)
 //                        S1  o             o  S2     <- shoulders (fixed to the world)
 //                       (-1.2,0,0)      (1.2,0,0)
 //

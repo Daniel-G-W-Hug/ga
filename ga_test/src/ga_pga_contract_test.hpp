@@ -699,7 +699,7 @@ TEST_SUITE("PGA contracts")
             return rexp(0.5 * bivec3dp{0.0, 0.0, a, 0.0, 0.0, 0.0});
         };
         value_t const deg = pi / 180.0;
-        for (auto const [a, e] :
+        for (auto const& [a, e] :
              {std::pair{90.0, 90.0}, std::pair{270.0, -90.0}, std::pair{359.0, -1.0},
               std::pair{361.0, 1.0}, std::pair{450.0, 90.0}, std::pair{-200.0, 160.0}}) {
             CAPTURE(a);

@@ -161,21 +161,21 @@ class ground_contact2dp {
 
     // register a contact (its loop constraints are added to the system, inactive);
     // returns the contact index
-    size_t add(spec const& spec)
+    size_t add(spec const& sp)
     {
         contact c;
-        c.spec = spec;
-        vec2dp const P = point_world(spec.frame, spec.point_b);
+        c.spec = sp;
+        vec2dp const P = point_world(sp.frame, sp.point_b);
         c.pin = cl_->add_loop_constraint(loop_constraint2dp{
-            spec.frame, spec.point_b, ground_frame_, P, constraint2dp::coincidence});
+            sp.frame, sp.point_b, ground_frame_, P, constraint2dp::coincidence});
         cl_->set_loop_active(c.pin, false);
-        if (spec.segment) c.spec.kind = contact_kind2dp::point; // its state, not a choice
-        if (spec.kind == contact_kind2dp::flat || spec.segment) {
+        if (sp.segment) c.spec.kind = contact_kind2dp::point; // its state, not a choice
+        if (sp.kind == contact_kind2dp::flat || sp.segment) {
             std::string const name = "ground_contact_" + std::to_string(contacts_.size());
             cl_->add_frame(static_frame2dp(name, P, 0.0), ground_frame_);
             c.ground = cl_->index_of(name);
             c.weld = cl_->add_loop_constraint(loop_constraint2dp{
-                spec.frame, spec.point_b, c.ground, O_2dp, constraint2dp::frame});
+                sp.frame, sp.point_b, c.ground, O_2dp, constraint2dp::frame});
             cl_->set_loop_active(c.weld, false);
         }
         contacts_.push_back(c);
@@ -572,7 +572,9 @@ class ground_contact2dp {
     static constexpr size_t npos = size_t(-1);
 
     struct contact {
-        spec spec;
+        // the type qualified: named `spec` unqualified, the member would change what
+        // `spec` means inside contact (ill-formed, no diagnostic required; GCC warns)
+        ground_contact2dp::spec spec;
         size_t pin{npos};    // the coincidence loop
         size_t weld{npos};   // the frame loop (flat), npos if none yet
         size_t ground{npos}; // the fixed ground frame of the weld
@@ -688,15 +690,15 @@ class ground_contact2dp {
         for (size_t k = 0; k < lands.size(); ++k) {
             size_t const idx = lands[k].idx, end = lands[k].end;
             contact& c = contacts_[idx];
-            vec2dp const landing = unitize(project_onto(end_point(idx, end), L_));
-            at.push_back(landing);
+            vec2dp const P_land = unitize(project_onto(end_point(idx, end), L_));
+            at.push_back(P_land);
             if (!c.spec.segment) {
                 if (c.spec.kind == contact_kind2dp::flat) {
-                    pose_ground_frame(idx, landing);
+                    pose_ground_frame(idx, P_land);
                     cl_->set_loop_active(c.weld, true);
                 }
                 else {
-                    cl_->set_loop_anchors(c.pin, c.spec.point_b, landing);
+                    cl_->set_loop_anchors(c.pin, c.spec.point_b, P_land);
                     cl_->set_loop_active(c.pin, true);
                 }
                 c.active = true;
@@ -717,7 +719,7 @@ class ground_contact2dp {
             }
             else {
                 cl_->set_loop_anchors(c.pin, end == 1 ? c.spec.end_b : c.spec.point_b,
-                                      landing);
+                                      P_land);
                 cl_->set_loop_active(c.pin, true);
                 c.pinned_end = int(end);
             }

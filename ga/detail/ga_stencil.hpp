@@ -117,10 +117,12 @@ enum class stencil_lhs {
 struct stencil_t {
 
     // after calling the ctor, the "output values" below can be used
-    stencil_t(double x0, stencil_lhs lhs_t, std::vector<double> xf0,
-              std::vector<double> xf1, std::vector<double> xf2) :
-        x0{x0}, lhs_t{lhs_t}, xf0{std::move(xf0)}, xf1{std::move(xf1)},
-        xf2{std::move(xf2)}
+    // (the parameters are named apart from the members: the vectors are moved into
+    // them, and a body reading `xf0` would otherwise read the moved-from parameter)
+    stencil_t(double x0_in, stencil_lhs lhs_in, std::vector<double> xf0_in,
+              std::vector<double> xf1_in, std::vector<double> xf2_in) :
+        x0{x0_in}, lhs_t{lhs_in}, xf0{std::move(xf0_in)}, xf1{std::move(xf1_in)},
+        xf2{std::move(xf2_in)}
     {
         // consistency checks (nf0() >= 2: fewer function samples cannot pin a
         // derivative, and nf0() == 0 would underflow the j0e index below)
