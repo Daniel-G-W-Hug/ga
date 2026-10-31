@@ -1084,7 +1084,9 @@ TEST_SUITE("PGA contracts")
         // motor's components (~1e-16) reaches the result multiplied by phi / sin(phi),
         // phi the half angle, which grows as 2 pi / d. rlog reads -M once 1 + cos(phi) <=
         // 64 eps (a full angle within 7.5e-7 of a full turn) and keeps its error below
-        // ~1e-10 outside that band; rlog_shortest reads the shortest representative, half
+        // ~1e-9 outside that band -- at the band's edge the factor is ~8e6, so a few ulps
+        // of rounding, which differ between math libraries, give 1e-10 to 1e-9 (3.8e-10
+        // with MSVC at d = 8e-7); rlog_shortest reads the shortest representative, half
         // angle <= pi / 2, factor <= pi / 2, at every angle.
         bivec3dp const l =
             unitize(wdg(vec3dp{0.3, -0.2, 0.0, 1.0}, vec3dp{0.5, 0.4, 1.0, 1.0}));
@@ -1122,7 +1124,7 @@ TEST_SUITE("PGA contracts")
             value_t const e_rlog = err(M, rlog(M));
             value_t const e_short = err(M, rlog_shortest(M));
             CHECK(switched == (d < 7.5e-7));         // the band
-            CHECK(e_rlog < 2.0e-10);                 // rlog, both sides of it
+            CHECK(e_rlog < 1.0e-9);                  // rlog, both sides of it
             CHECK(e_short < 1.0e-15);                // the shortest, everywhere
             if (d <= 1.0e-6) CHECK(e_far > 1.0e-11); // the far sheet loses digits
             if (switched) CHECK(e_rlog < 1.0e-15);   // inside the band: none
