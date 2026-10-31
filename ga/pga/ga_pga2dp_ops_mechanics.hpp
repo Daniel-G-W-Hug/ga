@@ -45,7 +45,8 @@
 // - body2dp             -> a body's inertial record; make_plate_body(),
 //                          make_disc_body(), make_point_body2dp(),
 //                          make_body_from_inertia()
-// - joint2dp / joint_state2dp -> the reduced-coordinate joint of a body vs. its parent
+// - joint2dp /          -> the reduced-coordinate joint of a body vs. its parent
+//   joint_state2dp
 // - joint_range2dp      -> where a 1-dof joint MAY GO (an interval on q plus the
 //                          one-sided STOP that realizes it; neutral value
 //                          (-inf, +inf) with no stop, i.e. the unrestricted joint).
@@ -66,16 +67,16 @@
 //
 // - total_mass(), centre_of_mass(), centre_of_mass_velocity(),
 //   centre_of_mass_acceleration()
-// - gravity_wrench()    -> gravity as ONE wrench
+// - gravity_wrench()                -> gravity as ONE wrench
 // - kinetic_energy(), potential_energy(), total_energy(), momentum_world()
-// - total_momentum()    -> the whole mechanism's momentum as ONE bivector
+// - total_momentum()                -> the whole mechanism's momentum as ONE bivector
 // - jacobian_columns() / jacobian() -> a frame's space or body Jacobian
 // - mass_matrix(), mass_bias()      -> the joint-space equation of motion
-// - mass_bias_direct()             -> the same, by the O(n^3) reference sum
-// - joint_accelerations()          -> forward dynamics, articulated-body algorithm
-// - inverse_dynamics(qdd)          -> the joint forces for qdd, recursive Newton-Euler
-// - coriolis_matrix()              -> C(q, qdot), Mdot - 2C skew
-// - joint_torques()                -> the registered actuator torques, per coordinate
+// - mass_bias_direct()              -> the same, by the O(n^3) reference sum
+// - joint_accelerations()           -> forward dynamics, articulated-body algorithm
+// - inverse_dynamics(qdd)           -> the joint forces for qdd, recursive Newton-Euler
+// - coriolis_matrix()               -> C(q, qdot), Mdot - 2C skew
+// - joint_torques()                 -> the registered actuator torques, per coordinate
 //
 // The joint's own specification: set_joint_range(), set_joint_drive() -- both
 // validate, and set_joint() clamps into the range.

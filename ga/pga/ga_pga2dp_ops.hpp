@@ -19,7 +19,8 @@
 // - rlog()                              -> logarithm (w.r.t. rgpr, inverse of rexp)
 // - rlog_shortest()                     -> the shortest motion's generator (|angle| <=
 // pi)
-// - motion_error_body(), motion_error_world() -> the twist from M_ref to M (relative log)
+// - motion_error_body(),                -> the twist from M_ref to M (relative log)
+//   motion_error_world()
 // - rlog_continued()                    -> the generator nearest a previous one (turns)
 // - rsqrt(M)                            -> sqrt of a motor (w.r.t. rgpr)
 //

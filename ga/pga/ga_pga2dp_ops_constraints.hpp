@@ -84,18 +84,18 @@
 // Solving:
 //
 // - assemble()            -> close the loops from an approximate posture (tolerates a
-//                           sub-millimetre least-squares stall at a singular
-//                           configuration)
+//                            sub-millimetre least-squares stall at a singular
+//                            configuration)
 // - solve_velocities()    -> the constrained velocities
 // - joint_accelerations() -> the KKT accelerations, optionally with the multipliers
 // - sync_accelerations()  -> write them into the per-frame accel twists, so
-//                           point_acceleration() reports the CONSTRAINED dynamics
-// - set_accelerations()  -> write given accelerations into the accel twists
-// - dynamics_response()  -> the same KKT system factored once: q-ddot, lambda, and
-//                           delta(dtau), a force change's response by back-substitution
+//                            point_acceleration() reports the CONSTRAINED dynamics
+// - set_accelerations()   -> write given accelerations into the accel twists
+// - dynamics_response()   -> the same KKT system factored once: q-ddot, lambda, and
+//                            delta(dtau), a force change's response by back-substitution
 // - step()                -> one integration step of the constrained system
-// - impact(e) / activate_loop_with_impact(c, e) -> the impulsive velocity jump a newly
-//                           active constraint demands
+// - impact(e) /           -> impulsive velocity jump a newly active constraint demands
+//   activate_loop_with_impact(c, e)
 //
 // Reading the constraint system out (what an external law needs):
 //
