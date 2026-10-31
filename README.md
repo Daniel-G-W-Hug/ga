@@ -26,6 +26,12 @@ Base your work on `develop`.
 
 ## Dependencies
 
+A C++23 compiler whose standard library provides `std::mdspan`: Clang with libc++ (macOS),
+MSVC 2022, or GCC >= 16 (GCC 15's libstdc++ lacks `<mdspan>`). Minimum versions: fmt 12.0,
+doctest 2.5 — older system packages are replaced by fetched ones automatically.
+[`BUILD_USAGE.md`](BUILD_USAGE.md) lists the tested compilers and the packages per
+platform.
+
 - ga: fmt (must be included by every user — header-only lib!)
 - ga_test: fmt, doctest
 - ga_lua: fmt, lua, sol2
