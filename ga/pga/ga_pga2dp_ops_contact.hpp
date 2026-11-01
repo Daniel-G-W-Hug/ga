@@ -496,7 +496,10 @@ class ground_contact2dp {
     // No moment balance is solved and no coordinate frame is chosen; it is exact for
     // an arbitrarily slanted resultant and on a SLOPE, since ground() is whatever
     // line was built. Tedrake's centre-of-pressure formula sum(p_i N_i)/sum(N_i) is
-    // the flat-ground, vertical-force special case of this meet.
+    // its special case for point contacts on level ground, with or without friction: a
+    // tangential force runs along the ground, so it has no moment about a point of it.
+    // On a slope that formula, written with world positions and vertical force
+    // components, is exact only without friction.
     //
     // The 3D header carries the SAME expression, though it earns it differently:
     // there the definition weakens to "no TANGENTIAL moment", and the meet tracks

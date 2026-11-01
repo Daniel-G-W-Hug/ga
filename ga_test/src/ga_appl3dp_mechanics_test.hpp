@@ -3036,6 +3036,80 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: the ZMP meet and the centre-of-pressure formula, with friction")
+    {
+        fmt::println("pga3dp: the ZMP meet and the centre-of-pressure formula");
+
+        // The textbook ZMP of point contacts, sum(p_i N_i) / sum(N_i) with the normal
+        // forces N_i, against the meet rwdg(W, ground). On level ground the two agree
+        // WITH friction: a tangential force lies in the ground and passes through a
+        // point of it, so it has no tangential moment about any ground point, and a
+        // couple about the normal has none either. On a slope the meet needs no change,
+        // while the formula written with world positions and VERTICAL force components
+        // holds only without friction -- the falsification at the end.
+        std::array<vec3dp, 3> const P{vec3dp{0.0, 0.1, 0.0, 1.0},
+                                      vec3dp{0.25, -0.1, 0.0, 1.0},
+                                      vec3dp{0.1, 0.3, 0.0, 1.0}};
+        std::array<vec3dp, 3> const f{vec3dp{12.0, -5.0, 300.0, 0.0},
+                                      vec3dp{-8.0, 15.0, 180.0, 0.0},
+                                      vec3dp{20.0, 4.0, 90.0, 0.0}};
+        auto const floor = ground_contact3dp::ground_plane(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{1.0, 0.0, 0.0, 1.0},
+                                                           vec3dp{0.0, 1.0, 0.0, 1.0});
+        // the contact force, with its friction or with the normal force alone
+        auto force = [&](size_t i, bool friction) {
+            return friction ? f[i] : vec3dp{0.0, 0.0, f[i].z, 0.0};
+        };
+        // everything moved by M: the meet of the reaction with the ground
+        auto meet = [&](mvec3dp_e const& M, bool friction, bivec3dp const& couple) {
+            bivec3dp W = move3dp(couple, M);
+            for (size_t i = 0; i < 3; ++i)
+                W += wdg(move3dp(P[i], M), move3dp(force(i, friction), M));
+            return unitize(rwdg(W, move3dp(floor, M)));
+        };
+        // ... and the textbook formula in world coordinates, the vertical component
+        // taken for the normal force
+        auto cop = [&](mvec3dp_e const& M, bool friction) {
+            vec3dp sum{};
+            value_t load = 0.0;
+            for (size_t i = 0; i < 3; ++i) {
+                value_t const Nz = move3dp(force(i, friction), M).z;
+                sum += Nz * move3dp(P[i], M);
+                load += Nz;
+            }
+            return vec3dp{sum.x / load, sum.y / load, sum.z / load, 1.0};
+        };
+        auto apart = [](vec3dp const& A, vec3dp const& B) {
+            return std::sqrt((A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y) +
+                             (A.z - B.z) * (A.z - B.z));
+        };
+
+        mvec3dp_e const level = get_motor(vec3dp{});
+        vec3dp const Z = meet(level, true, bivec3dp{});
+        CHECK(apart(Z, cop(level, true)) <
+              1e-12); // level ground: friction does not matter
+        // a couple about the normal (the friction torque of a turning foot) neither
+        vec3dp const Zn = meet(level, true, bivec3dp{0.0, 0.0, 0.0, 0.0, 0.0, 3.7});
+        CHECK(apart(Zn, Z) < 1e-12);
+
+        // a 15 degree slope: the whole stance turned about the x axis
+        bivec3dp const x_axis = unitize(wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, //
+                                            vec3dp{1.0, 0.0, 0.0, 1.0}));
+        mvec3dp_e const slope = get_motor(x_axis, 15.0 * pi / 180.0);
+        vec3dp const Zs = meet(slope, true, bivec3dp{});
+        CHECK(apart(Zs, move3dp(Z, slope)) < 1e-12); // the meet turns with the stance
+        value_t const miss = apart(cop(slope, true), Zs);
+        CHECK(miss > 1e-3); // with friction the vertical-force formula misses it
+        CHECK(apart(cop(slope, false), meet(slope, false, bivec3dp{})) <
+              1e-12); // without
+        fmt::println(
+            "  level: meet ({:.9f}, {:.9f}) = sum(p N)/sum(N); on a 15 deg slope "
+            "with friction the vertical-force formula is {:.2e} m off, without "
+            "friction exact",
+            Z.x, Z.y, miss);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: free-floating chain conserves momentum and energy (F)")
     {
         fmt::println("pga3dp: floating base - a space station: momentum and energy");

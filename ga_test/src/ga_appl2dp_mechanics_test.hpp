@@ -6212,6 +6212,69 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: the ZMP meet and the centre-of-pressure formula, with friction")
+    {
+        fmt::println("pga2dp: the ZMP meet and the centre-of-pressure formula");
+
+        // The textbook ZMP of point contacts, sum(x_i N_i) / sum(N_i) with the normal
+        // forces N_i, against the meet rwdg(W, ground), for the inclined contact forces
+        // of the ZMP figure in ga_docu.pdf ("Contact and balance"). On level ground the
+        // two agree WITH friction: a tangential force runs along the ground, so it has
+        // no moment about any point of it. On a slope the meet needs no change, while
+        // the formula written with world positions and VERTICAL force components holds
+        // only without friction -- the falsification at the end.
+        std::array<vec2dp, 2> const P{vec2dp{0.0, 0.0, 1.0}, vec2dp{2.0, 0.0, 1.0}};
+        std::array<vec2dp, 2> const f{vec2dp{0.18, 1.2, 0.0}, vec2dp{-0.06, 0.6, 0.0}};
+        auto const ground =
+            ground_contact2dp::ground_line(vec2dp{0.0, 0.0, 1.0}, vec2dp{1.0, 0.0, 1.0});
+        // the contact force, with its friction or with the normal force alone
+        auto force = [&](size_t i, bool friction) {
+            return friction ? f[i] : vec2dp{0.0, f[i].y, 0.0};
+        };
+        // everything moved by M: the meet of the reaction with the ground
+        auto meet = [&](mvec2dp_u const& M, bool friction) {
+            bivec2dp W{};
+            for (size_t i = 0; i < 2; ++i)
+                W += wdg(move2dp(P[i], M), move2dp(force(i, friction), M));
+            return unitize(rwdg(W, move2dp(ground, M)));
+        };
+        // ... and the textbook formula in world coordinates, the vertical component
+        // taken for the normal force
+        auto cop = [&](mvec2dp_u const& M, bool friction) {
+            vec2dp sum{};
+            value_t load = 0.0;
+            for (size_t i = 0; i < 2; ++i) {
+                value_t const Ny = move2dp(force(i, friction), M).y;
+                sum += Ny * move2dp(P[i], M);
+                load += Ny;
+            }
+            return vec2dp{sum.x / load, sum.y / load, 1.0};
+        };
+        auto apart = [](vec2dp const& A, vec2dp const& B) {
+            return std::hypot(A.x - B.x, A.y - B.y);
+        };
+
+        mvec2dp_u const level = get_motor(vec2dp{});
+        vec2dp const Z = meet(level, true);
+        CHECK(Z.x == doctest::Approx(2.0 / 3.0).epsilon(1e-12)); // the figure's value
+        CHECK(apart(Z, cop(level, true)) <
+              1e-12); // level ground: friction does not matter
+
+        // a 15 degree slope: the whole stance turned about the origin
+        mvec2dp_u const slope = get_motor(vec2dp{0.0, 0.0, 1.0}, 15.0 * pi / 180.0);
+        vec2dp const Zs = meet(slope, true);
+        CHECK(apart(Zs, move2dp(Z, slope)) < 1e-12); // the meet turns with the stance
+        value_t const miss = apart(cop(slope, true), Zs);
+        CHECK(miss > 1e-3); // with friction the vertical-force formula misses it
+        CHECK(apart(cop(slope, false), meet(slope, false)) < 1e-12); // without friction
+        fmt::println(
+            "  level: meet x = {:.9f} = sum(x N)/sum(N); on a 15 deg slope with "
+            "friction the vertical-force formula is {:.4f} off, without friction "
+            "exact",
+            Z.x, miss);
+        fmt::println("");
+    }
+
     TEST_CASE(
         "pga2dp: ground_contact2dp - a segment lands on an end, then flat, and rolls")
     {

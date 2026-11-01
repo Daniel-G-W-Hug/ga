@@ -417,7 +417,10 @@ class ground_contact3dp {
     // Nothing is projected out by hand and the same code stands in both dimensions;
     // in 2D there is no normal component to discard in the first place. Exact on a
     // SLOPE, since ground() is whatever plane was built. Tedrake's centre-of-pressure
-    // formula sum(p_i N_i)/sum(N_i) is the flat-ground, frictionless special case.
+    // formula sum(p_i N_i)/sum(N_i) is its special case for point contacts on level
+    // ground, with or without friction: a tangential force lies in the ground, so it has
+    // no tangential moment about a ground point. On a slope that formula, written with
+    // world positions and vertical force components, is exact only without friction.
     //
     // Returned unitized (w == 1) whenever the ground carries load. With the
     // resultant parallel to the ground there is no such point and the raw meet is
