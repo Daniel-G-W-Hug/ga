@@ -1539,15 +1539,24 @@ T convex_distance(std::span<TriVec3dp<std::type_identity_t<T>> const> faces,
                   Vec3dp<T> const& A, Vec3dp<T> const& B, T* t_out = nullptr,
                   size_t* face_out = nullptr)
 {
-    return detail::envelope_min_of<T>(
-        faces.size(),
-        [&](T* a, T* s) {
-            for (size_t i = 0; i < faces.size(); ++i) {
-                a[i] = T(wdg(A, faces[i]));
-                s[i] = T(wdg(B, faces[i])) - a[i];
-            }
-        },
-        t_out, face_out);
+    // one straight line per face: its value at A and its slope towards B -- on the
+    // stack for up to 16 faces (a box has six), on the heap beyond
+    size_t const n = faces.size();
+    constexpr size_t on_stack = 16;
+    T a_few[on_stack], s_few[on_stack];
+    std::vector<T> many;
+    T* a = a_few;
+    T* s = s_few;
+    if (n > on_stack) {
+        many.resize(2 * n);
+        a = many.data();
+        s = a + n;
+    }
+    for (size_t i = 0; i < n; ++i) {
+        a[i] = T(wdg(A, faces[i]));
+        s[i] = T(wdg(B, faces[i])) - a[i];
+    }
+    return detail::envelope_min(a, s, n, t_out, face_out);
 }
 
 // The six faces of the box of extents dx, dy, dz along the axes, centred at `centre`

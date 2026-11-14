@@ -126,23 +126,4 @@ T envelope_min(T const* a, T const* s, size_t n, T* t_out = nullptr,
     return a[top] + t * s[top];
 }
 
-// envelope_min() for lines filled in by `fill(a, s)`: on the stack for up to 16 lines
-// (a box has six faces), on the heap beyond.
-template <typename T, typename Fill>
-T envelope_min_of(size_t n, Fill&& fill, T* t_out = nullptr, size_t* which_out = nullptr)
-{
-    constexpr size_t on_stack = 16;
-    T a_few[on_stack], s_few[on_stack];
-    std::vector<T> many;
-    T* a = a_few;
-    T* s = s_few;
-    if (n > on_stack) {
-        many.resize(2 * n);
-        a = many.data();
-        s = a + n;
-    }
-    fill(a, s);
-    return envelope_min(a, s, n, t_out, which_out);
-}
-
 } // namespace hd::ga::detail
