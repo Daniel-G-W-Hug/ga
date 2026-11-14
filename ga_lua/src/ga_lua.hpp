@@ -3327,6 +3327,58 @@ void register_functions(sol::state& lua)
                       [](bivec3dp const& a, bivec3dp const& b) { return dist3dp(a, b); },
                       [](trivec3dp const& a, vec3dp const& b) { return dist3dp(a, b); }));
 
+    // distances of bounded objects: two segments, and a point or a segment from a
+    // convex region given by its faces -- a table of lines (2dp) or planes (3dp), as
+    // box_faces returns it. The segment form reports where and on which face through
+    // out-parameters in C++; here it returns (distance, t, face), the face counted
+    // from 1 as Lua counts.
+    pga.set_function(
+        "segment_distance",
+        sol::overload(sol::resolve<value_t(vec2dp const&, vec2dp const&, vec2dp const&,
+                                           vec2dp const&)>(segment_distance),
+                      sol::resolve<value_t(vec3dp const&, vec3dp const&, vec3dp const&,
+                                           vec3dp const&)>(segment_distance)));
+    pga.set_function(
+        "box_faces",
+        sol::overload(
+            [](value_t dx, value_t dy, vec2dp const& centre) {
+                auto const f = box_faces(dx, dy, centre);
+                return sol::as_table(std::vector<bivec2dp>(f.begin(), f.end()));
+            },
+            [](value_t dx, value_t dy, value_t dz, vec3dp const& centre) {
+                auto const f = box_faces(dx, dy, dz, centre);
+                return sol::as_table(std::vector<trivec3dp>(f.begin(), f.end()));
+            }));
+    auto faces_of = [](sol::table const& t, auto proto) {
+        std::vector<decltype(proto)> v;
+        v.reserve(t.size());
+        for (size_t i = 1; i <= t.size(); ++i)
+            v.push_back(t.get<decltype(proto)>(i));
+        return v;
+    };
+    pga.set_function("convex_distance",
+                     sol::overload(
+                         [=](sol::table const& t, vec2dp const& P) {
+                             return convex_distance(faces_of(t, bivec2dp{}), P);
+                         },
+                         [=](sol::table const& t, vec3dp const& P) {
+                             return convex_distance(faces_of(t, trivec3dp{}), P);
+                         },
+                         [=](sol::table const& t, vec2dp const& A, vec2dp const& B) {
+                             value_t where = 0.0;
+                             size_t face = 0;
+                             value_t const d = convex_distance(faces_of(t, bivec2dp{}), A,
+                                                               B, &where, &face);
+                             return std::make_tuple(d, where, face + 1);
+                         },
+                         [=](sol::table const& t, vec3dp const& A, vec3dp const& B) {
+                             value_t where = 0.0;
+                             size_t face = 0;
+                             value_t const d = convex_distance(faces_of(t, trivec3dp{}),
+                                                               A, B, &where, &face);
+                             return std::make_tuple(d, where, face + 1);
+                         }));
+
     // try_unitize reports whether it divided through a trailing bool* out-parameter,
     // which has no place in a Lua signature; here it returns the pair (object, unitized),
     // Lua's own idiom for a result plus a status. The projections' documentation points
@@ -4439,6 +4491,9 @@ void register_functions(sol::state& lua)
         "rlog_shortest",
         sol::overload(sol::resolve<vec2dp(mvec2dp_u const&)>(rlog_shortest),
                       sol::resolve<bivec3dp(mvec3dp_e const&)>(rlog_shortest)));
+    // a motor's turn about a direction: the twist of swing and twist
+    pga.set_function("turn_about",
+                     sol::resolve<value_t(mvec3dp_e const&, vec3dp const&)>(turn_about));
     pga.set_function(
         "motion_error_body",
         sol::overload(

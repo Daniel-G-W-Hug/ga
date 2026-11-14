@@ -553,3 +553,18 @@
            documentation's introduction now defines multivectors, grades, blades and
            the grade projection before using them, with a sketch of the grades of
            EGA3D and the component count per grade of every algebra.
+- 2026/11: distances of bounded objects and a new reading off a motor, in PGA.
+           segment_distance(A1, B1, A2, B2): the distance of two segments (pga2dp and
+           pga3dp), clamped to their ends -- dist3dp of two lines is that of the
+           unbounded lines and undetermined for parallel ones. convex_distance(faces,
+           P) and convex_distance(faces, A, B): how far a point, or exactly a segment,
+           is outside a convex region given by its face planes (3dp) or lines (2dp),
+           the largest wedge with a face and so never more than the Euclidean
+           distance; box_faces builds a box's faces. turn_about(M, axis): a motor's
+           turn about a direction, the twist of the swing-and-twist split, from the
+           motion's shortest representative -- what a ball joint's range is stated
+           in. Shared arithmetic in detail/ga_segment_distance.hpp; gated against
+           searches over sampled points and by planted defects. Bound to Python
+           (convex_distance by hand: its faces are a std::span) and Lua, which stands
+           at 1838/1868.
+

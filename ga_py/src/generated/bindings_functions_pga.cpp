@@ -52,6 +52,11 @@ void register_functions_pga(nb::module_& m)
     m.def("att", [](trivec3dp const& a0) { return att(a0); });
     m.def("att", [](plane3d const& a0) { return att(a0); });
     m.def("att", [](pscalar3dp const& a0) { return att(a0); });
+    m.def("box_faces",
+          [](double a0, double a1, vec2dp const& a2) { return box_faces(a0, a1, a2); });
+    m.def("box_faces", [](double a0, double a1, double a2, vec3dp const& a3) {
+        return box_faces(a0, a1, a2, a3);
+    });
     m.def("bulk", [](scalar2dp const& a0) { return bulk(a0); });
     m.def("bulk", [](vec2dp const& a0) { return bulk(a0); });
     m.def("bulk", [](bivec2dp const& a0) { return bulk(a0); });
@@ -1012,6 +1017,14 @@ void register_functions_pga(nb::module_& m)
     m.def("screw_system", [](std::vector<bivec3dp> const& a0, double a1) {
         return screw_system(a0, a1);
     });
+    m.def("segment_distance",
+          [](vec2dp const& a0, vec2dp const& a1, vec2dp const& a2, vec2dp const& a3) {
+              return segment_distance(a0, a1, a2, a3);
+          });
+    m.def("segment_distance",
+          [](vec3dp const& a0, vec3dp const& a1, vec3dp const& a2, vec3dp const& a3) {
+              return segment_distance(a0, a1, a2, a3);
+          });
     m.def("sup", [](bivec2dp const& a0) { return sup(a0); });
     m.def("sup", [](bivec3dp const& a0) { return sup(a0); });
     m.def("sup", [](trivec3dp const& a0) { return sup(a0); });
@@ -1025,6 +1038,8 @@ void register_functions_pga(nb::module_& m)
     m.def("to_vec3d", [](vec3dp const& a0) { return to_vec3d(a0); });
     m.def("to_vec3d", [](bivec3dp const& a0) { return to_vec3d(a0); });
     m.def("to_vec3d", [](trivec3dp const& a0) { return to_vec3d(a0); });
+    m.def("turn_about",
+          [](mvec3dp_e const& a0, vec3dp const& a1) { return turn_about(a0, a1); });
     m.def("twdg1", [](pscalar2dp const& a0, vec2dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec2dp const& a0, pscalar2dp const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](bivec2dp const& a0, bivec2dp const& a1) { return twdg1(a0, a1); });

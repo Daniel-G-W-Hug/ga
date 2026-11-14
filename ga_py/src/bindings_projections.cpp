@@ -1,6 +1,6 @@
 // Hand-written bindings for the generic two-argument templates: the projection /
-// antiprojection families, the euclidean distances, try_unitize, and the defaulted
-// tolerance of is_simple.
+// antiprojection families, the euclidean distances, try_unitize, the defaulted
+// tolerance of is_simple, and convex_distance, whose faces are a std::span.
 //
 // Why hand-written: these are declared as fully generic forwarding templates,
 //
@@ -37,8 +37,12 @@
 
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/pair.h>
+#include <nanobind/stl/tuple.h>
+#include <nanobind/stl/vector.h>
 
+#include <tuple>
 #include <utility>
+#include <vector>
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
@@ -221,4 +225,47 @@ void bind_projections(nb::module_& m_ega, nb::module_& m_pga, nb::module_& m_sta
         "Is this bivector a blade, i.e. does it represent a 2-plane? The Pluecker "
         "condition wdg(B, B) == 0, measured relative to the sum of the squared "
         "components. Tolerance defaults to eps_congruent.");
+
+    // convex_distance takes its faces as a std::span, which the generator has no
+    // mapping for (it would drop the overloads without a message): a Python list of
+    // planes (3D) or lines (2D) here, as box_faces returns it. The out-parameters of
+    // the segment form become a tuple (distance, t, face).
+    char const* const DOC_CONVEX_POINT =
+        "How far outside a convex region a point is: the largest of its signed "
+        "distances from the region's faces (unitized, normals outward); <= 0 inside. "
+        "Never more than the Euclidean distance, equal to it beside a face.";
+    char const* const DOC_CONVEX_SEGMENT =
+        "The least of convex_distance over the segment from A to B, exactly: returns "
+        "(distance, t, face) with t in [0, 1] where it is least and the face on top "
+        "there.";
+    m_pga.def(
+        "convex_distance",
+        [](std::vector<trivec3dp> const& faces, vec3dp const& P) {
+            return pga::convex_distance(faces, P);
+        },
+        nb::arg("faces"), nb::arg("P"), DOC_CONVEX_POINT);
+    m_pga.def(
+        "convex_distance",
+        [](std::vector<bivec2dp> const& faces, vec2dp const& P) {
+            return pga::convex_distance(faces, P);
+        },
+        nb::arg("faces"), nb::arg("P"), DOC_CONVEX_POINT);
+    m_pga.def(
+        "convex_distance",
+        [](std::vector<trivec3dp> const& faces, vec3dp const& A, vec3dp const& B) {
+            value_t t = 0.0;
+            size_t face = 0;
+            value_t const d = pga::convex_distance(faces, A, B, &t, &face);
+            return std::tuple{d, t, face};
+        },
+        nb::arg("faces"), nb::arg("A"), nb::arg("B"), DOC_CONVEX_SEGMENT);
+    m_pga.def(
+        "convex_distance",
+        [](std::vector<bivec2dp> const& faces, vec2dp const& A, vec2dp const& B) {
+            value_t t = 0.0;
+            size_t face = 0;
+            value_t const d = pga::convex_distance(faces, A, B, &t, &face);
+            return std::tuple{d, t, face};
+        },
+        nb::arg("faces"), nb::arg("A"), nb::arg("B"), DOC_CONVEX_SEGMENT);
 }

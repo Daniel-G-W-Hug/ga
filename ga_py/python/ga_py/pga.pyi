@@ -4495,6 +4495,12 @@ def att(arg: plane3d, /) -> bivec3dp: ...
 def att(arg: pscalar3dp, /) -> trivec3dp: ...
 
 @overload
+def box_faces(arg0: float, arg1: float, arg2: vec2dp, /) -> list[bivec2dp]: ...
+
+@overload
+def box_faces(arg0: float, arg1: float, arg2: float, arg3: vec3dp, /) -> list[trivec3dp]: ...
+
+@overload
 def bulk(arg: scalar2dp, /) -> scalar2dp: ...
 
 @overload
@@ -6818,6 +6824,12 @@ def screw_system(arg0: Sequence[vec2dp], arg1: float, /) -> screw_system2dp: ...
 def screw_system(arg0: Sequence[bivec3dp], arg1: float, /) -> screw_system3dp: ...
 
 @overload
+def segment_distance(arg0: vec2dp, arg1: vec2dp, arg2: vec2dp, arg3: vec2dp, /) -> float: ...
+
+@overload
+def segment_distance(arg0: vec3dp, arg1: vec3dp, arg2: vec3dp, arg3: vec3dp, /) -> float: ...
+
+@overload
 def sup(arg: bivec2dp, /) -> vec2dp: ...
 
 @overload
@@ -6848,6 +6860,8 @@ def to_vec3d(arg: bivec3dp, /) -> _ga_py.ega.vec3d: ...
 
 @overload
 def to_vec3d(arg: trivec3dp, /) -> _ga_py.ega.vec3d: ...
+
+def turn_about(arg0: mvec3dp_e, arg1: vec3dp, /) -> float: ...
 
 @overload
 def twdg1(arg0: pscalar2dp, arg1: vec2dp, /) -> bivec2dp: ...
@@ -7863,6 +7877,24 @@ def try_unitize(x: bivec3dp) -> tuple[bivec3dp, bool]: ...
 def try_unitize(x: trivec3dp) -> tuple[trivec3dp, bool]:
     """
     Unitize if the object carries weight, else return it unchanged. Returns (object, unitized): the flag is False for an ideal object, which unitize() would refuse instead.
+    """
+
+@overload
+def convex_distance(faces: Sequence[trivec3dp], P: vec3dp) -> float: ...
+
+@overload
+def convex_distance(faces: Sequence[bivec2dp], P: vec2dp) -> float:
+    """
+    How far outside a convex region a point is: the largest of its signed distances from the region's faces (unitized, normals outward); <= 0 inside. Never more than the Euclidean distance, equal to it beside a face.
+    """
+
+@overload
+def convex_distance(faces: Sequence[trivec3dp], A: vec3dp, B: vec3dp) -> tuple[float, float, int]: ...
+
+@overload
+def convex_distance(faces: Sequence[bivec2dp], A: vec2dp, B: vec2dp) -> tuple[float, float, int]:
+    """
+    The least of convex_distance over the segment from A to B, exactly: returns (distance, t, face) with t in [0, 1] where it is least and the face on top there.
     """
 
 def unproject(m: azimuthal_map, x: _ga_py.ega.vec2d) -> _ga_py.ega.geo_pos | None:

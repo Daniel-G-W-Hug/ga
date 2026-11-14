@@ -4,7 +4,9 @@
 #include "doctest/doctest.h"
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <tuple>
 #include <vector>
 
@@ -4484,6 +4486,140 @@ TEST_SUITE("PGA 2DP Tests")
             CHECK(reject_from(P, l_inf) == P);
         }
 #endif
+    }
+
+    TEST_CASE("PGA2dp: the distance of two segments")
+    {
+        fmt::println("PGA2dp: the distance of two segments");
+        auto P = [](value_t x, value_t y) { return vec2dp{x, y, 1.0}; };
+        // known answers: crossing; beside each other; beyond an end; parallel; a point
+        // and a segment; weighted points
+        CHECK(std::abs(segment_distance(P(-1, 0), P(1, 0), P(0, -1), P(0, 1))) < 1.0e-15);
+        CHECK(segment_distance(P(-1, 0), P(1, 0), P(0, 0.3), P(0, 1)) ==
+              doctest::Approx(0.3).epsilon(1.0e-14));
+        CHECK(segment_distance(P(-1, 0), P(1, 0), P(2, 0.3), P(2, 1)) ==
+              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(1.0e-14));
+        CHECK(segment_distance(P(0, 0), P(1, 0), P(0.2, 0.5), P(0.9, 0.5)) ==
+              doctest::Approx(0.5).epsilon(1.0e-14));
+        CHECK(segment_distance(P(0.5, 0.4), P(0.5, 0.4), P(0, 0), P(1, 0)) ==
+              doctest::Approx(0.4).epsilon(1.0e-14));
+        CHECK(segment_distance(vec2dp{-2, 0, 2}, vec2dp{-3, 0, -3}, vec2dp{0, 0.15, 0.5},
+                               vec2dp{0, 4, 4}) == doctest::Approx(0.3).epsilon(1.0e-14));
+
+        // against a search: seeded segments, each sampled at 201 points; in the plane
+        // two segments cross often, and then the distance is zero
+        unsigned long long state = 88172645463325252ULL;
+        auto rnd = [&]() {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            return 2.0 * value_t(state % 1000003ULL) / 1000002.0 - 1.0;
+        };
+        value_t worst_above = 0.0, worst_below = 0.0;
+        int crossing = 0;
+        for (int k = 0; k < 200; ++k) {
+            vec2dp const A1 = P(rnd(), rnd()), B1 = P(rnd(), rnd());
+            vec2dp const A2 = P(rnd(), rnd()), B2 = P(rnd(), rnd());
+            value_t const d = segment_distance(A1, B1, A2, B2);
+            value_t sampled = 1.0e30;
+            for (int i = 0; i <= 200; ++i)
+                for (int j = 0; j <= 200; ++j) {
+                    value_t const s = i / 200.0, t = j / 200.0;
+                    sampled = std::min(
+                        sampled,
+                        std::hypot(A1.x + s * (B1.x - A1.x) - A2.x - t * (B2.x - A2.x),
+                                   A1.y + s * (B1.y - A1.y) - A2.y - t * (B2.y - A2.y)));
+                }
+            value_t const L1 = std::hypot(B1.x - A1.x, B1.y - A1.y);
+            value_t const L2 = std::hypot(B2.x - A2.x, B2.y - A2.y);
+            worst_below = std::max(worst_below, d - sampled);
+            worst_above = std::max(worst_above, (sampled - d) / ((L1 + L2) / 400.0));
+            if (d < 1.0e-12) ++crossing;
+        }
+        fmt::println("    200 seeded pairs, {} crossing: the exact distance above the "
+                     "sampled one by at most {:.1e}, the sampled one above it by at most "
+                     "{:.2f} of half a spacing",
+                     crossing, worst_below, worst_above);
+        CHECK(worst_below < 1.0e-12);
+        CHECK(worst_above <= 1.0);
+        CHECK(crossing > 20);
+        fmt::println("");
+    }
+
+    TEST_CASE("PGA2dp: a convex region as its face lines")
+    {
+        fmt::println("PGA2dp: a convex region as its face lines");
+        // the rectangle 0.2 x 0.3 about (1, 2)
+        vec2dp const c{1.0, 2.0, 1.0};
+        auto const box = box_faces(0.2, 0.3, c);
+        auto P = [&](value_t x, value_t y) { return vec2dp{c.x + x, c.y + y, 1.0}; };
+        size_t face = 99;
+        CHECK(convex_distance(box, P(0.35, 0.0), &face) ==
+              doctest::Approx(0.25).epsilon(1.0e-14));
+        CHECK(face == 0); // +x
+        CHECK(convex_distance(box, P(0.0, -0.45), &face) ==
+              doctest::Approx(0.30).epsilon(1.0e-14));
+        CHECK(face == 3); // -y
+        CHECK(convex_distance(box, P(0.0, 0.0)) ==
+              doctest::Approx(-0.1).epsilon(1.0e-14));
+        // beside a corner: the larger face distance, below the Euclidean one
+        value_t const corner = convex_distance(box, P(0.1 + 0.03, 0.15 + 0.04));
+        CHECK(corner == doctest::Approx(0.04).epsilon(1.0e-13));
+        CHECK(corner < std::hypot(0.03, 0.04));
+        auto const box2 = box_faces(0.2, 0.3, vec2dp{2.0, 4.0, 2.0});
+        for (size_t i = 0; i < 4; ++i)
+            CHECK(box2[i] == box[i]);
+        // an outline taken counter-clockwise gives outward normals: the join of two
+        // corners has its normal to the right of its direction
+        std::vector<bivec2dp> const joined{
+            unitize(wdg(P(0.1, -0.15), P(0.1, 0.15))),    // +x
+            unitize(wdg(P(-0.1, 0.15), P(-0.1, -0.15))),  // -x
+            unitize(wdg(P(0.1, 0.15), P(-0.1, 0.15))),    // +y
+            unitize(wdg(P(-0.1, -0.15), P(0.1, -0.15)))}; // -y
+        for (size_t i = 0; i < 4; ++i)
+            CHECK(is_close(joined[i], box[i]));
+
+        // the segment form against the point form at 2001 points of the segment
+        unsigned long long state = 0x9E3779B97F4A7C15ULL;
+        auto rnd = [&]() {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            return 2.0 * value_t(state % 1000003ULL) / 1000002.0 - 1.0;
+        };
+        value_t worst_below = 0.0, worst_above = 0.0, worst_t = 0.0;
+        int inside = 0, outside = 0;
+        for (int k = 0; k < 300; ++k) {
+            vec2dp const A = P(0.5 * rnd(), 0.5 * rnd()), B = P(0.5 * rnd(), 0.5 * rnd());
+            value_t t_min = -1.0;
+            size_t f_min = 99;
+            value_t const d = convex_distance(box, A, B, &t_min, &f_min);
+            value_t sampled = 1.0e30;
+            for (int i = 0; i <= 2000; ++i) {
+                value_t const t = i / 2000.0;
+                sampled = std::min(
+                    sampled, convex_distance(box, vec2dp{A.x + t * (B.x - A.x),
+                                                         A.y + t * (B.y - A.y), 1.0}));
+            }
+            vec2dp const X{A.x + t_min * (B.x - A.x), A.y + t_min * (B.y - A.y), 1.0};
+            worst_t = std::max(worst_t, std::abs(convex_distance(box, X) - d));
+            worst_t = std::max(worst_t, std::abs(value_t(wdg(X, box[f_min])) - d));
+            value_t const len = std::hypot(B.x - A.x, B.y - A.y);
+            worst_below = std::max(worst_below, d - sampled);
+            worst_above = std::max(worst_above, (sampled - d) / (len / 2000.0));
+            (d < 0.0 ? inside : outside)++;
+        }
+        fmt::println("    300 seeded segments ({} through the rectangle, {} past it): "
+                     "the exact least above the sampled one by at most {:.1e}, the "
+                     "sampled one above it by at most {:.2f} of a spacing; attained "
+                     "where reported to {:.1e}",
+                     inside, outside, worst_below, worst_above, worst_t);
+        CHECK(worst_below < 1.0e-13);
+        CHECK(worst_above <= 1.0);
+        CHECK(worst_t < 1.0e-13);
+        CHECK(inside > 30);
+        CHECK(outside > 30);
+        fmt::println("");
     }
 
 } // PGA 2DP Tests

@@ -5,7 +5,9 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <tuple>
 #include <vector>
 
@@ -6429,6 +6431,181 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK_FALSE(is_congruent(vec3dp{nan, nan, nan, nan}, vec3dp{nan, nan, nan, nan}));
         CHECK(is_close(vec3dp{1.0, 2.0, 3.0, 1.0}, vec3dp{1.0, 2.0, 3.0, 1.0}));
         CHECK(is_congruent(vec3dp{1.0, 2.0, 3.0, 1.0}, vec3dp{2.0, 4.0, 6.0, 2.0}));
+    }
+
+    TEST_CASE("PGA3dp: the distance of two segments")
+    {
+        fmt::println("PGA3dp: the distance of two segments");
+        auto P = [](value_t x, value_t y, value_t z) { return vec3dp{x, y, z, 1.0}; };
+        // known answers: crossing; skew; beyond an end, where the unbounded lines would
+        // read the skew's 0.3; parallel beside each other and one behind the other; the
+        // same segment; a point and a segment; two points
+        CHECK(std::abs(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(0, -1, 0),
+                                        P(0, 1, 0))) < 1.0e-15);
+        CHECK(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(0, -1, 0.3), P(0, 1, 0.3)) ==
+              doctest::Approx(0.3).epsilon(1.0e-14));
+        CHECK(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(2, -1, 0.3), P(2, 1, 0.3)) ==
+              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(1.0e-14));
+        CHECK(segment_distance(P(0, 0, 0), P(1, 0, 0), P(0.2, 0.5, 0), P(0.9, 0.5, 0)) ==
+              doctest::Approx(0.5).epsilon(1.0e-14));
+        CHECK(segment_distance(P(0, 0, 0), P(1, 0, 0), P(3, 0.5, 0), P(4, 0.5, 0)) ==
+              doctest::Approx(std::hypot(2.0, 0.5)).epsilon(1.0e-14));
+        CHECK(std::abs(segment_distance(P(0, 0, 0), P(1, 2, 3), P(0, 0, 0), P(1, 2, 3))) <
+              1.0e-15);
+        CHECK(segment_distance(P(0.5, 0.4, 0), P(0.5, 0.4, 0), P(0, 0, 0), P(1, 0, 0)) ==
+              doctest::Approx(0.4).epsilon(1.0e-14));
+        CHECK(segment_distance(P(1, 2, 3), P(1, 2, 3), P(4, 6, 3), P(4, 6, 3)) ==
+              doctest::Approx(5.0).epsilon(1.0e-14));
+        // the points' weights do not matter
+        CHECK(segment_distance(vec3dp{-2, 0, 0, 2}, vec3dp{-3, 0, 0, -3},
+                               vec3dp{0, -0.5, 0.15, 0.5}, vec3dp{0, 4, 1.2, 4}) ==
+              doctest::Approx(0.3).epsilon(1.0e-14));
+
+        // AGAINST A SEARCH: seeded segments, each sampled at 201 points. The sampled
+        // least distance is never below the exact one and above it by at most half a
+        // sample spacing on each segment. And the distance of the two unbounded lines
+        // (dist3dp) never exceeds the segments' own.
+        unsigned long long state = 88172645463325252ULL;
+        auto rnd = [&]() { // xorshift, uniform in [-1, 1]
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            return 2.0 * value_t(state % 1000003ULL) / 1000002.0 - 1.0;
+        };
+        value_t worst_above = 0.0, worst_below = 0.0, worst_line = 0.0;
+        int clamped = 0;
+        for (int k = 0; k < 200; ++k) {
+            vec3dp const A1 = P(rnd(), rnd(), rnd()), B1 = P(rnd(), rnd(), rnd());
+            vec3dp const A2 = P(rnd(), rnd(), rnd()), B2 = P(rnd(), rnd(), rnd());
+            value_t const d = segment_distance(A1, B1, A2, B2);
+            value_t sampled = 1.0e30;
+            for (int i = 0; i <= 200; ++i)
+                for (int j = 0; j <= 200; ++j) {
+                    value_t const s = i / 200.0, t = j / 200.0;
+                    sampled = std::min(
+                        sampled,
+                        std::hypot(A1.x + s * (B1.x - A1.x) - A2.x - t * (B2.x - A2.x),
+                                   A1.y + s * (B1.y - A1.y) - A2.y - t * (B2.y - A2.y),
+                                   A1.z + s * (B1.z - A1.z) - A2.z - t * (B2.z - A2.z)));
+                }
+            value_t const L1 = std::hypot(B1.x - A1.x, B1.y - A1.y, B1.z - A1.z);
+            value_t const L2 = std::hypot(B2.x - A2.x, B2.y - A2.y, B2.z - A2.z);
+            worst_below = std::max(worst_below, d - sampled);
+            worst_above = std::max(worst_above, (sampled - d) / ((L1 + L2) / 400.0));
+            auto const dl = dist3dp(wdg(A1, B1), wdg(A2, B2));
+            value_t const lines = std::abs(value_t(dl.c0) / value_t(dl.c1));
+            worst_line = std::max(worst_line, lines - d);
+            if (d > lines + 1.0e-9) ++clamped;
+        }
+        fmt::println("    200 seeded pairs: the exact distance above the sampled one by "
+                     "at most {:.1e}, the sampled one above it by at most {:.2f} of half "
+                     "a spacing; {} pairs end on a segment's end (the lines are nearer)",
+                     worst_below, worst_above, clamped);
+        CHECK(worst_below < 1.0e-12);
+        CHECK(worst_above <= 1.0);
+        CHECK(worst_line < 1.0e-12);
+        CHECK(clamped > 50); // the case the lines' distance cannot read is the common one
+        fmt::println("");
+    }
+
+    TEST_CASE("PGA3dp: a convex region as its face planes")
+    {
+        fmt::println("PGA3dp: a convex region as its face planes");
+        // the box 0.2 x 0.3 x 0.5 about (1, 2, 3)
+        vec3dp const c{1.0, 2.0, 3.0, 1.0};
+        auto const box = box_faces(0.2, 0.3, 0.5, c);
+        auto P = [&](value_t x, value_t y, value_t z) {
+            return vec3dp{c.x + x, c.y + y, c.z + z, 1.0};
+        };
+        size_t face = 99;
+        // beside a face the value is the Euclidean distance, and names the face
+        CHECK(convex_distance(box, P(0.35, 0.0, 0.0), &face) ==
+              doctest::Approx(0.25).epsilon(1.0e-14));
+        CHECK(face == 0); // +x
+        CHECK(convex_distance(box, P(0.0, -0.45, 0.1), &face) ==
+              doctest::Approx(0.30).epsilon(1.0e-14));
+        CHECK(face == 3); // -y
+        // inside it is negative: minus the depth below the nearest face
+        CHECK(convex_distance(box, P(0.0, 0.0, 0.0)) ==
+              doctest::Approx(-0.1).epsilon(1.0e-14));
+        CHECK(convex_distance(box, P(0.0, 0.0, 0.2)) ==
+              doctest::Approx(-0.05).epsilon(1.0e-14));
+        // beside an edge it is the larger face distance, below the Euclidean one
+        value_t const edge = convex_distance(box, P(0.1 + 0.03, 0.15 + 0.04, 0.0));
+        CHECK(edge == doctest::Approx(0.04).epsilon(1.0e-13));
+        CHECK(edge < std::hypot(0.03, 0.04));
+        // a centre of any weight, and no faces at all
+        auto const box2 = box_faces(0.2, 0.3, 0.5, vec3dp{2.0, 4.0, 6.0, 2.0});
+        for (size_t i = 0; i < 6; ++i)
+            CHECK(box2[i] == box[i]);
+        CHECK(convex_distance(std::vector<trivec3dp>{}, P(0, 0, 0)) ==
+              -std::numeric_limits<value_t>::infinity());
+
+        // THE SEGMENT FORM against the point form at 2001 points of the segment
+        unsigned long long state = 0x9E3779B97F4A7C15ULL;
+        auto rnd = [&]() {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            return 2.0 * value_t(state % 1000003ULL) / 1000002.0 - 1.0;
+        };
+        value_t worst_below = 0.0, worst_above = 0.0, worst_t = 0.0;
+        int inside = 0, outside = 0;
+        for (int k = 0; k < 300; ++k) {
+            vec3dp const A = P(0.6 * rnd(), 0.6 * rnd(), 0.6 * rnd());
+            vec3dp const B = P(0.6 * rnd(), 0.6 * rnd(), 0.6 * rnd());
+            value_t t_min = -1.0;
+            size_t f_min = 99;
+            value_t const d = convex_distance(box, A, B, &t_min, &f_min);
+            value_t sampled = 1.0e30;
+            for (int i = 0; i <= 2000; ++i) {
+                value_t const t = i / 2000.0;
+                vec3dp const X{A.x + t * (B.x - A.x), A.y + t * (B.y - A.y),
+                               A.z + t * (B.z - A.z), 1.0};
+                sampled = std::min(sampled, convex_distance(box, X));
+            }
+            // the value is attained at the reported place, on the reported face
+            vec3dp const X{A.x + t_min * (B.x - A.x), A.y + t_min * (B.y - A.y),
+                           A.z + t_min * (B.z - A.z), 1.0};
+            worst_t = std::max(worst_t, std::abs(convex_distance(box, X) - d));
+            worst_t = std::max(worst_t, std::abs(value_t(wdg(X, box[f_min])) - d));
+            CHECK(t_min >= 0.0);
+            CHECK(t_min <= 1.0);
+            value_t const len = std::hypot(B.x - A.x, B.y - A.y, B.z - A.z);
+            worst_below = std::max(worst_below, d - sampled);
+            worst_above = std::max(worst_above, (sampled - d) / (len / 2000.0));
+            (d < 0.0 ? inside : outside)++;
+        }
+        fmt::println("    300 seeded segments ({} through the box, {} past it): the "
+                     "exact least above the sampled one by at most {:.1e}, the sampled "
+                     "one above it by at most {:.2f} of a spacing; attained where "
+                     "reported to {:.1e}",
+                     inside, outside, worst_below, worst_above, worst_t);
+        CHECK(worst_below < 1.0e-13);
+        CHECK(worst_above <= 1.0);
+        CHECK(worst_t < 1.0e-13);
+        CHECK(inside > 30);
+        CHECK(outside > 30);
+
+        // A FACE IS CARRIED BY A MOTOR: the box moved by M reads a moved point as the
+        // box at rest reads the point
+        auto const M = get_motor(
+            unitize(wdg(vec3dp{0.3, -0.2, 0.1, 1.0}, vec3dp{0.5, 0.4, 1.0, 1.0})), 0.7,
+            0.25);
+        std::vector<trivec3dp> moved;
+        for (auto const& f : box)
+            moved.push_back(move3dp(f, M));
+        vec3dp const Q = P(0.4, -0.1, 0.3);
+        CHECK(convex_distance(moved, move3dp(Q, M)) ==
+              doctest::Approx(convex_distance(box, Q)).epsilon(1.0e-13));
+        // ...and a face through three points: its normal on the side from which they
+        // run counter-clockwise (the right-hand rule), here the box's top
+        trivec3dp const top =
+            unitize(wdg(wdg(P(0, 0, 0.25), P(1, 0, 0.25)), P(0, 1, 0.25)));
+        CHECK(is_close(top, box[4]));
+        CHECK(is_close(unitize(wdg(wdg(P(0, 0, 0.25), P(0, 1, 0.25)), P(1, 0, 0.25))),
+                       trivec3dp(-box[4])));
+        fmt::println("");
     }
 
 } // PGA 3DP Tests

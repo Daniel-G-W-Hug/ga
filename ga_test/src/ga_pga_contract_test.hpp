@@ -861,6 +861,80 @@ TEST_SUITE("PGA contracts")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: the turn of a motor about a direction (swing and twist)")
+    {
+        fmt::println("pga3dp: the turn of a motor about a direction (swing and twist)");
+        // A motor BUILT as a twist about the body's own axis a, then a swing about an
+        // axis perpendicular to a, then a translation: turn_about reads the twist back,
+        // and the carried axis is where the swing alone puts it.
+        vec3dp const a{0.0, 0.0, 1.0, 0.0};
+        auto axis_line = [](vec3dp const& dir) {
+            return unitize(wdg(O_3dp, O_3dp + dir));
+        };
+        value_t worst = 0.0, worst_swing = 0.0;
+        for (value_t twist : {-3.0, -1.7, -0.4, 0.0, 0.3, 1.2, 2.9})
+            for (value_t swing : {0.0, 0.5, 1.4, 2.6})
+                for (value_t dir : {0.0, 1.1, 4.0}) {
+                    vec3dp const perp{std::cos(dir), std::sin(dir), 0.0, 0.0};
+                    auto const W = get_motor(axis_line(a), twist);
+                    auto const S = get_motor(axis_line(perp), swing);
+                    auto const T = get_motor(vec3dp{0.3, -0.7, 0.2, 0.0});
+                    auto const M = rgpr(T, rgpr(S, W));
+                    worst = std::max(worst, std::abs(turn_about(M, a) - twist));
+                    // the other sheet and a scaled axis read alike
+                    worst =
+                        std::max(worst, std::abs(turn_about(mvec3dp_e(-M), a) - twist));
+                    worst = std::max(
+                        worst,
+                        std::abs(turn_about(M, vec3dp{0.0, 0.0, 2.5, 0.0}) - twist));
+                    // about the opposite direction the turn is the opposite one
+                    worst = std::max(
+                        worst,
+                        std::abs(turn_about(M, vec3dp{0.0, 0.0, -1.0, 0.0}) + twist));
+                    vec3dp const d = move3dp(a, M), d_s = move3dp(a, S);
+                    worst_swing =
+                        std::max({worst_swing, std::abs(d.x - d_s.x),
+                                  std::abs(d.y - d_s.y), std::abs(d.z - d_s.z)});
+                }
+        fmt::println("    84 motors, twist then swing then a translation: the twist "
+                     "read back to {:.1e} rad, the carried axis where the swing puts it "
+                     "to {:.1e}",
+                     worst, worst_swing);
+        CHECK(worst < 1.0e-13);
+        CHECK(worst_swing < 1.0e-14);
+
+        // A pure rotation about the direction reads its own angle, reduced to the
+        // shortest: 3.5 rad about a is -(2 pi - 3.5)
+        CHECK(turn_about(get_motor(axis_line(a), 3.5), a) ==
+              doctest::Approx(3.5 - 2.0 * pi).epsilon(1.0e-13));
+        // ...and one about a perpendicular axis has no turn about a at all
+        CHECK(std::abs(turn_about(get_motor(axis_line(vec3dp{1.0, 0.0, 0.0, 0.0}), 1.3),
+                                  a)) < 1.0e-15);
+        // a direction is asked for
+        CHECK_THROWS(
+            (void)turn_about(get_motor(axis_line(a), 0.4), vec3dp{0.0, 0.0, 0.0, 1.0}));
+
+        // THE EQUIVARIANCE PATTERN: the turn of the motor from frame 0 to frame 1 about
+        // frame 0's own axis is a body-frame reading and does not change when the
+        // whole scene is turned; the turn of the absolute motor does.
+        bivec3dp const L1 =
+            unitize(wdg(vec3dp{1.0, 2.0, 0.5, 1.0}, vec3dp{1.3, 1.6, 1.4, 1.0}));
+        bivec3dp const L2 =
+            unitize(wdg(vec3dp{-0.5, 0.2, 0.0, 1.0}, vec3dp{0.1, 0.9, 0.3, 1.0}));
+        std::vector<mvec3dp_e> const scene{get_motor(L1, 0.8, 0.3),
+                                           get_motor(L2, 2.6, -0.4)};
+        auto relative = [&](std::vector<mvec3dp_e> const& m) {
+            return bivec3dp{
+                turn_about(rgpr(rrev(m[0]), m[1]), a), 0.0, 0.0, 0.0, 0.0, 0.0};
+        };
+        auto absolute = [&](std::vector<mvec3dp_e> const& m) {
+            return bivec3dp{turn_about(m[1], a), 0.0, 0.0, 0.0, 0.0, 0.0};
+        };
+        CHECK(equivariance::body_invariance3dp(relative, scene) < 1.0e-12);
+        CHECK(equivariance::body_invariance3dp(absolute, scene) > 0.1);
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp / pga3dp: screw_axis reads the motion, not the motor's sheet")
     {
         fmt::println("pga2dp / pga3dp: screw_axis of a motor and of its negative");

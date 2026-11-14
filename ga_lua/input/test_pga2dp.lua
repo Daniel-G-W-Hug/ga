@@ -425,3 +425,19 @@ print("pga.central_antiproj2dp   =", pga.central_antiproj2dp(l_pf, p_pf))
 print("pga.dist2dp(p, l)         =", pga.dist2dp(p_pf, l_pf))
 local u_pf, f_pf = pga.try_unitize(vec2dp.new(4, 6, 2))
 print("pga.try_unitize(point)    =", u_pf, f_pf)
+
+-- distances of bounded objects in the plane
+local function P2(x, y) return vec2dp.new(x, y, 1) end
+local d_cross = pga.segment_distance(P2(-1, 0), P2(1, 0), P2(0, -1), P2(0, 1))
+local d_end2 = pga.segment_distance(P2(-1, 0), P2(1, 0), P2(2, 0.3), P2(2, 1))
+print("pga.segment_distance crossing, beyond an end =", d_cross, d_end2)
+assert(math.abs(d_cross) < 1e-15 and math.abs(d_end2 - math.sqrt(1.09)) < 1e-14)
+local rect = pga.box_faces(0.2, 0.3, P2(1, 2))
+assert(#rect == 4)
+print("pga.convex_distance beside a face, inside =",
+    pga.convex_distance(rect, P2(1.35, 2)), pga.convex_distance(rect, P2(1, 2)))
+assert(math.abs(pga.convex_distance(rect, P2(1.35, 2)) - 0.25) < 1e-14)
+local d_r, t_r, f_r = pga.convex_distance(rect, P2(0, 2), P2(2, 2))
+print("pga.convex_distance through the rectangle: distance, t, face =", d_r, t_r, f_r)
+assert(math.abs(d_r + 0.1) < 1e-14 and math.abs(t_r - 0.5) < 1e-14)
+

@@ -3,13 +3,17 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "../detail/ga_segment_distance.hpp"
 #include "../ga_usr_consts.hpp"
 #include "ga_pga2dp_ops_basics.hpp"
 #include "ga_pga2dp_ops_products.hpp"
 
-#include <numbers> // std::numbers::pi_v
-#include <utility> // std::forward
-#include <vector>  // std::vector
+#include <array>       // std::array
+#include <numbers>     // std::numbers::pi_v
+#include <span>        // std::span
+#include <type_traits> // std::type_identity_t
+#include <utility>     // std::forward
+#include <vector>      // std::vector
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides functionality that is based on pga2dp ops basics and products:
@@ -42,6 +46,9 @@
 //
 // - to_vec2d(), to_pscalar2d()          -> the Euclidean (ega) part of an object
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
+// - segment_distance()                  -> distance of two segments (bounded lines)
+// - convex_distance(), box_faces()      -> how far a point, or a segment, is outside a
+//                                          convex region given by its face lines
 //
 // - is_congruent()                      -> Same up to a scalar factor (is same subspace)
 // - is_close()                          -> Same value within a RELATIVE tolerance
@@ -832,6 +839,96 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
     else {
         return DualNum2dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 2dp distances of bounded objects: two segments; a point or a segment from a convex
+// region
+////////////////////////////////////////////////////////////////////////////////
+
+// THE DISTANCE OF TWO SEGMENTS, A1 B1 and A2 B2, each given by its two end points: the
+// closest points of the two lines, clamped to the segments; zero where they cross.
+// Plain arithmetic on the points' positions (detail::segment_distance), exact including
+// parallel, coincident and zero-length segments. The points may carry any weight; an
+// ideal point is no end point.
+template <typename T>
+    requires(numeric_type<T>)
+T segment_distance(Vec2dp<T> const& A1, Vec2dp<T> const& B1, Vec2dp<T> const& A2,
+                   Vec2dp<T> const& B2)
+{
+    auto position = [](Vec2dp<T> const& P) {
+        Vec2d<T> const p = to_vec2d(P);
+        return std::array<T, 2>{p.x, p.y};
+    };
+    return detail::segment_distance(position(A1), position(B1), position(A2),
+                                    position(B2));
+}
+
+// A CONVEX REGION AS ITS FACES: a set of lines, each with its normal pointing OUT of
+// the region. For a unitized point P and a unitized line F
+//
+//     wdg(P, F) = (the signed distance of P from F) e321 ,
+//
+// positive on the side the normal points to, and convex_distance() is the LARGEST of
+// these over the faces: how far outside the region the point is, <= 0 inside. Every
+// face's half-plane contains the region, so the value never exceeds the Euclidean
+// distance: it equals it where the nearest feature is a face and is smaller beside a
+// corner. `face_out`: the face that decided. Without faces the value is -infinity.
+//
+// The line with unit normal n at the distance d from the origin is BiVec2dp(-n.y, n.x,
+// d); the line joining two points, wdg(A, B), has its normal to the RIGHT of the
+// direction from A to B, so a region's outline taken counter-clockwise gives outward
+// normals. Point and lines are taken as they are: the wedge is linear in both, so a
+// weight on either scales the value.
+template <typename T>
+    requires(numeric_type<T>)
+T convex_distance(std::span<BiVec2dp<std::type_identity_t<T>> const> faces,
+                  Vec2dp<T> const& P, size_t* face_out = nullptr)
+{
+    T d = -std::numeric_limits<T>::infinity();
+    for (size_t i = 0; i < faces.size(); ++i) {
+        T const di = T(wdg(P, faces[i]));
+        if (di > d) {
+            d = di;
+            if (face_out) *face_out = i;
+        }
+    }
+    return d;
+}
+
+// ...and along the SEGMENT from A to B: the least of convex_distance() over its points,
+// by walking the upper envelope of the faces' straight lines (detail::envelope_min) --
+// exact, nothing is sampled. `t_out`: where along the segment that is (0 at A, 1 at B);
+// `face_out`: the face on top there.
+template <typename T>
+    requires(numeric_type<T>)
+T convex_distance(std::span<BiVec2dp<std::type_identity_t<T>> const> faces,
+                  Vec2dp<T> const& A, Vec2dp<T> const& B, T* t_out = nullptr,
+                  size_t* face_out = nullptr)
+{
+    return detail::envelope_min_of<T>(
+        faces.size(),
+        [&](T* a, T* s) {
+            for (size_t i = 0; i < faces.size(); ++i) {
+                a[i] = T(wdg(A, faces[i]));
+                s[i] = T(wdg(B, faces[i])) - a[i];
+            }
+        },
+        t_out, face_out);
+}
+
+// The four faces of the rectangle of extents dx, dy along the axes, centred at `centre`
+// (a point of any weight): unitized lines, normals outward, in the order +x, -x, +y, -y.
+template <typename T>
+    requires(numeric_type<T>)
+std::array<BiVec2dp<T>, 4>
+box_faces(T dx, T dy, Vec2dp<T> const& centre = Vec2dp<T>(T(0.0), T(0.0), T(1.0)))
+{
+    Vec2d<T> const c = to_vec2d(centre);
+    T const hx = T(0.5) * dx, hy = T(0.5) * dy;
+    return {BiVec2dp<T>(T(0.0), T(1.0), c.x + hx), BiVec2dp<T>(T(0.0), T(-1.0), hx - c.x),
+            BiVec2dp<T>(T(-1.0), T(0.0), c.y + hy),
+            BiVec2dp<T>(T(1.0), T(0.0), hy - c.y)};
 }
 
 ////////////////////////////////////////////////////////////////////////////////

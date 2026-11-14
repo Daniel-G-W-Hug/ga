@@ -17,6 +17,7 @@ set(HEADERS
     detail/ga_error_handling.hpp
     detail/ga_foundation.hpp
     detail/ga_quadrature.hpp
+    detail/ga_segment_distance.hpp
     detail/ga_solver.hpp
     detail/ga_stencil.hpp
     #

@@ -524,3 +524,31 @@ for k = 1, 20 do
 end
 print("pga.rlog_continued after 20 x 0.7 rad: 2 L.vz =", 2 * L.vz)
 assert(math.abs(2 * L.vz - 14.0) < 1e-12)
+
+-- distances of bounded objects: two segments; a point or a segment from a convex region
+local function P3(x, y, z) return vec3dp.new(x, y, z, 1) end
+local d_skew = pga.segment_distance(P3(-1, 0, 0), P3(1, 0, 0), P3(0, -1, 0.3), P3(0, 1, 0.3))
+local d_end = pga.segment_distance(P3(-1, 0, 0), P3(1, 0, 0), P3(2, -1, 0.3), P3(2, 1, 0.3))
+print("pga.segment_distance skew, beyond an end =", d_skew, d_end)
+assert(math.abs(d_skew - 0.3) < 1e-14)
+assert(math.abs(d_end - math.sqrt(1.09)) < 1e-14) -- the unbounded lines would read 0.3
+local box = pga.box_faces(0.2, 0.3, 0.5, P3(1, 2, 3))
+assert(#box == 6)
+print("pga.convex_distance beside a face, inside =",
+    pga.convex_distance(box, P3(1.35, 2, 3)), pga.convex_distance(box, P3(1, 2, 3)))
+assert(math.abs(pga.convex_distance(box, P3(1.35, 2, 3)) - 0.25) < 1e-14)
+assert(math.abs(pga.convex_distance(box, P3(1, 2, 3)) + 0.1) < 1e-14)
+local d_seg, t_seg, f_seg = pga.convex_distance(box, P3(0, 2, 3), P3(2, 2, 3))
+print("pga.convex_distance through the box: distance, t, face =", d_seg, t_seg, f_seg)
+assert(math.abs(d_seg + 0.1) < 1e-14 and math.abs(t_seg - 0.5) < 1e-14)
+assert(f_seg == 1 or f_seg == 2)
+
+-- a motor's turn about a direction: a twist of 0.4 about z, then a swing about x
+local z_line = pga.unitize(pga.wdg(P3(0, 0, 0), P3(0, 0, 1)))
+local x_line = pga.unitize(pga.wdg(P3(0, 0, 0), P3(1, 0, 0)))
+local swing_twist = pga.rgpr(pga.get_motor(x_line, 1.1), pga.get_motor(z_line, 0.4))
+print("pga.turn_about(swing after twist, z) =",
+    pga.turn_about(swing_twist, vec3dp.new(0, 0, 1, 0)))
+assert(math.abs(pga.turn_about(swing_twist, vec3dp.new(0, 0, 1, 0)) - 0.4) < 1e-14)
+assert(math.abs(pga.turn_about(swing_twist, vec3dp.new(0, 0, -1, 0)) + 0.4) < 1e-14)
+

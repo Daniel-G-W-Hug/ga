@@ -3,13 +3,17 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "../detail/ga_segment_distance.hpp"
 #include "../ga_usr_consts.hpp"
 #include "ga_pga3dp_ops_basics.hpp"
 #include "ga_pga3dp_ops_products.hpp"
 
-#include <numbers> // std::numbers::pi_v
-#include <utility> // std::forward
-#include <vector>  // std::vector
+#include <array>       // std::array
+#include <numbers>     // std::numbers::pi_v
+#include <span>        // std::span
+#include <type_traits> // std::type_identity_t
+#include <utility>     // std::forward
+#include <vector>      // std::vector
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides functionality that is based on pga3dp ops basics and products:
@@ -45,6 +49,11 @@
 // - to_vec3d(), to_bivec3d()             -> the Euclidean (ega) part of an object
 //   to_scalar3d()
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
+// - segment_distance()                   -> distance of two segments (bounded lines)
+// - convex_distance(), box_faces()       -> how far a point, or a segment, is outside a
+//                                           convex region given by its face planes
+// - turn_about()                         -> a motor's turn about a direction (the twist
+//                                           of swing and twist)
 //
 // - is_simple()                          -> is a bivector a line? (Pluecker condition)
 // - is_congruent()                       -> Same up to a scalar factor (is same subspace)
@@ -1458,6 +1467,136 @@ constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
     else {
         return DualNum3dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 3dp distances of bounded objects: two segments; a point or a segment from a convex
+// region
+////////////////////////////////////////////////////////////////////////////////
+
+// THE DISTANCE OF TWO SEGMENTS, A1 B1 and A2 B2, each given by its two end points: the
+// closest points of the two lines, clamped to the segments. dist3dp() of two LINES is
+// the distance of the unbounded lines -- never more than the segments' own, and
+// undetermined for parallel ones -- so this works on the points' positions, in plain
+// arithmetic (detail::segment_distance). Exact, including parallel, coincident and
+// zero-length segments. The points may carry any weight; an ideal point is no end
+// point.
+template <typename T>
+    requires(numeric_type<T>)
+T segment_distance(Vec3dp<T> const& A1, Vec3dp<T> const& B1, Vec3dp<T> const& A2,
+                   Vec3dp<T> const& B2)
+{
+    auto position = [](Vec3dp<T> const& P) {
+        Vec3d<T> const p = to_vec3d(P);
+        return std::array<T, 3>{p.x, p.y, p.z};
+    };
+    return detail::segment_distance(position(A1), position(B1), position(A2),
+                                    position(B2));
+}
+
+// A CONVEX REGION AS ITS FACES: a set of planes, each with its normal pointing OUT of
+// the region. For a unitized point P and a unitized plane F
+//
+//     wdg(P, F) = (the signed distance of P from F) e1234 ,
+//
+// positive on the side the normal points to, and convex_distance() is the LARGEST of
+// these over the faces: how far outside the region the point is, <= 0 inside. Every
+// face's half-space contains the region, so the value never exceeds the Euclidean
+// distance: it equals it where the nearest feature is a face and is smaller beside an
+// edge or a corner -- a clearance read from it is on the safe side. `face_out`: the
+// face that decided. Without faces the value is -infinity.
+//
+// The plane with unit normal n at the distance d from the origin is TriVec3dp(n.x, n.y,
+// n.z, -d); a plane through three points is wdg(wdg(A, B), C), its normal on the side
+// from which A, B, C run counter-clockwise; a face fixed in a moving
+// body is carried by that body's motor (move3dp). Point and planes are taken as they
+// are: the wedge is linear in both, so a weight on either scales the value.
+template <typename T>
+    requires(numeric_type<T>)
+T convex_distance(std::span<TriVec3dp<std::type_identity_t<T>> const> faces,
+                  Vec3dp<T> const& P, size_t* face_out = nullptr)
+{
+    T d = -std::numeric_limits<T>::infinity();
+    for (size_t i = 0; i < faces.size(); ++i) {
+        T const di = T(wdg(P, faces[i]));
+        if (di > d) {
+            d = di;
+            if (face_out) *face_out = i;
+        }
+    }
+    return d;
+}
+
+// ...and along the SEGMENT from A to B: the least of convex_distance() over its points.
+// The side test is linear in the point, so along the segment every face reads a
+// straight line, and the least value of their upper envelope is found by walking it
+// (detail::envelope_min) -- exact, nothing is sampled. `t_out`: where along the segment
+// that is (0 at A, 1 at B); `face_out`: the face on top there. A capsule of radius r
+// about the segment is clear of the region by convex_distance(faces, A, B) - r.
+template <typename T>
+    requires(numeric_type<T>)
+T convex_distance(std::span<TriVec3dp<std::type_identity_t<T>> const> faces,
+                  Vec3dp<T> const& A, Vec3dp<T> const& B, T* t_out = nullptr,
+                  size_t* face_out = nullptr)
+{
+    return detail::envelope_min_of<T>(
+        faces.size(),
+        [&](T* a, T* s) {
+            for (size_t i = 0; i < faces.size(); ++i) {
+                a[i] = T(wdg(A, faces[i]));
+                s[i] = T(wdg(B, faces[i])) - a[i];
+            }
+        },
+        t_out, face_out);
+}
+
+// The six faces of the box of extents dx, dy, dz along the axes, centred at `centre`
+// (a point of any weight): unitized planes, normals outward, in the order +x, -x, +y,
+// -y, +z, -z.
+template <typename T>
+    requires(numeric_type<T>)
+std::array<TriVec3dp<T>, 6> box_faces(T dx, T dy, T dz,
+                                      Vec3dp<T> const& centre = Vec3dp<T>(T(0.0), T(0.0),
+                                                                          T(0.0), T(1.0)))
+{
+    Vec3d<T> const c = to_vec3d(centre);
+    T const hx = T(0.5) * dx, hy = T(0.5) * dy, hz = T(0.5) * dz;
+    return {TriVec3dp<T>(T(1.0), T(0.0), T(0.0), -(c.x + hx)),
+            TriVec3dp<T>(T(-1.0), T(0.0), T(0.0), c.x - hx),
+            TriVec3dp<T>(T(0.0), T(1.0), T(0.0), -(c.y + hy)),
+            TriVec3dp<T>(T(0.0), T(-1.0), T(0.0), c.y - hy),
+            TriVec3dp<T>(T(0.0), T(0.0), T(1.0), -(c.z + hz)),
+            TriVec3dp<T>(T(0.0), T(0.0), T(-1.0), c.z - hz)};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// SWING AND TWIST: a motor's rotation read against one direction. Any rotation is a
+// turn about a chosen direction a (the twist) followed by the shortest rotation that
+// takes a to where the motor carries it (the swing), whose axis is perpendicular to
+// a. The swing is read off the carried direction, move3dp(a, M). turn_about(M, a) is
+// the twist's angle, counted right-handed about a and taken from the motion's shortest
+// representative, so it lies in [-pi, pi] and M and -M read alike. The motor's
+// translation does not enter.
+//
+// What it is for: a range of a ball joint is no interval of one coordinate; it is
+// stated as where the moved body's own axis may point and how far the body may turn
+// about that axis, and both are read off the joint's motor this way. Where the swing
+// is a half turn the split is not unique and the angle jumps.
+//
+// (The name is not twist_angle: in this library a twist is a velocity.)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+T turn_about(MVec3dp_E<T> const& M, Vec3dp<T> const& axis)
+{
+    BiVec3dp<T> const B = gr2(M);
+    T const len = std::sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
+    detail::check_nonzero<T>(len, "direction (turn_about)");
+    // the rotation's part along the axis and its pseudoscalar part: the twist is the
+    // motor with only these two, normalized -- an angle of 2 atan2(along, c7)
+    T const along = (B.vx * axis.x + B.vy * axis.y + B.vz * axis.z) / len;
+    T const sheet = M.c7 >= T(0.0) ? T(1.0) : T(-1.0);
+    return T(2.0) * std::atan2(sheet * along, sheet * M.c7);
 }
 
 
