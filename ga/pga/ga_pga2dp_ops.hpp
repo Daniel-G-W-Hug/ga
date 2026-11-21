@@ -910,7 +910,9 @@ T convex_distance(std::span<BiVec2dp<std::type_identity_t<T>> const> faces,
     // stack for up to 16 faces (a box has six), on the heap beyond
     size_t const n = faces.size();
     constexpr size_t on_stack = 16;
-    T a_few[on_stack], s_few[on_stack];
+    // value-initialized: GCC 16 cannot see that the loop below fills [0, n) and
+    // reports -Wmaybe-uninitialized at -O3
+    T a_few[on_stack]{}, s_few[on_stack]{};
     std::vector<T> many;
     T* a = a_few;
     T* s = s_few;
