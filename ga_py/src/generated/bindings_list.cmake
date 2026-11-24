@@ -39,6 +39,7 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line_current.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_magnetised_box.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d_e.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dc.cpp

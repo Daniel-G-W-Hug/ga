@@ -577,5 +577,7 @@
            face), the far field (a cube's deviation from its dipole falls as (a/r)^4, a
            box of unequal sides' as (a/r)^2), a uniform field's couple, action = reaction
            as one wrench and a trace-free stiffness, each seen to fail on a planted
-           defect. Not yet bound to Python or Lua.
+           defect. Bound to Python (magnetised_box in ga_py.ega and b_box;
+           box_wrench, a template like stress_wrench, is not) and to Lua (all three,
+           box_wrench taking the field as a Lua function), which stands at 1840/1870.
 

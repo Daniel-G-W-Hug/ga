@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-14T18:21:52+00:00",
+  "generated_at": "2026-11-24T22:35:30+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -4154,7 +4154,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 188
+      "source_line": 205
     },
     {
       "namespace": "hd::ga",
@@ -4189,7 +4189,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 247
+      "source_line": 264
     },
     {
       "namespace": "hd::ga",
@@ -4596,7 +4596,35 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 141
+      "source_line": 158
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "magnetised_box",
+      "underlying": "magnetised_box",
+      "canonical_underlying": "hd::ga::magnetised_box",
+      "fields": [
+        {
+          "name": "c",
+          "type": "vec3d"
+        },
+        {
+          "name": "h",
+          "type": "vec3d"
+        },
+        {
+          "name": "R",
+          "type": "mvec3d_e"
+        },
+        {
+          "name": "m",
+          "type": "vec3d"
+        }
+      ],
+      "constructors": [],
+      "base_class": null,
+      "source_file": "ga/ga_usr_magnetostatics.hpp",
+      "source_line": 471
     },
     {
       "namespace": "hd::ga",
@@ -7448,7 +7476,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 376
+      "source_line": 393
     },
     {
       "namespace": "hd::ga",
@@ -9029,7 +9057,7 @@
             "const line_current &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 155
+          "source_line": 172
         }
       ]
     },
@@ -9044,7 +9072,7 @@
             "const current_segment &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 267
+          "source_line": 284
         }
       ]
     },
@@ -9329,6 +9357,21 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "b_box",
+      "overloads": [
+        {
+          "return_type": "vec3d",
+          "param_types": [
+            "const vec3d &",
+            "const magnetised_box &"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 532
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
       "name": "b_dipole",
       "overloads": [
         {
@@ -9338,7 +9381,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 338
+          "source_line": 355
         },
         {
           "return_type": "bivec3d",
@@ -9347,7 +9390,7 @@
             "const bivec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 349
+          "source_line": 366
         }
       ]
     },
@@ -9362,7 +9405,7 @@
             "const line_current &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 147
+          "source_line": 164
         }
       ]
     },
@@ -9377,7 +9420,7 @@
             "std::span<const line_current>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 161
+          "source_line": 178
         }
       ]
     },
@@ -9392,7 +9435,7 @@
             "const current_segment &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 254
+          "source_line": 271
         }
       ]
     },
@@ -9407,7 +9450,23 @@
             "std::span<const current_segment>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 290
+          "source_line": 307
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "box_wrench",
+      "overloads": [
+        {
+          "return_type": "bivec3dp",
+          "param_types": [
+            "Field &&",
+            "const magnetised_box &",
+            "size_t"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 560
         }
       ]
     },
@@ -9458,7 +9517,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 195
+          "source_line": 212
         }
       ]
     },
@@ -9476,7 +9535,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 314
+          "source_line": 331
         }
       ]
     },
@@ -9581,7 +9640,7 @@
             "const bivec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 361
+          "source_line": 378
         }
       ]
     },
@@ -10742,7 +10801,7 @@
             "pscalar2d"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 173
+          "source_line": 190
         },
         {
           "return_type": "vec3d",
@@ -10751,7 +10810,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 331
+          "source_line": 348
         }
       ]
     },
@@ -10832,7 +10891,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 232
+          "source_line": 249
         }
       ]
     },
@@ -10850,7 +10909,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 429
+          "source_line": 446
         }
       ]
     },
@@ -11396,7 +11455,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 384
+          "source_line": 401
         }
       ]
     },
@@ -11506,7 +11565,7 @@
             "std::span<const contour_point>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 211
+          "source_line": 228
         },
         {
           "return_type": "bivec3dp",
@@ -11515,7 +11574,7 @@
             "std::span<const surface_point>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 406
+          "source_line": 423
         }
       ]
     },
@@ -11530,7 +11589,7 @@
             "const vec2d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 224
+          "source_line": 241
         },
         {
           "return_type": "vec3d",
@@ -11539,7 +11598,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 419
+          "source_line": 436
         }
       ]
     },
@@ -11738,7 +11797,7 @@
             "const vec2d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 180
+          "source_line": 197
         },
         {
           "return_type": "vec3d",
@@ -11747,7 +11806,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 368
+          "source_line": 385
         }
       ]
     },
@@ -26289,7 +26348,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 925
+          "source_line": 936
         },
         {
           "return_type": "std::array<TriVec3dp<T>, 6>",
@@ -26300,7 +26359,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1558
+          "source_line": 1569
         }
       ]
     },
@@ -28743,7 +28802,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1008
+          "source_line": 1019
         },
         {
           "return_type": "bool",
@@ -28753,7 +28812,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1015
+          "source_line": 1026
         },
         {
           "return_type": "bool",
@@ -28763,7 +28822,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1023
+          "source_line": 1034
         },
         {
           "return_type": "bool",
@@ -28773,7 +28832,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1031
+          "source_line": 1042
         },
         {
           "return_type": "bool",
@@ -28783,7 +28842,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1038
+          "source_line": 1049
         },
         {
           "return_type": "bool",
@@ -28793,7 +28852,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1048
+          "source_line": 1059
         },
         {
           "return_type": "bool",
@@ -28803,7 +28862,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1058
+          "source_line": 1069
         },
         {
           "return_type": "bool",
@@ -28813,7 +28872,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1070
+          "source_line": 1081
         },
         {
           "return_type": "bool",
@@ -28823,7 +28882,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1690
+          "source_line": 1701
         },
         {
           "return_type": "bool",
@@ -28833,7 +28892,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1697
+          "source_line": 1708
         },
         {
           "return_type": "bool",
@@ -28843,7 +28902,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1706
+          "source_line": 1717
         },
         {
           "return_type": "bool",
@@ -28853,7 +28912,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1717
+          "source_line": 1728
         },
         {
           "return_type": "bool",
@@ -28863,7 +28922,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1727
+          "source_line": 1738
         },
         {
           "return_type": "bool",
@@ -28873,7 +28932,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1734
+          "source_line": 1745
         },
         {
           "return_type": "bool",
@@ -28883,7 +28942,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1747
+          "source_line": 1758
         },
         {
           "return_type": "bool",
@@ -28893,7 +28952,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1760
+          "source_line": 1771
         },
         {
           "return_type": "bool",
@@ -28903,7 +28962,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1776
+          "source_line": 1787
         }
       ]
     },
@@ -28919,7 +28978,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 941
+          "source_line": 952
         },
         {
           "return_type": "bool",
@@ -28929,7 +28988,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 958
+          "source_line": 969
         },
         {
           "return_type": "bool",
@@ -28939,7 +28998,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 969
+          "source_line": 980
         },
         {
           "return_type": "bool",
@@ -28949,7 +29008,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 980
+          "source_line": 991
         },
         {
           "return_type": "bool",
@@ -28959,7 +29018,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1610
+          "source_line": 1621
         },
         {
           "return_type": "bool",
@@ -28969,7 +29028,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1627
+          "source_line": 1638
         },
         {
           "return_type": "bool",
@@ -28979,7 +29038,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1638
+          "source_line": 1649
         },
         {
           "return_type": "bool",
@@ -28989,7 +29048,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1651
+          "source_line": 1662
         },
         {
           "return_type": "bool",
@@ -28999,7 +29058,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1662
+          "source_line": 1673
         }
       ]
     },
@@ -29030,7 +29089,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1103
+          "source_line": 1114
         },
         {
           "return_type": "bool",
@@ -29040,7 +29099,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1809
+          "source_line": 1820
         }
       ]
     },
@@ -34266,7 +34325,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1590
+          "source_line": 1601
         }
       ]
     },
@@ -58211,7 +58270,7 @@
       "name": "mu0",
       "type": "const value_t",
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 134
+      "source_line": 151
     },
     {
       "namespace": "hd::ga",

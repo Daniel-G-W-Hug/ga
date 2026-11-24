@@ -8133,9 +8133,9 @@ void register_geodesics(sol::state& lua)
 // The data types and the functions at the top level, as in ga_py; mu0 a global
 // number (Lua can carry it, the Python generator skips primitive constants). The
 // sums over sets of currents take a Lua table, the quadrature rules and the
-// equivalent-current builders return one, and stress_wrench takes the FIELD as a
-// Lua function of the point -- the C++ template parameter, which Python cannot
-// bind. The 2D and 3D forms of one name are overloads, told apart by the
+// equivalent-current builders return one, and stress_wrench and box_wrench take the
+// FIELD as a Lua function of the point -- the C++ template parameter, which Python
+// cannot bind. The 2D and 3D forms of one name are overloads, told apart by the
 // argument types (vec2d / vec3d, contour_point / surface_point).
 
 // a Lua table of usertypes as a std::vector (sol2 does not convert a table into a
@@ -8208,6 +8208,20 @@ void register_magnetostatics(sol::state& lua)
         "P", &surface_point::P, "n", &surface_point::n, "dA", &surface_point::dA,
         sol::meta_function::to_string,
         [](surface_point const& q) { return fmt::format("{}", q); });
+
+    // the box's orientation R defaults to the identity rotor, as in C++
+    lua.new_usertype<magnetised_box>(
+        "magnetised_box", sol::call_constructor,
+        sol::factories([]() { return magnetised_box{}; },
+                       [](vec3d const& c, vec3d const& h, mvec3d_e const& R,
+                          vec3d const& m) { return magnetised_box{c, h, R, m}; }),
+        "new",
+        sol::factories([]() { return magnetised_box{}; },
+                       [](vec3d const& c, vec3d const& h, mvec3d_e const& R,
+                          vec3d const& m) { return magnetised_box{c, h, R, m}; }),
+        "c", &magnetised_box::c, "h", &magnetised_box::h, "R", &magnetised_box::R, "m",
+        &magnetised_box::m, sol::meta_function::to_string,
+        [](magnetised_box const& q) { return fmt::format("{}", q); });
 
     // ---- functions
     lua.set_function("b_line_current", [](vec2d const& r, line_current const& c) {
@@ -8289,6 +8303,20 @@ void register_magnetostatics(sol::state& lua)
                 L, stress_wrench([&](vec3d const& P) { return b(P).get<vec3d>(); },
                                  std::span<surface_point const>(sp)));
         });
+    lua.set_function(
+        "b_box", [](vec3d const& r, magnetised_box const& box) { return b_box(r, box); });
+    // the field a Lua function of the point, like stress_wrench; panels per face side
+    // optional (1, as in C++)
+    lua.set_function(
+        "box_wrench",
+        sol::overload(
+            [](sol::protected_function b, magnetised_box const& box) {
+                return box_wrench([&](vec3d const& P) { return b(P).get<vec3d>(); }, box);
+            },
+            [](sol::protected_function b, magnetised_box const& box, size_t panels) {
+                return box_wrench([&](vec3d const& P) { return b(P).get<vec3d>(); }, box,
+                                  panels);
+            }));
 
     // ---- constants
     lua["mu0"] = mu0;

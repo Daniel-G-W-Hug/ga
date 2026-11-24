@@ -77,4 +77,56 @@ local Wnoc = pga.wdg(vec3dp.new(pj.x, pj.y, pj.z, 1.0), vec3dp.new(W3.vx, W3.vy,
 assert(mdiff(W3, Wnoc) > 0.1, "the couple is not negligible")
 print("  W = " .. tostring(W3))
 
+print("\n6. a magnetised box: its field, its orientation, the wrench on it")
+local one = mvec3d_e.new(1, 0, 0, 0)
+local cube = magnetised_box.new(vec3d.new(0, 0, 0), vec3d.new(0.005, 0.005, 0.005), one,
+                                vec3d.new(0, 0, 1.0e6))
+-- the default box: the identity rotor, as in C++
+assert(magnetised_box().R.c0 == 1.0, "the default orientation is the identity")
+-- inside a cube the demagnetising field is -m/3, so b = (2/3) mu0 m at its centre
+assert(rel(b_box(vec3d.new(0, 0, 0), cube).z, 2.0 / 3.0 * mu0 * 1.0e6) < 1e-14,
+       "b_box inside")
+-- outside it approaches its dipole mu = 8 h_x h_y h_z m at (a/r)^4: 16x per doubling
+local mu_c = vec3d.new(0, 0, 8 * 0.005 ^ 3 * 1.0e6)
+local function dev(z)
+    local r = vec3d.new(0, 0, z)
+    return rel(b_box(r, cube).z, b_dipole(r, mu_c).z)
+end
+local q = dev(0.1) / dev(0.2)
+assert(q > 15.5 and q < 16.5, "the cube differs from its dipole at (a/r)^4")
+-- R reaches the code: a flat box turned 90 degrees about z is the box with its x and y
+-- extents swapped (the magnetisation is in world coordinates), and not the unturned one
+local Rz = ega.get_rotor(bivec3d.new(0, 0, 1), math.pi / 2)
+local mt = vec3d.new(0.3e6, 0.8e6, 0.5e6)
+local turned = magnetised_box.new(vec3d.new(0.01, 0, 0), vec3d.new(0.01, 0.004, 0.002),
+                                  Rz, mt)
+local swapped = magnetised_box.new(vec3d.new(0.01, 0, 0), vec3d.new(0.004, 0.01, 0.002),
+                                   one, mt)
+local plain = magnetised_box.new(vec3d.new(0.01, 0, 0), vec3d.new(0.01, 0.004, 0.002),
+                                 one, mt)
+local rp = vec3d.new(0.02, 0.013, 0.007)
+local function vdiff(A, B)
+    return math.max(math.abs(A.x - B.x), math.abs(A.y - B.y), math.abs(A.z - B.z))
+        / math.sqrt(B.x * B.x + B.y * B.y + B.z * B.z)
+end
+assert(vdiff(b_box(rp, turned), b_box(rp, swapped)) < 1e-12, "the orientation is used")
+assert(vdiff(b_box(rp, turned), b_box(rp, plain)) > 0.1, "and it matters here")
+-- in a uniform field the wrench is a pure couple, T = mu x B = dual(mu ^ B)
+local B0 = vec3d.new(0.2, -0.1, 0.4)
+local Wu = box_wrench(function(p) return B0 end, turned)
+local Tu = ega.dual(ega.wdg(8 * 0.01 * 0.004 * 0.002 * mt, B0))
+assert(math.max(math.abs(Wu.vx), math.abs(Wu.vy), math.abs(Wu.vz)) < 1e-12,
+       "no force in a uniform field")
+assert(vdiff(vec3d.new(Wu.mx, Wu.my, Wu.mz), Tu) < 1e-12, "the couple mu x B")
+-- panels reaches the code: in the field of a cube 12.6 mm below (the gap between them
+-- 2.6 mm) one panel per face side and four differ, by little
+local src = magnetised_box.new(vec3d.new(0, 0, -0.0126), vec3d.new(0.005, 0.005, 0.005),
+                               one, vec3d.new(0, 0, 1.0e6))
+local near_b = function(p) return b_box(p, src) end
+local W1, W4 = box_wrench(near_b, cube), box_wrench(near_b, cube, 4)
+assert(W1.vz ~= W4.vz and rel(W1.vz, W4.vz) < 1e-8, "the panels argument")
+assert(W4.vz < -19.0, "the cubes attract")
+print("  " .. tostring(cube))
+print("  force between the two cubes: " .. W4.vz .. " N")
+
 print("\nAll magnetostatics binding checks passed.")

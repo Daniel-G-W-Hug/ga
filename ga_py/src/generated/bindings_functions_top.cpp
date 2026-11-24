@@ -42,6 +42,8 @@ void register_functions_top(nb::module_& m)
                              ellipsoid const& a2) { return aeqd_forward(a0, a1, a2); });
     m.def("aeqd_inverse", [](vec2d const& a0, azimuthal_equidistant const& a1,
                              ellipsoid const& a2) { return aeqd_inverse(a0, a1, a2); });
+    m.def("b_box",
+          [](vec3d const& a0, magnetised_box const& a1) { return b_box(a0, a1); });
     m.def("b_dipole", [](vec3d const& a0, vec3d const& a1) { return b_dipole(a0, a1); });
     m.def("b_dipole",
           [](vec3d const& a0, bivec3d const& a1) { return b_dipole(a0, a1); });
