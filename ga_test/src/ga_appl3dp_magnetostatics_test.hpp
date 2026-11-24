@@ -62,6 +62,35 @@ inline vec3d F_dipoles(vec3d const& r, vec3d const& mi, vec3d const& mj)
 
 inline double rel(vec3d const& a, vec3d const& ref) { return nrm(a - ref) / nrm(ref); }
 
+// component k of a vector, k = 0, 1, 2
+inline double comp(vec3d const& v, int k) { return k == 0 ? v.x : (k == 1 ? v.y : v.z); }
+
+// the field of a block magnetised M along its axis, ON that axis at distance z from its
+// centre (z > hk), the other half extents hi, hj -- the textbook closed form
+inline double b_block_on_axis(double z, double hi, double hj, double hk, double M)
+{
+    auto const f = [&](double Z) {
+        return std::atan(hi * hj / (Z * std::sqrt(hi * hi + hj * hj + Z * Z)));
+    };
+    return mu0 * M / pi * (f(z - hk) - f(z + hk));
+}
+
+// n roughly uniform directions on the sphere (Fibonacci lattice)
+inline std::vector<vec3d> sphere_directions(int n)
+{
+    std::vector<vec3d> d;
+    double const golden = pi * (3.0 - std::sqrt(5.0)); // the golden angle
+    for (int i = 0; i < n; ++i) {
+        double const z = 1.0 - 2.0 * (i + 0.5) / n, r = std::sqrt(1.0 - z * z);
+        d.push_back(vec3d{r * std::cos(golden * i), r * std::sin(golden * i), z});
+    }
+    return d;
+}
+
+// the force part and the moment part of a wrench as plain vectors
+inline vec3d force_of(bivec3dp const& W) { return vec3d{W.vx, W.vy, W.vz}; }
+inline vec3d moment_of(bivec3dp const& W) { return vec3d{W.mx, W.my, W.mz}; }
+
 } // namespace ms3d
 
 TEST_SUITE("magnetostatics 3d")
@@ -477,5 +506,281 @@ TEST_SUITE("magnetostatics 3d")
             flipped.push_back({s.a, s.b, -s.I});
         CHECK(rel(b_segments(vec3d{0.003, -0.004, 0.002}, flipped),
                   (2.0 / 3.0) * mu0 * m) > 1.0);
+    }
+    TEST_CASE(
+        "magnetostatics 3d: a magnetised box -- on its axis the textbook closed form, "
+        "in any orientation")
+    {
+        // a block magnetised along its axis k, on that axis outside it:
+        // b = (mu0 M / pi) [atan(h_i h_j / (Z sqrt(h_i^2 + h_j^2 + Z^2)))] from Z = z +
+        // h_k to Z = z - h_k -- written out independently of the face sums
+        double const M = 1.1e6;
+        mvec3d_e const turned = get_rotor(dual(vec3d{0.3, -0.5, 0.8}), 1.1);
+        double worst = 0.0;
+        for (vec3d const h : {vec3d{0.005, 0.005, 0.005}, vec3d{0.0025, 0.005, 0.005},
+                              vec3d{0.003, 0.007, 0.004}})
+            for (int k = 0; k < 3; ++k)
+                for (mvec3d_e const& R : {mvec3d_e{scalar3d{1.0}}, turned})
+                    for (double const gap : {1.0e-4, 1.0e-3, 7.0e-3, 5.0e-2}) {
+                        vec3d const ek{k == 0 ? 1.0 : 0.0, k == 1 ? 1.0 : 0.0,
+                                       k == 2 ? 1.0 : 0.0};
+                        vec3d const ax = rotate(ek, R); // the box's axis k in the world
+                        magnetised_box const box{vec3d{0.01, -0.02, 0.003}, h, R, M * ax};
+                        double const hk = comp(h, k), hi = comp(h, (k + 1) % 3),
+                                     hj = comp(h, (k + 2) % 3);
+                        double const z = hk + gap;
+                        vec3d const b = b_box(box.c + z * ax, box);
+                        double const ref = b_block_on_axis(z, hi, hj, hk, M);
+                        worst = std::max(worst, std::abs(dot3(b, ax) - ref) / ref);
+                        worst = std::max(worst, nrm(b - dot3(b, ax) * ax) / ref);
+                    }
+        std::printf("3D magnetised box on its axis: worst relative deviation %.1e\n",
+                    worst);
+        CHECK(worst < 1e-12);
+        // the falsifier: a box 1 % shorter along its axis, the same magnetisation
+        magnetised_box const shorter{vec3d{}, vec3d{0.005, 0.005, 0.00495},
+                                     mvec3d_e{scalar3d{1.0}}, vec3d{0.0, 0.0, M}};
+        double const ref = b_block_on_axis(0.0126, 0.005, 0.005, 0.005, M);
+        CHECK(std::abs(b_box(vec3d{0.0, 0.0, 0.0126}, shorter).z - ref) / ref > 1e-3);
+    }
+
+    TEST_CASE("magnetostatics 3d: a magnetised box is the sum of its parts, inside and "
+              "outside")
+    {
+        // superposition is exact: a box split into 2 x 2 x 2 parts of the same
+        // magnetisation has the same field everywhere -- the face sums, the orientation
+        // and the inside TEST (an interior point lies inside exactly one part). It cannot
+        // see the inside TERM mu0 m itself: dropped everywhere, superposition still holds
+        // (seen when it was planted); the face-continuity case below sees it
+        mvec3d_e const R = get_rotor(dual(vec3d{0.2, 0.7, -0.4}), 0.9);
+        vec3d const h{0.006, 0.004, 0.005};
+        magnetised_box const whole{vec3d{0.004, -0.001, 0.002}, h, R,
+                                   vec3d{3.0e5, -8.0e5, 6.0e5}};
+        auto parts_of = [&](double stretch) {
+            std::vector<magnetised_box> ps;
+            for (double const sx : {-1.0, 1.0})
+                for (double const sy : {-1.0, 1.0})
+                    for (double const sz : {-1.0, 1.0}) {
+                        vec3d const off{0.5 * sx * h.x, 0.5 * sy * h.y, 0.5 * sz * h.z};
+                        ps.push_back({whole.c + rotate(off, R), 0.5 * h, R, whole.m});
+                    }
+            ps[0].h.x *= stretch; // the falsifier stretches one part
+            return ps;
+        };
+        auto sum = [](std::vector<magnetised_box> const& ps, vec3d const& r) {
+            vec3d b{};
+            for (auto const& p : ps)
+                b += b_box(r, p);
+            return b;
+        };
+        // points in the box's frame: outside, and inside off the parts' common planes
+        std::vector<vec3d> const local{
+            {0.02, 0.003, -0.004},     {-0.007, 0.0, 0.0},
+            {0.001, -0.009, 0.012},    {0.0, 0.0, 0.0061},
+            {0.0021, 0.0013, -0.0017}, {-0.0042, 0.0031, 0.0009},
+            {0.0049, -0.0002, 0.0044}};
+        double worst = 0.0, worst_in = 0.0;
+        auto const parts = parts_of(1.0);
+        for (vec3d const& q : local) {
+            vec3d const r = whole.c + rotate(q, R);
+            double const e = rel(sum(parts, r), b_box(r, whole));
+            worst = std::max(worst, e);
+            if (std::abs(q.x) < h.x && std::abs(q.y) < h.y && std::abs(q.z) < h.z)
+                worst_in = std::max(worst_in, e);
+        }
+        std::printf("3D magnetised box as 8 parts: worst %.1e (inside %.1e)\n", worst,
+                    worst_in);
+        CHECK(worst < 1e-12);
+        CHECK(worst_in > 0.0); // the interior points were tested
+        // the falsifier: one part 1 % too long
+        auto const bad = parts_of(1.01);
+        vec3d const r = whole.c + rotate(local[4], R);
+        CHECK(rel(sum(bad, r), b_box(r, whole)) > 1e-4);
+    }
+
+    TEST_CASE(
+        "magnetostatics 3d: a magnetised box is a dipole far away -- at fourth order "
+        "for a cube, at second for unequal sides")
+    {
+        // cubic symmetry removes the quadrupole and inversion symmetry the octupole, so a
+        // cube's field differs from its dipole's at relative order (a/r)^4; a box of
+        // unequal sides keeps a quadrupole, (a/r)^2
+        mvec3d_e const R = get_rotor(dual(vec3d{-0.4, 0.1, 0.9}), 0.6);
+        vec3d const m{2.0e5, 5.0e5, -9.0e5};
+        auto const dirs = sphere_directions(400);
+        auto worst_at = [&](vec3d const& h, double r) {
+            magnetised_box const box{vec3d{0.01, 0.02, -0.03}, h, R, m};
+            vec3d const mu = (8.0 * h.x * h.y * h.z) * m;
+            double e = 0.0;
+            for (vec3d const& d : dirs)
+                e = std::max(e, nrm(b_box(box.c + r * d, box) - b_dipole(r * d, mu)));
+            return e / (mu0 * nrm(mu) / (2.0 * pi * r * r * r));
+        };
+        double const a = 0.005;
+        double const cube = std::log2(worst_at(vec3d{a, a, a}, 20 * a) /
+                                      worst_at(vec3d{a, a, a}, 10 * a));
+        double const plate = std::log2(worst_at(vec3d{a, a, 0.5 * a}, 20 * a) /
+                                       worst_at(vec3d{a, a, 0.5 * a}, 10 * a));
+        std::printf(
+            "3D magnetised box vs its dipole: error exponent cube %.3f, 2:1 plate "
+            "%.3f\n",
+            cube, plate);
+        CHECK(std::abs(cube + 4.0) < 0.1);
+        CHECK(std::abs(plate + 2.0) < 0.1);
+    }
+
+    TEST_CASE("magnetostatics 3d: a magnetised box's field has no divergence and no curl "
+              "outside, and its normal component is continuous across a face")
+    {
+        mvec3d_e const R = get_rotor(dual(vec3d{0.6, 0.2, -0.3}), 0.8);
+        vec3d const h{0.005, 0.003, 0.004};
+        magnetised_box const box{vec3d{0.002, 0.001, -0.004}, h, R,
+                                 vec3d{-4.0e5, 7.0e5, 5.0e5}};
+        auto b = [&](vec3d const& r) { return b_box(r, box); };
+        // central differences: div b and curl b against the field's own gradient scale
+        double const s = 1.0e-6;
+        double worst_div = 0.0, worst_curl = 0.0;
+        for (vec3d const q : {vec3d{0.012, 0.004, -0.002}, vec3d{-0.003, 0.009, 0.006},
+                              vec3d{0.001, -0.002, -0.0093}}) {
+            vec3d const r = box.c + rotate(q, R);
+            vec3d const ex{s, 0, 0}, ey{0, s, 0}, ez{0, 0, s};
+            vec3d const dx = (b(r + ex) - b(r - ex)) / (2 * s);
+            vec3d const dy = (b(r + ey) - b(r - ey)) / (2 * s);
+            vec3d const dz = (b(r + ez) - b(r - ez)) / (2 * s);
+            double const g = std::max({nrm(dx), nrm(dy), nrm(dz)});
+            worst_div = std::max(worst_div, std::abs(dx.x + dy.y + dz.z) / g);
+            vec3d const curl{dy.z - dz.y, dz.x - dx.z, dx.y - dy.x};
+            worst_curl = std::max(worst_curl, nrm(curl) / g);
+        }
+        // across the face x_1 = +h_1: b . n continuous, H = b / mu0 - m continuous along
+        // the face, and the normal H jumps by the face's charge m . n
+        vec3d const n = rotate(vec3d{1, 0, 0}, R), t = rotate(vec3d{0, 1, 0}, R);
+        vec3d const on = box.c + rotate(vec3d{h.x, 0.0011, -0.0007}, R);
+        double const dlt = 1.0e-10;
+        vec3d const b_in = b(on - dlt * n), b_out = b(on + dlt * n);
+        double const scale = mu0 * nrm(box.m);
+        double const jump_bn = std::abs(dot3(b_in - b_out, n)) / scale;
+        double const jump_ht =
+            std::abs(dot3(b_in / mu0 - box.m - b_out / mu0, t)) * mu0 / scale;
+        double const jump_hn =
+            std::abs(dot3(b_out / mu0 - (b_in / mu0 - box.m), n) - dot3(box.m, n)) * mu0 /
+            scale;
+        std::printf("3D magnetised box: div %.1e, curl %.1e; across a face b_n %.1e, H_t "
+                    "%.1e, H_n - m.n %.1e\n",
+                    worst_div, worst_curl, jump_bn, jump_ht, jump_hn);
+        // measured 2026-11-24: div 4.8e-8, curl 3.1e-8 (the central differences' own
+        // error at s = 1e-6), the jumps 1-2e-8 (the atan / log terms at 1e-10 from the
+        // face)
+        CHECK(worst_div < 1e-6);
+        CHECK(worst_curl < 1e-6);
+        CHECK(jump_bn < 1e-6);
+        CHECK(jump_ht < 1e-6);
+        CHECK(jump_hn < 1e-6);
+        // the falsifier: b itself is NOT continuous along the face -- it jumps by mu0
+        // m_t, which is what the inside term mu0 m carries
+        CHECK(std::abs(dot3(b_in - b_out, t) - mu0 * dot3(box.m, t)) / scale < 1e-6);
+        CHECK(std::abs(dot3(b_in - b_out, t)) / scale > 0.1);
+    }
+
+    TEST_CASE(
+        "magnetostatics 3d: a magnetised box in a uniform field feels no force, only "
+        "the couple mu x b")
+    {
+        mvec3d_e const R = get_rotor(dual(vec3d{0.1, -0.8, 0.3}), 1.3);
+        magnetised_box const box{vec3d{0.03, -0.01, 0.02}, vec3d{0.005, 0.0025, 0.004}, R,
+                                 vec3d{6.0e5, -2.0e5, 3.0e5}};
+        vec3d const b0{0.12, -0.05, 0.31};
+        vec3d const mu = (8.0 * box.h.x * box.h.y * box.h.z) * box.m;
+        bivec3dp const W = box_wrench([&](vec3d const&) { return b0; }, box);
+        double const tq = nrm(cross3(mu, b0));
+        std::printf(
+            "3D magnetised box in a uniform field: |F| / (|mu x b| / h) %.1e, torque "
+            "%.1e\n",
+            nrm(force_of(W)) * box.h.x / tq, rel(moment_of(W), cross3(mu, b0)));
+        CHECK(nrm(force_of(W)) * box.h.x / tq < 1e-13);
+        CHECK(rel(moment_of(W), cross3(mu, b0)) < 1e-13);
+        // the falsifier: the box's own moment about its centre is not the couple of a
+        // DIFFERENT magnetisation
+        magnetised_box other = box;
+        other.m = vec3d{6.0e5, 2.0e5, 3.0e5};
+        CHECK(rel(moment_of(box_wrench([&](vec3d const&) { return b0; }, other)),
+                  cross3(mu, b0)) > 0.1);
+    }
+
+    TEST_CASE("magnetostatics 3d: two magnetised boxes -- action equals reaction as one "
+              "wrench, the dipole pair far away, a trace-free stiffness")
+    {
+        double const a = 0.005, Br = 1.37;
+        double const M = Br / mu0; // a remanence of 1.37 T as magnetisation [A/m]
+        // the reference values below come from an independent implementation of the same
+        // method (surface charges, 12-point Gauss-Legendre per face): they pin the
+        // transcription; the method itself is pinned by the gates above and below
+        magnetised_box const A0{vec3d{}, vec3d{a, a, a}, mvec3d_e{scalar3d{1.0}},
+                                vec3d{0, 0, M}};
+        magnetised_box const B0{vec3d{0, 0, 0.02}, vec3d{a, a, a},
+                                mvec3d_e{scalar3d{1.0}}, vec3d{0, 0, M}};
+        bivec3dp const W1 = box_wrench([&](vec3d const& r) { return b_box(r, A0); }, B0);
+        CHECK(std::abs(W1.vz / (-4.2249267422832935) - 1.0) < 1e-10);
+        // a general pair: different sizes, orientations and magnetisations
+        mvec3d_e const RA = get_rotor(dual(vec3d{0, 0, 1}), 0.4);
+        mvec3d_e const RB = get_rotor(dual(vec3d{0, 0, 1}), 0.7);
+        vec3d const muB = vec3d{0.3, -0.4, 0.866} / nrm(vec3d{0.3, -0.4, 0.866}) * 0.5 *
+                          (8.0 * a * a * a) * M;
+        magnetised_box const A{vec3d{0.001, -0.002, -0.005}, vec3d{a, a, a}, RA,
+                               rotate(vec3d{M, 0, 0}, RA)};
+        magnetised_box const B{vec3d{0.006, -0.004, 0.0126}, vec3d{a, 0.5 * a, a}, RB,
+                               muB / (8.0 * a * 0.5 * a * a)};
+        bivec3dp const WB = box_wrench([&](vec3d const& r) { return b_box(r, A); }, B);
+        bivec3dp const WA = box_wrench([&](vec3d const& r) { return b_box(r, B); }, A);
+        double const cell = std::max(
+            rel(force_of(WB),
+                vec3d{1.1098940788527762, 0.5629621426088799, -0.9992818728541156}),
+            rel(moment_of(WB), vec3d{-0.0020767832914974586, 0.012150509942383252,
+                                     0.004093760403740545}));
+        double const reaction = std::max(nrm(force_of(WA + WB)) / nrm(force_of(WB)),
+                                         nrm(moment_of(WA + WB)) / nrm(moment_of(WB)));
+        // far away the pair is the dipole pair (Yung et al., written out above), the
+        // deviation at fourth order for two cubes
+        auto distant = [&](double d) {
+            vec3d const dir = vec3d{0.3, 0.5, 0.81} / nrm(vec3d{0.3, 0.5, 0.81});
+            magnetised_box Bd = A;
+            Bd.c = A.c + d * dir;
+            Bd.m = vec3d{-2.0e5, 4.0e5, 9.0e5};
+            vec3d const F =
+                force_of(box_wrench([&](vec3d const& r) { return b_box(r, A); }, Bd));
+            vec3d const mua = (8.0 * a * a * a) * A.m, mub = (8.0 * a * a * a) * Bd.m;
+            return rel(F, F_dipoles(Bd.c - A.c, mua, mub));
+        };
+        double const order = std::log2(distant(0.2) / distant(0.1));
+        // Earnshaw: the stiffness of the force on B in A's field is trace-free (the
+        // force is minus the gradient of a potential that is harmonic outside A)
+        double const s = 1.0e-6;
+        double tr = 0.0, kmax = 0.0;
+        for (int k = 0; k < 3; ++k) {
+            vec3d const e{k == 0 ? s : 0.0, k == 1 ? s : 0.0, k == 2 ? s : 0.0};
+            magnetised_box Bp = B, Bm = B;
+            Bp.c = B.c + e;
+            Bm.c = B.c - e;
+            vec3d const dF =
+                (force_of(box_wrench([&](vec3d const& r) { return b_box(r, A); }, Bp)) -
+                 force_of(box_wrench([&](vec3d const& r) { return b_box(r, A); }, Bm))) /
+                (2 * s);
+            tr += comp(dF, k);
+            kmax = std::max(kmax, nrm(dF));
+        }
+        std::printf(
+            "3D two magnetised boxes: cell %.1e, action + reaction %.1e, far-field "
+            "order %.3f, stiffness trace %.1e\n",
+            cell, reaction, order, std::abs(tr) / kmax);
+        CHECK(cell < 1e-10);
+        CHECK(reaction < 1e-8);
+        CHECK(std::abs(order + 4.0) < 0.1);
+        CHECK(std::abs(tr) / kmax < 1e-6);
+        // the falsifier: the moments balance only about a COMMON point -- A's force lines
+        // moved by 1 mm keep the forces balanced and break the moments
+        vec3d const shift{0.001, 0.0, 0.0};
+        vec3d const moved = moment_of(WA) + cross3(shift, force_of(WA));
+        CHECK(nrm(force_of(WA + WB)) / nrm(force_of(WB)) < 1e-8);
+        CHECK(nrm(moved + moment_of(WB)) / nrm(moment_of(WB)) > 1e-2);
     }
 }

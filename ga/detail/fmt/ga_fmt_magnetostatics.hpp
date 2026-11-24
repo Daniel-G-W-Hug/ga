@@ -134,3 +134,35 @@ template <> struct fmt::formatter<hd::ga::surface_point> {
         return fmt::format_to(out, ")");
     }
 };
+
+template <> struct fmt::formatter<hd::ga::magnetised_box> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::magnetised_box const& x, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "magnetised_box(");
+        out = fmt::format_to(out, "c = ");
+        out = fmt::format_to(out, fmt::runtime(child), x.c);
+        out = fmt::format_to(out, ", h = ");
+        out = fmt::format_to(out, fmt::runtime(child), x.h);
+        out = fmt::format_to(out, ", R = ");
+        out = fmt::format_to(out, fmt::runtime(child), x.R);
+        out = fmt::format_to(out, ", m = ");
+        out = fmt::format_to(out, fmt::runtime(child), x.m);
+        return fmt::format_to(out, ")");
+    }
+};

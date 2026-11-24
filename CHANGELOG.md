@@ -567,4 +567,15 @@
            searches over sampled points and by planted defects. Bound to Python
            (convex_distance by hand: its faces are a std::span) and Lua, which stands
            at 1838/1868.
+- 2026/11: the field of a uniformly magnetised box (ga_usr_magnetostatics.hpp):
+           magnetised_box (centre, half extents, orientation rotor, magnetisation) and
+           b_box, the closed form of the integral over its dipoles -- the field of its
+           surface charge m . n, plus mu0 m inside; box_wrench(b, box), the wrench of an
+           external field on it as one screw (Gauss-Legendre over its charged faces).
+           Gated against the on-axis closed form, the exact superposition of its parts,
+           Maxwell (no divergence or curl outside, the normal field continuous across a
+           face), the far field (a cube's deviation from its dipole falls as (a/r)^4, a
+           box of unequal sides' as (a/r)^2), a uniform field's couple, action = reaction
+           as one wrench and a trace-free stiffness, each seen to fail on a planted
+           defect. Not yet bound to Python or Lua.
 

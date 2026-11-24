@@ -3,7 +3,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include <cmath>   // std::abs, std::cos, std::log, std::sin, std::sqrt
+#include <array>   // std::array (a box in its own frame)
+#include <cmath>   // std::abs, std::atan, std::cos, std::log, std::sin, std::sqrt
 #include <cstddef> // size_t
 #include <span>    // std::span
 #include <utility> // std::pair
@@ -91,6 +92,17 @@
 // lines through different points sum to a SCREW, so a couple (a dipole's torque) appears
 // with no couple term written anywhere.
 //
+// A MAGNETISED BODY. A uniform magnetisation m has no volume charge; its field is that of
+// the surface charge sigma = m . n, plus mu0 m inside -- the closed form of the integral
+// over the body's dipoles. A sphere's outside field is exactly the dipole of its moment
+// mu = m V; any other body differs from it at short range. For a box the integral is a
+// sum over its charged faces' corners (atan and log terms), and its deviation from the
+// dipole falls with the distance r as (a/r)^4 for a CUBE -- cubic symmetry removes the
+// quadrupole, inversion symmetry the octupole -- but as (a/r)^2 for a box of unequal
+// sides. The force and torque of an external field on the box are the force on its
+// surface charge, f = sigma b dA, summed as force lines: one screw, like the stress
+// wrench.
+//
 // provides in namespace hd::ga:
 //
 // - mu0                       : the vacuum permeability [Vs/Am]
@@ -127,6 +139,11 @@
 // - stress_wrench(b, surface) : W = sum wdg(P, t(n)) dA, a bivec3dp
 // - surface_current(vec3d, vec3d)   : K = m x n = dual(m ^ n)
 // - magnetised_sphere_currents(): a uniformly magnetised sphere as current rings
+// - magnetised_box            : a uniformly magnetised box (centre, half extents,
+//                               orientation rotor, magnetisation)
+// - b_box()                   : its field in closed form, inside and outside
+// - box_wrench(b, box)        : the wrench of an external field on it, sum wdg(P, f) over
+//                               its charged faces (Gauss-Legendre), a bivec3dp
 /////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
@@ -446,6 +463,136 @@ inline std::vector<current_segment> magnetised_sphere_currents(vec3d const& c, v
             s.insert(s.end(), ring.begin(), ring.end());
         }
     return s;
+}
+
+// a uniformly magnetised rectangular box: centre c, half extents h along its own axes,
+// R its orientation as a UNIT rotor (its k-th axis is R e_k rev(R)), m the magnetisation
+// [A/m] in world coordinates. Its moment is mu = 8 h_x h_y h_z m.
+struct magnetised_box {
+    vec3d c{};
+    vec3d h{};
+    mvec3d_e R{scalar3d{1.0}};
+    vec3d m{};
+};
+
+namespace detail {
+
+// ln(bp + Rp) - ln(bm + Rm), R = sqrt(a^2 + b^2 + c^2), bp > bm: the edge sum of a
+// charged rectangle's in-plane field, without the cancellation of b + R for b < 0 --
+// there b + R = (a^2 + c^2) / (R - b), and (a^2 + c^2) cancels from the difference when
+// both b are negative. Singular only on the edge itself (a = c = 0 with bm < 0 < bp).
+inline value_t box_log_pair(value_t a, value_t bp, value_t bm, value_t c)
+{
+    value_t const s = a * a + c * c;
+    value_t const Rp = std::sqrt(s + bp * bp), Rm = std::sqrt(s + bm * bm);
+    if (bm >= 0.0) return std::log((bp + Rp) / (bm + Rm));
+    if (bp <= 0.0) return std::log((Rm - bm) / (Rp - bp));
+    return std::log((bp + Rp) * (Rm - bm) / s);
+}
+
+// adds to H [A/m] the field at q (the box's frame) of its face at x_k = z0, the rectangle
+// |x_i| <= h_i, |x_j| <= h_j with (i, j, k) cyclic, carrying the surface charge sigma:
+//
+//     H_k = sigma/(4 pi) sum_corners s atan(a b / (c R))
+//     H_i = -sigma/(4 pi) sum_a s_a [ln(b + R)]_b,   H_j likewise with a <-> b
+//
+// a = x_i + s_a h_i, b = x_j + s_b h_j, c = x_k - z0, s = s_a s_b. In the face's own
+// plane (c = 0) outside the rectangle H_k vanishes; ON the face it is undefined.
+inline void box_face_h(std::array<value_t, 3>& H, std::array<value_t, 3> const& q, int k,
+                       value_t z0, value_t sigma, std::array<value_t, 3> const& h)
+{
+    int const i = (k + 1) % 3, j = (k + 2) % 3;
+    value_t const c = q[k] - z0;
+    value_t const ap = q[i] + h[i], am = q[i] - h[i];
+    value_t const bp = q[j] + h[j], bm = q[j] - h[j];
+    value_t hk = 0.0;
+    if (c != 0.0) {
+        std::array<value_t, 2> const as{ap, am}, bs{bp, bm};
+        for (size_t ia = 0; ia < 2; ++ia)
+            for (size_t ib = 0; ib < 2; ++ib) {
+                value_t const a = as[ia], b = bs[ib];
+                value_t const s = (ia == ib) ? 1.0 : -1.0; // s_a s_b
+                hk += s * std::atan(a * b / (c * std::sqrt(a * a + b * b + c * c)));
+            }
+    }
+    value_t const hi = -(box_log_pair(ap, bp, bm, c) - box_log_pair(am, bp, bm, c));
+    value_t const hj = -(box_log_pair(bp, ap, am, c) - box_log_pair(bm, ap, am, c));
+    value_t const f = sigma / (4.0 * pi);
+    H[k] += f * hk;
+    H[i] += f * hi;
+    H[j] += f * hj;
+}
+
+} // namespace detail
+
+// the field of a magnetised box at r: b = mu0 (H + m) inside, b = mu0 H outside, H the
+// field of its surface charge sigma = m . n (a uniform magnetisation has no volume
+// charge) -- the closed form of the integral over the box's dipoles. Undefined ON a face,
+// where b jumps, and singular on the edges.
+inline vec3d b_box(vec3d const& r, magnetised_box const& box)
+{
+    using namespace ega;
+    mvec3d_e const Rr = rev(box.R);
+    vec3d const qv = rotate(r - box.c, Rr); // the point in the box's frame
+    vec3d const mv = rotate(box.m, Rr);     // the magnetisation in the box's frame
+    std::array<value_t, 3> const q{qv.x, qv.y, qv.z}, m{mv.x, mv.y, mv.z},
+        h{box.h.x, box.h.y, box.h.z};
+    std::array<value_t, 3> H{};
+    for (int k = 0; k < 3; ++k) {
+        if (m[k] == 0.0) continue;
+        detail::box_face_h(H, q, k, h[k], m[k], h);   // the face at +h_k carries +m_k
+        detail::box_face_h(H, q, k, -h[k], -m[k], h); // the face at -h_k carries -m_k
+    }
+    vec3d hb{H[0], H[1], H[2]};
+    if (std::abs(q[0]) < h[0] && std::abs(q[1]) < h[1] && std::abs(q[2]) < h[2])
+        hb = hb + mv;
+    return mu0 * rotate(hb, box.R);
+}
+
+// the wrench of an external field b on a magnetised box: the force on its surface charge,
+// f = sigma b(P) dA with sigma = m . n at the points P of its charged faces, summed as
+// force lines -- one screw, the torque included, since sum P sigma dA is the moment
+// (8 h_x h_y h_z) m. Valid for a field whose sources lie outside the box. Gauss-Legendre
+// 12 x 12 on panels x panels panels per face: exact for a field linear across the box,
+// converging fast for a smooth one; raise `panels` for a source closer than about a
+// face's width.
+template <typename Field>
+inline bivec3dp box_wrench(Field&& b, magnetised_box const& box, size_t panels = 1)
+{
+    using namespace ega;
+    auto const& g = detail::gauss_legendre12();
+    vec3d const mv = rotate(box.m, rev(box.R));
+    std::array<value_t, 3> const m{mv.x, mv.y, mv.z}, h{box.h.x, box.h.y, box.h.z};
+    value_t const du = 2.0 / value_t(panels);
+    bivec3dp W{};
+    for (int k = 0; k < 3; ++k) {
+        if (m[k] == 0.0) continue;
+        int const i = (k + 1) % 3, j = (k + 2) % 3;
+        for (value_t const side : {1.0, -1.0}) {
+            value_t const sigma = side * m[k];
+            for (size_t pu = 0; pu < panels; ++pu)
+                for (size_t gu = 0; gu < 12; ++gu)
+                    for (size_t pv = 0; pv < panels; ++pv)
+                        for (size_t gv = 0; gv < 12; ++gv) {
+                            value_t const u =
+                                -1.0 + du * (value_t(pu) + 0.5 * (g.x[gu] + 1.0));
+                            value_t const v =
+                                -1.0 + du * (value_t(pv) + 0.5 * (g.x[gv] + 1.0));
+                            std::array<value_t, 3> L{};
+                            L[i] = h[i] * u;
+                            L[j] = h[j] * v;
+                            L[k] = side * h[k];
+                            vec3d const P =
+                                box.c + rotate(vec3d{L[0], L[1], L[2]}, box.R);
+                            value_t const dA =
+                                h[i] * h[j] * (0.5 * du * g.w[gu]) * (0.5 * du * g.w[gv]);
+                            vec3d const f = (sigma * dA) * b(P);
+                            W += pga::wdg(vec3dp(P.x, P.y, P.z, 1.0),
+                                          vec3dp(f.x, f.y, f.z, 0.0));
+                        }
+        }
+    }
+    return W;
 }
 
 } // namespace hd::ga
