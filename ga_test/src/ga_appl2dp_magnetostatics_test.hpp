@@ -301,4 +301,55 @@ TEST_SUITE("magnetostatics 2d")
         vec2d const r_in{0.003, -0.004};
         CHECK(nrm(b_line_currents(r_in, flipped) - 0.5 * mu0 * m) > nrm(0.5 * mu0 * m));
     }
+
+    TEST_CASE("magnetostatics 2d: the wrench on a magnetized disc is one line through "
+              "the wire")
+    {
+        // a uniformly magnetized disc (B_r = 1.37 T, radius 10 mm) in the field of a line
+        // current (200 A at 40 mm): the tractions on a contour around the disc sum to ONE
+        // line, and that line misses the disc and runs through the wire. The moment about
+        // the disc's centre is the offset of the force, and the wire's reaction lies on
+        // the same line. The documentation's figure of "The wrench of a field on a body"
+        // draws this case.
+        double const R = 0.01;
+        vec2d const m = (1.37 / mu0) * vec2d{0.6, 0.8}; // A/m
+        line_current const wire{vec2d{0.04, 0.0}, pscalar2d(200.0)};
+        auto const disc = magnetised_disc_currents(vec2d{}, R, m, 720);
+        auto b = [&](vec2d const& r) {
+            return b_line_current(r, wire) + b_line_currents(r, disc);
+        };
+        bivec2dp const W = stress_wrench(b, circle_contour(vec2d{}, 0.02, 256));
+
+        // the reference, without the stress: the Lorentz force of the disc's field on the
+        // wire, reversed, on the line through the wire
+        vec2d const Fw = lorentz_force(b_line_currents(wire.p, disc), wire.I);
+        vec2dp const Pw(wire.p.x, wire.p.y, 1.0);
+        bivec2dp const W_ref = wdg(Pw, vec2dp(-Fw.x, -Fw.y, 0.0));
+        double const F = nrm(Fw);
+        auto rel = [&](bivec2dp const& X) {
+            return std::max({std::abs(X.x - W_ref.x), std::abs(X.y - W_ref.y),
+                             std::abs(X.z - W_ref.z) / 0.04}) /
+                   F;
+        };
+        CHECK(rel(W) < 1e-8);
+        // the classical magnitude for a line dipole mu = pi R^2 m in the field of a line
+        // current, mu0 I |mu| / (2 pi d^2) = 8.5625 N/m
+        vec2d const mu = (pi * R * R) * m;
+        CHECK(std::abs(F - 8.5625) < 1e-6 * F);
+        CHECK(std::abs(F - mu0 * 200.0 * nrm(mu) / (2.0 * pi * 0.04 * 0.04)) < 1e-6 * F);
+        // the moment about the centre is the dipole torque mu x b(O) = -0.2055 N, and the
+        // line lies 24.0 mm from the centre (0.6 d): outside the disc and the contour
+        vec2d const b0 = b_line_current(vec2d{}, wire);
+        CHECK(std::abs(W.z - (mu.x * b0.y - mu.y * b0.x)) < 1e-6 * std::abs(W.z));
+        CHECK(std::abs(std::abs(W.z) / std::hypot(W.x, W.y) - 0.024) < 1e-8);
+        // the wire lies on the line
+        CHECK(std::abs(double(wdg(Pw, W))) < 1e-10 * F * 0.04);
+        // action = reaction as one line: the wrench on the wire (a contour around it
+        // alone) is the negative
+        bivec2dp const sum = W + stress_wrench(b, circle_contour(wire.p, 0.01, 256));
+        CHECK(std::max({std::abs(sum.x), std::abs(sum.y), std::abs(sum.z) / 0.04}) <
+              1e-8 * F);
+        // the falsifier: the same force through the disc's centre is another line
+        CHECK(rel(wdg(vec2dp(0.0, 0.0, 1.0), vec2dp(-Fw.x, -Fw.y, 0.0))) > 0.5);
+    }
 }
