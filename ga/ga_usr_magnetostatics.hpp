@@ -97,9 +97,10 @@
 // over the body's dipoles. A sphere's outside field is exactly the dipole of its moment
 // mu = m V; any other body differs from it at short range. For a box the integral is a
 // sum over its charged faces' corners (atan and log terms), and its deviation from the
-// dipole falls with the distance r as (a/r)^4 for a CUBE -- cubic symmetry removes the
-// quadrupole, inversion symmetry the octupole -- but as (a/r)^2 for a box of unequal
-// sides. The force and torque of an external field on the box are the force on its
+// dipole falls with the distance r as (a/r)^4 for a CUBE but as (a/r)^2 for a box of
+// unequal sides: inversion symmetry, which every box has, removes the even orders of the
+// field (quadrupole, hexadecapole), and a cube's three equivalent axes also remove the
+// octupole. The force and torque of an external field on the box are the force on its
 // surface charge, f = sigma b dA, summed as force lines: one screw, like the stress
 // wrench.
 //

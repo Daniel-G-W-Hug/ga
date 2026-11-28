@@ -602,9 +602,10 @@ TEST_SUITE("magnetostatics 3d")
         "magnetostatics 3d: a magnetised box is a dipole far away -- at fourth order "
         "for a cube, at second for unequal sides")
     {
-        // cubic symmetry removes the quadrupole and inversion symmetry the octupole, so a
-        // cube's field differs from its dipole's at relative order (a/r)^4; a box of
-        // unequal sides keeps a quadrupole, (a/r)^2
+        // inversion symmetry, which every box has, removes the even orders of the field
+        // (quadrupole, hexadecapole); a cube's three equivalent axes also remove the
+        // octupole, so a cube's field differs from its dipole's at relative order
+        // (a/r)^4, and a box of unequal sides keeps the octupole, (a/r)^2
         mvec3d_e const R = get_rotor(dual(vec3d{-0.4, 0.1, 0.9}), 0.6);
         vec3d const m{2.0e5, 5.0e5, -9.0e5};
         auto const dirs = sphere_directions(400);
