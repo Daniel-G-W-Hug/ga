@@ -36,6 +36,7 @@ When in doubt, leave the working tree for review and say it is ready.
 │   ├── ga_pga_test                                 #   Projective GA tests (2dp/3dp)
 │   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
 │   ├── ga_cga_test                                 #   Conformal GA tests (cga2dc + cga3dc)
+│   ├── ga_{ega,pga,sta,cga}_test_float             #   the four base suites with value_t = float
 │   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
 │   ├── ga_appl3dp_test                             #   PGA3D applications (generic geometry/kinematics/mechanics)
 │   ├── ga_integrator_test                          #   ODE integrators: RK4 vs ABM2 (+ timing)
@@ -380,7 +381,8 @@ Critical usage requirements:
 2. Use namespace `hd::ga` and either `hd::ga::ega`, `hd::ga::pga` or `hd::ga::cga`
 3. **Always enclose left/right contractions (`<<` and `>>` operators) in parentheses due
    to operator precedence**
-4. The base scalar type (float/double) is configured globally in `ga/ga_value_t.hpp`
+4. The base scalar type `value_t` is double, or float with the compile definition
+   `_HD_GA_VALUE_T_FLOAT` for the whole program (see `ga/ga_value_t.hpp`)
 
 ### Header layering — where to find a `ga/` operation
 
@@ -463,7 +465,7 @@ the whole tree or hand-rolling a helper:
 
 | File | Provides |
 | ---- | -------- |
-| `ga/ga_value_t.hpp` | the scalar type `value_t` (float/double switch); `eps` (equality) and `eps_congruent` (both derived from `value_t`'s machine epsilon, so they follow the float/double switch); the coefficient comparators `detail::coeffs_congruent` (equal up to a scale factor) and `detail::coeffs_close` (equal within a relative tolerance) |
+| `ga/ga_value_t.hpp` | the scalar type `value_t`: `double`, or `float` with the compile definition `_HD_GA_VALUE_T_FLOAT` -- set per target and the same in every translation unit of one program (mixing is an ODR violation), never by editing the header. A build checks float on every run: `ga_{ega,pga,sta,cga}_test_float` (the base suites again, their tolerances through `ga_test/src/ga_test_tolerance.hpp`: `scaled_tol` for rounding budgets, `per_precision` for truncation bounds, `value_t_is_double` to guard checks pinned to double's resolution) and the compile-only `ga_float_headers_check`; `eps` (equality) and `eps_congruent`, both of type `value_t` and derived from its machine epsilon; the coefficient comparators `detail::coeffs_congruent` (equal up to a scale factor) and `detail::coeffs_close` (equal within a relative tolerance) |
 | `ga/ga_usr_consts.hpp` | named constants per algebra: basis blades (`e1_3dp`, `e23_3dp`, …), **origins** (`O_2dp`, `O_3dp`), projection/attitude blades (`e423_3dp`, …), and `pi` |
 | `ga/ga_usr_types.hpp` | the user value-type aliases (`vec3dp`, `bivec3dp`, `mvec3dp{,_e,_u}`, `scalar2d`, … — the `value_t` instantiations of the templates) |
 | `ga/ga_usr_types_mechanics.hpp` | physics aliases (`Inertia{2,3}dp`, `pose{2,3}dp`, kinematic frame/system types); **included after** the physics `ops` headers (it aliases templates they define) |
@@ -1585,13 +1587,15 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   derivative ∇, Maxwell `∇F = J`, Lorentz force + proper-time rotor EOM) is planned;
   `ga/detail/ga_stencil.hpp` (FD stencil weights) is its numeric groundwork.
 
-- **`get_rotor` and `get_boost` use OPPOSITE half-angle signs by design.** `get_rotor`
-  negates (`-theta/2`, matching ega3d); `get_boost` does not (`+phi/2`). Each sign is the
-  one that makes a positive parameter a positive-sense active transform (a `+theta`
-  right-handed rotation; a boost with `gamma = cosh(phi)`). This is NOT an inconsistency —
-  "unifying" the two silently reverses one transform. Called out at both function comments
-  and in `ga_docu` ("Motion in STA"). (`exp`/`log` are sign-consistent — the `+/-` split is
-  only in these two convenience builders.)
+- **STA `get_rotor` and `get_boost` both take a POSITIVE half angle (`+theta/2`,
+  `+phi/2`), while ega3d's `get_rotor` writes `-theta/2` -- and both rotors turn the same
+  way.** In STA the spatial basis vectors square to -1, which supplies the flip ega3d
+  writes out (`e1 -> e2` for `e12` in both). Copying ega3d's literal `-theta/2` into STA
+  silently reverses the rotation. Each sign makes a positive parameter a positive-sense
+  active transform (a `+theta` right-handed rotation; a boost with `gamma = cosh(phi)`).
+  Called out at both function comments and in `ga_docu` ("Motion in STA"). (Corrected
+  2026-11-28: this note said STA `get_rotor` negated, which it has not done since
+  2026-08-16.)
 
 ## STA metric: the dependency map, and what a projective STA would change
 

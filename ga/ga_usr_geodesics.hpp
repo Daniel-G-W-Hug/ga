@@ -258,7 +258,7 @@ inline meridian_rz meridian_from_geodetic(ellipsoid const& el, value_t lat,
     value_t const N = el.N(lat);
 
     return meridian_rz{(N + height) * std::cos(lat),
-                       (N * (1.0 - el.e_sq()) + height) * std::sin(lat)};
+                       (N * (value_t(1.0) - el.e_sq()) + height) * std::sin(lat)};
 }
 
 // (r, z) -> geodetic (lat, height), via Bowring's closed-form solution (1976): the
@@ -291,7 +291,8 @@ inline meridian_lat_h geodetic_from_meridian(ellipsoid const& el, value_t r, val
     value_t const ep2 = e2 / ((1.0 - el.flattening()) * (1.0 - el.flattening()));
 
     if (r < eps * a) { // on the polar axis
-        return meridian_lat_h{(z >= 0.0) ? 0.5 * pi : -0.5 * pi, std::abs(z) - b};
+        return meridian_lat_h{value_t((z >= 0.0) ? 0.5 * pi : -0.5 * pi),
+                              std::abs(z) - b};
     }
 
     value_t const theta = std::atan2(z * a, r * b);
@@ -751,7 +752,7 @@ inline transverse_mercator utm_zone(int zone, bool north = true)
         throw std::invalid_argument("utm_zone: the zone must be in 1..60");
     }
     return transverse_mercator{0.0, deg2rad(6.0 * zone - 183.0), 0.9996, 500000.0,
-                               north ? 0.0 : 10000000.0};
+                               value_t(north ? 0.0 : 10000000.0)};
 }
 
 namespace detail {
@@ -773,24 +774,26 @@ inline tm_series tm_coefficients(ellipsoid const& el)
     tm_series s{};
     s.e = std::sqrt(el.e_sq());
     s.A = el.r_equator / (1.0 + n) * (1.0 + n2 / 4.0 + n4 / 64.0 + n6 / 256.0);
-    s.alpha = {n / 2.0 - 2.0 * n2 / 3.0 + 5.0 * n3 / 16.0 + 41.0 * n4 / 180.0 -
-                   127.0 * n5 / 288.0 + 7891.0 * n6 / 37800.0,
-               13.0 * n2 / 48.0 - 3.0 * n3 / 5.0 + 557.0 * n4 / 1440.0 +
-                   281.0 * n5 / 630.0 - 1983433.0 * n6 / 1935360.0,
-               61.0 * n3 / 240.0 - 103.0 * n4 / 140.0 + 15061.0 * n5 / 26880.0 +
-                   167603.0 * n6 / 181440.0,
-               49561.0 * n4 / 161280.0 - 179.0 * n5 / 168.0 + 6601661.0 * n6 / 7257600.0,
-               34729.0 * n5 / 80640.0 - 3418889.0 * n6 / 1995840.0,
-               212378941.0 * n6 / 319334400.0};
-    s.beta = {n / 2.0 - 2.0 * n2 / 3.0 + 37.0 * n3 / 96.0 - n4 / 360.0 -
-                  81.0 * n5 / 512.0 + 96199.0 * n6 / 604800.0,
-              n2 / 48.0 + n3 / 15.0 - 437.0 * n4 / 1440.0 + 46.0 * n5 / 105.0 -
-                  1118711.0 * n6 / 3870720.0,
-              17.0 * n3 / 480.0 - 37.0 * n4 / 840.0 - 209.0 * n5 / 4480.0 +
-                  5569.0 * n6 / 90720.0,
-              4397.0 * n4 / 161280.0 - 11.0 * n5 / 504.0 - 830251.0 * n6 / 7257600.0,
-              4583.0 * n5 / 161280.0 - 108847.0 * n6 / 3991680.0,
-              20648693.0 * n6 / 638668800.0};
+    s.alpha = {value_t(n / 2.0 - 2.0 * n2 / 3.0 + 5.0 * n3 / 16.0 + 41.0 * n4 / 180.0 -
+                       127.0 * n5 / 288.0 + 7891.0 * n6 / 37800.0),
+               value_t(13.0 * n2 / 48.0 - 3.0 * n3 / 5.0 + 557.0 * n4 / 1440.0 +
+                       281.0 * n5 / 630.0 - 1983433.0 * n6 / 1935360.0),
+               value_t(61.0 * n3 / 240.0 - 103.0 * n4 / 140.0 + 15061.0 * n5 / 26880.0 +
+                       167603.0 * n6 / 181440.0),
+               value_t(49561.0 * n4 / 161280.0 - 179.0 * n5 / 168.0 +
+                       6601661.0 * n6 / 7257600.0),
+               value_t(34729.0 * n5 / 80640.0 - 3418889.0 * n6 / 1995840.0),
+               value_t(212378941.0 * n6 / 319334400.0)};
+    s.beta = {
+        value_t(n / 2.0 - 2.0 * n2 / 3.0 + 37.0 * n3 / 96.0 - n4 / 360.0 -
+                81.0 * n5 / 512.0 + 96199.0 * n6 / 604800.0),
+        value_t(n2 / 48.0 + n3 / 15.0 - 437.0 * n4 / 1440.0 + 46.0 * n5 / 105.0 -
+                1118711.0 * n6 / 3870720.0),
+        value_t(17.0 * n3 / 480.0 - 37.0 * n4 / 840.0 - 209.0 * n5 / 4480.0 +
+                5569.0 * n6 / 90720.0),
+        value_t(4397.0 * n4 / 161280.0 - 11.0 * n5 / 504.0 - 830251.0 * n6 / 7257600.0),
+        value_t(4583.0 * n5 / 161280.0 - 108847.0 * n6 / 3991680.0),
+        value_t(20648693.0 * n6 / 638668800.0)};
     return s;
 }
 
@@ -954,7 +957,7 @@ inline value_t laea_lat_from_q(value_t q, value_t qp, value_t e)
 {
     if (std::abs(q) >= qp) return std::copysign(0.5 * pi, q);
     value_t const e2 = e * e;
-    value_t lat = std::asin(std::clamp(q / 2.0, value_t(-1.0), value_t(1.0)));
+    value_t lat = std::asin(std::clamp(q / value_t(2.0), value_t(-1.0), value_t(1.0)));
     for (int i = 0; i < 20; ++i) {
         value_t const s = std::sin(lat), c = std::cos(lat);
         if (c < 1.0e-12) break; // at a pole, where q already is +-qp
@@ -985,7 +988,7 @@ inline laea_constants laea_setup(lambert_azimuthal const& m, ellipsoid const& el
     c.Rq = el.r_equator * std::sqrt(0.5 * c.qp);
     value_t const s0 = std::sin(m.lat0);
     c.sin_b0 = std::clamp(laea_q(s0, c.e) / c.qp, value_t(-1.0), value_t(1.0));
-    c.cos_b0 = std::sqrt(std::max(value_t(0.0), 1.0 - c.sin_b0 * c.sin_b0));
+    c.cos_b0 = std::sqrt(std::max(value_t(0.0), value_t(1.0) - c.sin_b0 * c.sin_b0));
     // D = a m0 / (Rq cos(beta0)), m0 = cos(lat0) / sqrt(1 - e^2 sin^2(lat0)); its limit
     // at a pole is 1, where the oblique form below becomes the polar one
     c.D = (c.cos_b0 < 1.0e-12)
@@ -1006,7 +1009,7 @@ inline vec2d laea_forward(geo_pos const& p, lambert_azimuthal const& m,
 
     value_t const sin_b = std::clamp(detail::laea_q(std::sin(p.lat), c.e) / c.qp,
                                      value_t(-1.0), value_t(1.0));
-    value_t const cos_b = std::sqrt(std::max(value_t(0.0), 1.0 - sin_b * sin_b));
+    value_t const cos_b = std::sqrt(std::max(value_t(0.0), value_t(1.0) - sin_b * sin_b));
     value_t const dlon = std::remainder(p.lon - m.lon0, 2.0 * pi);
 
     // 1 + cos of the angle from the centre on the authalic sphere
@@ -1038,7 +1041,8 @@ inline geo_pos laea_inverse(vec2d const& xy, lambert_azimuthal const& m,
     }
 
     // the angle from the centre on the authalic sphere, and the authalic latitude there
-    value_t const C = 2.0 * std::asin(std::min(value_t(1.0), rho / (2.0 * c.Rq)));
+    value_t const C =
+        2.0 * std::asin(std::min(value_t(1.0), rho / (value_t(2.0) * c.Rq)));
     value_t const sC = std::sin(C), cC = std::cos(C);
     value_t const sin_b = std::clamp(cC * c.sin_b0 + c.D * y * sC * c.cos_b0 / rho,
                                      value_t(-1.0), value_t(1.0));
@@ -1152,7 +1156,7 @@ inline geod_line geod_line_from(ellipsoid const& el, value_t sin_a0)
 {
     value_t const e2 = el.e_sq();
     value_t const ep2 = e2 / (1.0 - e2);
-    return geod_line{el.flattening(), sin_a0, ep2 * (1.0 - sin_a0 * sin_a0)};
+    return geod_line{el.flattening(), sin_a0, ep2 * (value_t(1.0) - sin_a0 * sin_a0)};
 }
 
 // the reduced latitude, as its sine and cosine
@@ -1306,8 +1310,8 @@ inline geodesic_solution geodesic_inverse(geo_pos const& a, geo_pos const& b,
         a1 = a2 + pi;
         a2 = t + pi;
     }
-    return geodesic_solution{s12, std::remainder(a1, 2.0 * pi),
-                             std::remainder(a2, 2.0 * pi)};
+    return geodesic_solution{s12, std::remainder(a1, value_t(2.0 * pi)),
+                             std::remainder(a2, value_t(2.0 * pi))};
 }
 
 // the direct problem: where the path from a, leaving at azimuth azi1 [rad, clockwise from
@@ -1774,8 +1778,8 @@ inline helmert7 make_helmert7(value_t tx, value_t ty, value_t tz, value_t rx_arc
                               value_t ry_arcsec, value_t rz_arcsec, value_t ds_ppm)
 {
     value_t const as = deg2rad(1.0 / 3600.0);
-    return helmert7{
-        tx, ty, tz, rx_arcsec * as, ry_arcsec * as, rz_arcsec * as, ds_ppm * 1.0e-6};
+    value_t const ds = ds_ppm * 1.0e-6;
+    return helmert7{tx, ty, tz, rx_arcsec * as, ry_arcsec * as, rz_arcsec * as, ds};
 }
 
 namespace detail {
@@ -1792,8 +1796,8 @@ inline mvec3dp_e helmert_motor(helmert7 const& h, value_t sign)
 // X' = T + (1 + ds) R(sign * r) X, as one motor sandwich of the re-weighted point
 inline vec3dp helmert_apply(vec3dp const& X, helmert7 const& h, value_t sign)
 {
-    return unitize(
-        move3dp(vec3dp{X.x, X.y, X.z, X.w / (1.0 + h.ds)}, helmert_motor(h, sign)));
+    return unitize(move3dp(vec3dp{X.x, X.y, X.z, X.w / (value_t(1.0) + h.ds)},
+                           helmert_motor(h, sign)));
 }
 
 // its exact inverse, X = R(sign * r)^-1 (X' - T) / (1 + ds): the reversed motor, then
@@ -1801,7 +1805,7 @@ inline vec3dp helmert_apply(vec3dp const& X, helmert7 const& h, value_t sign)
 inline vec3dp helmert_unapply(vec3dp const& X, helmert7 const& h, value_t sign)
 {
     auto const Y = move3dp(X, rrev(helmert_motor(h, sign)));
-    return unitize(vec3dp{Y.x, Y.y, Y.z, Y.w * (1.0 + h.ds)});
+    return unitize(vec3dp{Y.x, Y.y, Y.z, Y.w * (value_t(1.0) + h.ds)});
 }
 
 } // namespace detail

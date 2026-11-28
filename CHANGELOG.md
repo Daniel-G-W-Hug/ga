@@ -608,3 +608,26 @@
            unchanged; their generators read -(theta/2) flat_point2dc(m) and
            r_antidual(flat_point2dc(m)), pinned exactly, as is car(round_point2dc(p, r))
            == flat_point2dc(p).
+- 2026/11: value_t = float is a supported configuration. It is selected by the compile
+           definition _HD_GA_VALUE_T_FLOAT (ga_value_t.hpp); double stays the default, and
+           every translation unit of a program must agree. eps and eps_congruent are
+           value_t now (they were double whatever the setting). What did not compile or
+           gave wrong answers under float, each fix an exact no-op for double: a double
+           argument met a float one in std::clamp/min/max and in braced initializers
+           (utilities, geodesics, the 3D mechanics and constraints); the ODE integrator
+           classes took std::vector<double> and now take value_t; Scalar_t had no
+           conversion between element types, so every mixed-precision operator on a
+           scalar or pseudoscalar failed to compile (an explicit conversion to another
+           floating-point type and a converting constructor, as the vector types have);
+           fd_step sized the default step for double's epsilon, ~800x too small for a
+           float field (a gradient 4e-3 off instead of 1e-6); the parallel-lines bound of
+           detail::segment_distance, 4.5e3 eps, called lines 1.3 degrees apart parallel
+           in float and returned a distance ~2 % of their length off; the dt == 0 guard
+           of stopping_accel_bound and max_explicit_stiffness, 1e-300, underflowed to
+           zero. A build checks it: the four base suites a second time as
+           ga_{ega,pga,sta,cga}_test_float, and a compile-only translation unit of every
+           public header, all built by default.
+           Their double tolerances go through ga_test/src/ga_test_tolerance.hpp
+           (scaled_tol, per_precision, value_t_is_double); checks pinned to double's
+           resolution run in a double build only. The double suites are unchanged,
+           their output byte-identical.

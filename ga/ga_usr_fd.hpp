@@ -390,9 +390,14 @@ inline std::vector<T> fd_derivative(std::vector<double> const& x, std::vector<T>
 // The result is scaled by the magnitude of the evaluation point so the choice tracks
 // the field's own scale. Meant for OFFSET schemes; a grid scheme from scheme_at()
 // already carries its spacing in its weights.
+//
+// eps is the resolution of the SAMPLES, i.e. of value_t, not of the double the weights
+// are kept in: with value_t = float the field is evaluated in float, and a step sized
+// for double's epsilon is ~800x too small for a central first derivative: measured on
+// the gradient of an O(1) field, an error of 4e-3 against 1e-6 at the balanced step.
 inline double fd_step(fd_scheme const& sc, double scale)
 {
-    double const e = std::numeric_limits<double>::epsilon();
+    double const e = std::numeric_limits<value_t>::epsilon();
     double const p = double(sc.order);
     double const d = double(sc.deriv);
 

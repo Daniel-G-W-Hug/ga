@@ -418,7 +418,7 @@ TEST_SUITE("PGA 2DP Tests")
         // tolerance for the summed-component distance: rounding accumulates over the
         // 8 components and the rgpr/inv flop chain, so use a bound a few orders above
         // machine eps (still ~7 orders below any real geometric signal)
-        auto const tol = 1.0e-13;
+        auto const tol = scaled_tol(1.0e-13);
 
         // scalar: no rinv (dual to the pseudoscalar having no inv under the
         // degenerate metric)
@@ -717,8 +717,8 @@ TEST_SUITE("PGA 2DP Tests")
         vec2dp v7{0.0, -1.0, 0.0};
         vec2dp v8{bulk_normalize(vec2dp(1.0, -1.0, 0.0))};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar2dp{sd};
         auto t = scalar2dp{st};
 
@@ -1320,8 +1320,8 @@ TEST_SUITE("PGA 2DP Tests")
         vec2dp v2{0.5, 3.0, 2.0};
         vec2dp v3{-2.0, 6.0, 3.0};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar2dp{sd};
         auto t = scalar2dp{st};
 
@@ -1346,8 +1346,8 @@ TEST_SUITE("PGA 2DP Tests")
         vec2dp v3{-2.0, 6.0, 3.0};
         bivec2dp B1{-4, 2, 1};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar2dp{sd};
         auto t = scalar2dp{st};
 
@@ -3986,7 +3986,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(M == rexp(0.5 * B));  // bivector creates motor via rexp()
 
         auto P_fix = vec2dp{-2, -3, 1};
-        auto X_rot = vec2dp{-2, -3 + std::sqrt(18), 1};
+        auto X_rot = vec2dp{-2, value_t(-3 + std::sqrt(18)), 1};
 
         B = P_fix * deg2rad(45);
         M = get_motor(P_fix, deg2rad(45));
@@ -4004,7 +4004,8 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("B0 = {}, rexp(0.5 * B0) = {}", B0, rexp(0.5 * B0));
         fmt::println("M0 = {}", M0);
         CHECK(M0 == rexp(0.5 * B0));
-        CHECK(move2dp(X0, M0) == vec2dp{0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2), 1});
+        CHECK(move2dp(X0, M0) ==
+              vec2dp{value_t(0.5 * std::sqrt(2.0)), value_t(0.5 * std::sqrt(2)), 1});
         CHECK(move2dp(O_2dp, M0) == O_2dp); // fixed point
         //
         auto B1 = vec2dp{1, 1, 1} * deg2rad(45);
@@ -4012,8 +4013,8 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("B1 = {}, rexp(0.5 * B1) = {}", B1, rexp(0.5 * B1));
         fmt::println("M1 = {}", M1);
         CHECK(M1 == rexp(0.5 * B1));
-        CHECK(move2dp(X0, M1) ==
-              vec2dp{1.0 + 0.5 * std::sqrt(2.0), 1.0 - 0.5 * std::sqrt(2), 1});
+        CHECK(move2dp(X0, M1) == vec2dp{value_t(1.0 + 0.5 * std::sqrt(2.0)),
+                                        value_t(1.0 - 0.5 * std::sqrt(2)), 1});
         CHECK(move2dp(vec2dp{1, 1, 1}, M1) == vec2dp{1, 1, 1}); // fixed point
         fmt::println("");
 
@@ -4151,7 +4152,7 @@ TEST_SUITE("PGA 2DP Tests")
 
         // b) rotation about a point P by angle phi
         {
-            double const phi = deg2rad(50);
+            value_t const phi = deg2rad(50);
             auto const arg = vec2dp{1.5, -0.5, phi}; // rotation generator about a point
             auto const M = rexp(arg);
             CHECK(M == rexp(rlog(M)));
@@ -4167,19 +4168,19 @@ TEST_SUITE("PGA 2DP Tests")
         auto A = mvec2dp{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         auto B = A;
         CHECK(is_close(A, B));
-        B.c0 += 1.0e-6;
+        B.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(A, B));
 
         auto E = mvec2dp_e{1.0, 2.0, 3.0, 4.0};
         auto F = E;
         CHECK(is_close(E, F));
-        F.c0 += 1.0e-6;
+        F.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(E, F));
 
         auto D = dualnum2dp{2.0, -3.0};
         auto G = D;
         CHECK(is_close(D, G));
-        G.c0 += 1.0e-6;
+        G.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(D, G));
     }
 
@@ -4408,6 +4409,8 @@ TEST_SUITE("PGA 2DP Tests")
         SUBCASE("a small object is not an ideal one")
         {
             for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+                // the unitization floor is 5 eps: ~1e-15 in double, ~6e-7 in float
+                if (!value_t_is_double && s < 1.0e-6) continue;
                 INFO("scale = ", s);
                 CHECK(to_vec2d(vec2dp(s * v.x, s * v.y, s)) == v);
             }
@@ -4451,9 +4454,10 @@ TEST_SUITE("PGA 2DP Tests")
 
         SUBCASE("a projection is linear in what is projected")
         {
-            CHECK(project_onto(2.0 * P, L) == 2.0 * project_onto(P, L));
-            CHECK(reject_from(2.0 * P, L) == 2.0 * reject_from(P, L));
-            CHECK(reflect_on(2.0 * P, L) == 2.0 * reflect_on(P, L));
+            value_t const two = 2.0;
+            CHECK(project_onto(two * P, L) == two * project_onto(P, L));
+            CHECK(reject_from(two * P, L) == two * reject_from(P, L));
+            CHECK(reflect_on(two * P, L) == two * reflect_on(P, L));
         }
 
         SUBCASE("projection and rejection split the input, and do it correctly")
@@ -4494,17 +4498,19 @@ TEST_SUITE("PGA 2DP Tests")
         auto P = [](value_t x, value_t y) { return vec2dp{x, y, 1.0}; };
         // known answers: crossing; beside each other; beyond an end; parallel; a point
         // and a segment; weighted points
-        CHECK(std::abs(segment_distance(P(-1, 0), P(1, 0), P(0, -1), P(0, 1))) < 1.0e-15);
+        CHECK(std::abs(segment_distance(P(-1, 0), P(1, 0), P(0, -1), P(0, 1))) <
+              scaled_tol(1.0e-15));
         CHECK(segment_distance(P(-1, 0), P(1, 0), P(0, 0.3), P(0, 1)) ==
-              doctest::Approx(0.3).epsilon(1.0e-14));
+              doctest::Approx(0.3).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(-1, 0), P(1, 0), P(2, 0.3), P(2, 1)) ==
-              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(1.0e-14));
+              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(0, 0), P(1, 0), P(0.2, 0.5), P(0.9, 0.5)) ==
-              doctest::Approx(0.5).epsilon(1.0e-14));
+              doctest::Approx(0.5).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(0.5, 0.4), P(0.5, 0.4), P(0, 0), P(1, 0)) ==
-              doctest::Approx(0.4).epsilon(1.0e-14));
+              doctest::Approx(0.4).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(vec2dp{-2, 0, 2}, vec2dp{-3, 0, -3}, vec2dp{0, 0.15, 0.5},
-                               vec2dp{0, 4, 4}) == doctest::Approx(0.3).epsilon(1.0e-14));
+                               vec2dp{0, 4, 4}) ==
+              doctest::Approx(0.3).epsilon(scaled_tol(1.0e-14)));
 
         // against a search: seeded segments, each sampled at 201 points; in the plane
         // two segments cross often, and then the distance is zero
@@ -4533,14 +4539,15 @@ TEST_SUITE("PGA 2DP Tests")
             value_t const L1 = std::hypot(B1.x - A1.x, B1.y - A1.y);
             value_t const L2 = std::hypot(B2.x - A2.x, B2.y - A2.y);
             worst_below = std::max(worst_below, d - sampled);
-            worst_above = std::max(worst_above, (sampled - d) / ((L1 + L2) / 400.0));
-            if (d < 1.0e-12) ++crossing;
+            worst_above =
+                std::max(worst_above, (sampled - d) / ((L1 + L2) / value_t(400.0)));
+            if (d < scaled_tol(1.0e-12)) ++crossing;
         }
         fmt::println("    200 seeded pairs, {} crossing: the exact distance above the "
                      "sampled one by at most {:.1e}, the sampled one above it by at most "
                      "{:.2f} of half a spacing",
                      crossing, worst_below, worst_above);
-        CHECK(worst_below < 1.0e-12);
+        CHECK(worst_below < scaled_tol(1.0e-12));
         CHECK(worst_above <= 1.0);
         CHECK(crossing > 20);
         fmt::println("");
@@ -4551,22 +4558,22 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("PGA2dp: a convex region as its face lines");
         // the rectangle 0.2 x 0.3 about (1, 2)
         vec2dp const c{1.0, 2.0, 1.0};
-        auto const box = box_faces(0.2, 0.3, c);
+        auto const box = box_faces(value_t(0.2), value_t(0.3), c);
         auto P = [&](value_t x, value_t y) { return vec2dp{c.x + x, c.y + y, 1.0}; };
         size_t face = 99;
         CHECK(convex_distance(box, P(0.35, 0.0), &face) ==
-              doctest::Approx(0.25).epsilon(1.0e-14));
+              doctest::Approx(0.25).epsilon(scaled_tol(1.0e-14)));
         CHECK(face == 0); // +x
         CHECK(convex_distance(box, P(0.0, -0.45), &face) ==
-              doctest::Approx(0.30).epsilon(1.0e-14));
+              doctest::Approx(0.30).epsilon(scaled_tol(1.0e-14)));
         CHECK(face == 3); // -y
         CHECK(convex_distance(box, P(0.0, 0.0)) ==
-              doctest::Approx(-0.1).epsilon(1.0e-14));
+              doctest::Approx(-0.1).epsilon(scaled_tol(1.0e-14)));
         // beside a corner: the larger face distance, below the Euclidean one
         value_t const corner = convex_distance(box, P(0.1 + 0.03, 0.15 + 0.04));
-        CHECK(corner == doctest::Approx(0.04).epsilon(1.0e-13));
+        CHECK(corner == doctest::Approx(0.04).epsilon(scaled_tol(1.0e-13)));
         CHECK(corner < std::hypot(0.03, 0.04));
-        auto const box2 = box_faces(0.2, 0.3, vec2dp{2.0, 4.0, 2.0});
+        auto const box2 = box_faces(value_t(0.2), value_t(0.3), vec2dp{2.0, 4.0, 2.0});
         for (size_t i = 0; i < 4; ++i)
             CHECK(box2[i] == box[i]);
         // an outline taken counter-clockwise gives outward normals: the join of two
@@ -4606,7 +4613,7 @@ TEST_SUITE("PGA 2DP Tests")
             worst_t = std::max(worst_t, std::abs(value_t(wdg(X, box[f_min])) - d));
             value_t const len = std::hypot(B.x - A.x, B.y - A.y);
             worst_below = std::max(worst_below, d - sampled);
-            worst_above = std::max(worst_above, (sampled - d) / (len / 2000.0));
+            worst_above = std::max(worst_above, (sampled - d) / (len / value_t(2000.0)));
             (d < 0.0 ? inside : outside)++;
         }
         fmt::println("    300 seeded segments ({} through the rectangle, {} past it): "
@@ -4614,9 +4621,9 @@ TEST_SUITE("PGA 2DP Tests")
                      "sampled one above it by at most {:.2f} of a spacing; attained "
                      "where reported to {:.1e}",
                      inside, outside, worst_below, worst_above, worst_t);
-        CHECK(worst_below < 1.0e-13);
+        CHECK(worst_below < scaled_tol(1.0e-13));
         CHECK(worst_above <= 1.0);
-        CHECK(worst_t < 1.0e-13);
+        CHECK(worst_t < scaled_tol(1.0e-13));
         CHECK(inside > 30);
         CHECK(outside > 30);
         fmt::println("");

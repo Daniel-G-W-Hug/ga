@@ -1983,7 +1983,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         auto const& ms = motor_springs_.at(idx);
         mvec3dp_e const rel = rgpr(rrev(ms.rest), joint_motor(idx));
         if (joint[idx].type == joint3dp::cylindrical)
-            return 2.0 * rlog_continued(rel, 0.5 * ms.wind);
+            return 2.0 * rlog_continued(rel, value_t(0.5) * ms.wind);
         return 2.0 * rlog(rel);
     }
 

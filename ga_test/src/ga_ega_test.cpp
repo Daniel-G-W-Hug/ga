@@ -25,6 +25,9 @@
 // include functions to be tested
 #include "ga/ga_ega.hpp"
 
+// tolerances shared by the double and the value_t = float build
+#include "ga_test_tolerance.hpp"
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 

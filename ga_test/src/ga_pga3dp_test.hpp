@@ -489,7 +489,7 @@ TEST_SUITE("PGA 3DP Tests")
         // tolerance for the summed-component distance: rounding accumulates over the
         // 16 components and the rgpr/inv flop chain, so use a bound a few orders above
         // machine eps (still ~7 orders below any real geometric signal)
-        auto const tol = 1.0e-13;
+        auto const tol = scaled_tol(1.0e-13);
 
         // scalar: no rinv (dual to the pseudoscalar having no inv under the
         // degenerate metric)
@@ -737,8 +737,8 @@ TEST_SUITE("PGA 3DP Tests")
         vec3dp v7{0.0, -1.0, 0.0, 0.0};
         vec3dp v8{bulk_normalize(vec3dp(1.0, -1.0, 0.0, 0.0))};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar3dp{sd};
         auto t = scalar3dp{st};
 
@@ -1715,8 +1715,8 @@ TEST_SUITE("PGA 3DP Tests")
         vec3dp v2{0.5, 3.0, 2.0, 1.0};
         vec3dp v3{-2.0, 6.0, 3.0, 1.0};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar3dp{sd};
         auto t = scalar3dp{st};
 
@@ -1741,8 +1741,8 @@ TEST_SUITE("PGA 3DP Tests")
         vec3dp v3{-2.0, 6.0, 3.0, 1.0};
         bivec3dp B1{-4, 2, 1, 1, -1, 2};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar3dp{sd};
         auto t = scalar3dp{st};
 
@@ -3310,7 +3310,14 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(geom_nrm(l1).c1 == weight_nrm(l1));
         CHECK(geom_nrm(t1).c0 == bulk_nrm(t1));
         CHECK(geom_nrm(t1).c1 == weight_nrm(t1));
-        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == geom_nrm(l2).c0 / geom_nrm(l2).c1);
+        // the ratio is scale-free: equal to the last bit in double, to rounding in float
+        if constexpr (value_t_is_double) {
+            CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == geom_nrm(l2).c0 / geom_nrm(l2).c1);
+        }
+        else {
+            CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 ==
+                  doctest::Approx(geom_nrm(l2).c0 / geom_nrm(l2).c1));
+        }
 
         // attitude
         CHECK(att(p1) == p1.w);
@@ -3717,8 +3724,8 @@ TEST_SUITE("PGA 3DP Tests")
 
         auto pt4p = unitize(ortho_proj3dp(pt1, ln02));
         auto pt7p = unitize(ortho_proj3dp(vec3dp{1, 0, 1, 1}, ln07));
-        auto s = 0.5;
-        auto l = 2. / 3.;
+        value_t s = 0.5;
+        value_t l = 2. / 3.;
 
         // fmt::println("pt4p  = {}", pt4p);
         // fmt::println("pt7p  = {}, dist07 = {}", pt7p, dist3dp(pt0, pt7));
@@ -3958,7 +3965,11 @@ TEST_SUITE("PGA 3DP Tests")
 
         // Scientific notation
         std::string scientific = fmt::format("{:.1e}", bv);
-        CHECK(scientific == "BiVec3dp(1.1e+00,2.2e+00,3.3e+00,4.4e+00,5.5e+00,6.7e+00)");
+        // 5.55 rounds to 5.5 as a double (5.5499..) and to 5.6 as a float (5.5500..)
+        if constexpr (value_t_is_double) {
+            CHECK(scientific ==
+                  "BiVec3dp(1.1e+00,2.2e+00,3.3e+00,4.4e+00,5.5e+00,6.7e+00)");
+        }
 
         // Three decimal places
         std::string three_decimals = fmt::format("{:.3f}", bv);
@@ -4901,6 +4912,8 @@ TEST_SUITE("PGA 3DP Tests")
             // the same scale-independence the degeneracy guards have: a point expressed
             // in millimetres is still a point
             for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-12}) {
+                // the unitization floor is 5 eps: ~1e-15 in double, ~6e-7 in float
+                if (!value_t_is_double && s < 1.0e-6) continue;
                 INFO("scale = ", s);
                 CHECK(to_vec3d(vec3dp(vec3d(s * v), s)) == v);
             }
@@ -5250,7 +5263,7 @@ TEST_SUITE("PGA 3DP Tests")
         //    pitch. Cases (a)-(c) never approach this branch, which is why it went
         //    unnoticed.
         {
-            double const isr = 1.0 / std::sqrt(3.0);
+            value_t const isr = 1.0 / std::sqrt(3.0);
             vec3dp const q{1, 2, -1, 1}, s{isr, isr, isr, 0};
             auto const L = wdg(q, s);                         // axis line through q
             auto const Tr = bivec3dp{0, 0, 0, s.x, s.y, s.z}; // ideal line along s
@@ -5278,7 +5291,7 @@ TEST_SUITE("PGA 3DP Tests")
         //    would move the branch's jump, which is a question of the log's semantics,
         //    not of its accuracy.
         {
-            double const isr = 1.0 / std::sqrt(3.0);
+            value_t const isr = 1.0 / std::sqrt(3.0);
             auto const L = wdg(vec3dp{1, 2, -1, 1}, vec3dp{isr, isr, isr, 0});
             auto const Tr = bivec3dp{0, 0, 0, isr, isr, isr};
             vec3dp const P{1.7, -0.4, 0.9, 1.0};
@@ -5289,12 +5302,14 @@ TEST_SUITE("PGA 3DP Tests")
                 return std::sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) +
                                  (a.z - b.z) * (a.z - b.z));
             };
-            CHECK(err(0.5) < 1.0e-12);    // far from the branch: exact
-            CHECK(err(1.0e-2) < 1.0e-9);  // still exact for practical purposes
-            CHECK(err(2.0e-6) > 1.0e-11); // just outside the window: still visible
-            CHECK(err(2.0e-6) < 1.0e-8);
-            CHECK(err(5.0e-7) < 1.0e-14); // inside it: read on the near sheet
-            CHECK(err(1.0e-8) < 1.0e-14);
+            CHECK(err(0.5) < 1.0e-12);         // far from the branch: exact
+            CHECK(err(1.0e-2) < 1.0e-9);       // still exact for practical purposes
+            if constexpr (value_t_is_double) { // the window is placed in double's units
+                CHECK(err(2.0e-6) > 1.0e-11);  // just outside the window: still visible
+                CHECK(err(2.0e-6) < 1.0e-8);
+                CHECK(err(5.0e-7) < 1.0e-14); // inside it: read on the near sheet
+                CHECK(err(1.0e-8) < 1.0e-14);
+            }
         }
     }
 
@@ -5608,11 +5623,11 @@ TEST_SUITE("PGA 3DP Tests")
         // pitch and a magnitude. Skew axes, opposite-signed pitches -- so that neither
         // term of the closed form can drop out unnoticed.
         vec3dp const w1{0.0, 0.0, 1.0, 0.0}, q1{};
-        double const h1 = 0.35, M1 = 1.7;
+        value_t const h1 = 0.35, M1 = 1.7;
         vec3dp w2{1.0, 0.6, -0.2, 0.0};
         w2 = w2 / std::sqrt(d3(w2, w2));
         vec3dp const q2{0.9, -0.4, 0.5, 0.0};
-        double const h2 = -0.22, M2 = 0.8;
+        value_t const h2 = -0.22, M2 = 0.8;
 
         // the twist of a screw: V = M ( q x w + h w , w )
         auto const v1 = M1 * (cross(q1, w1) + h1 * w1);
@@ -5642,10 +5657,9 @@ TEST_SUITE("PGA 3DP Tests")
 
         // c) and the defining property: reciprocal means zero. Two screws on the SAME
         // axis with opposite pitches are reciprocal (alpha = 0, d = 0, h1 + h2 = 0).
-        auto const Ba =
-            bivec3dp{w1.x, w1.y, w1.z, (0.4 * w1).x, (0.4 * w1).y, (0.4 * w1).z};
-        auto const Bb =
-            bivec3dp{w1.x, w1.y, w1.z, (-0.4 * w1).x, (-0.4 * w1).y, (-0.4 * w1).z};
+        auto const pw = value_t(0.4) * w1;
+        auto const Ba = bivec3dp{w1.x, w1.y, w1.z, pw.x, pw.y, pw.z};
+        auto const Bb = bivec3dp{w1.x, w1.y, w1.z, -pw.x, -pw.y, -pw.z};
         CHECK(value_t(rwdg(Ba, Bb)) == doctest::Approx(0.0));
         fmt::println("");
     }
@@ -5821,19 +5835,19 @@ TEST_SUITE("PGA 3DP Tests")
                          9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
         auto B = A;
         CHECK(is_close(A, B));
-        B.c0 += 1.0e-6;
+        B.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(A, B));
 
         auto U = mvec3dp_u{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         auto V = U;
         CHECK(is_close(U, V));
-        V.c0 += 1.0e-6;
+        V.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(U, V));
 
         auto D = dualnum3dp{2.0, -3.0};
         auto G = D;
         CHECK(is_close(D, G));
-        G.c0 += 1.0e-6;
+        G.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(D, G));
     }
 
@@ -6133,9 +6147,10 @@ TEST_SUITE("PGA 3DP Tests")
         {
             // the source's scale IS meaningful and must survive: a weighted point stays
             // weighted, and the weight of a projected line is its foreshortening
-            CHECK(project_onto(2.0 * P, T) == 2.0 * project_onto(P, T));
-            CHECK(project_onto(2.0 * L, T) == 2.0 * project_onto(L, T));
-            CHECK(reflect_on(2.0 * P, T) == 2.0 * reflect_on(P, T));
+            value_t const two = 2.0;
+            CHECK(project_onto(two * P, T) == two * project_onto(P, T));
+            CHECK(project_onto(two * L, T) == two * project_onto(L, T));
+            CHECK(reflect_on(two * P, T) == two * reflect_on(P, T));
         }
 
         SUBCASE("projection and rejection split the input, and do it correctly")
@@ -6343,7 +6358,7 @@ TEST_SUITE("PGA 3DP Tests")
         // where it earns its keep: two parallel planes meet in a line at infinity, which
         // has no canonical representative -- unitize() would throw, try_unitize() does
         // not
-        auto const T_par = trivec3dp{T.x, T.y, T.z, T.w - 5.0}; // parallel, shifted
+        auto const T_par = trivec3dp{T.x, T.y, T.z, T.w - 5}; // parallel, shifted
         auto const l_inf = rwdg(T, T_par);
         CHECK(weight_nrm_sq(l_inf) == 0.0);
         CHECK(try_unitize(l_inf, &unitized) == l_inf);
@@ -6377,14 +6392,16 @@ TEST_SUITE("PGA 3DP Tests")
             // B ^ B grows with the components SQUARED, so an absolute bound would answer
             // false for a genuine line as soon as the coordinates carry a physical scale
             for (double s : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
-                auto const Ls = wdg(point3d{1.1 * s, 0.37 * s, 2.9 * s},
-                                    point3d{3.7 * s, 1.3 * s, 0.57 * s});
+                auto const sc = [s](double a) { return value_t(a * s); };
+                auto const Ls = wdg(point3d{sc(1.1), sc(0.37), sc(2.9)},
+                                    point3d{sc(3.7), sc(1.3), sc(0.57)});
                 INFO("scale = ", s, "  |B^B| = ", std::abs(value_t(wdg(Ls, Ls))));
                 CHECK(is_simple(bivec3dp(Ls)));
             }
             for (double s : {1.0, 1.0e3, 1.0e6}) {
+                auto const sc = [s](double a) { return value_t(a * s); };
                 auto const Ns =
-                    bivec3dp{1.0 * s, 0.5 * s, 2.0 * s, 0.25 * s, 3.0 * s, 1.0 * s};
+                    bivec3dp{sc(1.0), sc(0.5), sc(2.0), sc(0.25), sc(3.0), sc(1.0)};
                 INFO("scale = ", s);
                 CHECK(!is_simple(Ns));
             }
@@ -6400,29 +6417,28 @@ TEST_SUITE("PGA 3DP Tests")
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.
-        auto const ulp = [](double m) { return std::nextafter(m, 1e30) - m; };
+        auto const ulp = [](value_t m) { return std::nextafter(m, value_t(1e30)) - m; };
 
-        for (double const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+        for (value_t const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
             auto const u = ulp(m);
-            CHECK(vec3dp{m, m, m, 1.0} == vec3dp{m + u, m, m, 1.0}); // 1 ulp: inside
-            CHECK(vec3dp{m, m, m, 1.0} ==
-                  vec3dp{m + 4.0 * u, m, m, 1.0}); // 4 ulps: inside
+            CHECK(vec3dp{m, m, m, 1.0} == vec3dp{m + u, m, m, 1.0});     // 1 ulp: inside
+            CHECK(vec3dp{m, m, m, 1.0} == vec3dp{m + 4 * u, m, m, 1.0}); // 4 ulps: inside
             CHECK(vec3dp{m, m, m, 1.0} !=
-                  vec3dp{m + 100.0 * u, m, m, 1.0}); // 100 ulps: outside
+                  vec3dp{m + 100 * u, m, m, 1.0}); // 100 ulps: outside
         }
 
         // below unit scale the floor takes over, so the window stays absolute there --
         // a component that should vanish is compared against the tolerance itself
         CHECK(vec3dp{1.0e-9, 1.0e-9, 0.0, 1.0} ==
-              vec3dp{1.0e-9 + 5.0e-16, 1.0e-9, 0.0, 1.0});
+              vec3dp{1.0e-9 + scaled_tol(5.0e-16), 1.0e-9, 0.0, 1.0});
         CHECK(vec3dp{1.0e-9, 1.0e-9, 0.0, 1.0} !=
-              vec3dp{1.0e-9 + 1.0e-13, 1.0e-9, 0.0, 1.0});
+              vec3dp{1.0e-9 + scaled_tol(1.0e-13), 1.0e-9, 0.0, 1.0});
 
         // A NaN IS CLOSE TO NOTHING AND CONGRUENT TO NOTHING (2026-10-27). Both
         // comparators rejected with `difference >= tol`, which every comparison with NaN
         // fails, so a NaN component passed -- and a vector of NaNs read as a zero one,
         // congruent to another
-        double const nan = std::numeric_limits<double>::quiet_NaN();
+        value_t const nan = std::numeric_limits<value_t>::quiet_NaN();
         CHECK_FALSE(is_close(vec3dp{nan, 0.0, 0.0, 1.0}, O_3dp));
         CHECK_FALSE(is_close(O_3dp, vec3dp{nan, 0.0, 0.0, 1.0}));
         CHECK_FALSE(is_congruent(vec3dp{nan, 1.0, 0.0, 0.0}, vec3dp{0.0, 1.0, 0.0, 0.0}));
@@ -6441,25 +6457,25 @@ TEST_SUITE("PGA 3DP Tests")
         // read the skew's 0.3; parallel beside each other and one behind the other; the
         // same segment; a point and a segment; two points
         CHECK(std::abs(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(0, -1, 0),
-                                        P(0, 1, 0))) < 1.0e-15);
+                                        P(0, 1, 0))) < scaled_tol(1.0e-15));
         CHECK(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(0, -1, 0.3), P(0, 1, 0.3)) ==
-              doctest::Approx(0.3).epsilon(1.0e-14));
+              doctest::Approx(0.3).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(-1, 0, 0), P(1, 0, 0), P(2, -1, 0.3), P(2, 1, 0.3)) ==
-              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(1.0e-14));
+              doctest::Approx(std::hypot(1.0, 0.3)).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(0, 0, 0), P(1, 0, 0), P(0.2, 0.5, 0), P(0.9, 0.5, 0)) ==
-              doctest::Approx(0.5).epsilon(1.0e-14));
+              doctest::Approx(0.5).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(0, 0, 0), P(1, 0, 0), P(3, 0.5, 0), P(4, 0.5, 0)) ==
-              doctest::Approx(std::hypot(2.0, 0.5)).epsilon(1.0e-14));
+              doctest::Approx(std::hypot(2.0, 0.5)).epsilon(scaled_tol(1.0e-14)));
         CHECK(std::abs(segment_distance(P(0, 0, 0), P(1, 2, 3), P(0, 0, 0), P(1, 2, 3))) <
-              1.0e-15);
+              scaled_tol(1.0e-15));
         CHECK(segment_distance(P(0.5, 0.4, 0), P(0.5, 0.4, 0), P(0, 0, 0), P(1, 0, 0)) ==
-              doctest::Approx(0.4).epsilon(1.0e-14));
+              doctest::Approx(0.4).epsilon(scaled_tol(1.0e-14)));
         CHECK(segment_distance(P(1, 2, 3), P(1, 2, 3), P(4, 6, 3), P(4, 6, 3)) ==
-              doctest::Approx(5.0).epsilon(1.0e-14));
+              doctest::Approx(5.0).epsilon(scaled_tol(1.0e-14)));
         // the points' weights do not matter
         CHECK(segment_distance(vec3dp{-2, 0, 0, 2}, vec3dp{-3, 0, 0, -3},
                                vec3dp{0, -0.5, 0.15, 0.5}, vec3dp{0, 4, 1.2, 4}) ==
-              doctest::Approx(0.3).epsilon(1.0e-14));
+              doctest::Approx(0.3).epsilon(scaled_tol(1.0e-14)));
 
         // AGAINST A SEARCH: seeded segments, each sampled at 201 points. The sampled
         // least distance is never below the exact one and above it by at most half a
@@ -6491,7 +6507,8 @@ TEST_SUITE("PGA 3DP Tests")
             value_t const L1 = std::hypot(B1.x - A1.x, B1.y - A1.y, B1.z - A1.z);
             value_t const L2 = std::hypot(B2.x - A2.x, B2.y - A2.y, B2.z - A2.z);
             worst_below = std::max(worst_below, d - sampled);
-            worst_above = std::max(worst_above, (sampled - d) / ((L1 + L2) / 400.0));
+            worst_above =
+                std::max(worst_above, (sampled - d) / ((L1 + L2) / value_t(400.0)));
             auto const dl = dist3dp(wdg(A1, B1), wdg(A2, B2));
             value_t const lines = std::abs(value_t(dl.c0) / value_t(dl.c1));
             worst_line = std::max(worst_line, lines - d);
@@ -6501,9 +6518,9 @@ TEST_SUITE("PGA 3DP Tests")
                      "at most {:.1e}, the sampled one above it by at most {:.2f} of half "
                      "a spacing; {} pairs end on a segment's end (the lines are nearer)",
                      worst_below, worst_above, clamped);
-        CHECK(worst_below < 1.0e-12);
+        CHECK(worst_below < scaled_tol(1.0e-12));
         CHECK(worst_above <= 1.0);
-        CHECK(worst_line < 1.0e-12);
+        CHECK(worst_line < scaled_tol(1.0e-12));
         CHECK(clamped > 50); // the case the lines' distance cannot read is the common one
         fmt::println("");
     }
@@ -6513,29 +6530,30 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("PGA3dp: a convex region as its face planes");
         // the box 0.2 x 0.3 x 0.5 about (1, 2, 3)
         vec3dp const c{1.0, 2.0, 3.0, 1.0};
-        auto const box = box_faces(0.2, 0.3, 0.5, c);
+        auto const box = box_faces(value_t(0.2), value_t(0.3), value_t(0.5), c);
         auto P = [&](value_t x, value_t y, value_t z) {
             return vec3dp{c.x + x, c.y + y, c.z + z, 1.0};
         };
         size_t face = 99;
         // beside a face the value is the Euclidean distance, and names the face
         CHECK(convex_distance(box, P(0.35, 0.0, 0.0), &face) ==
-              doctest::Approx(0.25).epsilon(1.0e-14));
+              doctest::Approx(0.25).epsilon(scaled_tol(1.0e-14)));
         CHECK(face == 0); // +x
         CHECK(convex_distance(box, P(0.0, -0.45, 0.1), &face) ==
-              doctest::Approx(0.30).epsilon(1.0e-14));
+              doctest::Approx(0.30).epsilon(scaled_tol(1.0e-14)));
         CHECK(face == 3); // -y
         // inside it is negative: minus the depth below the nearest face
         CHECK(convex_distance(box, P(0.0, 0.0, 0.0)) ==
-              doctest::Approx(-0.1).epsilon(1.0e-14));
+              doctest::Approx(-0.1).epsilon(scaled_tol(1.0e-14)));
         CHECK(convex_distance(box, P(0.0, 0.0, 0.2)) ==
-              doctest::Approx(-0.05).epsilon(1.0e-14));
+              doctest::Approx(-0.05).epsilon(scaled_tol(1.0e-14)));
         // beside an edge it is the larger face distance, below the Euclidean one
         value_t const edge = convex_distance(box, P(0.1 + 0.03, 0.15 + 0.04, 0.0));
-        CHECK(edge == doctest::Approx(0.04).epsilon(1.0e-13));
+        CHECK(edge == doctest::Approx(0.04).epsilon(scaled_tol(1.0e-13)));
         CHECK(edge < std::hypot(0.03, 0.04));
         // a centre of any weight, and no faces at all
-        auto const box2 = box_faces(0.2, 0.3, 0.5, vec3dp{2.0, 4.0, 6.0, 2.0});
+        auto const box2 = box_faces(value_t(0.2), value_t(0.3), value_t(0.5),
+                                    vec3dp{2.0, 4.0, 6.0, 2.0});
         for (size_t i = 0; i < 6; ++i)
             CHECK(box2[i] == box[i]);
         CHECK(convex_distance(std::vector<trivec3dp>{}, P(0, 0, 0)) ==
@@ -6573,7 +6591,7 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(t_min <= 1.0);
             value_t const len = std::hypot(B.x - A.x, B.y - A.y, B.z - A.z);
             worst_below = std::max(worst_below, d - sampled);
-            worst_above = std::max(worst_above, (sampled - d) / (len / 2000.0));
+            worst_above = std::max(worst_above, (sampled - d) / (len / value_t(2000.0)));
             (d < 0.0 ? inside : outside)++;
         }
         fmt::println("    300 seeded segments ({} through the box, {} past it): the "
@@ -6581,23 +6599,23 @@ TEST_SUITE("PGA 3DP Tests")
                      "one above it by at most {:.2f} of a spacing; attained where "
                      "reported to {:.1e}",
                      inside, outside, worst_below, worst_above, worst_t);
-        CHECK(worst_below < 1.0e-13);
+        CHECK(worst_below < scaled_tol(1.0e-13));
         CHECK(worst_above <= 1.0);
-        CHECK(worst_t < 1.0e-13);
+        CHECK(worst_t < scaled_tol(1.0e-13));
         CHECK(inside > 30);
         CHECK(outside > 30);
 
         // A FACE IS CARRIED BY A MOTOR: the box moved by M reads a moved point as the
         // box at rest reads the point
         auto const M = get_motor(
-            unitize(wdg(vec3dp{0.3, -0.2, 0.1, 1.0}, vec3dp{0.5, 0.4, 1.0, 1.0})), 0.7,
-            0.25);
+            unitize(wdg(vec3dp{0.3, -0.2, 0.1, 1.0}, vec3dp{0.5, 0.4, 1.0, 1.0})),
+            value_t(0.7), value_t(0.25));
         std::vector<trivec3dp> moved;
         for (auto const& f : box)
             moved.push_back(move3dp(f, M));
         vec3dp const Q = P(0.4, -0.1, 0.3);
         CHECK(convex_distance(moved, move3dp(Q, M)) ==
-              doctest::Approx(convex_distance(box, Q)).epsilon(1.0e-13));
+              doctest::Approx(convex_distance(box, Q)).epsilon(scaled_tol(1.0e-13)));
         // ...and a face through three points: its normal on the side from which they
         // run counter-clockwise (the right-hand rule), here the box's top
         trivec3dp const top =

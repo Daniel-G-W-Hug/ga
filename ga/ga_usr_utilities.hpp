@@ -6,6 +6,7 @@
 #include <algorithm> // std::clamp, std::max, std::min (adaptive step controller)
 #include <array>     // std::array (rk4_step vector overload)
 #include <cmath>     // std::cos, std::sin
+#include <limits>    // std::numeric_limits (detail::min_step_divisor)
 #include <mdspan>    // std::mdspan, std::dextents (used by rk4_step)
 #include <numbers>   // math constants like pi
 #include <stdexcept> // std::invalid_argument
@@ -37,6 +38,16 @@ constexpr value_t radps2rpm(value_t value) { return value * 60.0 / (2.0 * pi); }
 // radians per second [rad/s = radps]
 constexpr value_t Hz2radps(value_t value) { return value * 2.0 * pi; };
 constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
+
+namespace detail {
+
+// the smallest step the bounds below divide by, so that dt == 0 cannot divide by zero:
+// 1e-300 in double; in float, where 1e-300 underflows to zero and the guard would be
+// void, the smallest normal float instead
+inline constexpr value_t min_step_divisor =
+    std::max(value_t(1.0e-300), std::numeric_limits<value_t>::min());
+
+} // namespace detail
 
 // WHICH INERTIA `I` IS, when the spring sits on a joint (it is not obvious, and it is
 // not a norm of anything). The pga physics carries a body's inertia as the MAP
@@ -98,7 +109,7 @@ inline value_t critical_damping(value_t k, value_t I)
 // physics it is modelling still looks perfectly reasonable.
 inline value_t max_explicit_stiffness(value_t I, value_t dt, value_t ratio = 1.0)
 {
-    value_t const r = ratio / (2.0 * std::max(dt, value_t(1.0e-300)));
+    value_t const r = ratio / (2.0 * std::max(dt, detail::min_step_divisor));
     return std::max(value_t(0.0), I) * r * r;
 }
 
@@ -127,7 +138,7 @@ inline value_t stopping_accel_bound(value_t distance, value_t rate, value_t a_ma
 {
     value_t const d = std::max(value_t(0), distance);
     value_t const v_allow = std::sqrt(2.0 * std::max(value_t(0), a_max) * d);
-    return (v_allow - rate) / std::max(dt, value_t(1.0e-300));
+    return (v_allow - rate) / std::max(dt, detail::min_step_divisor);
 }
 
 // step functions mapping x to the range [0.0, 1.0] (e.g. for blending/easing):
@@ -139,7 +150,7 @@ inline value_t stopping_accel_bound(value_t distance, value_t rate, value_t a_ma
 //
 constexpr value_t linear_step(value_t low_x, value_t high_x, value_t x)
 {
-    return std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+    return std::clamp((x - low_x) / (high_x - low_x), value_t(0.0), value_t(1.0));
 }
 
 //                  0.                for x < low_x
@@ -150,7 +161,8 @@ constexpr value_t linear_step(value_t low_x, value_t high_x, value_t x)
 //
 constexpr value_t smooth_step(value_t low_x, value_t high_x, value_t x)
 {
-    value_t const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+    value_t const t =
+        std::clamp((x - low_x) / (high_x - low_x), value_t(0.0), value_t(1.0));
     return t * t * (3.0 - 2.0 * t);
 }
 
@@ -162,7 +174,8 @@ constexpr value_t smooth_step(value_t low_x, value_t high_x, value_t x)
 //
 constexpr value_t smoother_step(value_t low_x, value_t high_x, value_t x)
 {
-    value_t const t = std::clamp((x - low_x) / (high_x - low_x), 0.0, 1.0);
+    value_t const t =
+        std::clamp((x - low_x) / (high_x - low_x), value_t(0.0), value_t(1.0));
     return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
@@ -449,11 +462,11 @@ rk4_step(std::vector<VecType> u, std::array<std::vector<VecType>, 2> uh,
 ////////////////////////////////////////////////////////////////////////////////
 // Uniform ODE integrators with a callable right-hand side
 //
-// Both classes integrate  du/dt = f(t, u)  for a flat state std::vector<double> via a
+// Both classes integrate  du/dt = f(t, u)  for a flat state std::vector<value_t> via a
 // single  step(f, u, t, dt) -> t + dt  call that advances `u` in place. `f` is any
 // callable
 //
-//     void f(double t, std::vector<double> const& u, std::vector<double>& dudt)
+//     void f(value_t t, std::vector<value_t> const& u, std::vector<value_t>& dudt)
 //
 // writing the derivative into the provided buffer (no allocation in the hot loop). The
 // uniform interface lets a caller swap integrators and benchmark them head to head; it is
@@ -471,12 +484,12 @@ class rk4_integrator {
 
     // advance u from t to t + dt in place (4 rhs evaluations); returns t + dt.
     template <typename RHS>
-    double step(RHS&& f, std::vector<double>& u, double t, double dt)
+    value_t step(RHS&& f, std::vector<value_t>& u, value_t t, value_t dt)
     {
         size_t const n = u.size();
-        auto us = std::mdspan<double, std::dextents<size_t, 1>>(u.data(), n);
-        auto uhs = std::mdspan<double, std::dextents<size_t, 2>>(uh_.data(), 2, n);
-        auto rs = std::mdspan<double const, std::dextents<size_t, 1>>(rhs_.data(), n);
+        auto us = std::mdspan<value_t, std::dextents<size_t, 1>>(u.data(), n);
+        auto uhs = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_.data(), 2, n);
+        auto rs = std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_.data(), n);
         for (size_t s = 1; s <= 4; ++s) {
             // rhs at the current substage state, evaluated at the substage time
             f(rk4_get_time(t, dt, s - 1), u, rhs_);
@@ -487,8 +500,8 @@ class rk4_integrator {
 
   private:
 
-    std::vector<double> uh_;  // [2 x n] RK4 scratch (flattened)
-    std::vector<double> rhs_; // per-substage derivative buffer
+    std::vector<value_t> uh_;  // [2 x n] RK4 scratch (flattened)
+    std::vector<value_t> rhs_; // per-substage derivative buffer
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -515,7 +528,7 @@ class abm2_integrator {
     // advance u from t to t + dt in place (2 rhs evaluations after self-start); returns
     // t + dt. The first call self-starts with a single RK4 step.
     template <typename RHS>
-    double step(RHS&& f, std::vector<double>& u, double t, double dt)
+    value_t step(RHS&& f, std::vector<value_t>& u, value_t t, value_t dt)
     {
         size_t const n = u.size();
         if (!started_) {
@@ -542,8 +555,8 @@ class abm2_integrator {
 
     rk4_integrator rk4_; // self-start for the first step
     bool started_{false};
-    std::vector<double> f_n_, f_nm1_; // f(t_n, u_n), f(t_{n-1}, u_{n-1})
-    std::vector<double> u_p_, f_p_;   // predictor state + its derivative
+    std::vector<value_t> f_n_, f_nm1_; // f(t_n, u_n), f(t_{n-1}, u_{n-1})
+    std::vector<value_t> u_p_, f_p_;   // predictor state + its derivative
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -573,8 +586,8 @@ class abm2_adaptive_integrator {
 
   public:
 
-    explicit abm2_adaptive_integrator(size_t n, double dt_min = 1.0e-12,
-                                      double dt_max = 1.0e30) :
+    explicit abm2_adaptive_integrator(size_t n, value_t dt_min = 1.0e-12,
+                                      value_t dt_max = 1.0e30) :
         rk4_(n), f_n_(n), f_nm1_(n), u_p_(n), u_c_(n), f_tmp_(n), dt_min_(dt_min),
         dt_max_(dt_max)
     {
@@ -585,8 +598,8 @@ class abm2_adaptive_integrator {
     // per-component tolerance. Internally rejects + retries with a smaller step until err
     // <= 1 (or dt_min). Returns t + (accepted step).
     template <typename RHS>
-    double step(RHS&& f, std::vector<double>& u, double t, double& dt, double atol,
-                double rtol)
+    value_t step(RHS&& f, std::vector<value_t>& u, value_t t, value_t& dt, value_t atol,
+                 value_t rtol)
     {
         size_t const n = u.size();
         if (!started_) {
@@ -600,18 +613,18 @@ class abm2_adaptive_integrator {
             return t + dt;
         }
         for (;;) {
-            double const r = dt / h_prev_;
+            value_t const r = dt / h_prev_;
             for (size_t i = 0; i < n; ++i) // variable-step AB2 predictor
                 u_p_[i] = u[i] + dt * ((1.0 + 0.5 * r) * f_n_[i] - 0.5 * r * f_nm1_[i]);
             f(t + dt, u_p_, f_tmp_);       // E (f at predictor)
             for (size_t i = 0; i < n; ++i) // trapezoidal corrector (ratio-invariant)
                 u_c_[i] = u[i] + 0.5 * dt * (f_tmp_[i] + f_n_[i]);
 
-            double err = 0.0; // scaled local error estimate (Milne 1/6), infinity norm
+            value_t err = 0.0; // scaled local error estimate (Milne 1/6), infinity norm
             for (size_t i = 0; i < n; ++i) {
-                double const sc =
+                value_t const sc =
                     atol + rtol * std::max(std::abs(u[i]), std::abs(u_c_[i]));
-                err = std::max(err, std::abs(u_c_[i] - u_p_[i]) / (6.0 * sc));
+                err = std::max(err, std::abs(u_c_[i] - u_p_[i]) / (value_t(6.0) * sc));
             }
 
             if (err <= 1.0 || dt <= dt_min_ * (1.0 + 1.0e-9)) { // accept
@@ -622,28 +635,29 @@ class abm2_adaptive_integrator {
                 f_n_.swap(f_tmp_);
                 h_prev_ = dt;
                 last_dt_ = dt;
-                double const t_new = t + dt;
-                double const fac =
+                value_t const t_new = t + dt;
+                value_t const fac =
                     (err > 0.0) ? 0.9 * std::pow(1.0 / err, 1.0 / 3.0) : 5.0;
-                dt = std::clamp(dt * std::clamp(fac, 0.2, 5.0), dt_min_, dt_max_);
+                dt = std::clamp(dt * std::clamp(fac, value_t(0.2), value_t(5.0)), dt_min_,
+                                dt_max_);
                 ++accepted_;
                 return t_new;
             }
             ++rejected_; // reject: shrink and retry
-            double const fac = 0.9 * std::pow(1.0 / err, 1.0 / 3.0);
-            dt = std::max(dt * std::clamp(fac, 0.1, 1.0), dt_min_);
+            value_t const fac = 0.9 * std::pow(1.0 / err, 1.0 / 3.0);
+            dt = std::max(dt * std::clamp(fac, value_t(0.1), value_t(1.0)), dt_min_);
         }
     }
 
     // Integrate from t0 to t_end starting with dt0; the final step is clamped to land
     // exactly on t_end. Returns t_end. accepted()/rejected()/last_dt() report the run.
     template <typename RHS>
-    double integrate(RHS&& f, std::vector<double>& u, double t0, double t_end, double dt0,
-                     double atol, double rtol)
+    value_t integrate(RHS&& f, std::vector<value_t>& u, value_t t0, value_t t_end,
+                      value_t dt0, value_t atol, value_t rtol)
     {
-        double t = t0, dt = dt0;
-        while (t < t_end - 1.0e-12 * std::max(1.0, std::abs(t_end))) {
-            double dt_io = std::min(dt, t_end - t); // clamp to land on t_end
+        value_t t = t0, dt = dt0;
+        while (t < t_end - 1.0e-12 * std::max(value_t(1.0), std::abs(t_end))) {
+            value_t dt_io = std::min(dt, t_end - t); // clamp to land on t_end
             t = step(f, u, t, dt_io, atol, rtol);
             dt = dt_io;
         }
@@ -657,17 +671,17 @@ class abm2_adaptive_integrator {
     }
     size_t accepted() const { return accepted_; }
     size_t rejected() const { return rejected_; }
-    double last_dt() const { return last_dt_; }
+    value_t last_dt() const { return last_dt_; }
 
   private:
 
     rk4_integrator rk4_; // self-start for the first step
     bool started_{false};
-    std::vector<double> f_n_, f_nm1_;       // f(t_n, u_n), f(t_{n-1}, u_{n-1})
-    std::vector<double> u_p_, u_c_, f_tmp_; // predictor / corrector / scratch derivative
-    double h_prev_{0.0};                    // last accepted step (for the step ratio r)
-    double last_dt_{0.0};                   // last accepted step (diagnostic)
-    double dt_min_, dt_max_;
+    std::vector<value_t> f_n_, f_nm1_;       // f(t_n, u_n), f(t_{n-1}, u_{n-1})
+    std::vector<value_t> u_p_, u_c_, f_tmp_; // predictor / corrector / scratch derivative
+    value_t h_prev_{0.0};                    // last accepted step (for the step ratio r)
+    value_t last_dt_{0.0};                   // last accepted step (diagnostic)
+    value_t dt_min_, dt_max_;
     size_t accepted_{0}, rejected_{0};
 };
 

@@ -302,9 +302,9 @@ TEST_SUITE("CGA contracts")
         double const nx = dx / d, ny = dy / d, nz = dz / d;
         auto const P = rgpr(plane3dc(nx, ny, nz, 0.5 * d), plane3dc(nx, ny, nz, 0.0));
         mvec3dc_u const M = gr1(P) + gr3(P) + gr5(P);
-        double const s = double(gr5(M));                  // the central part
-        double const sig = double(gr5(rgpr(M, rrev(M)))); // M rrev(M) = sig I
-        CHECK(std::abs(sig - s * s) < 1.0e-12);           // sig = s^2
+        double const s = double(gr5(M));                    // the central part
+        double const sig = double(gr5(rgpr(M, rrev(M))));   // M rrev(M) = sig I
+        CHECK(std::abs(sig - s * s) < scaled_tol(1.0e-12)); // sig = s^2
         CHECK(std::abs(s - 0.7928) < 1.0e-4);
         // FAILING: read as it stands, the central part s is cosh(w) with w imaginary --
         // a rotation by 2 acos(s)
@@ -313,10 +313,11 @@ TEST_SUITE("CGA contracts")
         // WORKING: rlog divides s out; the generator is the unit translation's, and it
         // generates the same transformation
         auto const T = get_translation(dx, dy, dz);
-        CHECK(std::abs(double(gr5(rgpr(T, rrev(T)))) - 1.0) < 1.0e-12); // a unit motor
+        CHECK(std::abs(double(gr5(rgpr(T, rrev(T)))) - 1.0) <
+              scaled_tol(1.0e-12)); // a unit motor
         CHECK(is_same_transform(M, T));
         auto const diff = rlog(M) - rlog(T);
-        CHECK(std::sqrt(detail::coeff_sq(diff)) < 1.0e-12);
+        CHECK(std::sqrt(detail::coeff_sq(diff)) < scaled_tol(1.0e-12));
         CHECK(is_same_transform(rexp(rlog(M)), M));
         fmt::println(
             "    |d| = {:.4f}: central part s = {:.4f}, M rrev(M) = {:.4f} I = s^2 I", d,
@@ -362,8 +363,10 @@ TEST_SUITE("CGA contracts")
             auto const t3 = rlog(R3);
             double const e3 =
                 std::abs(2.0 * std::sqrt(-double(gr5(rgpr(t3, t3)))) - expect);
-            CHECK(e2 < 1.0e-13);
-            CHECK(e3 < 1.0e-13);
+            if constexpr (value_t_is_double) { // the band is placed in double's units
+                CHECK(e2 < 1.0e-13);
+                CHECK(e3 < 1.0e-13);
+            }
             CHECK(is_same_transform(rexp(t2), R2));
             CHECK(is_same_transform(rexp(t3), R3));
             if (inside) {

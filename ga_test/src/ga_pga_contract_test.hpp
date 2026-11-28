@@ -398,7 +398,7 @@ TEST_SUITE("PGA contracts")
         trivec3dp const plane(0.0, 0.0, 1.0, -3.0);
         REQUIRE(value_t(wdg(on_plane, plane)) == doctest::Approx(0.0));
         CHECK(value_t(wdg(move3dp(on_plane, M3), move3dp(plane, M3))) ==
-              doctest::Approx(0.0).epsilon(1.0e-12));
+              doctest::Approx(0.0).epsilon(scaled_tol(1.0e-12)));
 
         // a motion of a full multivector moves each grade (a unit motor leaves the scalar
         // and the pseudoscalar parts unchanged)
@@ -602,13 +602,17 @@ TEST_SUITE("PGA contracts")
         // through two close points -- was used as it stood: a 90 deg turn of (2, 2)
         // about the point (1, 2) at weight 1e-9 returned (2, 2), and get_motor(L, theta)
         // refused a line unitize() accepts.
-        vec2dp const P{1.0e-9, 2.0e-9, 1.0e-9};
+        //
+        // The weights are 1e-9 and 1e-8 in double; float's floor (5 eps, ~6e-7) refuses
+        // those as ideal by design, so there the small weights are 1e-5 and 1e-4.
+        value_t const w = per_precision(1.0e-9, 1.0e-5);
+        vec2dp const P{w, 2 * w, w};
         CHECK(is_same_motion(get_motor(P, pi / 2), get_motor(unitize(P), pi / 2)));
         CHECK(is_close(unitize(move2dp(vec2dp{2.0, 2.0, 1.0}, get_motor(P, pi / 2))),
                        vec2dp{1.0, 3.0, 1.0}));
 
-        bivec3dp const shortx =
-            wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0e-8, 0.0, 0.0, 1.0});
+        bivec3dp const shortx = wdg(vec3dp{0.0, 0.0, 0.0, 1.0},
+                                    vec3dp{per_precision(1.0e-8, 1.0e-4), 0.0, 0.0, 1.0});
         bivec3dp const y_axis =
             wdg(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 1.0});
         CHECK(is_same_motion(get_motor_from_lines(shortx, y_axis),
@@ -674,21 +678,23 @@ TEST_SUITE("PGA contracts")
         bivec3dp const B{0.3, 0.1, -0.2, 0.5, 0.7, -0.4};
         auto const Bs = bivec3dp(1.0e-4 * B);
         auto const P = Bs * inv(Bs);
-        CHECK(std::abs(value_t(gr0(P)) - 1.0) < 1.0e-12);
+        CHECK(std::abs(value_t(gr0(P)) - 1.0) < scaled_tol(1.0e-12));
         CHECK(is_close(inv(Bs), bivec3dp(1.0e4 * inv(B))));
-        // a projection onto a plane scaled by 1e-8 is the projection onto the plane
+        // a projection onto a plane scaled by 1e-8 is the projection onto the plane (by
+        // 1e-4 in float, whose floor of 5 eps refuses a weight of 1e-8 as ideal)
         trivec3dp const pl =
             wdg(wdg(vec3dp{0.0, 0.0, 1.0, 1.0}, vec3dp{1.0, 0.0, 1.0, 1.0}),
                 vec3dp{0.0, 1.0, 1.2, 1.0});
         vec3dp const X{0.4, -0.3, 2.0, 1.0};
-        CHECK(is_close(unitize(project_onto(X, trivec3dp(1.0e-8 * pl))),
-                       unitize(project_onto(X, pl))));
+        CHECK(is_close(
+            unitize(project_onto(X, trivec3dp(per_precision(1.0e-8, 1.0e-4) * pl))),
+            unitize(project_onto(X, pl))));
         // angle between small directions
         CHECK(
             std::abs(angle(vec3dp{1.0e-9, 0.0, 0.0, 0.0}, vec3dp{0.0, 1.0e-9, 0.0, 0.0}) -
-                     0.5 * pi) < 1.0e-12);
+                     0.5 * pi) < scaled_tol(1.0e-12));
         CHECK(std::abs(angle(vec2dp{1.0e-9, 0.0, 0.0}, vec2dp{0.0, 1.0e-9, 0.0}) -
-                       0.5 * pi) < 1.0e-12);
+                       0.5 * pi) < scaled_tol(1.0e-12));
         CHECK_THROWS(angle(vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 0.0, 0.0}));
     }
     TEST_CASE("pga2dp / pga3dp: reading a motion off a motor -- the shortest motion")
@@ -705,11 +711,13 @@ TEST_SUITE("PGA contracts")
               std::pair{361.0, 1.0}, std::pair{450.0, 90.0}, std::pair{-200.0, 160.0}}) {
             CAPTURE(a);
             auto const Y = yaw(a * deg);
-            CHECK(std::abs(2.0 * rlog_shortest(Y).vz - e * deg) < 1.0e-12);
-            CHECK(std::abs(2.0 * rlog_shortest(mvec3dp_e(-Y)).vz - e * deg) < 1.0e-12);
+            CHECK(std::abs(2.0 * rlog_shortest(Y).vz - e * deg) < scaled_tol(1.0e-12));
+            CHECK(std::abs(2.0 * rlog_shortest(mvec3dp_e(-Y)).vz - e * deg) <
+                  scaled_tol(1.0e-12));
             auto const R = get_motor(vec2dp{0.0, 0.0, 1.0}, a * deg);
-            CHECK(std::abs(2.0 * rlog_shortest(R).z - e * deg) < 1.0e-12);
-            CHECK(std::abs(2.0 * rlog_shortest(mvec2dp_u(-R)).z - e * deg) < 1.0e-12);
+            CHECK(std::abs(2.0 * rlog_shortest(R).z - e * deg) < scaled_tol(1.0e-12));
+            CHECK(std::abs(2.0 * rlog_shortest(mvec2dp_u(-R)).z - e * deg) <
+                  scaled_tol(1.0e-12));
         }
         // the shortest generator still generates the motion, a screw included
         bivec3dp const L =
@@ -750,7 +758,7 @@ TEST_SUITE("PGA contracts")
             CHECK(is_same_motion(rgpr(Y, rexp(0.5 * e)), M));
             CHECK(is_same_motion(rgpr(rexp(0.5 * motion_error_world(Y, M)), Y), M));
         }
-        CHECK(worst_rel < 1.0e-14);
+        CHECK(worst_rel < scaled_tol(1.0e-14));
         CHECK(worst_abs > 100.0);
         fmt::println(
             "    the roll from the relative motor: off by {:.1e}; from the absolute "
@@ -776,8 +784,8 @@ TEST_SUITE("PGA contracts")
         auto absolute3 = [](std::vector<mvec3dp_e> const& m) {
             return bivec3dp(2.0 * rlog(m[1]) - 2.0 * rlog(m[0]));
         };
-        CHECK(equivariance::body_invariance3dp(body3, scene3) < 1.0e-12);
-        CHECK(equivariance::world_covariance3dp(world3, scene3) < 1.0e-12);
+        CHECK(equivariance::body_invariance3dp(body3, scene3) < scaled_tol(1.0e-12));
+        CHECK(equivariance::world_covariance3dp(world3, scene3) < scaled_tol(1.0e-12));
         CHECK(equivariance::body_invariance3dp(absolute3, scene3) > 0.1);
         CHECK(equivariance::world_covariance3dp(absolute3, scene3) > 0.1);
         std::vector<mvec2dp_u> const scene2{get_motor(vec2dp{1.0, 2.0, 1.0}, 0.8),
@@ -791,8 +799,8 @@ TEST_SUITE("PGA contracts")
         auto absolute2 = [](std::vector<mvec2dp_u> const& m) {
             return vec2dp(2.0 * rlog(m[1]) - 2.0 * rlog(m[0]));
         };
-        CHECK(equivariance::body_invariance2dp(body2, scene2) < 1.0e-12);
-        CHECK(equivariance::world_covariance2dp(world2, scene2) < 1.0e-12);
+        CHECK(equivariance::body_invariance2dp(body2, scene2) < scaled_tol(1.0e-12));
+        CHECK(equivariance::world_covariance2dp(world2, scene2) < scaled_tol(1.0e-12));
         CHECK(equivariance::body_invariance2dp(absolute2, scene2) > 0.1);
         CHECK(equivariance::world_covariance2dp(absolute2, scene2) > 0.1);
         fmt::println(
@@ -822,17 +830,18 @@ TEST_SUITE("PGA contracts")
             value_t worst = 0.0, worst_plain = 0.0;
             for (int k = 1; k <= 40; ++k) {
                 value_t const psi = k * step * deg;
-                auto const S = get_motor(Lz, psi, 0.25); // a screw about a vertical axis
+                auto const S =
+                    get_motor(Lz, psi, value_t(0.25)); // a screw about a vertical axis
                 L3 = rlog_continued(S, L3);
                 CHECK(is_same_motion(rexp(L3), S));
                 auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, psi);
                 L2 = rlog_continued(P, L2);
                 CHECK(is_same_motion(rexp(L2), P));
                 worst = std::max(
-                    {worst, std::abs(2.0 * L3.vz - psi), std::abs(2.0 * L2.z - psi)});
-                worst_plain = std::max(worst_plain, std::abs(2.0 * rlog(S).vz - psi));
+                    {worst, std::abs(2 * L3.vz - psi), std::abs(2 * L2.z - psi)});
+                worst_plain = std::max(worst_plain, std::abs(2 * rlog(S).vz - psi));
             }
-            CHECK(worst < 1.0e-12);
+            CHECK(worst < scaled_tol(1.0e-12));
             CHECK(worst_plain > 6.0); // whole turns lost
             fmt::println(
                 "    {:+.0f} deg per read, 40 reads: the continued angle off by {:.1e} "
@@ -845,15 +854,15 @@ TEST_SUITE("PGA contracts")
         bivec3dp L3{};
         vec2dp L2{};
         for (int k = 1; k <= 41; ++k) {
-            auto const S = get_motor(Lz, k * 90.0 * deg, 0.25);
+            auto const S = get_motor(Lz, k * 90 * deg, value_t(0.25));
             L3 = rlog_continued(S, L3);
             CHECK(is_same_motion(rexp(L3), S));
-            auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, k * 90.0 * deg);
+            auto const P = get_motor(vec2dp{1.0, 2.0, 1.0}, k * 90 * deg);
             L2 = rlog_continued(P, L2);
             CHECK(is_same_motion(rexp(L2), P));
         }
-        CHECK(std::abs(2.0 * L3.vz - 41 * 90.0 * deg) < 1.0e-12);
-        CHECK(std::abs(2.0 * L2.z - 41 * 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(2.0 * L3.vz - 41 * 90.0 * deg) < scaled_tol(1.0e-12));
+        CHECK(std::abs(2.0 * L2.z - 41 * 90.0 * deg) < scaled_tol(1.0e-12));
         // a translation, with no turns behind it, is rlog's
         auto const T = get_motor(vec3dp{0.4, -1.1, 0.3, 0.0});
         CHECK(rlog_continued(T, bivec3dp{}) == rlog(T));
@@ -901,19 +910,20 @@ TEST_SUITE("PGA contracts")
                      "read back to {:.1e} rad, the carried axis where the swing puts it "
                      "to {:.1e}",
                      worst, worst_swing);
-        CHECK(worst < 1.0e-13);
-        CHECK(worst_swing < 1.0e-14);
+        CHECK(worst < scaled_tol(1.0e-13));
+        CHECK(worst_swing < scaled_tol(1.0e-14));
 
         // A pure rotation about the direction reads its own angle, reduced to the
         // shortest: 3.5 rad about a is -(2 pi - 3.5)
-        CHECK(turn_about(get_motor(axis_line(a), 3.5), a) ==
-              doctest::Approx(3.5 - 2.0 * pi).epsilon(1.0e-13));
+        CHECK(turn_about(get_motor(axis_line(a), value_t(3.5)), a) ==
+              doctest::Approx(3.5 - 2.0 * pi).epsilon(scaled_tol(1.0e-13)));
         // ...and one about a perpendicular axis has no turn about a at all
-        CHECK(std::abs(turn_about(get_motor(axis_line(vec3dp{1.0, 0.0, 0.0, 0.0}), 1.3),
-                                  a)) < 1.0e-15);
+        CHECK(std::abs(turn_about(
+                  get_motor(axis_line(vec3dp{1.0, 0.0, 0.0, 0.0}), value_t(1.3)), a)) <
+              scaled_tol(1.0e-15));
         // a direction is asked for
-        CHECK_THROWS(
-            (void)turn_about(get_motor(axis_line(a), 0.4), vec3dp{0.0, 0.0, 0.0, 1.0}));
+        CHECK_THROWS((void)turn_about(get_motor(axis_line(a), value_t(0.4)),
+                                      vec3dp{0.0, 0.0, 0.0, 1.0}));
 
         // THE EQUIVARIANCE PATTERN: the turn of the motor from frame 0 to frame 1 about
         // frame 0's own axis is a body-frame reading and does not change when the
@@ -931,7 +941,7 @@ TEST_SUITE("PGA contracts")
         auto absolute = [&](std::vector<mvec3dp_e> const& m) {
             return bivec3dp{turn_about(m[1], a), 0.0, 0.0, 0.0, 0.0, 0.0};
         };
-        CHECK(equivariance::body_invariance3dp(relative, scene) < 1.0e-12);
+        CHECK(equivariance::body_invariance3dp(relative, scene) < scaled_tol(1.0e-12));
         CHECK(equivariance::body_invariance3dp(absolute, scene) > 0.1);
         fmt::println("");
     }
@@ -952,32 +962,32 @@ TEST_SUITE("PGA contracts")
         REQUIRE(is_same_motion(M, Mn));
         auto const old_p = screw_axis(bivec3dp(2.0 * rlog(M)));
         auto const old_n = screw_axis(bivec3dp(2.0 * rlog(Mn)));
-        CHECK(std::abs(old_p.angle - 90.0 * deg) < 1.0e-12);
-        CHECK(std::abs(old_n.angle - 270.0 * deg) < 1.0e-12);
+        CHECK(std::abs(old_p.angle - 90.0 * deg) < scaled_tol(1.0e-12));
+        CHECK(std::abs(old_n.angle - 270.0 * deg) < scaled_tol(1.0e-12));
         CHECK(is_close(old_n.axis, bivec3dp(-old_p.axis)));
         auto const sp = screw_axis(M), sn = screw_axis(Mn);
-        CHECK(std::abs(sp.angle - 90.0 * deg) < 1.0e-12);
-        CHECK(std::abs(sn.angle - sp.angle) < 1.0e-12);
-        CHECK(std::abs(sn.dist - sp.dist) < 1.0e-12);
-        CHECK(std::abs(sp.dist - 0.35) < 1.0e-12);
+        CHECK(std::abs(sp.angle - 90.0 * deg) < scaled_tol(1.0e-12));
+        CHECK(std::abs(sn.angle - sp.angle) < scaled_tol(1.0e-12));
+        CHECK(std::abs(sn.dist - sp.dist) < scaled_tol(1.0e-12));
+        CHECK(std::abs(sp.dist - 0.35) < scaled_tol(1.0e-12));
         CHECK(is_close(sn.axis, sp.axis));
         CHECK(is_same_motion(get_motor(sn.axis, sn.angle, sn.dist), M));
         // a screw built past a half turn comes back as its complement about the reversed
         // axis, with the translation along that axis: the same motion
         auto const s270 = screw_axis(get_motor(l, 270.0 * deg, 0.35));
-        CHECK(std::abs(s270.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(s270.angle - 90.0 * deg) < scaled_tol(1.0e-12));
         CHECK(is_close(s270.axis, bivec3dp(-l)));
-        CHECK(std::abs(s270.dist + 0.35) < 1.0e-12);
+        CHECK(std::abs(s270.dist + 0.35) < scaled_tol(1.0e-12));
         CHECK(is_same_motion(get_motor(s270.axis, s270.angle, s270.dist),
                              get_motor(l, 270.0 * deg, 0.35)));
         // the same in the plane
         mvec2dp_u const P = get_motor(vec2dp{1.0, 2.0, 1.0}, 90.0 * deg);
         mvec2dp_u const Pn{-P};
         auto const old2 = screw_axis(vec2dp(2.0 * rlog(Pn)));
-        CHECK(std::abs(old2.angle + 270.0 * deg) < 1.0e-12);
+        CHECK(std::abs(old2.angle + 270.0 * deg) < scaled_tol(1.0e-12));
         auto const s2 = screw_axis(P), s2n = screw_axis(Pn);
-        CHECK(std::abs(s2.angle - 90.0 * deg) < 1.0e-12);
-        CHECK(std::abs(s2n.angle - 90.0 * deg) < 1.0e-12);
+        CHECK(std::abs(s2.angle - 90.0 * deg) < scaled_tol(1.0e-12));
+        CHECK(std::abs(s2n.angle - 90.0 * deg) < scaled_tol(1.0e-12));
         CHECK(is_close(s2n.centre, vec2dp{1.0, 2.0, 1.0}));
         fmt::println(
             "    failing (rlog):       M reads {:.0f} deg, -M {:.0f} deg about the "
@@ -992,6 +1002,11 @@ TEST_SUITE("PGA contracts")
 
     TEST_CASE("pga2dp / pga3dp: the rate of a motor and the rate of its generator")
     {
+        if constexpr (!value_t_is_double) {
+            MESSAGE("skipped with value_t = float: the rates are central differences at "
+                    "h = 1e-6, below float's resolution");
+            return;
+        }
         fmt::println("pga2dp / pga3dp: the rate of a motor against the rate of its "
                      "generator");
 
@@ -1151,6 +1166,11 @@ TEST_SUITE("PGA contracts")
 
     TEST_CASE("pga3dp: reading a motor near a full turn - far sheet, band, shortest")
     {
+        if constexpr (!value_t_is_double) {
+            MESSAGE("skipped with value_t = float: the band and the digits lost near it "
+                    "are placed in double's units");
+            return;
+        }
         fmt::println("pga3dp: the logarithm's conditioning near a full turn");
 
         // A screw about a line off the origin, full angle 2 pi - d, pitch 0.3

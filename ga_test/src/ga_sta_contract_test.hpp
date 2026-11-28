@@ -153,14 +153,17 @@ TEST_SUITE("STA contracts")
         CHECK(is_close(project_onto(v, vec4ds(1.0e-8 * w)), project_onto(v, w)));
         vec4ds const a{1.0, 0.0, 0.0, 0.0}, b{0.0, 1.0, 0.0, 0.0};
         CHECK(std::abs(angle(vec4ds(1.0e-8 * a), vec4ds(1.0e-8 * b)) - 0.5 * pi) <
-              1.0e-12);
-        auto const F = reciprocal_frame(vec4ds(1.0e-6 * v), vec4ds(1.0e-6 * w),
-                                        vec4ds{0.0, 0.0, 1.0e-6, 0.0},
-                                        vec4ds{0.0, 1.0e-6, 0.0, 0.0});
+              scaled_tol(1.0e-12));
+        // the frame's volume is s^4 and its squared metric s^8: 1e-48 at s = 1e-6, below
+        // float's range, so float takes s = 1e-3
+        value_t const s = per_precision(1.0e-6, 1.0e-3);
+        auto const F =
+            reciprocal_frame(vec4ds(s * v), vec4ds(s * w), vec4ds{0.0, 0.0, s, 0.0},
+                             vec4ds{0.0, s, 0.0, 0.0});
         auto const U = reciprocal_frame(v, w, vec4ds{0.0, 0.0, 1.0, 0.0},
                                         vec4ds{0.0, 1.0, 0.0, 0.0});
         for (size_t i = 0; i < 4; ++i)
-            CHECK(is_close(vec4ds(1.0e-6 * F[i]), U[i]));
+            CHECK(is_close(vec4ds(s * F[i]), U[i]));
         // a NULL target is degenerate at any scale, and stays refused
         CHECK_THROWS(project_onto(v, vec4ds{1.0, 0.0, 0.0, 1.0}));
     }

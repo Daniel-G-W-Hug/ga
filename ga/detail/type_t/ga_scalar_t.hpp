@@ -46,6 +46,26 @@ class Scalar_t {
     constexpr explicit operator T&() noexcept { return value; }
     constexpr explicit operator T const&() const noexcept { return value; }
 
+    // Mixed precision (Scalar_t<float> meeting Scalar_t<double>, as with value_t = float
+    // and a double literal). The operators compute in ctype = std::common_type_t<T, U>
+    // and read an operand as ctype(s); the conversion above cannot serve that when T
+    // differs from ctype, because an explicit conversion function must yield its target
+    // type exactly. The first function below supplies it (explicit as well), the second
+    // is the converting constructor the vector types have (Vec2_t<U, Tag> -> Vec2_t<T,
+    // Tag>), for the same tag only.
+    template <typename U>
+        requires(std::floating_point<U> && !std::same_as<U, T>)
+    constexpr explicit operator U() const noexcept
+    {
+        return static_cast<U>(value);
+    }
+
+    template <typename U>
+        requires(numeric_type<U> && !std::same_as<U, T>)
+    constexpr Scalar_t(Scalar_t<U, Tag> const& s) noexcept : value(static_cast<T>(U(s)))
+    {
+    }
+
     friend void swap(Scalar_t& lhs, Scalar_t& rhs) noexcept
     {
         using std::swap;
@@ -123,7 +143,7 @@ class Scalar_t {
         requires(numeric_type<U>)
     Scalar_t& operator+=(Scalar_t<U, Tag> s) noexcept
     {
-        value += s.value;
+        value += U(s);
         return (*this);
     }
 
@@ -131,7 +151,7 @@ class Scalar_t {
         requires(numeric_type<U>)
     Scalar_t& operator-=(Scalar_t<U, Tag> s) noexcept
     {
-        value -= s.value;
+        value -= U(s);
         return (*this);
     }
 

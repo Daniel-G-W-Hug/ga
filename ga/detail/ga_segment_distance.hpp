@@ -61,9 +61,15 @@ T segment_distance(std::array<T, N> const& a1, std::array<T, N> const& b1,
         T const c = dot(d1, r);
         if (e <= tiny) s = std::clamp(-c / a, T(0.0), T(1.0));
         else {
-            // parallel lines (the determinant zero against its terms): any s serves, 0
+            // parallel lines (the determinant zero against its terms): any s serves, 0.
+            // The bound is 4.5e3 eps relative, 1e-12 in double; in float that would be
+            // 5e-4 and call lines 1.3 degrees apart parallel, an error of ~2 % of their
+            // length, so it stays at 1e-12 there -- at the rounding itself. A noise-sized
+            // denominator then gives some s in [0, 1], which for (near-)parallel lines
+            // moves the distance at second order only.
+            T const par = std::min(T(4.5e3) * eps_m, T(1.0e-12));
             T const b = dot(d1, d2), denom = a * e - b * b;
-            if (denom > T(4.5e3) * eps_m * a * e)
+            if (denom > par * a * e)
                 s = std::clamp((b * f - c * e) / denom, T(0.0), T(1.0));
             t = (b * s + f) / e;
             if (t < T(0.0)) {

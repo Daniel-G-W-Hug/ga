@@ -734,7 +734,7 @@ class closed_loop_system3dp {
         auto M = rgpr(tree_.get_pos_trafo(fa, 0), rrev(tree_.get_pos_trafo(fb, 0)));
         if (value_t(gr4(M)) < 0.0) M = -M;
         twist3dp const B = rlog(M);
-        return vec3dp{2.0 * B.vx, 2.0 * B.vy, 2.0 * B.vz, 0.0};
+        return vec3dp{value_t(2.0) * B.vx, value_t(2.0) * B.vy, value_t(2.0) * B.vz, 0.0};
     }
 
     // write coordinate rates into the tree (per coordinate, then refresh each joint once)

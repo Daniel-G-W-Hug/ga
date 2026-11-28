@@ -428,7 +428,7 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(radius_sq(a) == 4.0);
         CHECK(center_nrm_sq(a) == 14.0); // round bulk^2 (no flat weight at gr 1)
         // null-point embedding: q * q = 0
-        auto q = round_point3dc(3.0, 2.0, 3.0, 0.0);
+        vec3dc const q = round_point3dc(3.0, 2.0, 3.0, 0.0);
         CHECK(is_close(mvec3dc(q * q), mvec3dc(scalar3dc(0.0))));
 
         // sphere: matches the container of the round point exactly
@@ -529,14 +529,17 @@ TEST_SUITE("CGA 3dc Tests")
         // contaminated by a fraction f of a circle is flat below eps_congruent
         // and round above it (falsification of the tolerance itself -- an
         // absolute test would answer differently at the two scales below)
-        CHECK(is_flat(l + 1.0e-13 * c));
-        CHECK(is_round(l + 1.0e-10 * c));
-        CHECK(is_flat(1.0e8 * (l + 1.0e-13 * c)));
-        CHECK(is_round(1.0e8 * (l + 1.0e-10 * c)));
+        CHECK(is_flat(l + scaled_tol(1.0e-13) * c));
+        CHECK(is_round(l + scaled_tol(1.0e-10) * c));
+        CHECK(is_flat(1.0e8 * (l + scaled_tol(1.0e-13) * c)));
+        CHECK(is_round(1.0e8 * (l + scaled_tol(1.0e-10) * c)));
 
         // an explicit tolerance moves the threshold
-        CHECK(is_round(l + 1.0e-6 * c));
-        CHECK(is_flat(l + 1.0e-6 * c, 1.0e-3));
+        // (1e-6 against 1e-3 in double; float's default tolerance is 5e-4, so there the
+        // pair is 1e-2 against 0.5)
+        value_t const f = per_precision(1.0e-6, 1.0e-2);
+        CHECK(is_round(l + f * c));
+        CHECK(is_flat(l + f * c, per_precision(1.0e-3, 0.5)));
 
         // a flat has no radius: radius_sq divides by the vanishing round weight
         CHECK(round_weight_nrm_sq(l) == 0.0);
@@ -549,7 +552,7 @@ TEST_SUITE("CGA 3dc Tests")
         fmt::println("cga3dc: directional-argument convention and vector overloads");
 
         auto const p = vec3d(1.0, 2.0, 3.0);
-        double const r = 2.0;
+        value_t const r = 2.0;
 
         // DIRECTION objects: the argument is the object's own direction, which
         // is pinned geometrically rather than by reading components -- the two
@@ -575,12 +578,12 @@ TEST_SUITE("CGA 3dc Tests")
         // NORMAL objects: the hyperplane datum. A plane contains every point
         // it should, and a circle's plane is the one with the given normal
         auto n = vec3d(0.0, 0.0, 1.0);
-        auto pl = plane3dc(n.x, n.y, n.z, 3.0);
+        auto pl = plane3dc(n.x, n.y, n.z, value_t(3.0));
         CHECK(is_close(mvec3dc(wdg(round_point3dc(5.0, -7.0, 3.0, 0.0), pl)),
                        mvec3dc(scalar3dc(0.0)))); // z = d = 3 lies in it
         auto ci = circle3dc(p.x, p.y, p.z, r, n.x, n.y, n.z);
         // a point of the circle: centre + r * (unit vector perpendicular to n)
-        CHECK(is_close(mvec3dc(wdg(round_point3dc(p.x + r, p.y, p.z, 0.0), ci)),
+        CHECK(is_close(mvec3dc(wdg(round_point3dc(p.x + r, p.y, p.z, value_t(0.0)), ci)),
                        mvec3dc(scalar3dc(0.0))));
 
         // the vector-taking overloads build exactly the component-form object
@@ -589,7 +592,7 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(flat_point3dc(p) == flat_point3dc(p.x, p.y, p.z));
         CHECK(sphere3dc(p, r) == sphere3dc(p.x, p.y, p.z, r));
         CHECK(line3dc(p, d) == line3dc(p.x, p.y, p.z, d.x, d.y, d.z));
-        CHECK(plane3dc(n, 3.0) == plane3dc(n.x, n.y, n.z, 3.0));
+        CHECK(plane3dc(n, value_t(3.0)) == plane3dc(n.x, n.y, n.z, value_t(3.0)));
         CHECK(circle3dc(p, r, n) == circle3dc(p.x, p.y, p.z, r, n.x, n.y, n.z));
         CHECK(dipole3dc(p, r, d) == dipole3dc(p.x, p.y, p.z, r, d.x, d.y, d.z));
 
@@ -605,7 +608,7 @@ TEST_SUITE("CGA 3dc Tests")
 
         auto const p = vec3d(1.0, 2.0, 3.0);
         auto const d = vec3d(0.6, 0.0, 0.8); // unit
-        double const r = 2.0;
+        value_t const r = 2.0;
 
         auto same = [](vec3d const& a, vec3d const& b) {
             return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y) &&
@@ -618,12 +621,12 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(same(direction(dipole3dc(p, r, d)), d));
         CHECK(same(direction(line3dc(p, d)), d));
         CHECK(same(direction(circle3dc(p, r, d)), d)); // d is the plane normal
-        CHECK(same(direction(plane3dc(d, 3.0)), d));
+        CHECK(same(direction(plane3dc(d, value_t(3.0))), d));
 
         // weight-independent: the result is a unit vector whatever the scale
         CHECK(same(direction(1.0e7 * dipole3dc(p, r, d)), d));
         CHECK(same(direction(1.0e-7 * line3dc(p, d)), d));
-        CHECK(same(direction(1.0e7 * plane3dc(d, 3.0)), d));
+        CHECK(same(direction(1.0e7 * plane3dc(d, value_t(3.0))), d));
 
         // both branches of the shared grade 3 are served, which is why is_flat
         // is consulted: a line gives a direction, a circle a normal
@@ -643,7 +646,7 @@ TEST_SUITE("CGA 3dc Tests")
         auto const ex = vec3d(1.0, 0.0, 0.0), ey = vec3d(0.0, 1.0, 0.0);
         CHECK(same(direction(transform(dipole3dc(p, r, ex), R)), ey));
         CHECK(same(direction(transform(line3dc(p, ex), R)), ey));
-        CHECK(same(direction(transform(plane3dc(ex, 3.0), R)), ey));
+        CHECK(same(direction(transform(plane3dc(ex, value_t(3.0)), R)), ey));
         // and a translation leaves every direction alone
         auto M = get_translation(4.0, -5.0, 6.0);
         CHECK(same(direction(transform(line3dc(p, d), M)), d));
@@ -727,7 +730,8 @@ TEST_SUITE("CGA 3dc Tests")
 
         // LINE along e1 at height y, i.e. at distance y from the center
         auto const chord = [&](value_t y, vec3dc& p1, vec3dc& p2) -> bool {
-            auto d = rwdg(s, line3dc(0.0, y, 0.0, 1.0, 0.0, 0.0));
+            auto d = rwdg(s, line3dc(value_t(0.0), y, value_t(0.0), value_t(1.0),
+                                     value_t(0.0), value_t(0.0)));
             if (radius_sq(d) < 0.0) return false;
             auto du = unitize(d);
             auto ctr = unitize(cen(du));
@@ -763,10 +767,12 @@ TEST_SUITE("CGA 3dc Tests")
 
         // PLANE cutting off-center: the meet is a smaller circle, its radius
         // following r^2 - d^2, and its center sitting on the plane
-        auto const cut = [&](value_t z) { return rwdg(s, plane3dc(0.0, 0.0, 1.0, z)); };
+        auto const cut = [&](value_t z) {
+            return rwdg(s, plane3dc(value_t(0.0), value_t(0.0), value_t(1.0), z));
+        };
         CHECK(radius_sq(cut(1.0)) == 3.0); // r^2 - d^2 = 4 - 1
-        CHECK(
-            is_close(unitize(cen(unitize(cut(1.0)))), round_point3dc(0.0, 0.0, 1.0, s3)));
+        CHECK(is_close(unitize(cen(unitize(cut(1.0)))),
+                       round_point3dc(value_t(0.0), value_t(0.0), value_t(1.0), s3)));
         CHECK(radius_sq(cut(2.0)) == 0.0);  // tangent plane
         CHECK(radius_sq(cut(3.0)) == -5.0); // plane misses the sphere
 
@@ -942,7 +948,8 @@ TEST_SUITE("CGA 3dc Tests")
         // imaginary range, with no branch anywhere in the chain
         value_t prev = 1.0e30;
         for (value_t d : {0.0, 1.0, 2.0, 3.0, 4.0, 5.0}) {
-            auto m = meet2(sphere3dc(0.0, 0.0, 0.0, 2.0), sphere3dc(d, 0.0, 0.0, 2.0));
+            auto m = meet2(sphere3dc(0.0, 0.0, 0.0, 2.0),
+                           sphere3dc(d, value_t(0.0), value_t(0.0), value_t(2.0)));
             if (d == 0.0) continue; // concentric: no radius (checked above)
             value_t const rs = radius_sq(m);
             CHECK(rs < prev); // strictly decreasing
@@ -974,10 +981,16 @@ TEST_SUITE("CGA 3dc Tests")
         {
             auto const [j1, j2] = two_link_ik3dc(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0,
                                                  plane3dc(0.0, 0.0, 1.0, 0.0));
-            bool const ka = is_close(j1, round_point3dc(1.0, s3, 0.0, 0.0)) &&
-                            is_close(j2, round_point3dc(1.0, -s3, 0.0, 0.0));
-            bool const kb = is_close(j1, round_point3dc(1.0, -s3, 0.0, 0.0)) &&
-                            is_close(j2, round_point3dc(1.0, s3, 0.0, 0.0));
+            bool const ka =
+                is_close(j1,
+                         round_point3dc(value_t(1.0), s3, value_t(0.0), value_t(0.0))) &&
+                is_close(j2,
+                         round_point3dc(value_t(1.0), -s3, value_t(0.0), value_t(0.0)));
+            bool const kb =
+                is_close(j1,
+                         round_point3dc(value_t(1.0), -s3, value_t(0.0), value_t(0.0))) &&
+                is_close(j2,
+                         round_point3dc(value_t(1.0), s3, value_t(0.0), value_t(0.0)));
             CHECK((ka || kb));
             auto const [m1, m2] = two_link_ik3dc(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0,
                                                  plane3dc(0.0, 1.0, 0.0, 0.0));

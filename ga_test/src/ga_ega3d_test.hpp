@@ -1228,8 +1228,8 @@ TEST_SUITE("EGA 3D Tests")
         bivec3d B{-3.4, 2.1, 0.7};
         pscalar3d ps{1.0};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar3d{sd};
         auto t = scalar3d{st};
 
@@ -1262,8 +1262,8 @@ TEST_SUITE("EGA 3D Tests")
         vec3d z = {-2, 3, 7};
         scalar3d sc{2.0};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = pscalar3d{sd};
         auto t = pscalar3d{st};
 
@@ -1312,8 +1312,8 @@ TEST_SUITE("EGA 3D Tests")
         vec3d v3{-2.0, 6.0, 3.0};
         bivec3d B1{-4, 2, 1};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar3d{sd};
         auto t = scalar3d{st};
 
@@ -3645,19 +3645,20 @@ TEST_SUITE("EGA 3D Tests")
         // both accept it; an ABSOLUTE tolerance would have rejected it, which is what
         // this pair of checks exists to pin.
         auto const big = vec3d{1.0e6, 2.0e6, 3.0e6};
-        auto const big_1ulp = vec3d{std::nextafter(big.x, 1e9), big.y, big.z};
+        auto const big_1ulp = vec3d{std::nextafter(big.x, value_t(1e9)), big.y, big.z};
         CHECK(big == big_1ulp);
         CHECK(is_close(big, big_1ulp));
 
         // operator== is the tighter of the two: 100 ulps is past its budget, well
         // inside is_close's
         auto const big_100ulp =
-            vec3d{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y, big.z};
+            vec3d{big.x + value_t(100.0) * (big_1ulp.x - big.x), big.y, big.z};
         CHECK(big != big_100ulp);
         CHECK(is_close(big, big_100ulp));
 
         // not merely permissive: a relative 1e-9 is still rejected at the default
-        CHECK(!is_close(big, vec3d{big.x * (1.0 + 1e-9), big.y, big.z}));
+        CHECK(!is_close(big,
+                        vec3d{value_t(big.x * (1.0 + scaled_tol(1e-9))), big.y, big.z}));
 
         // and distinct from is_congruent, which allows an arbitrary scale factor
         CHECK(is_congruent(vec3d{1.0, 2.0, 3.0}, vec3d{2.0, 4.0, 6.0}));
@@ -3696,13 +3697,13 @@ TEST_SUITE("EGA 3D Tests")
         auto A = mvec3d{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         auto B = A;
         CHECK(is_close(A, B));
-        B.c0 += 1.0e-6;
+        B.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(A, B));
 
         auto U = mvec3d_u{1.0, 2.0, 3.0, 4.0};
         auto V = U;
         CHECK(is_close(U, V));
-        V.c0 += 1.0e-6;
+        V.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(U, V));
 
         // relative, not absolute: cf. operator==
@@ -3711,7 +3712,7 @@ TEST_SUITE("EGA 3D Tests")
         // section and defines the legacy `near`/`far` memory-model keywords as EMPTY
         // macros, so `auto near = ...` would expand to `auto = ...`.
         auto nearby = big;
-        nearby.c3 += 1.0e-4;
+        nearby.c3 += scaled_tol(1.0e-4);
         CHECK(is_close(big, nearby));
         CHECK(!(big == nearby));
     }
@@ -3763,12 +3764,16 @@ TEST_SUITE("EGA 3D Tests")
             }
             return acc;
         };
+        // the reference runs in double whatever value_t is: its alternating terms grow
+        // far beyond the result before they cancel, which float cannot carry
         auto series_trig = [&](mvec3d const& Z, bool sine) {
-            mvec3d acc{}, p = one();
+            using Mvd = MVec3d<double>;
+            Mvd const Zd(Z);
+            Mvd acc{}, p = Mvd(one());
             double f = 1.0;
             for (int m = 0; m <= 80; ++m) {
                 if (m > 0) {
-                    p = p * Z;
+                    p = p * Zd;
                     f *= m;
                 }
                 bool const take = sine ? (m % 2 == 1) : (m % 2 == 0);
@@ -3777,7 +3782,7 @@ TEST_SUITE("EGA 3D Tests")
                     acc = acc + ((k % 2 ? -1.0 : 1.0) / f) * p;
                 }
             }
-            return acc;
+            return mvec3d(acc);
         };
 
         auto gen = mvec3d{scalar3d(0.4), vec3d{1.1, -0.7, 0.9}, bivec3d{0.3, -1.2, 0.6},
@@ -3790,7 +3795,7 @@ TEST_SUITE("EGA 3D Tests")
         auto nul = mvec3d{e1_3d} + mvec3d{cmpl(e1_3d)};
         auto zero = mvec3d{};
 
-        for (auto const& Z : {gen, An, nul, zero, 3.7 * gen}) {
+        for (auto const& Z : {gen, An, nul, zero, value_t(3.7) * gen}) {
             CHECK(is_close(exp(Z), series_exp(Z)));
             CHECK(is_close(cos(Z), series_trig(Z, false)));
             CHECK(is_close(sin(Z), series_trig(Z, true)));
@@ -3834,7 +3839,7 @@ TEST_SUITE("EGA 3D Tests")
         // classical references, computed independently
         auto curlA = [&](vec3d const& q) {
             vec3d c{};
-            double const h = 1.0e-5;
+            double const h = per_precision(1.0e-5, 1.0e-2); // round-off vs truncation
             for (int i = 0; i < 3; ++i) {
                 auto e = i == 0 ? e1_3d : (i == 1 ? e2_3d : e3_3d);
                 c = c + cross(e, (A(q + h * e) - A(q - h * e)) * (1.0 / (2 * h)));
@@ -3843,7 +3848,7 @@ TEST_SUITE("EGA 3D Tests")
         };
         auto divA = [&](vec3d const& q) {
             double d = 0.0;
-            double const h = 1.0e-5;
+            double const h = per_precision(1.0e-5, 1.0e-2);
             for (int i = 0; i < 3; ++i) {
                 auto e = i == 0 ? e1_3d : (i == 1 ? e2_3d : e3_3d);
                 d += value_t(dot(e, (A(q + h * e) - A(q - h * e)) * (1.0 / (2 * h))));
@@ -3852,14 +3857,17 @@ TEST_SUITE("EGA 3D Tests")
         };
 
         // scalar field: the outer derivative is the gradient, the inner one vanishes
+        // a default step balances truncation against round-off: ~1e-10 in double, ~1e-5
+        // in float, hence the bound per precision
+        value_t const fd_tol = per_precision(1.0e-6, 1.0e-4);
         CHECK(nrm(nabla_wdg(phi, r0) - vec3d{std::cos(r0.x) * r0.y * r0.y,
                                              2 * std::sin(r0.x) * r0.y, 2 * r0.z}) <
-              1.0e-6);
+              fd_tol);
         CHECK(std::abs(value_t(nabla_dot(phi, r0))) < eps);
 
         // vector field: inner = div, outer = dual(curl)
-        CHECK(std::abs(value_t(nabla_dot(A, r0)) - divA(r0)) < 1.0e-6);
-        CHECK(nrm(nabla_wdg(A, r0) - dual(curlA(r0))) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_dot(A, r0)) - divA(r0)) < fd_tol);
+        CHECK(nrm(nabla_wdg(A, r0) - dual(curlA(r0))) < fd_tol);
 
         // the relations here are pinned with dual(), the map that carries the metric and
         // so survives a port to sta4ds, where cmpl and dual differ. ega3d cannot tell
@@ -3869,17 +3877,17 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(is_close(cmpl(nabla_wdg(A, r0)), dual(nabla_wdg(A, r0))));
 
         // bivector field: inner = -curl of its dual, outer = div of its dual
-        CHECK(nrm(nabla_dot(Bf, r0) - (-curlA(r0))) < 1.0e-6);
-        CHECK(std::abs(value_t(nabla_wdg(Bf, r0)) - divA(r0)) < 1.0e-6);
+        CHECK(nrm(nabla_dot(Bf, r0) - (-curlA(r0))) < fd_tol);
+        CHECK(std::abs(value_t(nabla_wdg(Bf, r0)) - divA(r0)) < fd_tol);
 
         // trivector field: inner = dual(grad of its coeff), outer vanishes (no grade 4)
         auto gt = vec3d{-std::sin(r0.x) * r0.y, std::cos(r0.x), 2 * r0.z};
-        CHECK(nrm(nabla_dot(Tf, r0) - dual(gt)) < 1.0e-6);
+        CHECK(nrm(nabla_dot(Tf, r0) - dual(gt)) < fd_tol);
         CHECK(std::abs(value_t(nabla_wdg(Tf, r0))) < eps);
 
         // the Laplacian is a scalar operator: it preserves the grade of the field
-        CHECK(nrm(gr0(laplacian(A, r0))) < 1.0e-6);
-        CHECK(nrm(gr2(laplacian(A, r0))) < 1.0e-6);
+        CHECK(nrm(gr0(laplacian(A, r0))) < fd_tol);
+        CHECK(nrm(gr2(laplacian(A, r0))) < fd_tol);
     }
 
     TEST_CASE("ega3d calculus: nabla identities and rotation covariance")
@@ -3903,24 +3911,30 @@ TEST_SUITE("EGA 3D Tests")
         // is a square root of the Laplacian
         auto cA = [&](vec3d const& q) { return nabla_wdg(A, q, 1.0e-3); };
         auto dA = [&](vec3d const& q) { return nabla_dot(A, q, 1.0e-3); };
-        CHECK(nrm(nabla_dot(cA, r0, 1.0e-3) + nabla_wdg(dA, r0, 1.0e-3) -
-                  gr1(laplacian(A, r0, 1.0e-3))) < 1.0e-3);
+        if constexpr (value_t_is_double) { // h = 1e-3 twice over: round-off 0.1 in float
+            CHECK(nrm(nabla_dot(cA, r0, 1.0e-3) + nabla_wdg(dA, r0, 1.0e-3) -
+                      gr1(laplacian(A, r0, 1.0e-3))) < 1.0e-3);
+        }
 
         // nabla f' = (nabla f)': the operator is rotation covariant
         auto R = exp(wdg(e1_3d, e2_3d), 0.4) * exp(wdg(e2_3d, e3_3d), 0.25);
         auto fr = [&](vec3d const& q) { return rotate(A(rotate(q, rev(R))), R); };
         auto N = nabla(A, rotate(r0, rev(R)));
-        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < 1.0e-6);
-        CHECK(nrm(gr2(nabla(fr, r0)) - rotate(gr2(N), R)) < 1.0e-6);
+        value_t const fd_tol = per_precision(1.0e-6, 1.0e-4); // a default step
+        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < fd_tol);
+        CHECK(nrm(gr2(nabla(fr, r0)) - rotate(gr2(N), R)) < fd_tol);
 
         // book problems: nabla . r = 3, nabla ^ r = 0, laplacian(1/r) = 0, nabla x_1 = e1
         auto rf = [](vec3d const& q) { return q; };
-        CHECK(std::abs(value_t(nabla_dot(rf, r0)) - 3.0) < 1.0e-8);
-        CHECK(nrm(nabla_wdg(rf, r0)) < 1.0e-8);
+        // linear fields: exact up to rounding, which the step divides
+        value_t const lin_tol = per_precision(1.0e-8, 1.0e-4);
+        CHECK(std::abs(value_t(nabla_dot(rf, r0)) - 3.0) < lin_tol);
+        CHECK(nrm(nabla_wdg(rf, r0)) < lin_tol);
         auto inv_r = [](vec3d const& q) { return scalar3d(1.0 / nrm(q)); };
-        CHECK(std::abs(value_t(gr0(laplacian(inv_r, r0)))) < 1.0e-4);
+        CHECK(std::abs(value_t(gr0(laplacian(inv_r, r0)))) <
+              per_precision(1.0e-4, 2.0e-2));
         auto x1 = [](vec3d const& q) { return scalar3d(q.x); };
-        CHECK(nrm(nabla_wdg(x1, r0) - e1_3d) < 1.0e-8);
+        CHECK(nrm(nabla_wdg(x1, r0) - e1_3d) < lin_tol);
     }
 
     TEST_CASE("ega3d calculus: stencil schemes deliver their advertised order")
@@ -3929,7 +3943,7 @@ TEST_SUITE("EGA 3D Tests")
 
         auto r0 = vec3d{0.37, -0.62, 0.81};
         auto A = [](vec3d const& r) {
-            return vec3d{std::sin(r.x) * r.y, std::exp(0.3 * r.y) * r.z,
+            return vec3d{std::sin(r.x) * r.y, value_t(std::exp(0.3 * r.y) * r.z),
                          std::cos(r.z) * r.x};
         };
         auto div_exact = [&](vec3d const& r) {
@@ -3962,8 +3976,10 @@ TEST_SUITE("EGA 3D Tests")
             double const e2 =
                 std::abs(value_t(gr0(nabla(A, r0, sc, h2))) - div_exact(r0));
             double const observed = std::log2(e1 / e2);
-            CHECK(observed > ord - 0.3);
-            CHECK(observed < ord + 0.3);
+            if constexpr (value_t_is_double) { // float's round-off hides order 6 at h2
+                CHECK(observed > ord - 0.3);
+                CHECK(observed < ord + 0.3);
+            }
         }
 
         // the default step tracks the scheme's order, so a higher order is more accurate
@@ -3981,14 +3997,14 @@ TEST_SUITE("EGA 3D Tests")
             double const err = std::abs(
                 value_t(gr0(nabla(A, r0, central_scheme(1, ord)))) - div_exact(r0));
             CHECK(err < err2);
-            CHECK(err < 1.0e-9);
+            CHECK(err < per_precision(1.0e-9, 1.0e-5));
         }
 
         // a staggered scheme samples on the half-offsets and develops between them,
         // so it never evaluates the field at r0 itself -- and still gets the answer
         double const err_stag =
             std::abs(value_t(gr0(nabla(A, r0, staggered_scheme(1, 4)))) - div_exact(r0));
-        CHECK(err_stag < 1.0e-9);
+        CHECK(err_stag < per_precision(1.0e-9, 1.0e-5));
     }
 
     TEST_CASE("ega3d calculus: the single Maxwell equation on a plane wave")
@@ -4046,17 +4062,20 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(value_t(wdg(a, wdg(b, c))) == doctest::Approx(value_t(wdg(b, wdg(c, a)))));
 
         // (1.17) BAC-CAB is not a mnemonic but a vector contracted into a blade
-        CHECK(nrm(cross_ref(a, cross_ref(b, c)) - (a << wdg(b, c))) < 1.0e-14);
-        CHECK(nrm(cross_ref(a, cross_ref(b, c)) + (wdg(b, c) >> a)) < 1.0e-14);
+        CHECK(nrm(cross_ref(a, cross_ref(b, c)) - (a << wdg(b, c))) <
+              scaled_tol(1.0e-14));
+        CHECK(nrm(cross_ref(a, cross_ref(b, c)) + (wdg(b, c) >> a)) <
+              scaled_tol(1.0e-14));
         // and it agrees with the book's right-hand side
         CHECK(nrm((a << wdg(b, c)) - (b * value_t(dot(a, c)) - c * value_t(dot(a, b)))) <
-              1.0e-14);
+              scaled_tol(1.0e-14));
 
         // (11.56): the double cross product that runs through the radiation chapters
         // is a REJECTION -- the part of X perpendicular to the line of sight
         vec3d const n = normalize(c);
         vec3d const X{0.3, 0.9, -0.2};
-        CHECK(nrm(cross_ref(n, cross_ref(n, X)) + reject_from(X, n)) < 1.0e-14);
+        CHECK(nrm(cross_ref(n, cross_ref(n, X)) + reject_from(X, n)) <
+              scaled_tol(1.0e-14));
 
         // (3.104)/(5.89): the field of a point dipole. Griffiths sets both as
         // problems (3.36, 5.34) because the coordinate-free form is the non-obvious
@@ -4071,10 +4090,12 @@ TEST_SUITE("EGA 3D Tests")
         // p_perp, which is why it has to write 3(p.rhat)rhat and subtract all of p.
         vec3d const p{0.7, -1.3, 0.4};
         vec3d const gibbs = 3.0 * value_t(dot(p, n)) * n - p;
-        CHECK(nrm(0.5 * (p + 3.0 * gr1(n * p * n)) - gibbs) < 1.0e-14);
-        CHECK(nrm(2.0 * project_onto(p, n) - reject_from(p, n) - gibbs) < 1.0e-14);
+        CHECK(nrm(0.5 * (p + 3.0 * gr1(n * p * n)) - gibbs) < scaled_tol(1.0e-14));
+        CHECK(nrm(2.0 * project_onto(p, n) - reject_from(p, n) - gibbs) <
+              scaled_tol(1.0e-14));
         // the sandwich itself is the axis reflection, 2(p.rhat)rhat - p
-        CHECK(nrm(gr1(n * p * n) - (2.0 * value_t(dot(p, n)) * n - p)) < 1.0e-14);
+        CHECK(nrm(gr1(n * p * n) - (2.0 * value_t(dot(p, n)) * n - p)) <
+              scaled_tol(1.0e-14));
         CHECK(nrm(gr1(n * p * n) - reflect_on_vec(p, n)) < eps);
 
         fmt::println("Gibbs dictionary: cross = dual(wdg), triple product = trivector, "
@@ -4108,17 +4129,21 @@ TEST_SUITE("EGA 3D Tests")
             return mvec3d(E) + mvec3d(dual(B)); // f = e + I b
         };
         vec3d const r0{0.6, -0.3, 0.8};
-        auto const N = nabla(f, r0, 1.0e-4);
+        // the fields are linear, so any step is exact up to rounding -- and float's
+        // rounding, divided by the step, wants a larger one
+        value_t const h = per_precision(1.0e-4, 1.0e-1);
+        value_t const lin_tol = per_precision(1.0e-8, 1.0e-5);
+        auto const N = nabla(f, r0, h);
         CHECK(value_t(gr0(N)) == doctest::Approx(rho)); // Gauss
-        CHECK(nrm(gr1(N) + J) < 1.0e-8);                // Ampere
-        CHECK(nrm(gr2(N)) < 1.0e-8);                    // Faraday (static)
-        CHECK(std::abs(value_t(gr3(N))) < 1.0e-8);      // no magnetic monopoles
+        CHECK(nrm(gr1(N) + J) < lin_tol);               // Ampere
+        CHECK(nrm(gr2(N)) < lin_tol);                   // Faraday (static)
+        CHECK(std::abs(value_t(gr3(N))) < lin_tol);     // no magnetic monopoles
 
         // falsify: a field with the wrong 1/3 factor reports a different charge density
         auto fbad = [&](vec3d const& q) {
             return mvec3d(0.5 * rho * q) + mvec3d(dual(0.5 * cross_ref(J, q)));
         };
-        CHECK(value_t(gr0(nabla(fbad, r0, 1.0e-4))) != doctest::Approx(rho));
+        CHECK(value_t(gr0(nabla(fbad, r0, h))) != doctest::Approx(rho));
 
         // ---- the two field invariants and the two energy-momentum scalars ----------
         // Griffiths Prob. 12.47 asks the reader to show that (E.B) and (E^2 - c^2 B^2)
@@ -4134,7 +4159,7 @@ TEST_SUITE("EGA 3D Tests")
         auto const FR = F * rev(F);
         CHECK(value_t(gr0(FR)) ==
               doctest::Approx(value_t(nrm_sq(E)) + value_t(nrm_sq(B))));
-        CHECK(nrm(gr1(FR) - 2.0 * cross_ref(E, B)) < 1.0e-13);
+        CHECK(nrm(gr1(FR) - 2.0 * cross_ref(E, B)) < scaled_tol(1.0e-13));
 
         fmt::println("nabla f = rho - J: four grades, four Maxwell equations; f*f and "
                      "f*rev(f) carry the invariants and the energy/Poynting pair");
@@ -4154,7 +4179,7 @@ TEST_SUITE("EGA 3D Tests")
         // the consequence for THIS layer is a live trap and is pinned here: a field's
         // singular sources are invisible to the pointwise operator, so a numerical Gauss
         // law must be evaluated as a FLUX, never as a volume integral of nabla_dot.
-        auto E = [](vec3d const& r) { return r / std::pow(nrm(r), 3.0); };
+        auto E = [](vec3d const& r) { return r / std::pow(nrm(r), value_t(3.0)); };
 
         // (a) the pointwise divergence, summed over a ball that CONTAINS the source
         value_t const R = 1.0;
@@ -4164,8 +4189,9 @@ TEST_SUITE("EGA 3D Tests")
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 for (int k = 0; k < N; ++k) {
-                    vec3d const c{-R + (i + 0.5) * hc, -R + (j + 0.5) * hc,
-                                  -R + (k + 0.5) * hc};
+                    vec3d const c{value_t(-R + (i + 0.5) * hc),
+                                  value_t(-R + (j + 0.5) * hc),
+                                  value_t(-R + (k + 0.5) * hc)};
                     if (nrm(c) > R) continue;
                     vol_sum += value_t(nabla_dot(E, c, 1.0e-4)) * hc * hc * hc;
                 }
@@ -4233,7 +4259,7 @@ TEST_SUITE("EGA 3D Tests")
 
         auto A = [](vec3d const& r) {
             return vec3d{std::sin(r.x) * r.y, r.x * r.z * r.z,
-                         std::exp(0.3 * r.z) * r.x + r.y};
+                         value_t(std::exp(0.3 * r.z) * r.x + r.y)};
         };
         auto B = [](vec3d const& r) {
             return vec3d{std::cos(r.x) + r.z, r.x * r.y, r.y * r.y - r.z};
@@ -4242,7 +4268,7 @@ TEST_SUITE("EGA 3D Tests")
             return bivec3d{r.x * r.y + r.z, std::cos(r.z) * r.x, r.y * r.z + r.x * r.x};
         };
         auto Ab = [](vec3d const& r) {
-            return bivec3d{std::sin(r.x), r.y * r.z, r.x + 2.0 * r.z};
+            return bivec3d{std::sin(r.x), r.y * r.z, r.x + 2 * r.z};
         };
         vec3d const r{0.3, -0.4, 0.55};
 
@@ -4330,6 +4356,8 @@ TEST_SUITE("EGA 3D Tests")
         auto const d2 = residuals(5.0e-4);
 
         for (std::size_t i = 0; i < d1.size(); ++i) {
+            if constexpr (!value_t_is_double)
+                break; // round-off, not truncation, in float
             CHECK(d1[i] < 1.0e-5);
 
             // The identities are EXACT, so the residual is nothing but the 2nd-order
@@ -4377,7 +4405,7 @@ TEST_SUITE("EGA 3D Tests")
         value_t const R = rad(r);
 
         // ---- exact for the scheme: polynomial fields, asserted to roundoff ----
-        value_t const tight = 1.0e-10;
+        value_t const tight = per_precision(1.0e-10, 1.0e-3); // rounding / h
 
         // P34: grad(r.a) = a ; P40: grad x_j = e_j ; (a.grad)r = a is the same statement
         CHECK(nrm(nabla_wdg([&](vec3d const& p) { return scalar3d(value_t(dot(p, a))); },
@@ -4444,6 +4472,8 @@ TEST_SUITE("EGA 3D Tests")
         auto const d1 = residuals(1.0e-3);
         auto const d2 = residuals(5.0e-4);
         for (std::size_t i = 0; i < d1.size(); ++i) {
+            if constexpr (!value_t_is_double)
+                break; // round-off, not truncation, in float
             CHECK(d1[i] < 1.0e-4);
             CHECK(d1[i] / d2[i] > 3.8);
             CHECK(d1[i] / d2[i] < 4.2);
@@ -4714,9 +4744,9 @@ TEST_SUITE("EGA 3D Tests")
         // makes a blade non-invertible is degeneracy, not size, and in a Euclidean metric
         // the squared norm IS the sum of the squared coefficients -- so the only blade
         // without an inverse is the zero one.
-        for (double s : {1.0, 1.0e-4, 1.0e-8, 1.0e-9, 1.0e-12}) {
-            auto const v = vec3d{1.0 * s, 2.0 * s, 3.0 * s};
-            auto const B = bivec3d{1.0 * s, 2.0 * s, 3.0 * s};
+        for (value_t s : {1.0, 1.0e-4, 1.0e-8, 1.0e-9, 1.0e-12}) {
+            auto const v = vec3d{1 * s, 2 * s, 3 * s};
+            auto const B = bivec3d{1 * s, 2 * s, 3 * s};
             INFO("scale = ", s);
             CHECK(std::abs(value_t(gr0(v * inv(v))) - 1.0) < eps); // v * inv(v) == 1
             CHECK(is_close(gr2(v * inv(v)), bivec3d{}));           // and nothing else

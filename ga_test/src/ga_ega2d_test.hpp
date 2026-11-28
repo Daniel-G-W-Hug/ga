@@ -925,8 +925,8 @@ TEST_SUITE("EGA 2D Tests")
         vec2d v2{0.5, 3.0};
         vec2d v3{-2.0, 6.0};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar2d{sd};
         auto t = scalar2d{st};
 
@@ -951,8 +951,8 @@ TEST_SUITE("EGA 2D Tests")
         vec2d v3{-2.0, 6.0};
         pscalar2d B1{-4};
 
-        double sd = 2.3;
-        double st = -5.1;
+        value_t sd = 2.3;
+        value_t st = -5.1;
         auto s = scalar2d{sd};
         auto t = scalar2d{st};
 
@@ -1479,7 +1479,7 @@ TEST_SUITE("EGA 2D Tests")
         auto angle_uv = angle(u, v);
 
         auto uv = u * v; // complex number with real part and bivector part
-        auto v2 = rotate(u, exp(-0.5 * angle_uv * I_2d));
+        auto v2 = rotate(u, exp(value_t(-0.5) * angle_uv * I_2d));
         auto re = gr0(uv);
         auto im = gr2(uv);
         auto r = sqrt(value_t(re * re + im * im));
@@ -3079,11 +3079,12 @@ TEST_SUITE("EGA 2D Tests")
 
         auto const big = vec2d{1.0e6, 2.0e6};
         // operator== is relative: one ulp apart at 1e6 IS equal (5-10 ulps of budget)
-        CHECK(big == vec2d{std::nextafter(big.x, 1e9), big.y});
-        CHECK(is_close(big, vec2d{std::nextafter(big.x, 1e9), big.y}));
+        auto const big_1ulp = vec2d{std::nextafter(big.x, value_t(1e9)), big.y};
+        CHECK(big == big_1ulp);
+        CHECK(is_close(big, big_1ulp));
         // 100 ulps apart is not -- the tolerance scales, it does not disappear
-        CHECK(big != vec2d{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y});
-        CHECK(!is_close(big, vec2d{big.x * (1.0 + 1e-9), big.y}));
+        CHECK(big != vec2d{big.x + value_t(100.0) * (big_1ulp.x - big.x), big.y});
+        CHECK(!is_close(big, vec2d{value_t(big.x * (1.0 + scaled_tol(1e-9))), big.y}));
 
         // rotors double-cover the rotations here too
         auto const R = exp(-e12_2d * 0.6);
@@ -3109,7 +3110,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(is_close(A, B));
 
         // a perturbation well beyond eps_congruent is NOT close
-        B.c0 += 1.0e-6;
+        B.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(A, B));
 
         // the threshold is RELATIVE: at a large scale a small absolute difference is
@@ -3119,7 +3120,7 @@ TEST_SUITE("EGA 2D Tests")
         // section and defines the legacy `near`/`far` memory-model keywords as EMPTY
         // macros, so `auto near = ...` would expand to `auto = ...`.
         auto nearby = big;
-        nearby.c3 += 1.0e-4;
+        nearby.c3 += scaled_tol(1.0e-4);
         CHECK(is_close(big, nearby));
         CHECK(!(big == nearby));
     }
@@ -3190,15 +3191,18 @@ TEST_SUITE("EGA 2D Tests")
         auto P = [](vec2d const& r) { return pscalar2d(std::cos(r.x) + r.y * r.y); };
 
         // scalar field: the outer derivative is the gradient, the inner one vanishes
-        CHECK(nrm(nabla_wdg(phi, r0) - vec2d{std::cos(r0.x) * r0.y * r0.y + 1.0,
-                                             2 * std::sin(r0.x) * r0.y}) < 1.0e-6);
+        // a default step balances truncation against round-off: ~1e-10 in double, ~1e-5
+        // in float, hence the bound per precision
+        value_t const fd_tol = per_precision(1.0e-6, 1.0e-4);
+        CHECK(nrm(nabla_wdg(phi, r0) - vec2d{value_t(std::cos(r0.x) * r0.y * r0.y + 1.0),
+                                             2 * std::sin(r0.x) * r0.y}) < fd_tol);
         CHECK(std::abs(value_t(nabla_dot(phi, r0))) < eps);
 
         // vector field: inner = div; outer = the SCALAR curl, carried by the
         // pseudoscalar -- the grade ladder is one rung shorter than in 3d
-        CHECK(std::abs(value_t(nabla_dot(A, r0)) - std::sin(r0.x)) < 1.0e-6);
+        CHECK(std::abs(value_t(nabla_dot(A, r0)) - std::sin(r0.x)) < fd_tol);
         CHECK(std::abs(value_t(nabla_wdg(A, r0)) - (std::cos(r0.x) * r0.y - 2 * r0.y)) <
-              1.0e-6);
+              fd_tol);
 
         // pseudoscalar field: inner derivative is a vector, outer one vanishes (no grade
         // 3)
@@ -3208,8 +3212,10 @@ TEST_SUITE("EGA 2D Tests")
         // curl(grad) = 0, and div(grad phi) = laplacian phi
         auto g = [&](vec2d const& q) { return nabla_wdg(phi, q, 1.0e-3); };
         CHECK(std::abs(value_t(nabla_wdg(g, r0, 1.0e-3))) < 1.0e-4);
-        CHECK(std::abs(value_t(nabla_dot(g, r0, 1.0e-3)) -
-                       value_t(gr0(laplacian(phi, r0, 1.0e-3)))) < 1.0e-4);
+        if constexpr (value_t_is_double) { // h = 1e-3 twice over: round-off 0.1 in float
+            CHECK(std::abs(value_t(nabla_dot(g, r0, 1.0e-3)) -
+                           value_t(gr0(laplacian(phi, r0, 1.0e-3)))) < 1.0e-4);
+        }
         // the Laplacian is a scalar operator: it preserves the grade
         CHECK(nrm(gr1(laplacian(phi, r0))) < 1.0e-6);
 
@@ -3217,12 +3223,12 @@ TEST_SUITE("EGA 2D Tests")
         auto R = exp(pscalar2d(0.4));
         auto fr = [&](vec2d const& q) { return rotate(A(rotate(q, rev(R))), R); };
         auto N = nabla(A, rotate(r0, rev(R)));
-        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < 1.0e-6);
-        CHECK(std::abs(value_t(gr2(nabla(fr, r0))) - value_t(gr2(N))) < 1.0e-6);
+        CHECK(std::abs(value_t(gr0(nabla(fr, r0))) - value_t(gr0(N))) < fd_tol);
+        CHECK(std::abs(value_t(gr2(nabla(fr, r0))) - value_t(gr2(N))) < fd_tol);
 
         // the shared scheme layer applies here too
         auto Aex = [](vec2d const& r) {
-            return vec2d{std::sin(3 * r.x) * r.y, std::exp(0.4 * r.y)};
+            return vec2d{std::sin(3 * r.x) * r.y, value_t(std::exp(0.4 * r.y))};
         };
         auto div_exact = [](vec2d const& r) {
             return 3 * std::cos(3 * r.x) * r.y + 0.4 * std::exp(0.4 * r.y);
@@ -3271,7 +3277,8 @@ TEST_SUITE("EGA 2D Tests")
         auto ro = reciprocal_frame(e1_2d, e2_2d);
         CHECK(is_close(ro[0], e1_2d));
         CHECK(is_close(ro[1], e2_2d));
-        CHECK_THROWS_AS(reciprocal_frame(e1_2d, 2.0 * e1_2d), std::invalid_argument);
+        CHECK_THROWS_AS(reciprocal_frame(e1_2d, value_t(2.0) * e1_2d),
+                        std::invalid_argument);
     }
 
     TEST_CASE("MVec2d: +/- closure over every type pair")
@@ -3350,19 +3357,19 @@ TEST_SUITE("EGA 2D Tests")
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.
-        auto const ulp = [](double m) { return std::nextafter(m, 1e30) - m; };
+        auto const ulp = [](value_t m) { return std::nextafter(m, value_t(1e30)) - m; };
 
-        for (double const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+        for (value_t const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
             auto const u = ulp(m);
-            CHECK(vec2d{m, m} == vec2d{m + u, m});         // 1 ulp: inside
-            CHECK(vec2d{m, m} == vec2d{m + 4.0 * u, m});   // 4 ulps: inside
-            CHECK(vec2d{m, m} != vec2d{m + 100.0 * u, m}); // 100 ulps: outside
+            CHECK(vec2d{m, m} == vec2d{m + u, m});       // 1 ulp: inside
+            CHECK(vec2d{m, m} == vec2d{m + 4 * u, m});   // 4 ulps: inside
+            CHECK(vec2d{m, m} != vec2d{m + 100 * u, m}); // 100 ulps: outside
         }
 
         // below unit scale the floor takes over, so the window stays absolute there --
         // a component that should vanish is compared against the tolerance itself
-        CHECK(vec2d{1.0e-9, 1.0e-9} == vec2d{1.0e-9 + 5.0e-16, 1.0e-9});
-        CHECK(vec2d{1.0e-9, 1.0e-9} != vec2d{1.0e-9 + 1.0e-13, 1.0e-9});
+        CHECK(vec2d{1.0e-9, 1.0e-9} == vec2d{1.0e-9 + scaled_tol(5.0e-16), 1.0e-9});
+        CHECK(vec2d{1.0e-9, 1.0e-9} != vec2d{1.0e-9 + scaled_tol(1.0e-13), 1.0e-9});
     }
 
     ////////////////////////////////////////////////////////////////////////////////

@@ -15,13 +15,28 @@
 
 namespace hd::ga {
 
-// select the floating point type used for scalars, vector and bivector components, etc.
-// here, i.e. choose one of the two following definitions:
-// using value_t = float;
+// the floating point type used for scalars, vector and bivector components, etc.
+//
+// double by default; the compile definition _HD_GA_VALUE_T_FLOAT selects float:
+//
+//     target_compile_definitions(<target> PRIVATE _HD_GA_VALUE_T_FLOAT)
+//
+// Select it with the definition, never by editing this line, and set it for the WHOLE
+// program: every translation unit that includes the library must agree. value_t is
+// part of every user type, so two TUs compiled with different settings define the same
+// inline functions and types differently -- an ODR violation the linker does not report.
+//
+// The templates themselves take any floating point type (Vec3d<float> works in a double
+// build); the switch decides what the user aliases (vec3d, mvec3dp, ...), the tolerances
+// eps / eps_congruent below and the non-template parts of the library compute in.
+#if defined(_HD_GA_VALUE_T_FLOAT)
+using value_t = float;
+#else
 using value_t = double;
+#endif
 
 // eps is used internally for equality testing (5 * machine epsilon)
-constexpr auto eps = 5.0 * std::numeric_limits<value_t>::epsilon();
+constexpr value_t eps = 5.0 * std::numeric_limits<value_t>::epsilon();
 
 // Relative tolerance for is_congruent / is_close. Congruence is almost always asked of
 // two INDEPENDENTLY COMPUTED geometric quantities (results of wedge / dual / motor
@@ -40,7 +55,7 @@ constexpr auto eps = 5.0 * std::numeric_limits<value_t>::epsilon();
 //     double: 4.5e3 * 2.22e-16 = 9.99e-13   (the historical value)
 //     float : 4.5e3 * 1.19e-07 = 5.36e-04
 //
-constexpr auto eps_congruent = 4.5e3 * std::numeric_limits<value_t>::epsilon();
+constexpr value_t eps_congruent = 4.5e3 * std::numeric_limits<value_t>::epsilon();
 
 namespace detail {
 

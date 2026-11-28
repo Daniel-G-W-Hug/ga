@@ -291,7 +291,7 @@ TEST_SUITE("STA 3D Tests")
         CHECK(!is_spacelike(n));
 
         auto const B = bivec4ds(wdg(g1_4ds, g4_4ds)); // the boost plane
-        for (double phi : {0.1, 0.5, 1.0, 2.0}) {
+        for (value_t phi : {0.1, 0.5, 1.0, 2.0}) {
             auto const nb = vec4ds(transform(n, get_boost(B, phi)));
             INFO("phi = ", phi, "  B^2 = ", value_t(hd::ga::detail::sta4ds_geom_sq(nb)));
             CHECK(is_lightlike(nb));
@@ -303,8 +303,8 @@ TEST_SUITE("STA 3D Tests")
         }
 
         // and at a physical scale, where the residue is far above any absolute epsilon
-        for (double s : {1.0e3, 1.0e6, 6.371e6}) {
-            auto const ns = vec4ds{1.0 * s, 0.0, 0.0, 1.0 * s};
+        for (value_t s : {1.0e3, 1.0e6, 6.371e6}) {
+            auto const ns = vec4ds{s, 0.0, 0.0, s};
             auto const nb = vec4ds(transform(ns, get_boost(B, 0.5)));
             INFO("scale = ", s, "  B^2 = ", value_t(hd::ga::detail::sta4ds_geom_sq(nb)));
             CHECK(is_lightlike(nb));
@@ -316,7 +316,7 @@ TEST_SUITE("STA 3D Tests")
         CHECK(is_spacelike(g1_4ds));
         CHECK(!is_lightlike(g4_4ds));
         CHECK(!is_lightlike(g1_4ds));
-        for (double s : {1.0e3, 1.0e6}) {
+        for (value_t s : {1.0e3, 1.0e6}) {
             CHECK(is_timelike(vec4ds{0.0, 0.0, 0.0, s}));
             CHECK(is_spacelike(vec4ds{s, 0.0, 0.0, 0.0}));
         }
@@ -930,10 +930,10 @@ TEST_SUITE("STA 3D Tests")
         // The PAIR is what matters: flipping either half alone breaks the physics, and
         // the field transformation law alone cannot see the difference. Natural units,
         // c = 1. Griffiths, Introduction to Electrodynamics 4th ed., Ch. 12.3.
-        auto faraday = [](double Ex, double Ey, double Ez, double Bx, double By,
-                          double Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
-        auto four_vel = [](double vx, double vy, double vz) {
-            double const g = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
+        auto faraday = [](value_t Ex, value_t Ey, value_t Ez, value_t Bx, value_t By,
+                          value_t Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
+        auto four_vel = [](value_t vx, value_t vy, value_t vz) {
+            value_t const g = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
             return vec4ds{g * vx, g * vy, g * vz, g};
         };
 
@@ -946,8 +946,8 @@ TEST_SUITE("STA 3D Tests")
         // ---- 2. the hand-checkable case, worked on paper before the library --------
         // B along +z, motion along +x:  q v x B = q (v g1) x (Bz g3) = -q v Bz g2
         {
-            double const Bz = 1.3, v = 0.4;
-            double const g = 1.0 / std::sqrt(1.0 - v * v);
+            value_t const Bz = 1.3, v = 0.4;
+            value_t const g = 1.0 / std::sqrt(1.0 - v * v);
             auto const K = gr1(faraday(0.0, 0.0, 0.0, 0.0, 0.0, Bz) * four_vel(v, 0, 0));
             CHECK(K.x == doctest::Approx(0.0).epsilon(1.0e-12));
             CHECK(K.y == doctest::Approx(-g * v * Bz));
@@ -957,26 +957,26 @@ TEST_SUITE("STA 3D Tests")
         }
 
         // ---- 3. the general Lorentz force, K = q gr1(F u)  (Griffiths 12.128) ------
-        double const Ex = 0.3, Ey = -1.2, Ez = 0.8, Bx = 1.1, By = 0.4, Bz = -0.6;
-        double const vx = 0.2, vy = -0.35, vz = 0.1;
-        double const gv = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
+        value_t const Ex = 0.3, Ey = -1.2, Ez = 0.8, Bx = 1.1, By = 0.4, Bz = -0.6;
+        value_t const vx = 0.2, vy = -0.35, vz = 0.1;
+        value_t const gv = 1.0 / std::sqrt(1.0 - (vx * vx + vy * vy + vz * vz));
         auto const F = faraday(Ex, Ey, Ez, Bx, By, Bz);
         auto const u = four_vel(vx, vy, vz);
         auto const K = gr1(F * u);
         // classical reference v x B, written out independently
-        double const cx = vy * Bz - vz * By;
-        double const cy = vz * Bx - vx * Bz;
-        double const cz = vx * By - vy * Bx;
+        value_t const cx = vy * Bz - vz * By;
+        value_t const cy = vz * Bx - vx * Bz;
+        value_t const cz = vx * By - vy * Bx;
         CHECK(K.x == doctest::Approx(gv * (Ex + cx))); // Griffiths (12.129)
         CHECK(K.y == doctest::Approx(gv * (Ey + cy)));
         CHECK(K.z == doctest::Approx(gv * (Ez + cz)));
         CHECK(K.w == doctest::Approx(gv * (Ex * vx + Ey * vy + Ez * vz))); // the power
         // F . u is orthogonal to u, so u . u = 1 is preserved by the motion
-        CHECK(value_t(dot(K, u)) == doctest::Approx(0.0).epsilon(1.0e-12));
+        CHECK(value_t(dot(K, u)) == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-12)));
 
         // ---- 4. all SIX field transformation rules, from ONE boost (12.109) --------
-        double const v = 0.6;
-        double const gam = 1.0 / std::sqrt(1.0 - v * v), ph = std::atanh(v);
+        value_t const v = 0.6;
+        value_t const gam = 1.0 / std::sqrt(1.0 - v * v), ph = std::atanh(v);
         auto const Fb = transform(F, get_boost(g14_4ds, -ph)); // passive, frame at +v
         CHECK(Fb.vx == doctest::Approx(Ex));                   // Ex unchanged
         CHECK(Fb.vy == doctest::Approx(gam * (Ey - v * Bz)));
@@ -1035,7 +1035,7 @@ TEST_SUITE("STA 3D Tests")
         // ---- 2. it is the force-law-pinned convention of the case above -------------
         // F = sum_k b_k dual(sigma_k) puts B on g_jk with the MINUS that the Lorentz
         // force fixed there; the complement would put it there with a plus
-        double const Bx = 1.1, By = 0.4, Bz = -0.6;
+        value_t const Bx = 1.1, By = 0.4, Bz = -0.6;
         bivec4ds const Fm = Bx * r_dual(s1) + By * r_dual(s2) + Bz * r_dual(s3);
         CHECK(rel_bivec_split(Fm, g4_4ds) == bivec4ds{0.0, 0.0, 0.0, -Bx, -By, -Bz});
         CHECK(rel_vec_split(Fm, g4_4ds) == bivec4ds{});
@@ -1043,7 +1043,7 @@ TEST_SUITE("STA 3D Tests")
         // ---- 3. Ampere: nabla F = J with the dual, the reversed current otherwise ---
         // inside a wire along +z with current density Jz the field is (Jz/2)(-y, x, 0)
         // (natural units); it is linear, so the central difference is exact to rounding
-        double const Jz = 2.0;
+        value_t const Jz = 2.0;
         bivec4ds const D1 = r_dual(s1), D2 = r_dual(s2);
         bivec4ds const C1 = r_cmpl(s1), C2 = r_cmpl(s2);
         auto F_dual = [&](vec4ds const& x) {
@@ -1054,18 +1054,34 @@ TEST_SUITE("STA 3D Tests")
         };
         auto const x0 = vec4ds{0.31, -0.22, 0.44, 0.57};
         auto const Nd = nabla(F_dual, x0, 1.0e-3);
-        CHECK(gr1(Nd) == vec4ds{0.0, 0.0, Jz, 0.0});
+        // linear: exact up to rounding -- a few ulps in double, ~1e-5 in float
+        if constexpr (value_t_is_double) {
+            CHECK(gr1(Nd) == vec4ds{0.0, 0.0, Jz, 0.0});
+        }
+        else {
+            CHECK(is_close(gr1(Nd), vec4ds{0.0, 0.0, Jz, 0.0}));
+        }
         CHECK(gr3(Nd) == trivec4ds{});
         CHECK(std::abs(value_t(gr0(Nd))) < 1.0e-12);
         CHECK(gr2(Nd) == bivec4ds{});
         CHECK(std::abs(value_t(gr4(Nd))) < 1.0e-12);
         // the complement drops the metric, and Ampere's law comes out with the current
         // reversed: the operation that carries the magnetostatics over needs the metric
-        CHECK(gr1(nabla(F_cmpl, x0, 1.0e-3)) == vec4ds{0.0, 0.0, -Jz, 0.0});
+        if constexpr (value_t_is_double) {
+            CHECK(gr1(nabla(F_cmpl, x0, 1.0e-3)) == vec4ds{0.0, 0.0, -Jz, 0.0});
+        }
+        else {
+            CHECK(is_close(gr1(nabla(F_cmpl, x0, 1.0e-3)), vec4ds{0.0, 0.0, -Jz, 0.0}));
+        }
     }
 
     TEST_CASE("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, E x B)")
     {
+        if constexpr (!value_t_is_double) {
+            MESSAGE("skipped with value_t = float: RK4 over 2000-4000 steps accumulates "
+                    "~1e-4 of rounding, beyond the tolerances pinned here");
+            return;
+        }
         fmt::println("G<1,3,0>: the rotor equation of motion (cyclotron, hyperbolic, "
                      "E x B)");
 
@@ -1077,8 +1093,8 @@ TEST_SUITE("STA 3D Tests")
         // -- ONE exp of a general bivector (a boost times a rotation). RK4 (the shared
         // rk4_step) is checked against that closed form, and both against the textbook
         // answers. Same Faraday convention and natural units as the test above.
-        auto faraday = [](double Ex, double Ey, double Ez, double Bx, double By,
-                          double Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
+        auto faraday = [](value_t Ex, value_t Ey, value_t Ez, value_t Bx, value_t By,
+                          value_t Bz) { return bivec4ds{Ex, Ey, Ez, -Bx, -By, -Bz}; };
         // the VERSOR norm -- NOT nrm_sq, which is the grade-wise Lorentzian sum and is
         // not 1 for a unit rotor (see the sqrt(rotor) note in the ops header)
         auto versor_nrm = [](mvec4ds_e const& R) {
@@ -1086,8 +1102,8 @@ TEST_SUITE("STA 3D Tests")
         };
 
         // proper-time RK4 on the 12-component state (rotor: 8, world line: 4)
-        auto integrate = [&](bivec4ds const& F, double qo2m, mvec4ds_e R0, vec4ds x0,
-                             double dtau, int nsteps) {
+        auto integrate = [&](bivec4ds const& F, value_t qo2m, mvec4ds_e R0, vec4ds x0,
+                             value_t dtau, int nsteps) {
             std::array<value_t, 12> u_mem{}, rhs_mem{};
             std::array<value_t, 24> uh_mem{};
             auto pack = [&](mvec4ds_e const& R, vec4ds const& x) {
@@ -1137,13 +1153,13 @@ TEST_SUITE("STA 3D Tests")
 
         // ---- gate 1: cyclotron motion in a constant magnetic field ----------------
         {
-            double const Bz = 0.8, qo2m = 0.5; // q/m = 1
-            double const v0 = 0.5, g0 = 1.0 / std::sqrt(1.0 - v0 * v0);
-            double const om_p = 2.0 * qo2m * Bz; // proper-time turn rate q B / m
+            value_t const Bz = 0.8, qo2m = 0.5; // q/m = 1
+            value_t const v0 = 0.5, g0 = 1.0 / std::sqrt(1.0 - v0 * v0);
+            value_t const om_p = 2.0 * qo2m * Bz; // proper-time turn rate q B / m
             auto const F = faraday(0.0, 0.0, 0.0, 0.0, 0.0, Bz);
             auto const R0 = get_boost(g14_4ds, std::atanh(v0)); // start along +x
 
-            double const tau = 0.9;
+            value_t const tau = 0.9;
             auto const [R, x] = integrate(F, qo2m, R0, x_0, tau / 2000, 2000);
 
             // RK4 reproduces the closed form R(tau) = exp((q tau / 2m) F) R0
@@ -1163,9 +1179,9 @@ TEST_SUITE("STA 3D Tests")
 
             // half a proper period turns the velocity around and displaces the particle
             // by one orbit diameter: r = gamma m v / (q B), i.e. Griffiths (5.3) p = QBR
-            double const tau_half = pi / om_p;
+            value_t const tau_half = pi / om_p;
             auto const [Rh, xh] = integrate(F, qo2m, R0, x_0, tau_half / 4000, 4000);
-            double const r_orbit = g0 * v0 / (2.0 * qo2m * Bz);
+            value_t const r_orbit = g0 * v0 / (2.0 * qo2m * Bz);
             CHECK(xh.x == doctest::Approx(0.0).epsilon(1.0e-8));
             CHECK(xh.y == doctest::Approx(-2.0 * r_orbit));
             CHECK(xh.z == doctest::Approx(0.0).epsilon(1.0e-12));
@@ -1174,10 +1190,10 @@ TEST_SUITE("STA 3D Tests")
 
         // ---- gate 2: hyperbolic motion in a constant electric field ---------------
         {
-            double const Ex = 0.7, qo2m = 0.5;    // q/m = 1
-            double const alpha = 2.0 * qo2m * Ex; // proper acceleration q E / m
+            value_t const Ex = 0.7, qo2m = 0.5;    // q/m = 1
+            value_t const alpha = 2.0 * qo2m * Ex; // proper acceleration q E / m
             auto const F = faraday(Ex, 0.0, 0.0, 0.0, 0.0, 0.0);
-            double const tau = 1.3;
+            value_t const tau = 1.3;
             auto const [R, x] = integrate(F, qo2m, R_id, x_0, tau / 2000, 2000);
             auto const uu = transform(g4_4ds, R);
 
@@ -1188,16 +1204,16 @@ TEST_SUITE("STA 3D Tests")
 
             // Griffiths (12.60)/(12.61) in COORDINATE time -- independent statements,
             // since t here came from integrating dx/dtau alongside the rotor
-            double const t = x.w, at = alpha * t;
+            value_t const t = x.w, at = alpha * t;
             CHECK(uu.x / uu.w == doctest::Approx(at / std::sqrt(1.0 + at * at)));
             CHECK(x.x == doctest::Approx((std::sqrt(1.0 + at * at) - 1.0) / alpha));
         }
 
         // ---- gate 3: the E x B drift ---------------------------------------------
         {
-            double const Ey = 0.35, Bz = 0.9, qo2m = 0.5;
-            double const vd = Ey / Bz; // Griffiths (5.10): the drift speed is E/B
-            double const gd = 1.0 / std::sqrt(1.0 - vd * vd);
+            value_t const Ey = 0.35, Bz = 0.9, qo2m = 0.5;
+            value_t const vd = Ey / Bz; // Griffiths (5.10): the drift speed is E/B
+            value_t const gd = 1.0 / std::sqrt(1.0 - vd * vd);
             auto const F = faraday(0.0, Ey, 0.0, 0.0, 0.0, Bz);
 
             // (a) boosting into the drift frame kills the electric field entirely and
@@ -1212,7 +1228,7 @@ TEST_SUITE("STA 3D Tests")
             // proper period tau_c = 2 pi m / (q sqrt(B^2 - E^2)). Over one period the
             // cycloid returns to its guiding centre and only the drift remains.
             CHECK(is_simple(F));
-            double const tau_c = 2.0 * pi / (2.0 * qo2m * std::sqrt(Bz * Bz - Ey * Ey));
+            value_t const tau_c = 2.0 * pi / (2.0 * qo2m * std::sqrt(Bz * Bz - Ey * Ey));
             auto const [R, x] = integrate(F, qo2m, R_id, x_0, tau_c / 4000, 4000);
             CHECK(x.y == doctest::Approx(0.0).epsilon(1.0e-6));
             CHECK(x.z == doctest::Approx(0.0).epsilon(1.0e-12));
@@ -1522,15 +1538,15 @@ TEST_SUITE("STA 3D Tests")
                 worst_explog = std::max(worst_explog, rotor_diff(exp(Bb), R));
                 auto const sR = sqrt(R);
                 worst_sqrt = std::max(worst_sqrt, rotor_diff(sR * sR, R));
-                worst_unit =
-                    std::max(worst_unit, std::abs(value_t(gr0(rev(sR) * sR)) - 1.0));
+                worst_unit = std::max(
+                    worst_unit, std::abs(value_t(gr0(rev(sR) * sR)) - value_t(1.0)));
             }
             REQUIRE(tested > 1500); // most random bivectors are non-simple
-            CHECK(worst_series == doctest::Approx(0.0).epsilon(1.0e-9));
-            CHECK(worst_logexp == doctest::Approx(0.0).epsilon(1.0e-9));
-            CHECK(worst_explog == doctest::Approx(0.0).epsilon(1.0e-9));
-            CHECK(worst_sqrt == doctest::Approx(0.0).epsilon(1.0e-9));
-            CHECK(worst_unit == doctest::Approx(0.0).epsilon(1.0e-9));
+            CHECK(worst_series == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-9)));
+            CHECK(worst_logexp == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-9)));
+            CHECK(worst_explog == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-9)));
+            CHECK(worst_sqrt == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-9)));
+            CHECK(worst_unit == doctest::Approx(0.0).epsilon(scaled_tol(1.0e-9)));
             fmt::println("   random non-simple rotors tested: {}", tested);
             fmt::println("   worst: exp-series {:.2e}  log(exp)-B {:.2e}  exp(log)-R "
                          "{:.2e}  sqrt^2-R {:.2e}  unit {:.2e}",
@@ -2588,12 +2604,14 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("sta4ds: is_close and is_same_transform");
 
         auto const big = vec4ds{1.0e6, 2.0e6, 3.0e6, 4.0e6};
-        auto const big_1ulp = vec4ds{std::nextafter(big.x, 1e9), big.y, big.z, big.w};
+        auto const big_1ulp =
+            vec4ds{std::nextafter(big.x, value_t(1e9)), big.y, big.z, big.w};
         CHECK(big == big_1ulp); // operator== is relative: five ulps at any magnitude
         CHECK(is_close(big, big_1ulp));
-        CHECK(big != vec4ds{big.x + 100.0 * (std::nextafter(big.x, 1e9) - big.x), big.y,
-                            big.z, big.w});
-        CHECK(!is_close(big, vec4ds{big.x * (1.0 + 1e-9), big.y, big.z, big.w}));
+        CHECK(big !=
+              vec4ds{big.x + value_t(100.0) * (big_1ulp.x - big.x), big.y, big.z, big.w});
+        CHECK(!is_close(
+            big, vec4ds{value_t(big.x * (1.0 + scaled_tol(1e-9))), big.y, big.z, big.w}));
 
         // An STA rotor double-covers its transformation just as a Euclidean one does --
         // and it covers BOOSTS as well as spatial rotations, which is why the function
@@ -2625,13 +2643,13 @@ TEST_SUITE("STA 3D Tests")
                          9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
         auto B = A;
         CHECK(is_close(A, B));
-        B.c0 += 1.0e-6;
+        B.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(A, B));
 
         auto U = mvec4ds_u{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         auto V = U;
         CHECK(is_close(U, V));
-        V.c0 += 1.0e-6;
+        V.c0 += scaled_tol(1.0e-6);
         CHECK(!is_close(U, V));
     }
 
@@ -2682,17 +2700,19 @@ TEST_SUITE("STA 3D Tests")
             // These are the same blade at four magnitudes; the values are chosen so the
             // cancellation in B ^ B is not exact in binary and a real residue is left.
             for (double s : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+                auto const sc = [s](double a) { return value_t(a * s); };
                 auto const Bs =
-                    bivec4ds(wdg(vec4ds{1.1 * s, 0.37 * s, 2.9 * s, 0.13 * s},
-                                 vec4ds{3.7 * s, 1.3 * s, 0.57 * s, 2.3 * s}));
+                    bivec4ds(wdg(vec4ds{sc(1.1), sc(0.37), sc(2.9), sc(0.13)},
+                                 vec4ds{sc(3.7), sc(1.3), sc(0.57), sc(2.3)}));
                 INFO("scale = ", s, "  |B^B| = ", std::abs(value_t(wdg(Bs, Bs))));
                 CHECK(is_simple(Bs));
             }
             // and a bivector that is genuinely not simple stays that way at any scale --
             // the ratio |B^B| / sum(components^2) is scale-free, here 1.56 against ~1e-17
             for (double s : {1.0, 1.0e3, 1.0e6}) {
+                auto const sc = [s](double a) { return value_t(a * s); };
                 auto const Fs =
-                    bivec4ds{1.0 * s, 0.5 * s, 2.0 * s, 0.25 * s, 3.0 * s, 1.0 * s};
+                    bivec4ds{sc(1.0), sc(0.5), sc(2.0), sc(0.25), sc(3.0), sc(1.0)};
                 INFO("scale = ", s);
                 CHECK(!is_simple(Fs));
             }
@@ -2733,14 +2753,16 @@ TEST_SUITE("STA 3D Tests")
         // regression guard: exp() was refactored onto detail::sta4ds_biv_decompose()
         auto F = bivec4ds{1.0, 0.3, -0.2, 0.5, 1.1, -0.7}; // non-simple
         auto S = wdg(vec4ds{0.3, -0.5, 0.2, 1.4}, vec4ds{1.1, 0.4, -0.7, 2.0});
-        auto Tl = 0.6 * g14_4ds;
-        auto Sp = 0.4 * g12_4ds;
+        auto Tl = value_t(0.6) * g14_4ds;
+        auto Sp = value_t(0.4) * g12_4ds;
         auto Nl = wdg(g4_4ds + g1_4ds, g2_4ds);
         auto Z = bivec4ds{};
 
         for (auto const& B : {F, S, Tl, Sp, Nl, Z}) {
             auto R = exp(B);
-            CHECK(std::abs(value_t(gr0(R * rev(R))) - 1.0) < eps); // unit rotor
+            // unit rotor: to 5 ulps in double, 10 in float
+            CHECK(std::abs(value_t(gr0(R * rev(R))) - 1.0) <
+                  per_precision(eps, 10.0 * eps));
         }
         // round trips
         CHECK(is_close(exp(log(exp(Tl))), exp(Tl)));
@@ -2793,8 +2815,8 @@ TEST_SUITE("STA 3D Tests")
 
         // nrm() is NULL-CAPABLE in a Minkowski metric: nrm(X) == 0 does NOT mean X == 0,
         // so a result is tested for zero COMPONENTWISE
-        auto is_zero = [](mvec4ds const& M, double tol) {
-            double const* c = &M.c0;
+        auto is_zero = [](mvec4ds const& M, value_t tol) {
+            value_t const* c = &M.c0;
             for (int i = 0; i < 16; ++i) {
                 if (std::abs(c[i]) > tol) return false;
             }
@@ -2806,19 +2828,23 @@ TEST_SUITE("STA 3D Tests")
         // the operator sums over the RECIPROCAL basis, so the space components of a
         // gradient carry the metric sign: grad(2x + 3t) = -2 g1 + 3 g4
         auto phi = [](vec4ds const& x) { return scalar4ds(2.0 * x.x + 3.0 * x.w); };
-        CHECK(is_zero(mvec4ds(nabla_wdg(phi, x0) - vec4ds{-2.0, 0.0, 0.0, 3.0}), 1.0e-8));
+        // linear: exact up to rounding, which the default step divides
+        CHECK(is_zero(mvec4ds(nabla_wdg(phi, x0) - vec4ds{-2.0, 0.0, 0.0, 3.0}),
+                      per_precision(1.0e-8, 1.0e-4)));
 
         // a vacuum plane wave is built on the NULL propagation vector k = g4 + g3
-        double const w = 1.1, E0 = 0.7;
+        value_t const w = 1.1, E0 = 0.7;
         auto F = [&](vec4ds const& x) {
-            double const ph = w * (x.z - x.w);
+            value_t const ph = w * (x.z - x.w);
             return E0 * std::cos(ph) * wdg(g4_4ds + g3_4ds, g1_4ds);
         };
         // Maxwell in one equation, and its two grade halves: sources and monopoles
-        CHECK(is_zero(nabla(F, x0, 1.0e-5), 1.0e-8));
-        CHECK(is_zero(mvec4ds(nabla_dot(F, x0, 1.0e-5)), 1.0e-8));
-        CHECK(is_zero(mvec4ds(nabla_wdg(F, x0, 1.0e-5)), 1.0e-8));
-        CHECK(is_zero(dalembertian(F, x0, 1.0e-3), 1.0e-5));
+        if constexpr (value_t_is_double) { // steps chosen for double's round-off
+            CHECK(is_zero(nabla(F, x0, 1.0e-5), 1.0e-8));
+            CHECK(is_zero(mvec4ds(nabla_dot(F, x0, 1.0e-5)), 1.0e-8));
+            CHECK(is_zero(mvec4ds(nabla_wdg(F, x0, 1.0e-5)), 1.0e-8));
+            CHECK(is_zero(dalembertian(F, x0, 1.0e-3), 1.0e-5));
+        }
 
         // a field that does not solve Maxwell must be detected -- otherwise the checks
         // above would pass for anything
@@ -2829,7 +2855,7 @@ TEST_SUITE("STA 3D Tests")
         // components of order 0.1 -- yet its Minkowski norm is exactly zero. A test
         // written with nrm() would pass here; a componentwise one does not.
         auto Bad = [&](vec4ds const& x) {
-            double const ph = w * (x.z - x.w);
+            value_t const ph = w * (x.z - x.w);
             return E0 * std::cos(ph) * g14_4ds + E0 * std::cos(ph) * g12_4ds;
         };
         auto Nb = nabla(Bad, x0, 1.0e-5);
@@ -2839,7 +2865,10 @@ TEST_SUITE("STA 3D Tests")
         // the d'Alembertian carries the signature: box = d_t^2 - d_x^2 - d_y^2 - d_z^2,
         // so box(t^2 + 2x^2) = 2 - 4 = -2
         auto q = [](vec4ds const& x) { return scalar4ds(x.w * x.w + 2.0 * x.x * x.x); };
-        CHECK(std::abs(value_t(gr0(dalembertian(q, x0, 1.0e-3))) + 2.0) < 1.0e-5);
+        if constexpr (value_t_is_double) { // h = 1e-3, second order: 0.1 round-off in
+                                           // float
+            CHECK(std::abs(value_t(gr0(dalembertian(q, x0, 1.0e-3))) + 2.0) < 1.0e-5);
+        }
 
         // grade extremes vanish, and compact schemes are rejected as elsewhere
         auto ps = [](vec4ds const& x) { return pscalar4ds(x.x * x.w); };
@@ -2851,6 +2880,11 @@ TEST_SUITE("STA 3D Tests")
 
     TEST_CASE("sta4ds calculus: the default step at an event on the light cone")
     {
+        if constexpr (!value_t_is_double) {
+            MESSAGE("skipped with value_t = float: the event at 1e8 is exactly null only "
+                    "in double, where its coordinates square without rounding");
+            return;
+        }
         fmt::println("sta4ds calculus: the default step at an event on the light cone");
 
         // An event far out ON the light cone has a Minkowski norm of zero. Until
@@ -2909,18 +2943,20 @@ TEST_SUITE("STA 3D Tests")
             return m;
         };
 
-        value_t const h = 1.0e-3;
+        // the fields are quadratic, so the central differences are exact up to rounding,
+        // which the second differences divide by h^2: float wants a larger step
+        value_t const h = per_precision(1.0e-3, 1.0e-1);
         auto A = [](vec4ds const& y) {
-            return vec4ds{0.0, 0.0, 0.5 * (y.x * y.x + y.y * y.y),
-                          0.5 * (y.x * y.x + y.y * y.y + y.z * y.z)};
+            return vec4ds{0.0, 0.0, value_t(0.5 * (y.x * y.x + y.y * y.y)),
+                          value_t(0.5 * (y.x * y.x + y.y * y.y + y.z * y.z))};
         };
         auto x0 = vec4ds{0.31, -0.22, 0.44, 0.57}; // (x, y, z, t)
 
         // ---- the gauge condition, and the four-current from the wave operator -------
-        CHECK(std::abs(value_t(nabla_dot(A, x0, h))) < 1.0e-9);
+        CHECK(std::abs(value_t(nabla_dot(A, x0, h))) < per_precision(1.0e-9, 1.0e-4));
         auto const J = gr1(dalembertian(A, x0, h));
-        CHECK(J.x == doctest::Approx(0.0).epsilon(1.0e-9));
-        CHECK(J.y == doctest::Approx(0.0).epsilon(1.0e-9));
+        CHECK(J.x == doctest::Approx(0.0).epsilon(per_precision(1.0e-9, 1.0e-4)));
+        CHECK(J.y == doctest::Approx(0.0).epsilon(per_precision(1.0e-9, 1.0e-4)));
         CHECK(J.z == doctest::Approx(-2.0)); // -laplacian(Az) = -2
         CHECK(J.w == doctest::Approx(-3.0)); // -laplacian(V)  = -3
 
@@ -2938,17 +2974,19 @@ TEST_SUITE("STA 3D Tests")
         CHECK(Ep.vz == doctest::Approx(-x0.z));
         CHECK(-Bp.mx == doctest::Approx(x0.y));  // Bx =  y
         CHECK(-Bp.my == doctest::Approx(-x0.x)); // By = -x
-        CHECK(-Bp.mz == doctest::Approx(0.0).epsilon(1.0e-9));
+        CHECK(-Bp.mz == doctest::Approx(0.0).epsilon(per_precision(1.0e-9, 1.0e-4)));
 
         // ---- Maxwell in ONE equation: nabla F = J ----------------------------------
         auto const N = nabla(Ffield, x0, h);
-        CHECK(max_abs(mvec4ds(gr1(N) - J)) < 1.0e-9); // (12.127) first equation
-        CHECK(max_abs(mvec4ds(gr3(N))) < 1.0e-9);     // (12.127) second: no monopoles
+        CHECK(max_abs(mvec4ds(gr1(N) - J)) <
+              per_precision(1.0e-9, 1.0e-4)); // (12.127) first equation
+        CHECK(max_abs(mvec4ds(gr3(N))) <
+              per_precision(1.0e-9, 1.0e-4)); // (12.127) second: no monopoles
         // the remaining grades are empty: nabla F has no scalar, bivector or
         // pseudoscalar part for a bivector field
-        CHECK(std::abs(value_t(gr0(N))) < 1.0e-9);
-        CHECK(max_abs(mvec4ds(gr2(N))) < 1.0e-9);
-        CHECK(std::abs(value_t(gr4(N))) < 1.0e-9);
+        CHECK(std::abs(value_t(gr0(N))) < per_precision(1.0e-9, 1.0e-4));
+        CHECK(max_abs(mvec4ds(gr2(N))) < per_precision(1.0e-9, 1.0e-4));
+        CHECK(std::abs(value_t(gr4(N))) < per_precision(1.0e-9, 1.0e-4));
 
         // the classical reading of the same four numbers, computed by hand:
         //   div E   = -3      -> c rho = J_w = -3           (Gauss, Griffiths 2.14)
@@ -2960,8 +2998,9 @@ TEST_SUITE("STA 3D Tests")
         // adding a t-dependent piece to V violates nabla . A = 0, and then
         // nabla F = box A - nabla(nabla . A) picks up the extra term
         auto Ag = [](vec4ds const& y) {
-            return vec4ds{0.0, 0.0, 0.5 * (y.x * y.x + y.y * y.y),
-                          0.5 * (y.x * y.x + y.y * y.y + y.z * y.z) + 0.7 * y.w * y.z};
+            return vec4ds{
+                0.0, 0.0, value_t(0.5 * (y.x * y.x + y.y * y.y)),
+                value_t(0.5 * (y.x * y.x + y.y * y.y + y.z * y.z) + 0.7 * y.w * y.z)};
         };
         CHECK(std::abs(value_t(nabla_dot(Ag, x0, h))) > 0.1); // gauge broken
         auto Fg = [&](vec4ds const& y) { return nabla_wdg(Ag, y, h); };
@@ -3027,7 +3066,7 @@ TEST_SUITE("STA 3D Tests")
         // an O(1)..O(10) quantity (the vec case lands at 1.3e-15, just over it)
         auto preserved = [](value_t before, value_t after) {
             return std::abs(after - before) <=
-                   eps_congruent * std::max(std::abs(before), 1.0);
+                   eps_congruent * std::max(std::abs(before), value_t(1.0));
         };
         vec4ds const x{0.3, -0.5, 0.2, 1.4};
         bivec4ds const B{1.0, 0.3, -0.2, 0.5, 1.1, -0.7};
@@ -3333,22 +3372,22 @@ TEST_SUITE("STA 3D Tests")
         // operand depending on its position in its binade -- constant in relative terms
         // at every magnitude, which an absolute tolerance cannot be: that one is 5 ulps
         // at magnitude 1 and stricter than the float grid itself above ~1e3.
-        auto const ulp = [](double m) { return std::nextafter(m, 1e30) - m; };
+        auto const ulp = [](value_t m) { return std::nextafter(m, value_t(1e30)) - m; };
 
-        for (double const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
+        for (value_t const m : {1.0, 1.0e3, 1.0e6, 6.371e6}) {
             auto const u = ulp(m);
-            CHECK(vec4ds{m, m, m, m} == vec4ds{m + u, m, m, m});       // 1 ulp: inside
-            CHECK(vec4ds{m, m, m, m} == vec4ds{m + 4.0 * u, m, m, m}); // 4 ulps: inside
+            CHECK(vec4ds{m, m, m, m} == vec4ds{m + u, m, m, m});     // 1 ulp: inside
+            CHECK(vec4ds{m, m, m, m} == vec4ds{m + 4 * u, m, m, m}); // 4 ulps: inside
             CHECK(vec4ds{m, m, m, m} !=
-                  vec4ds{m + 100.0 * u, m, m, m}); // 100 ulps: outside
+                  vec4ds{m + 100 * u, m, m, m}); // 100 ulps: outside
         }
 
         // below unit scale the floor takes over, so the window stays absolute there --
         // a component that should vanish is compared against the tolerance itself
         CHECK(vec4ds{1.0e-9, 1.0e-9, 0.0, 0.0} ==
-              vec4ds{1.0e-9 + 5.0e-16, 1.0e-9, 0.0, 0.0});
+              vec4ds{1.0e-9 + scaled_tol(5.0e-16), 1.0e-9, 0.0, 0.0});
         CHECK(vec4ds{1.0e-9, 1.0e-9, 0.0, 0.0} !=
-              vec4ds{1.0e-9 + 1.0e-13, 1.0e-9, 0.0, 0.0});
+              vec4ds{1.0e-9 + scaled_tol(1.0e-13), 1.0e-9, 0.0, 0.0});
     }
 
     ////////////////////////////////////////////////////////////////////////////////

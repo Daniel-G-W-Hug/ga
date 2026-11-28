@@ -94,9 +94,10 @@ TEST_SUITE("EGA contracts")
     TEST_CASE("ega: is_close on scalars, pseudoscalars and even multivectors")
     {
         // a relative tolerance: a difference of 1e-14 is close at any scale, 1e-6 is not
-        CHECK(is_close(scalar2d(3.0), scalar2d(3.0 + 3.0e-14)));
-        CHECK_FALSE(is_close(scalar2d(3.0), scalar2d(3.0 + 3.0e-6)));
-        CHECK(is_close(pscalar2d(-2.0e6), pscalar2d(-2.0e6 * (1.0 + 1.0e-14))));
+        CHECK(is_close(scalar2d(3.0), scalar2d(3.0 + scaled_tol(3.0e-14))));
+        CHECK_FALSE(is_close(scalar2d(3.0), scalar2d(3.0 + scaled_tol(3.0e-6))));
+        CHECK(
+            is_close(pscalar2d(-2.0e6), pscalar2d(-2.0e6 * (1.0 + scaled_tol(1.0e-14)))));
         CHECK_FALSE(is_close(pscalar2d(1.0), pscalar2d(-1.0)));
         CHECK(is_close(mvec2d_e(1.0, -2.0), mvec2d_e(1.0, -2.0 + 1.0e-14)));
         CHECK_FALSE(is_close(mvec2d_e(1.0, -2.0), mvec2d_e(1.0, 2.0)));
@@ -135,12 +136,15 @@ TEST_SUITE("EGA contracts")
         value_t const t0 = 0.29;
         value_t const ph = value_t(dot(k, r0)) - w * t0;
 
-        CHECK(value_t(gr0(d_dt(wave, r0, t0, 1.0e-5))) ==
-              doctest::Approx(w * std::sin(ph)));
-        CHECK(value_t(gr0(d_dt(wave, r0, t0, central_scheme(2, 2), 1.0e-3))) ==
-              doctest::Approx(-w * w * std::cos(ph)).epsilon(1.0e-5));
-        auto const g = nabla(wave, r0, t0, 1.0e-5);
-        CHECK(nrm(mvec2d(g) - mvec2d(-std::sin(ph) * k)) < 1.0e-8);
+        // the steps are chosen for double; in float their round-off dominates
+        if constexpr (value_t_is_double) {
+            CHECK(value_t(gr0(d_dt(wave, r0, t0, 1.0e-5))) ==
+                  doctest::Approx(w * std::sin(ph)));
+            CHECK(value_t(gr0(d_dt(wave, r0, t0, central_scheme(2, 2), 1.0e-3))) ==
+                  doctest::Approx(-w * w * std::cos(ph)).epsilon(1.0e-5));
+            auto const g = nabla(wave, r0, t0, 1.0e-5);
+            CHECK(nrm(mvec2d(g) - mvec2d(-std::sin(ph) * k)) < 1.0e-8);
+        }
     }
 
     TEST_CASE("ega: exp, log and sqrt at the identity")
@@ -211,6 +215,11 @@ TEST_SUITE("EGA contracts")
 
     TEST_CASE("ega3d: the rate of a rotor and the rate of its generator")
     {
+        if constexpr (!value_t_is_double) {
+            MESSAGE("skipped with value_t = float: the rates are central differences at "
+                    "h = 1e-6, below float's resolution");
+            return;
+        }
         fmt::println("ega3d: the rate of a rotor against the rate of its generator");
 
         // R(t) = exp(-1/2 B(t)) R_0 in the world frame, R_0 exp(-1/2 B(t)) in the body

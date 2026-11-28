@@ -29,12 +29,14 @@
 #include <cstddef>
 #include <limits>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
 
 #include "doctest/doctest.h"
 #include "ga/ga_value_t.hpp"
+#include "ga_test_tolerance.hpp" // value_t_is_double
 
 namespace xcheck {
 
@@ -107,12 +109,30 @@ template <typename A, typename Inv, typename Prd, typename Lift, typename One>
 void inverse(rng& r, Inv inverse_of, Prd prd, Lift lift, One one, value_t rel_tol,
              char const* sig)
 {
+    [[maybe_unused]] int tested = 0;
     for (int k = 0; k < draws; ++k) {
         A const a = make<A>(r);
+        if constexpr (!value_t_is_double) {
+            // A random draw near the null cone can be refused as degenerate: the guard
+            // is relative, eps against the operand's own scale, and float's eps is
+            // 5e8 times double's, so the neighbourhood it refuses is far wider. Such a
+            // draw tests the guard, not the inverse; double has not met one here.
+            try {
+                (void)inverse_of(a);
+            }
+            catch (std::runtime_error const&) {
+                continue;
+            }
+        }
         auto const ai = inverse_of(a);
         INFO(std::string(sig)); // a char const* would be logged as an address
         CHECK(agree(lift(prd(lift(a), lift(ai))), lift(one), rel_tol));
         CHECK(agree(lift(prd(lift(ai), lift(a))), lift(one), rel_tol));
+        ++tested;
+    }
+    if constexpr (!value_t_is_double) {
+        INFO(std::string(sig));
+        CHECK(tested > 0); // not every draw may be refused
     }
 }
 

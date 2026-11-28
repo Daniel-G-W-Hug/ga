@@ -4,8 +4,11 @@
   - ga/ga_ega.hpp **or**
   - ga/ga_pga.hpp
 
-- In case the library should be **switched between float and double as value type**, this
-  can be adjusted in ga/ga_value_t.hpp at ONE single location
+- The value type `value_t` is **double by default; float is selected with the compile
+  definition `_HD_GA_VALUE_T_FLOAT`**, e.g. `target_compile_definitions(<target> PRIVATE
+  _HD_GA_VALUE_T_FLOAT)`. Set it for every translation unit of the program, or for none
+  (see ga/ga_value_t.hpp); the build checks the float configuration with its own test
+  targets
 
 - Just for easy user reference following includes are provided at the top level:
   - ga/ga_usr_consts.hpp

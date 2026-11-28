@@ -12,6 +12,9 @@
 // include functions to be tested
 #include "ga/ga_cga.hpp"
 
+// tolerances shared by the double and the value_t = float build
+#include "ga_test_tolerance.hpp"
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::cga; // use specific operations of CGA (Conformal Algebra)
 

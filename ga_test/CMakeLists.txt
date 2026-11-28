@@ -112,6 +112,44 @@ link_fmt_to_target(${EXEC_NAME7})
 link_fmt_to_target(${EXEC_NAME8})
 
 # ----------------------------------------------------------------------------
+# value_t = float (_HD_GA_VALUE_T_FLOAT, see ga/ga_value_t.hpp).
+#
+# The four base suites a second time with the library's scalar type switched to float,
+# plus a compile-only translation unit that includes every public header under float.
+# Built by default, so the float configuration is checked on every build instead of
+# rotting until somebody tries it. The definition is set per target and must never
+# reach a translation unit linked with the double ones (an ODR violation).
+#
+# MSVC: under float the library and the tests convert double literals and results to
+# value_t implicitly, which /W4 reports as C4244 / C4305 and /WX makes fatal. Those two
+# are silenced for the float targets only; every other warning stays an error.
+# ----------------------------------------------------------------------------
+set(GA_FLOAT_SUITES ega pga sta cga)
+foreach(suite ${GA_FLOAT_SUITES})
+    string(TOUPPER ${suite} SUITE)
+    set(target ga_${suite}_test_float)
+    add_executable(${target} ${${SUITE}_FILES}) #dep: doctest, fmt, ga
+    target_include_directories(${target} PRIVATE ${GA_ROOT})
+    target_link_libraries(${target} PRIVATE doctest::doctest ga)
+    target_compile_definitions(${target} PRIVATE _HD_GA_VALUE_T_FLOAT
+                                                 DOCTEST_COUNTER=__COUNTER__)
+    target_compile_options(${target} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /wd4244 /wd4305)
+    endif()
+    link_fmt_to_target(${target})
+endforeach()
+
+add_library(ga_float_headers_check OBJECT src/ga_float_headers_check.cpp)
+target_include_directories(ga_float_headers_check PRIVATE ${GA_ROOT})
+target_link_libraries(ga_float_headers_check PRIVATE ga)
+target_compile_definitions(ga_float_headers_check PRIVATE _HD_GA_VALUE_T_FLOAT)
+if(MSVC)
+    target_compile_options(ga_float_headers_check PRIVATE /wd4244 /wd4305)
+endif()
+link_fmt_to_target(ga_float_headers_check)
+
+# ----------------------------------------------------------------------------
 # Standalone benchmarks (utilities/).
 #
 # These force optimization (MSVC: /O2; others: -O3) regardless of the build

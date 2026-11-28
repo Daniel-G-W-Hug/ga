@@ -801,10 +801,10 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(is_round(1.0e8 * c));
 
         // discriminates at the tolerance, not at exact zero
-        CHECK(is_flat(l + 1.0e-13 * c));
-        CHECK(is_round(l + 1.0e-10 * c));
-        CHECK(is_flat(1.0e8 * (l + 1.0e-13 * c)));
-        CHECK(is_round(1.0e8 * (l + 1.0e-10 * c)));
+        CHECK(is_flat(l + scaled_tol(1.0e-13) * c));
+        CHECK(is_round(l + scaled_tol(1.0e-10) * c));
+        CHECK(is_flat(1.0e8 * (l + scaled_tol(1.0e-13) * c)));
+        CHECK(is_round(1.0e8 * (l + scaled_tol(1.0e-10) * c)));
         CHECK(is_flat(l + 1.0e-6 * c, 1.0e-3));
 
         CHECK(round_weight_nrm_sq(l) == 0.0);
@@ -816,7 +816,7 @@ TEST_SUITE("CGA 2dc Tests")
         fmt::println("cga2dc: directional-argument convention and vector overloads");
 
         auto const p = vec2d(1.0, 2.0);
-        double const r = 2.0;
+        value_t const r = 2.0;
 
         // the 2D dipole now takes its DIRECTION, like dipole3dc and like the
         // lines of both algebras: its two points lie at center +/- r*direction
@@ -862,7 +862,7 @@ TEST_SUITE("CGA 2dc Tests")
 
         auto const p = vec2d(1.0, 2.0);
         auto const d = vec2d(0.6, 0.8); // unit
-        double const r = 2.0;
+        value_t const r = 2.0;
 
         auto same = [](vec2d const& a, vec2d const& b) {
             return a.x == doctest::Approx(b.x) && a.y == doctest::Approx(b.y);
@@ -1012,9 +1012,9 @@ TEST_SUITE("CGA 2dc Tests")
         // y = 2 (tangent) and y = 3 (missing it):
         auto const line_through = [](value_t px, value_t py, value_t dx,
                                      value_t dy) -> trivec2dc {
-            return wdg(
-                wdg(round_point2dc(px, py, 0.0), round_point2dc(px + dx, py + dy, 0.0)),
-                e4_2dc);
+            return wdg(wdg(round_point2dc(px, py, value_t(0.0)),
+                           round_point2dc(px + dx, py + dy, value_t(0.0))),
+                       e4_2dc);
         };
 
         auto const c_r2 = circle2dc(0.0, 0.0, 2.0);
@@ -1038,10 +1038,12 @@ TEST_SUITE("CGA 2dc Tests")
         {
             auto const [q1, q2] =
                 dipole_points(rwdg(circle2dc(1.0, 0.0, 2.0), circle2dc(3.0, 0.0, 2.0)));
-            bool const oa = is_close(q1, round_point2dc(2.0, s3, 0.0)) &&
-                            is_close(q2, round_point2dc(2.0, -s3, 0.0));
-            bool const ob = is_close(q1, round_point2dc(2.0, -s3, 0.0)) &&
-                            is_close(q2, round_point2dc(2.0, s3, 0.0));
+            bool const oa =
+                is_close(q1, round_point2dc(value_t(2.0), s3, value_t(0.0))) &&
+                is_close(q2, round_point2dc(value_t(2.0), -s3, value_t(0.0)));
+            bool const ob =
+                is_close(q1, round_point2dc(value_t(2.0), -s3, value_t(0.0))) &&
+                is_close(q2, round_point2dc(value_t(2.0), s3, value_t(0.0)));
             CHECK((oa || ob));
             auto const [t1, t2] =
                 dipole_points(rwdg(circle2dc(0.0, 0.0, 1.0), circle2dc(3.0, 0.0, 2.0)));
@@ -1057,10 +1059,12 @@ TEST_SUITE("CGA 2dc Tests")
         // and so is one closer than |L1 - L2|
         {
             auto const [j1, j2] = two_link_ik2dc(0.0, 0.0, 2.0, 0.0, 2.0, 2.0);
-            bool const ka = is_close(j1, round_point2dc(1.0, s3, 0.0)) &&
-                            is_close(j2, round_point2dc(1.0, -s3, 0.0));
-            bool const kb = is_close(j1, round_point2dc(1.0, -s3, 0.0)) &&
-                            is_close(j2, round_point2dc(1.0, s3, 0.0));
+            bool const ka =
+                is_close(j1, round_point2dc(value_t(1.0), s3, value_t(0.0))) &&
+                is_close(j2, round_point2dc(value_t(1.0), -s3, value_t(0.0)));
+            bool const kb =
+                is_close(j1, round_point2dc(value_t(1.0), -s3, value_t(0.0))) &&
+                is_close(j2, round_point2dc(value_t(1.0), s3, value_t(0.0)));
             CHECK((ka || kb));
             // an unequal pair, checked by the link lengths alone
             auto const [k1, k2] = two_link_ik2dc(0.3, -0.2, 1.1, 0.9, 0.8, 0.7);
