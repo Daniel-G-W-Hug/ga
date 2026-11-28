@@ -30,8 +30,8 @@
 //
 // - r_bulk_dual()                 -> return right bulk dual
 // - r_weight_dual()               -> return right weight dual
-// - l_bulk_dual()                 -> return right bulk dual
-// - l_weight_dual()               -> return right weight dual
+// - l_bulk_dual()                 -> return left bulk dual
+// - l_weight_dual()               -> return left weight dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1593,6 +1593,37 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   and in `ga_docu` ("Motion in STA"). (`exp`/`log` are sign-consistent — the `+/-` split is
   only in these two convenience builders.)
 
+## STA metric: the dependency map, and what a projective STA would change
+
+Moved here from the documentation (2026-11-28), where it was maintainer reading. The
+single root of the STA metric is the vector signature `g` (plus the basis and its
+canonical order). Three branches grow from it, and the code depends on keeping them
+apart:
+
+- **Combinatorial / signature-direct** (not via the extended metric): the wedge product
+  (orientation only), the complements (metric-blind), the regressive wedge, and the
+  geometric product, which uses the signature directly via `g_i ⟑ g_i = g_ii`.
+- **Extended-metric branch** (`G`, the wedge exomorphism seeded by `g`): `G` and the
+  regressive metric `Ḡ` with `G Ḡ = det(g) Id`, from which follow the dot product and
+  `nrm_sq()` (the reverse-norm), the duals `A★ = r_cmpl(G A)`, and in turn the
+  contractions, the expansions, the dual round trip and the un-duals.
+- **Geometric-square branch** (causal and rotor physics, not the metric): `B² =
+  gr0(B ⟑ B) = σ(k) P`, from which follow the causal character (`is_timelike` & co.), the
+  branch of the rotor `exp` / `sqrt`, and the transform `R ⟑ X ⟑ rev(R)`.
+
+What moves when something changes:
+
+- **Flipping the signature** `(-,-,-,+) ↔ (+,+,+,-)` moves the metric and the
+  geometric-square branch; the causal-character labels are signature-parity invariant.
+- **Adding a null direction** (a projective STA, e.g. `G(1,3,1)`, `det = 0`) changes only
+  the extended-metric branch. `G Ḡ = det(g) Id` is universal and the determinant decides
+  the regime: with `det = 0`, `G Ḡ = 0`, so `G` and `Ḡ` get disjoint support and the dual
+  splits into the bulk dual `r_cmpl(G A)` and the weight dual `r_cmpl(Ḡ A)`, as in PGA.
+  Multiplying by the pseudoscalar then reaches only the bulk dual, since it has no
+  inverse; complement-after-metric still gives both. The library has no projective STA.
+- **Changing the complement convention** moves the complements, the dual, the regressive
+  wedge and the contractions.
+
 ## Rigid-body dynamics (`dynamic_system{2,3}dp`, `ga_pga{2,3}dp_ops_mechanics.hpp`)
 
 **Three kinds of force element** feed the joint-space generalised force `tau` (all additive;

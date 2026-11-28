@@ -3426,4 +3426,38 @@ TEST_SUITE("EGA 2D Tests")
         }
     }
 
+    TEST_CASE("ega2d: the un-dual inverts the dual of the same handedness")
+    {
+        fmt::println("ega2d: the un-dual inverts the dual of the same handedness");
+
+        auto const s = scalar2d(1.5);
+        auto const v = vec2d(-2.0, 3.0);
+        auto const ps = pscalar2d(-2.5);
+        auto const Me = mvec2d_e(s, ps);
+        auto const M = mvec2d(s, v, ps);
+
+        // the round trip, for every typed overload and the full multivector
+        CHECK(l_undual(l_dual(s)) == s);
+        CHECK(r_undual(r_dual(s)) == s);
+        CHECK(l_undual(l_dual(v)) == v);
+        CHECK(r_undual(r_dual(v)) == v);
+        CHECK(l_undual(l_dual(ps)) == ps);
+        CHECK(r_undual(r_dual(ps)) == ps);
+        CHECK(l_undual(l_dual(Me)) == Me);
+        CHECK(r_undual(r_dual(Me)) == Me);
+        CHECK(l_undual(l_dual(M)) == M);
+        CHECK(r_undual(r_dual(M)) == M);
+
+        // the relation behind it: the composition of complements and dual, which
+        // with det = +1 equals the dual of the opposite handedness
+        CHECK(l_undual(M) == r_cmpl(l_dual(r_cmpl(M))));
+        CHECK(r_undual(M) == l_cmpl(r_dual(l_cmpl(M))));
+        CHECK(l_undual(M) == r_dual(M));
+        CHECK(r_undual(M) == l_dual(M));
+
+        // falsification: the dual of the same handedness does not invert a vector
+        CHECK(l_dual(l_dual(v)) == -v);
+        CHECK(r_undual(l_dual(v)) != v);
+    }
+
 } // EGA 2D Tests

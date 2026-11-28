@@ -26,6 +26,7 @@
 // - l_dual()                      -> left metric dual
 // - r_antidual()                  -> right metric antidual
 // - l_antidual()                  -> left metric antidual
+// - r_undual(), l_undual()        -> inverses of r_dual / l_dual
 //
 // - round_bulk(),                 -> the four-part bulk/weight split
 //   round_weight(),
@@ -807,6 +808,136 @@ constexpr MVec2dc<T> r_antidual(MVec2dc<T> const& M)
 {
     return MVec2dc<T>(r_antidual(gr4(M)), r_antidual(gr3(M)), r_antidual(gr2(M)),
                       r_antidual(gr1(M)), r_antidual(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// un-duals: the inverse of the dual of the same handedness,
+//
+//     l_undual(l_dual(A)) == A,    r_undual(r_dual(A)) == A
+//
+// computed from the complements and the dual, as in ega2d and sta4ds:
+//
+//     l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )
+//     r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )
+//
+// They depend on the metric only through G^2 = I, which holds for the conformal
+// metric too, although it is not diagonal. With det(G) = -1 they equal the NEGATED dual
+// of the opposite handedness, l_undual == -r_dual and r_undual == -l_dual; the plain
+// dual of the opposite handedness returns -A.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2dc<T> l_undual(Scalar2dc<T> s)
+{
+    return r_cmpl(l_dual(r_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> l_undual(Vec2dc<T> const& v)
+{
+    return r_cmpl(l_dual(r_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> l_undual(BiVec2dc<T> const& B)
+{
+    return r_cmpl(l_dual(r_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> l_undual(TriVec2dc<T> const& t)
+{
+    return r_cmpl(l_dual(r_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar2dc<T> l_undual(PScalar2dc<T> ps)
+{
+    return r_cmpl(l_dual(r_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc_E<T> l_undual(MVec2dc_E<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc_U<T> l_undual(MVec2dc_U<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc<T> l_undual(MVec2dc<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2dc<T> r_undual(Scalar2dc<T> s)
+{
+    return l_cmpl(r_dual(l_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec2dc<T> r_undual(Vec2dc<T> const& v)
+{
+    return l_cmpl(r_dual(l_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dc<T> r_undual(BiVec2dc<T> const& B)
+{
+    return l_cmpl(r_dual(l_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2dc<T> r_undual(TriVec2dc<T> const& t)
+{
+    return l_cmpl(r_dual(l_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar2dc<T> r_undual(PScalar2dc<T> ps)
+{
+    return l_cmpl(r_dual(l_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc_E<T> r_undual(MVec2dc_E<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc_U<T> r_undual(MVec2dc_U<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dc<T> r_undual(MVec2dc<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

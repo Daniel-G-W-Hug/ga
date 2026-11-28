@@ -10,7 +10,7 @@
 #include "../detail/ga_error_handling.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// provides pga4ds basic operations:
+// provides sta4ds basic operations:
 //
 // - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
@@ -317,7 +317,7 @@ constexpr MVec4ds<T> rrev(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Clifford conjugation (identical sign pattern to regressive reverse for pga4ds):
+// Clifford conjugation (identical sign pattern to regressive reverse for sta4ds):
 // conj(A_r) = (-1)^(r*(r+1)/2) A_r
 // pattern for r = 0, 1, 2, 3, ...: + - - + + - - + + ...
 ////////////////////////////////////////////////////////////////////////////////
@@ -1116,11 +1116,12 @@ constexpr MVec4ds<T> l_dual(MVec4ds<T> const& M)
 
 ////////////////////////////////////////////////////////////////////////////////
 // metric un-duals (inverse duals): the genuine inverse of the metric dual, with the
-// metric applied on the DUAL side rather than the primal side (Lengyel: "antidual").
+// metric applied on the DUAL side rather than the primal side. The same names, the same
+// composition and the same meaning exist in every non-degenerate algebra of the library
+// (ega2d, cga2dc; undual() in ega3d and cga3dc):
 //
-//   r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )   inverts r_dual: r_undual(r_dual(A)) ==
-//   A l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )   inverts l_dual: l_undual(l_dual(A))
-//   == A
+//     r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )    r_undual(r_dual(A)) == A
+//     l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )    l_undual(l_dual(A)) == A
 //
 // Even-dimensional STA has two duals, hence two un-duals -- one per handedness. They
 // coincide on the even grades (where l_dual == r_dual) and differ by a sign on the odd

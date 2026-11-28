@@ -1235,6 +1235,21 @@ TEST_SUITE("cga2dc: typed overloads vs the full multivector")
         xcheck::unary<MVec2dc<value_t>>(r, f, lift, "l_dual(MVec2dc)");
     }
 
+    TEST_CASE("cga2dc: l_undual -- 8 overloads")
+    {
+        xcheck::rng r(3434656748u);
+        lift_cga2dc const lift;
+        auto const f = [](auto const& x) { return l_undual(x); };
+        xcheck::unary<Scalar2dc<value_t>>(r, f, lift, "l_undual(Scalar2dc)");
+        xcheck::unary<Vec2dc<value_t>>(r, f, lift, "l_undual(Vec2dc)");
+        xcheck::unary<BiVec2dc<value_t>>(r, f, lift, "l_undual(BiVec2dc)");
+        xcheck::unary<TriVec2dc<value_t>>(r, f, lift, "l_undual(TriVec2dc)");
+        xcheck::unary<PScalar2dc<value_t>>(r, f, lift, "l_undual(PScalar2dc)");
+        xcheck::unary<MVec2dc_E<value_t>>(r, f, lift, "l_undual(MVec2dc_E)");
+        xcheck::unary<MVec2dc_U<value_t>>(r, f, lift, "l_undual(MVec2dc_U)");
+        xcheck::unary<MVec2dc<value_t>>(r, f, lift, "l_undual(MVec2dc)");
+    }
+
     TEST_CASE("cga2dc: r_antidual -- 8 overloads")
     {
         xcheck::rng r(2598463835u);
@@ -1278,6 +1293,21 @@ TEST_SUITE("cga2dc: typed overloads vs the full multivector")
         xcheck::unary<MVec2dc_E<value_t>>(r, f, lift, "r_dual(MVec2dc_E)");
         xcheck::unary<MVec2dc_U<value_t>>(r, f, lift, "r_dual(MVec2dc_U)");
         xcheck::unary<MVec2dc<value_t>>(r, f, lift, "r_dual(MVec2dc)");
+    }
+
+    TEST_CASE("cga2dc: r_undual -- 8 overloads")
+    {
+        xcheck::rng r(2777256181u);
+        lift_cga2dc const lift;
+        auto const f = [](auto const& x) { return r_undual(x); };
+        xcheck::unary<Scalar2dc<value_t>>(r, f, lift, "r_undual(Scalar2dc)");
+        xcheck::unary<Vec2dc<value_t>>(r, f, lift, "r_undual(Vec2dc)");
+        xcheck::unary<BiVec2dc<value_t>>(r, f, lift, "r_undual(BiVec2dc)");
+        xcheck::unary<TriVec2dc<value_t>>(r, f, lift, "r_undual(TriVec2dc)");
+        xcheck::unary<PScalar2dc<value_t>>(r, f, lift, "r_undual(PScalar2dc)");
+        xcheck::unary<MVec2dc_E<value_t>>(r, f, lift, "r_undual(MVec2dc_E)");
+        xcheck::unary<MVec2dc_U<value_t>>(r, f, lift, "r_undual(MVec2dc_U)");
+        xcheck::unary<MVec2dc<value_t>>(r, f, lift, "r_undual(MVec2dc)");
     }
 
     TEST_CASE("cga2dc: rev -- 8 overloads")

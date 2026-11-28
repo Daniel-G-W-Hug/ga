@@ -6,7 +6,7 @@
 #include "ga_sta4ds_ops_basics.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// provides pga4ds product operations:
+// provides sta4ds product operations:
 //
 // - dot()                   -> dot product
 //

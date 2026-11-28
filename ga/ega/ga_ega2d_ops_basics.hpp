@@ -20,6 +20,7 @@
 // - normalize()                   -> normalization (nrm scaled to 1.0)
 //
 // - r_dual(), l_dual()            -> right and left duals
+// - r_undual(), l_undual()        -> inverses of r_dual / l_dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -535,6 +536,93 @@ template <typename T>
 constexpr MVec2d<T> l_dual(MVec2d<T> const& M)
 {
     return MVec2d<T>(l_cmpl(gr2(M)), l_cmpl(gr1(M)), l_cmpl(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// un-duals: the inverse of the dual of the same handedness,
+//
+//     l_undual(l_dual(A)) == A,    r_undual(r_dual(A)) == A
+//
+// computed from the complements and the dual, as in sta4ds:
+//
+//     l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )
+//     r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )
+//
+// They depend on the metric only through G^2 = I, so the same composition inverts the
+// dual in every non-degenerate algebra. With det(G) = +1 they equal the dual of the
+// opposite handedness, l_undual == r_dual and r_undual == l_dual.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> l_undual(Scalar2d<T> s)
+{
+    return r_cmpl(l_dual(r_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2d<T> l_undual(Vec2d<T> const& v)
+{
+    return r_cmpl(l_dual(r_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar2d<T> l_undual(PScalar2d<T> ps)
+{
+    return r_cmpl(l_dual(r_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d_E<T> l_undual(MVec2d_E<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d<T> l_undual(MVec2d<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> r_undual(Scalar2d<T> s)
+{
+    return l_cmpl(r_dual(l_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec2d<T> r_undual(Vec2d<T> const& v)
+{
+    return l_cmpl(r_dual(l_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar2d<T> r_undual(PScalar2d<T> ps)
+{
+    return l_cmpl(r_dual(l_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d_E<T> r_undual(MVec2d_E<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2d<T> r_undual(MVec2d<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
 }
 
 } // namespace hd::ga::ega

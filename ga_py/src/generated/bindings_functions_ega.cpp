@@ -228,6 +228,11 @@ void register_functions_ega(nb::module_& m)
     m.def("l_dual", [](mvec2d const& a0) { return l_dual(a0); });
     m.def("l_expand",
           [](bivec3d const& a0, vec3d const& a1) { return l_expand(a0, a1); });
+    m.def("l_undual", [](scalar2d const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](vec2d const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](pscalar2d const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](mvec2d_e const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](mvec2d const& a0) { return l_undual(a0); });
     m.def("log", [](mvec2d_e const& a0) { return log(a0); });
     m.def("log", [](mvec3d_e const& a0) { return log(a0); });
     m.def("normalize", [](scalar2d const& a0) { return normalize(a0); });
@@ -286,6 +291,11 @@ void register_functions_ega(nb::module_& m)
     m.def("r_dual", [](mvec2d const& a0) { return r_dual(a0); });
     m.def("r_expand",
           [](vec3d const& a0, bivec3d const& a1) { return r_expand(a0, a1); });
+    m.def("r_undual", [](scalar2d const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](vec2d const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](pscalar2d const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](mvec2d_e const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](mvec2d const& a0) { return r_undual(a0); });
     m.def("reciprocal_frame",
           [](vec2d const& a0, vec2d const& a1) { return reciprocal_frame(a0, a1); });
     m.def("reciprocal_frame", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) {
@@ -439,6 +449,13 @@ void register_functions_ega(nb::module_& m)
     m.def("twdg1", [](bivec3d const& a0, vec3d const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec3d const& a0, bivec3d const& a1) { return twdg1(a0, a1); });
     m.def("twdg1", [](vec3d const& a0, vec3d const& a1) { return twdg1(a0, a1); });
+    m.def("undual", [](scalar3d const& a0) { return undual(a0); });
+    m.def("undual", [](vec3d const& a0) { return undual(a0); });
+    m.def("undual", [](bivec3d const& a0) { return undual(a0); });
+    m.def("undual", [](pscalar3d const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3d_e const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3d_u const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3d const& a0) { return undual(a0); });
     m.def("wdg", [](mvec2d const& a0, mvec2d const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec2d const& a0, mvec2d_e const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec2d_e const& a0, mvec2d const& a1) { return wdg(a0, a1); });

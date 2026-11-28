@@ -501,6 +501,14 @@ void register_functions_cga(nb::module_& m)
     m.def("l_dual", [](mvec2dc_e const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2dc_u const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2dc const& a0) { return l_dual(a0); });
+    m.def("l_undual", [](scalar2dc const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](vec2dc const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](bivec2dc const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](trivec2dc const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](pscalar2dc const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](mvec2dc_e const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](mvec2dc_u const& a0) { return l_undual(a0); });
+    m.def("l_undual", [](mvec2dc const& a0) { return l_undual(a0); });
     m.def("line2dc", [](double a0, double a1, double a2, double a3) {
         return line2dc(a0, a1, a2, a3);
     });
@@ -550,6 +558,14 @@ void register_functions_cga(nb::module_& m)
     m.def("r_dual", [](mvec2dc_e const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2dc_u const& a0) { return r_dual(a0); });
     m.def("r_dual", [](mvec2dc const& a0) { return r_dual(a0); });
+    m.def("r_undual", [](scalar2dc const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](vec2dc const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](bivec2dc const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](trivec2dc const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](pscalar2dc const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](mvec2dc_e const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](mvec2dc_u const& a0) { return r_undual(a0); });
+    m.def("r_undual", [](mvec2dc const& a0) { return r_undual(a0); });
     m.def("radius", [](vec2dc const& a0) { return radius(a0); });
     m.def("radius", [](bivec2dc const& a0) { return radius(a0); });
     m.def("radius", [](trivec2dc const& a0) { return radius(a0); });
@@ -1147,6 +1163,15 @@ void register_functions_cga(nb::module_& m)
                                double a5, double a6, double a7, quadvec3dc const& a8) {
         return two_link_ik3dc(a0, a1, a2, a3, a4, a5, a6, a7, a8);
     });
+    m.def("undual", [](scalar3dc const& a0) { return undual(a0); });
+    m.def("undual", [](vec3dc const& a0) { return undual(a0); });
+    m.def("undual", [](bivec3dc const& a0) { return undual(a0); });
+    m.def("undual", [](trivec3dc const& a0) { return undual(a0); });
+    m.def("undual", [](quadvec3dc const& a0) { return undual(a0); });
+    m.def("undual", [](pscalar3dc const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3dc_e const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3dc_u const& a0) { return undual(a0); });
+    m.def("undual", [](mvec3dc const& a0) { return undual(a0); });
     m.def("unitize", [](vec2dc const& a0) { return unitize(a0); });
     m.def("unitize", [](bivec2dc const& a0) { return unitize(a0); });
     m.def("unitize", [](trivec2dc const& a0) { return unitize(a0); });

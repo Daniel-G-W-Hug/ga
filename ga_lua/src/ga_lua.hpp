@@ -3591,6 +3591,59 @@ void register_functions(sol::state& lua)
                                    sol::resolve<mvec4ds_u(mvec4ds_u const&)>(r_dual),
                                    sol::resolve<mvec4ds(mvec4ds const&)>(r_dual)));
 
+    // the un-duals: the inverse of the dual of the same handedness (sta4ds: below)
+    ega.set_function("l_undual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(l_undual),
+                                   sol::resolve<vec2d(vec2d const&)>(l_undual),
+                                   sol::resolve<pscalar2d(scalar2d)>(l_undual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(l_undual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(l_undual)));
+    ega.set_function("r_undual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(r_undual),
+                                   sol::resolve<vec2d(vec2d const&)>(r_undual),
+                                   sol::resolve<pscalar2d(scalar2d)>(r_undual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(r_undual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(r_undual)));
+    ega.set_function("undual",
+                     sol::overload(sol::resolve<scalar3d(pscalar3d)>(undual),
+                                   sol::resolve<vec3d(bivec3d const&)>(undual),
+                                   sol::resolve<bivec3d(vec3d const&)>(undual),
+                                   sol::resolve<pscalar3d(scalar3d)>(undual),
+                                   sol::resolve<mvec3d_u(mvec3d_e const&)>(undual),
+                                   sol::resolve<mvec3d_e(mvec3d_u const&)>(undual),
+                                   sol::resolve<mvec3d(mvec3d const&)>(undual)));
+    cga.set_function("l_undual", sol::overload(
+                                     // cga
+                                     sol::resolve<pscalar2dc(scalar2dc)>(l_undual),
+                                     sol::resolve<trivec2dc(vec2dc const&)>(l_undual),
+                                     sol::resolve<bivec2dc(bivec2dc const&)>(l_undual),
+                                     sol::resolve<vec2dc(trivec2dc const&)>(l_undual),
+                                     sol::resolve<scalar2dc(pscalar2dc)>(l_undual),
+                                     sol::resolve<mvec2dc_e(mvec2dc_e const&)>(l_undual),
+                                     sol::resolve<mvec2dc_u(mvec2dc_u const&)>(l_undual),
+                                     sol::resolve<mvec2dc(mvec2dc const&)>(l_undual)));
+    cga.set_function("r_undual", sol::overload(
+                                     // cga
+                                     sol::resolve<pscalar2dc(scalar2dc)>(r_undual),
+                                     sol::resolve<trivec2dc(vec2dc const&)>(r_undual),
+                                     sol::resolve<bivec2dc(bivec2dc const&)>(r_undual),
+                                     sol::resolve<vec2dc(trivec2dc const&)>(r_undual),
+                                     sol::resolve<scalar2dc(pscalar2dc)>(r_undual),
+                                     sol::resolve<mvec2dc_e(mvec2dc_e const&)>(r_undual),
+                                     sol::resolve<mvec2dc_u(mvec2dc_u const&)>(r_undual),
+                                     sol::resolve<mvec2dc(mvec2dc const&)>(r_undual)));
+    cga.set_function("undual", sol::overload(
+                                   // cga
+                                   sol::resolve<pscalar3dc(scalar3dc)>(undual),
+                                   sol::resolve<quadvec3dc(vec3dc const&)>(undual),
+                                   sol::resolve<trivec3dc(bivec3dc const&)>(undual),
+                                   sol::resolve<bivec3dc(trivec3dc const&)>(undual),
+                                   sol::resolve<vec3dc(quadvec3dc const&)>(undual),
+                                   sol::resolve<scalar3dc(pscalar3dc)>(undual),
+                                   sol::resolve<mvec3dc_u(mvec3dc_e const&)>(undual),
+                                   sol::resolve<mvec3dc_e(mvec3dc_u const&)>(undual),
+                                   sol::resolve<mvec3dc(mvec3dc const&)>(undual)));
+
     ////////////////////////////////////////////////////////////////////////////////
     // complement operations
     ////////////////////////////////////////////////////////////////////////////////

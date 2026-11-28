@@ -685,8 +685,12 @@ TEST_SUITE("CGA 2dc Tests")
         auto d = dipole2dc(1.0, 2.0, 2.0, 1.0, 0.0);
 
         // carrier: lowest-dimensional flat containing the object. For a round
-        // point: the flat point at the same position (congruent to it)
-        CHECK(is_congruent(car(a), flat_point2dc(1.0, 2.0)));
+        // point: the flat point at the same position -- the same object exactly,
+        // sign included, as in cga3dc; the flat point is the pga2dp point lifted by
+        // the point at infinity, P ^ e4 (a congruence check could not see the sign)
+        CHECK(car(a) == flat_point2dc(1.0, 2.0));
+        CHECK(wdg(vec2dc(1.0, 2.0, 1.0, 0.0), e4_2dc) == flat_point2dc(1.0, 2.0));
+        CHECK(car(a) != -flat_point2dc(1.0, 2.0)); // the pin sees the sign
         // for a dipole: the carrier line -- every point of the dipole lies on
         // it: join of carrier line with either end point vanishes
         CHECK(wdg(point2dc(-1.0, 2.0), car(d)) == pscalar2dc(0.0));
@@ -1228,6 +1232,14 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(is_same_transform(rgpr(Ro, Ro), get_rotation(0.0, 0.0, pi)));
         CHECK(is_same_transform(get_rotation(0.5, 0.5, 2.0 * pi),
                                 mvec2dc_e(pscalar2dc(1.0))));
+        // the generator as the builder's comment states it: the NEGATED flat point
+        // (the flat point P ^ e4 carries the clockwise orientation); with the flat
+        // point itself the same angle turns the other way
+        auto const fp_c = flat_point2dc(1.0, 1.0);
+        CHECK(is_close(Rc, rexp(bivec2dc(-0.25 * pi * fp_c))));
+        CHECK(
+            is_close(up(transform(point2dc(2.0, 1.0), rexp(bivec2dc(0.25 * pi * fp_c)))),
+                     point2dc(1.0, 0.0)));
 
         // DILATION about a point; radius scales by sigma
         auto Di = get_dilation(0.0, 0.0, 4.0);
@@ -1240,6 +1252,13 @@ TEST_SUITE("CGA 2dc Tests")
         auto Dc = rgpr(circle2dc(0.0, 0.0, 2.0), circle2dc(0.0, 0.0, 1.0));
         CHECK(is_same_transform(Di, mvec2dc_e(Dc)));
         CHECK_THROWS(get_dilation(0.0, 0.0, 0.0));
+        // the generator as the builder's comment states it: the right antidual of the
+        // flat point, as the antidual of flat_point3dc in cga3dc; its dual would shrink
+        auto const ln2 = std::log(2.0);
+        CHECK(is_close(Dm, rexp(bivec2dc(-0.5 * ln2 * r_antidual(fp_c)))));
+        CHECK(is_close(
+            up(transform(point2dc(2.0, 1.0), rexp(bivec2dc(-0.5 * ln2 * r_dual(fp_c))))),
+            point2dc(1.5, 1.0)));
 
         // INVERSION in the unit circle: geometric reciprocal r^2/x, on-circle
         // points fixed, involutive
@@ -1547,6 +1566,51 @@ TEST_SUITE("CGA 2dc Tests")
         CHECK(mvec2dc(MVec2dc_ - MVec2dc_U_) == mvec2dc(MVec2dc_) - mvec2dc(MVec2dc_U_));
         CHECK(mvec2dc(MVec2dc_ + MVec2dc_) == mvec2dc(MVec2dc_) + mvec2dc(MVec2dc_));
         CHECK(mvec2dc(MVec2dc_ - MVec2dc_) == mvec2dc(MVec2dc_) - mvec2dc(MVec2dc_));
+    }
+
+    TEST_CASE("cga2dc: the un-dual inverts the dual of the same handedness")
+    {
+        fmt::println("cga2dc: the un-dual inverts the dual of the same handedness");
+
+        auto const s = scalar2dc(1.5);
+        auto const v = vec2dc(-1.0, 2.0, -3.0, 4.0);
+        auto const B = bivec2dc(1.0, -2.0, 3.0, -4.0, 5.0, -6.0);
+        auto const t = trivec2dc(5.0, -6.0, 7.0, -8.0);
+        auto const ps = pscalar2dc(-2.5);
+        auto const Me = mvec2dc_e(s, B, ps);
+        auto const Mu = mvec2dc_u(v, t);
+        auto const M = mvec2dc(s, v, B, t, ps);
+
+        // the round trip, for every typed overload and the full multivector
+        CHECK(l_undual(l_dual(s)) == s);
+        CHECK(r_undual(r_dual(s)) == s);
+        CHECK(l_undual(l_dual(v)) == v);
+        CHECK(r_undual(r_dual(v)) == v);
+        CHECK(l_undual(l_dual(B)) == B);
+        CHECK(r_undual(r_dual(B)) == B);
+        CHECK(l_undual(l_dual(t)) == t);
+        CHECK(r_undual(r_dual(t)) == t);
+        CHECK(l_undual(l_dual(ps)) == ps);
+        CHECK(r_undual(r_dual(ps)) == ps);
+        CHECK(l_undual(l_dual(Me)) == Me);
+        CHECK(r_undual(r_dual(Me)) == Me);
+        CHECK(l_undual(l_dual(Mu)) == Mu);
+        CHECK(r_undual(r_dual(Mu)) == Mu);
+        CHECK(l_undual(l_dual(M)) == M);
+        CHECK(r_undual(r_dual(M)) == M);
+
+        // the relation behind it: the composition of complements and dual, which
+        // with det = -1 equals the NEGATED dual of the opposite handedness
+        CHECK(l_undual(M) == r_cmpl(l_dual(r_cmpl(M))));
+        CHECK(r_undual(M) == l_cmpl(r_dual(l_cmpl(M))));
+        CHECK(l_undual(M) == -r_dual(M));
+        CHECK(r_undual(M) == -l_dual(M));
+
+        // falsification: the plain dual of the opposite handedness returns -A, and the
+        // un-dual of the other handedness the grade involution
+        CHECK(r_dual(l_dual(M)) == -M);
+        CHECK(r_undual(l_dual(M)) == gr_inv(M));
+        CHECK(r_undual(l_dual(v)) != v);
     }
 
 } // TEST_SUITE("CGA 2dc Tests")

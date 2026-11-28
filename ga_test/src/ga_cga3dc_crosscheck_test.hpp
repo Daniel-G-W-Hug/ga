@@ -1493,4 +1493,20 @@ TEST_SUITE("cga3dc: typed overloads vs the full multivector")
         xcheck::unary<MVec3dc_U<value_t>>(r, f, lift, "rrev(MVec3dc_U)");
         xcheck::unary<MVec3dc<value_t>>(r, f, lift, "rrev(MVec3dc)");
     }
+
+    TEST_CASE("cga3dc: undual -- 9 overloads")
+    {
+        xcheck::rng r(1959830586u);
+        lift_cga3dc const lift;
+        auto const f = [](auto const& x) { return undual(x); };
+        xcheck::unary<Scalar3dc<value_t>>(r, f, lift, "undual(Scalar3dc)");
+        xcheck::unary<Vec3dc<value_t>>(r, f, lift, "undual(Vec3dc)");
+        xcheck::unary<BiVec3dc<value_t>>(r, f, lift, "undual(BiVec3dc)");
+        xcheck::unary<TriVec3dc<value_t>>(r, f, lift, "undual(TriVec3dc)");
+        xcheck::unary<QuadVec3dc<value_t>>(r, f, lift, "undual(QuadVec3dc)");
+        xcheck::unary<PScalar3dc<value_t>>(r, f, lift, "undual(PScalar3dc)");
+        xcheck::unary<MVec3dc_E<value_t>>(r, f, lift, "undual(MVec3dc_E)");
+        xcheck::unary<MVec3dc_U<value_t>>(r, f, lift, "undual(MVec3dc_U)");
+        xcheck::unary<MVec3dc<value_t>>(r, f, lift, "undual(MVec3dc)");
+    }
 }

@@ -2198,8 +2198,9 @@ TEST_SUITE("STA 3D Tests")
         //   signature whose metric respects the wedge product: (-,-,-,+). Its dual space
         //   is
         //   (+,+,+,-). The structure is symmetric under (wdg <-> rwdg, G <-> rG,
-        //   space <-> dual) -- which is exactly why both signatures are physically
-        //   equivalent: each is "the space" for one of the two products.
+        //   space <-> dual). Both signatures model the same physics -- the quadratic
+        //   forms differ only by an overall sign, and the even subalgebras (the rotors)
+        //   are isomorphic -- although the algebras G(1,3,0) and G(3,1,0) are not.
         //
         // Under P-unify the LIBRARY metric G = l_cmpl o r_dual IS the exomorphism P (no
         // reversion fix needed), so the Q2 laws hold directly on the library's own dual.

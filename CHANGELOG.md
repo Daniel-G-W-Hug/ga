@@ -594,3 +594,17 @@
            Python together with the floating-point constants eps, eps_congruent and mu0
            (the emitter skipped every primitive constant), and to Lua, which now has
            eps_congruent too and stands at 1846/1876.
+- 2026/11: l_undual / r_undual in ega2d and cga2dc, undual in ega3d and cga3dc: the
+           inverse of the dual of the same handedness, as sta4ds already had it, so
+           l_undual(l_dual(A)) == A holds under one name in every non-degenerate algebra.
+           Computed as in sta4ds from the complements and the dual, l_undual(D) =
+           r_cmpl(l_dual(r_cmpl(D))), it equals det(G) times the dual of the opposite
+           handedness: the dual in EGA, its negative in STA and CGA. Gated per algebra on
+           every typed overload and the full multivector, with the relation and a wrong
+           pairing that does not invert; bound to Python and Lua (1852/1882).
+           CHANGED: flat_point2dc(p) is now P ^ e4 = px e14 + py e24 + e34, the lifted
+           pga2dp point and the carrier of the round point at p, as flat_point3dc is
+           P ^ e5 (it was the negative). get_rotation and get_dilation of cga2dc are
+           unchanged; their generators read -(theta/2) flat_point2dc(m) and
+           r_antidual(flat_point2dc(m)), pinned exactly, as is car(round_point2dc(p, r))
+           == flat_point2dc(p).

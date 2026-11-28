@@ -23,6 +23,7 @@
 //
 // - dual()                        -> metric dual
 // - antidual()                    -> metric antidual
+// - undual()                      -> inverse of dual
 //
 // - round_bulk(),                 -> the four-part bulk/weight split
 //   round_weight(),
@@ -674,6 +675,81 @@ constexpr MVec3dc<T> antidual(MVec3dc<T> const& M)
 {
     return MVec3dc<T>(antidual(gr5(M)), antidual(gr4(M)), antidual(gr3(M)),
                       antidual(gr2(M)), antidual(gr1(M)), antidual(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// un-dual: the inverse of the dual, undual(dual(A)) == A, computed from the
+// complement and the dual, as in ega3d:
+//
+//     undual(D) = cmpl( dual( cmpl(D) ) )
+//
+// It depends on the metric only through G^2 = I, which holds for the conformal metric
+// too, although it is not diagonal. With det(G) = -1 it equals the NEGATED dual;
+// dual(dual(A)) == -A.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar3dc<T> undual(Scalar3dc<T> s)
+{
+    return cmpl(dual(cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr QuadVec3dc<T> undual(Vec3dc<T> const& v)
+{
+    return cmpl(dual(cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec3dc<T> undual(BiVec3dc<T> const& B)
+{
+    return cmpl(dual(cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dc<T> undual(TriVec3dc<T> const& t)
+{
+    return cmpl(dual(cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec3dc<T> undual(QuadVec3dc<T> const& Q)
+{
+    return cmpl(dual(cmpl(Q)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar3dc<T> undual(PScalar3dc<T> ps)
+{
+    return cmpl(dual(cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3dc_U<T> undual(MVec3dc_E<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3dc_E<T> undual(MVec3dc_U<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3dc<T> undual(MVec3dc<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
 }
 
 

@@ -798,4 +798,18 @@ TEST_SUITE("ega3d: typed overloads vs the full multivector")
         xcheck::unary<MVec3d_U<value_t>>(r, f, lift, "rev(MVec3d_U)");
         xcheck::unary<MVec3d<value_t>>(r, f, lift, "rev(MVec3d)");
     }
+
+    TEST_CASE("ega3d: undual -- 7 overloads")
+    {
+        xcheck::rng r(1810014782u);
+        lift_ega3d const lift;
+        auto const f = [](auto const& x) { return undual(x); };
+        xcheck::unary<Scalar3d<value_t>>(r, f, lift, "undual(Scalar3d)");
+        xcheck::unary<Vec3d<value_t>>(r, f, lift, "undual(Vec3d)");
+        xcheck::unary<BiVec3d<value_t>>(r, f, lift, "undual(BiVec3d)");
+        xcheck::unary<PScalar3d<value_t>>(r, f, lift, "undual(PScalar3d)");
+        xcheck::unary<MVec3d_E<value_t>>(r, f, lift, "undual(MVec3d_E)");
+        xcheck::unary<MVec3d_U<value_t>>(r, f, lift, "undual(MVec3d_U)");
+        xcheck::unary<MVec3d<value_t>>(r, f, lift, "undual(MVec3d)");
+    }
 }

@@ -458,6 +458,18 @@ TEST_SUITE("ega2d: typed overloads vs the full multivector")
         xcheck::unary<MVec2d<value_t>>(r, f, lift, "l_dual(MVec2d)");
     }
 
+    TEST_CASE("ega2d: l_undual -- 5 overloads")
+    {
+        xcheck::rng r(2030565974u);
+        lift_ega2d const lift;
+        auto const f = [](auto const& x) { return l_undual(x); };
+        xcheck::unary<Scalar2d<value_t>>(r, f, lift, "l_undual(Scalar2d)");
+        xcheck::unary<Vec2d<value_t>>(r, f, lift, "l_undual(Vec2d)");
+        xcheck::unary<PScalar2d<value_t>>(r, f, lift, "l_undual(PScalar2d)");
+        xcheck::unary<MVec2d_E<value_t>>(r, f, lift, "l_undual(MVec2d_E)");
+        xcheck::unary<MVec2d<value_t>>(r, f, lift, "l_undual(MVec2d)");
+    }
+
     TEST_CASE("ega2d: normalize -- 5 overloads")
     {
         xcheck::rng r(1926876592u);
@@ -516,6 +528,18 @@ TEST_SUITE("ega2d: typed overloads vs the full multivector")
         xcheck::unary<PScalar2d<value_t>>(r, f, lift, "r_dual(PScalar2d)");
         xcheck::unary<MVec2d_E<value_t>>(r, f, lift, "r_dual(MVec2d_E)");
         xcheck::unary<MVec2d<value_t>>(r, f, lift, "r_dual(MVec2d)");
+    }
+
+    TEST_CASE("ega2d: r_undual -- 5 overloads")
+    {
+        xcheck::rng r(272030031u);
+        lift_ega2d const lift;
+        auto const f = [](auto const& x) { return r_undual(x); };
+        xcheck::unary<Scalar2d<value_t>>(r, f, lift, "r_undual(Scalar2d)");
+        xcheck::unary<Vec2d<value_t>>(r, f, lift, "r_undual(Vec2d)");
+        xcheck::unary<PScalar2d<value_t>>(r, f, lift, "r_undual(PScalar2d)");
+        xcheck::unary<MVec2d_E<value_t>>(r, f, lift, "r_undual(MVec2d_E)");
+        xcheck::unary<MVec2d<value_t>>(r, f, lift, "r_undual(MVec2d)");
     }
 
     TEST_CASE("ega2d: rev -- 5 overloads")

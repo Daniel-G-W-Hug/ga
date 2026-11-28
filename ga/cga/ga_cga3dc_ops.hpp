@@ -475,9 +475,10 @@ constexpr Vec3dc<T> round_point3dc(T px, T py, T pz, T r)
 }
 
 // flat point at Euclidean position (px, py, pz) (unitized), reference (4.25):
-// p = px e15 + py e25 + pz e35 + e45 -- POSITIVE components (the 3d reference
-// blade order matches this library directly, unlike the 2d case where the
-// origin-leading reference blades flip the sign); equals the carrier of the
+// p = px e15 + py e25 + pz e35 + e45 -- POSITIVE components, the pga3dp point lifted
+// by the point at infinity, P ^ e5, as flat_point2dc is P ^ e4 (the 3d reference
+// blade order matches this library directly; the 2d reference writes its blades with
+// the point at infinity first and so differs by a sign); equals the carrier of the
 // round point at the same position, car(round_point3dc(p, r)) == flat_point3dc(p)
 template <typename T>
     requires(numeric_type<T>)
@@ -487,11 +488,12 @@ constexpr BiVec3dc<T> flat_point3dc(T px, T py, T pz)
                        T(1.0));
 }
 
-// sphere with center (px, py, pz) and radius r (unitized, round weight -1 as
-// for circle2dc): the codim-1 round object is the negated antidual of the
-// grade-1 carrier with the (p^2 - r^2)/2 infinity coefficient (r^2 enters the
-// codim-1 form with the OPPOSITE sign vs. the round point, as in circle2dc);
-// the orientation matches the container: sphere3dc(p, r) == con(round point)
+// sphere with center (px, py, pz) and radius r, round weight -1 as for circle2dc: the
+// codim-1 round object is the dual of sigma = p + e4 + (p^2 - r^2)/2 e5, so r^2 enters
+// with the OPPOSITE sign vs. the round point, and the metric's e4 . e5 = -1 makes the
+// dual of the e4 part negative (dual(e4) == -e1234). It equals the container,
+// sphere3dc(p, r) == con(round point); unitize() returns its negative (round weight +1),
+// with cen(), position() and radius_sq() unchanged
 template <typename T>
     requires(numeric_type<T>)
 constexpr QuadVec3dc<T> sphere3dc(T px, T py, T pz, T r)

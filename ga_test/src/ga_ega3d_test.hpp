@@ -4819,4 +4819,35 @@ TEST_SUITE("EGA 3D Tests")
         }
     }
 
+    TEST_CASE("ega3d: the un-dual inverts the dual")
+    {
+        fmt::println("ega3d: the un-dual inverts the dual");
+
+        auto const s = scalar3d(1.5);
+        auto const v = vec3d(-2.0, 3.0, -4.0);
+        auto const B = bivec3d(5.0, -6.0, 7.0);
+        auto const ps = pscalar3d(-2.5);
+        auto const Me = mvec3d_e(s, B);
+        auto const Mu = mvec3d_u(v, ps);
+        auto const M = mvec3d(s, v, B, ps);
+
+        // the round trip, for every typed overload and the full multivector
+        CHECK(undual(dual(s)) == s);
+        CHECK(undual(dual(v)) == v);
+        CHECK(undual(dual(B)) == B);
+        CHECK(undual(dual(ps)) == ps);
+        CHECK(undual(dual(Me)) == Me);
+        CHECK(undual(dual(Mu)) == Mu);
+        CHECK(undual(dual(M)) == M);
+
+        // the relation behind it: the composition of complement and dual, which with
+        // det = +1 equals the dual itself
+        CHECK(undual(M) == cmpl(dual(cmpl(M))));
+        CHECK(undual(M) == dual(M));
+
+        // falsification: the negated dual (the un-dual of a Lorentzian or conformal
+        // algebra) does not invert here
+        CHECK(-dual(dual(v)) != v);
+    }
+
 } // EGA 3D Tests

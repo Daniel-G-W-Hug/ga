@@ -20,6 +20,7 @@
 // - normalize()                   -> normalization (nrm scaled to 1.0)
 //
 // - dual()                        -> dual
+// - undual()                      -> inverse of dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -573,6 +574,67 @@ template <typename T>
 constexpr MVec3d<T> dual(MVec3d<T> const& M)
 {
     return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// un-dual: the inverse of the dual, undual(dual(A)) == A, computed from the
+// complement and the dual:
+//
+//     undual(D) = cmpl( dual( cmpl(D) ) )
+//
+// It depends on the metric only through G^2 = I, so the same composition inverts the
+// dual in every non-degenerate algebra (l_undual / r_undual in the even-dimensional
+// ones). With det(G) = +1 it equals the dual itself.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar3d<T> undual(Scalar3d<T> s)
+{
+    return cmpl(dual(cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3d<T> undual(Vec3d<T> const& v)
+{
+    return cmpl(dual(cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec3d<T> undual(BiVec3d<T> const& B)
+{
+    return cmpl(dual(cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar3d<T> undual(PScalar3d<T> ps)
+{
+    return cmpl(dual(cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d_U<T> undual(MVec3d_E<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d_E<T> undual(MVec3d_U<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d<T> undual(MVec3d<T> const& M)
+{
+    return cmpl(dual(cmpl(M)));
 }
 
 } // namespace hd::ga::ega

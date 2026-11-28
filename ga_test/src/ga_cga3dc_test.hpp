@@ -1531,4 +1531,39 @@ TEST_SUITE("CGA 3dc Tests")
         CHECK(mvec3dc(MVec3dc_ - MVec3dc_) == mvec3dc(MVec3dc_) - mvec3dc(MVec3dc_));
     }
 
+    TEST_CASE("cga3dc: the un-dual inverts the dual")
+    {
+        fmt::println("cga3dc: the un-dual inverts the dual");
+
+        auto const s = scalar3dc(1.5);
+        auto const v = vec3dc(-1.0, 2.0, -3.0, 4.0, -5.0);
+        auto const B = bivec3dc(1.0, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, -8.0, 9.0, -10.0);
+        auto const t = trivec3dc(10.0, -9.0, 8.0, -7.0, 6.0, -5.0, 4.0, -3.0, 2.0, -1.0);
+        auto const Q = quadvec3dc(5.0, 4.0, -3.0, 2.0, -1.0);
+        auto const ps = pscalar3dc(-2.5);
+        auto const Me = mvec3dc_e(s, B, Q);
+        auto const Mu = mvec3dc_u(v, t, ps);
+        auto const M = mvec3dc(Me) + mvec3dc(Mu);
+
+        // the round trip, for every typed overload and the full multivector
+        CHECK(undual(dual(s)) == s);
+        CHECK(undual(dual(v)) == v);
+        CHECK(undual(dual(B)) == B);
+        CHECK(undual(dual(t)) == t);
+        CHECK(undual(dual(Q)) == Q);
+        CHECK(undual(dual(ps)) == ps);
+        CHECK(undual(dual(Me)) == Me);
+        CHECK(undual(dual(Mu)) == Mu);
+        CHECK(undual(dual(M)) == M);
+
+        // the relation behind it: the composition of complement and dual, which with
+        // det = -1 equals the NEGATED dual
+        CHECK(undual(M) == cmpl(dual(cmpl(M))));
+        CHECK(undual(M) == -dual(M));
+
+        // falsification: the dual itself (the un-dual of a Euclidean algebra) returns
+        // the negative
+        CHECK(dual(dual(M)) == -M);
+    }
+
 } // TEST_SUITE("CGA 3dc Tests")
