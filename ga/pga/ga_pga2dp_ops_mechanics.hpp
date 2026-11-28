@@ -99,7 +99,7 @@ class closed_loop_system2dp;
 ////////////////////////////////////////////////////////////////////////////////
 // Moment of a force line about a point.
 //
-// A force f applied at the point P is the line F = wdg(P, f) (ga_docu, "Modelling
+// A force f applied at the point P is the line F = wdg(P, f) (ga_docu, "Modeling
 // force and torque"): its weight carries f, its bulk (the e12 component) the moment
 // about the origin. The moment about an arbitrary point R is
 //
@@ -132,7 +132,7 @@ constexpr BiVec2dp<T> moment_about(Vec2dp<T> const& R, BiVec2dp<T> const& F)
 // Used for rigid body dynamics in PGA2DP. The inertia map I[Omega] maps the
 // rate of change Omega (a Vec2dp) to the momentum (a BiVec2dp).
 //
-// From ga_docu.pdf, "Modelling linear and angular momentum" (the component form):
+// From ga_docu.pdf, "Modeling linear and angular momentum" (the component form):
 // I_2D = m * [  0        Xz^2      -Xy*Xz    ]
 //            [ -Xz^2      0         Xx*Xz    ]
 //            [ -Xx*Xz    -Xy*Xz    Xx^2+Xy^2 ]
