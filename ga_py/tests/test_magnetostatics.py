@@ -5,15 +5,18 @@ ga_appl3dp_test, "magnetostatics 3d"); this file checks that the Python surface 
 the data types and the functions and returns the same physics. References are closed
 forms written out classically here, not values copied from the C++ output. The span
 overloads (b_line_currents, b_segments) and the templated stress_wrench and box_wrench
-are not bound; their sums are one Python loop over the bound kernels.
+are not bound; their sums are one Python loop over the bound kernels. mu0 is bound
+(since 2026-11-28); MU0 below is the independent value it is checked against.
 """
 
 import math
 
+import pytest
+
 import ga_py
 from ga_py import ega
 
-MU0 = 4.0e-7 * math.pi  # mu0 is a primitive constant and, like pi, not bound
+MU0 = 4.0e-7 * math.pi  # the reference value; ga_py.mu0 is checked against it
 
 
 def norm(v):
@@ -121,3 +124,67 @@ def test_magnetised_box_orientation_reaches_the_field():
     ref = norm((b.x, b.y, b.z))
     assert norm((a.x - b.x, a.y - b.y, a.z - b.z)) < 1e-12 * ref
     assert norm((a.x - c.x, a.y - c.y, a.z - c.z)) > 0.1 * ref
+
+
+def test_mu0_and_the_tolerances_are_bound():
+    assert isinstance(ga_py.mu0, float) and ga_py.mu0 == MU0
+    # eps and eps_congruent: 5 and 4500 machine epsilons of value_t (double)
+    assert ga_py.eps == 5.0 * 2.0**-52
+    assert ga_py.eps_congruent == 4.5e3 * 2.0**-52
+
+
+def cross(a, b):
+    return (a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0])
+
+
+def test_dipole_force_and_wrench():
+    # the force against the classical closed form written out here; the wrench's weight,
+    # its moment about the second dipole (the couple of the torque mu2 x b1), and action
+    # = reaction as one bivector
+    from ga_py import pga
+
+    p1, p2 = (0.01, -0.02, 0.0), (0.07, 0.015, 0.03)
+    mu1, mu2 = (0.3, -0.2, 1.1), (-0.6, 0.9, 0.4)
+    r = [b - a for a, b in zip(p1, p2)]
+    rn = norm(r)
+    h = [x / rn for x in r]
+
+    def dot(a, b):
+        return sum(x * y for x, y in zip(a, b))
+
+    ci, cj = dot(h, mu1), dot(h, mu2)
+    c = 3.0 * MU0 / (4.0 * math.pi * rn**4)
+    ref = [c * (dot(mu1, mu2) * hk + cj * a + ci * b - 5.0 * ci * cj * hk)
+           for hk, a, b in zip(h, mu1, mu2)]
+    f = ga_py.dipole_force(ega.vec3d(*r), ega.vec3d(*mu1), ega.vec3d(*mu2))
+    assert norm((f.x - ref[0], f.y - ref[1], f.z - ref[2])) < 1e-14 * norm(ref)
+    fb = ga_py.dipole_force(ega.vec3d(*r), ega.dual(ega.vec3d(*mu1)),
+                            ega.dual(ega.vec3d(*mu2)))
+    assert (fb.x, fb.y, fb.z) == (f.x, f.y, f.z)
+
+    W12 = ga_py.dipole_wrench(ega.vec3d(*p1), ega.vec3d(*mu1), ega.vec3d(*p2),
+                              ega.vec3d(*mu2))
+    W21 = ga_py.dipole_wrench(ega.vec3d(*p2), ega.vec3d(*mu2), ega.vec3d(*p1),
+                              ega.vec3d(*mu1))
+    assert norm((W12.vx - f.x, W12.vy - f.y, W12.vz - f.z)) < 1e-15 * norm(ref)
+    b1 = ga_py.b_dipole(ega.vec3d(*r), ega.vec3d(*mu1))
+    T2 = cross(mu2, (b1.x, b1.y, b1.z))
+    M2 = pga.moment_about(pga.vec3dp(*p2, 1.0), W12)
+    assert norm((M2.mx - T2[0], M2.my - T2[1], M2.mz - T2[2])) < 1e-13 * norm(T2)
+    s = [getattr(W12, k) + getattr(W21, k) for k in ("vx", "vy", "vz", "mx", "my", "mz")]
+    assert max(abs(x) for x in s) < 1e-13 * norm(ref)
+
+
+def test_couple_is_a_torque_of_zero_weight():
+    from ga_py import pga
+
+    C = pga.couple(ega.bivec3d(0.4, -1.3, 0.25))
+    assert (C.vx, C.vy, C.vz, C.mx, C.my, C.mz) == (0.0, 0.0, 0.0, 0.4, -1.3, 0.25)
+    R = pga.vec3dp(-2.0, 0.8, 0.5, 1.0)
+    M = pga.moment_about(R, C)
+    assert (M.mx, M.my, M.mz) == pytest.approx((0.4, -1.3, 0.25))
+    C2 = pga.couple(ega.pscalar2d(0.75))
+    assert (C2.x, C2.y, C2.z) == (0.0, 0.0, 0.75)
+

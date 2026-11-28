@@ -48,6 +48,7 @@
 //
 // - to_vec3d(), to_bivec3d()             -> the Euclidean (ega) part of an object
 //   to_scalar3d()
+// - couple()                             -> a torque lifted to a bivector of zero weight
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 // - segment_distance()                   -> distance of two segments (bounded lines)
 // - convex_distance(), box_faces()       -> how far a point, or a segment, is outside a
@@ -1451,6 +1452,27 @@ template <typename T>
 constexpr Scalar3d<T> to_scalar3d(TriVec3dp<T> const& p)
 {
     return Scalar3d<T>(p.w);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// couple: a torque lifted into pga, the wrench of a torque with no force
+//
+// A torque M (an ega3d bivector, e.g. a magnetic dipole's cmt(B, m)) acts on a body as
+// the bivector of zero weight whose bulk is M (ga_docu, "Modeling force and torque"),
+// a line at infinity: the lift for which to_bivec3d() is the return trip,
+// to_bivec3d(couple(M)) == M. Added to a force line, wdg(P, f) + couple(M) is the
+// general wrench, a screw. A couple has the same moment about every point,
+//
+//     moment_about(R, couple(M)) == couple(M)        for every point R
+//
+// The ega3d bivector basis e23, e31, e12 fills the bulk slots mx, my, mz.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> couple(BiVec3d<T> const& M)
+{
+    return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), M.x, M.y, M.z);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

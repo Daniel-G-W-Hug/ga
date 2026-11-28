@@ -134,6 +134,10 @@
 //                               bivector convention
 // - dipole_coupling()         : m_j . B_i(r), the second moment's coupling to the first's
 //                               field (bivector convention)
+// - dipole_force()            : its gradient in r, the force on the second moment in
+//                               closed form (vector or bivector convention)
+// - dipole_wrench()           : the force line through the second moment plus the
+//                               couple of its torque cmt(B, m), one bivec3dp
 // - traction(vec3d, vec3d)    : the stress sandwich t(n)
 // - surface_point             : a quadrature point of a closed surface (P, n, dA)
 // - sphere_surface()          : Gauss-Legendre in cos(theta) x the midpoint rule in phi
@@ -380,6 +384,58 @@ inline value_t dipole_coupling(vec3d const& r, bivec3d const& m_i, bivec3d const
 {
     using namespace ega;
     return value_t(dot(m_j, b_dipole(r, m_i)));
+}
+
+// the force on a dipole mu_j at r (relative to mu_i) in the field of mu_i, the gradient
+// of dipole_coupling() in r, in closed form (Yung, Landecker and Villani 1998):
+//
+//     f = 3 mu0 / (4 pi |r|^4) ((mu_i . mu_j) r_hat + (r_hat . mu_j) mu_i
+//           + (r_hat . mu_i) mu_j - 5 (r_hat . mu_i) (r_hat . mu_j) r_hat)
+//
+// the classical form, since no geometric-algebra expression of it is shorter. It is
+// symmetric in the moments and odd in r, so the force on mu_i is its negative.
+inline vec3d dipole_force(vec3d const& r, vec3d const& mu_i, vec3d const& mu_j)
+{
+    using namespace ega;
+    value_t const rn = nrm(r);
+    vec3d const rh = r / rn;
+    value_t const ci = value_t(dot(rh, mu_i)), cj = value_t(dot(rh, mu_j));
+    value_t const c = 3.0 * mu0 / (4.0 * pi * rn * rn * rn * rn);
+    return c *
+           (value_t(dot(mu_i, mu_j)) * rh + cj * mu_i + ci * mu_j - 5.0 * ci * cj * rh);
+}
+
+// the same in the bivector convention, m = dual(mu): dual is an involution between the
+// vectors and the bivectors of ega3d that keeps the scalar product
+inline vec3d dipole_force(vec3d const& r, bivec3d const& m_i, bivec3d const& m_j)
+{
+    using namespace ega;
+    return dipole_force(r, vec3d(dual(m_i)), vec3d(dual(m_j)));
+}
+
+// the wrench of the field of dipole m_i at p_i on dipole m_j at p_j: the force line
+// through p_j plus the couple of the torque cmt(B_i(p_j), m_j), one screw,
+//
+//     W = wdg(P_j, f) + couple(cmt(B_i, m_j))
+//
+// Action and reaction are one bivector identity: the wrench of j on i is -W, although
+// the forces are not central and the two torques differ.
+inline bivec3dp dipole_wrench(vec3d const& p_i, bivec3d const& m_i, vec3d const& p_j,
+                              bivec3d const& m_j)
+{
+    vec3d const r = p_j - p_i;
+    vec3d const f = dipole_force(r, m_i, m_j);
+    bivec3d const T = ega::cmt(b_dipole(r, m_i), m_j);
+    return pga::wdg(vec3dp(p_j.x, p_j.y, p_j.z, 1.0), vec3dp(f.x, f.y, f.z, 0.0)) +
+           pga::couple(T);
+}
+
+// the same with the moments as vectors, mu = dual(m)
+inline bivec3dp dipole_wrench(vec3d const& p_i, vec3d const& mu_i, vec3d const& p_j,
+                              vec3d const& mu_j)
+{
+    using namespace ega;
+    return dipole_wrench(p_i, bivec3d(dual(mu_i)), p_j, bivec3d(dual(mu_j)));
 }
 
 // the magnetic traction on a surface with unit normal n: t = (1/(2 mu0)) b n b

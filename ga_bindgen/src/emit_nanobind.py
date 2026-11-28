@@ -579,11 +579,11 @@ def collect_constants(
             continue
         # Resolve the constant's type to a Python-bound user type.
         user = resolve_param_to_user_type(c.type, type_map)
-        if user is None or user in ("double", "int", "bool"):
-            # Skip primitive constants for now — those aren't typically
-            # what users want anyway (constants like e1_2d are typed
-            # objects, not raw doubles).
+        if user is None or user in ("int", "bool"):
             continue
+        # a floating-point constant (value_t: eps, eps_congruent, mu0) is bound as a
+        # Python float -- nb::cast of a double needs no type registration; until
+        # 2026-11-28 these were skipped, and mu0 had no Python name
         if not isinstance(user, str) or user.startswith("std::"):
             continue  # vector / pair / tuple constants — unusual; defer
         # Use the fully-qualified C++ name for emission so we don't depend on

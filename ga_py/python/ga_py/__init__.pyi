@@ -64,6 +64,18 @@ def densify(arg0: ega.geo_pos, arg1: ega.geo_pos, arg2: float, /) -> list[ega.ge
 def dipole_coupling(arg0: ega.vec3d, arg1: ega.bivec3d, arg2: ega.bivec3d, /) -> float: ...
 
 @overload
+def dipole_force(arg0: ega.vec3d, arg1: ega.vec3d, arg2: ega.vec3d, /) -> ega.vec3d: ...
+
+@overload
+def dipole_force(arg0: ega.vec3d, arg1: ega.bivec3d, arg2: ega.bivec3d, /) -> ega.vec3d: ...
+
+@overload
+def dipole_wrench(arg0: ega.vec3d, arg1: ega.bivec3d, arg2: ega.vec3d, arg3: ega.bivec3d, /) -> pga.bivec3dp: ...
+
+@overload
+def dipole_wrench(arg0: ega.vec3d, arg1: ega.vec3d, arg2: ega.vec3d, arg3: ega.vec3d, /) -> pga.bivec3dp: ...
+
+@overload
 def distance_from_geocenter(arg0: ega.geo_pos, arg1: ega.ellipsoid, /) -> float: ...
 
 @overload
@@ -319,7 +331,13 @@ def tridiag_solve(arg0: Sequence[float], arg1: Sequence[float], arg2: Sequence[f
 
 def utm_zone(arg0: int, arg1: bool, /) -> ega.transverse_mercator: ...
 
+eps: float = 1.1102230246251565e-15
+
+eps_congruent: float = 9.992007221626409e-13
+
 grs80: ega.ellipsoid = ...
+
+mu0: float = 1.2566370614359173e-06
 
 wgs84: ega.ellipsoid = ...
 

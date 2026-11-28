@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-24T22:35:30+00:00",
+  "generated_at": "2026-11-28T08:50:27+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -4154,7 +4154,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 205
+      "source_line": 210
     },
     {
       "namespace": "hd::ga",
@@ -4189,7 +4189,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 264
+      "source_line": 269
     },
     {
       "namespace": "hd::ga",
@@ -4596,7 +4596,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 158
+      "source_line": 163
     },
     {
       "namespace": "hd::ga",
@@ -4624,7 +4624,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 471
+      "source_line": 528
     },
     {
       "namespace": "hd::ga",
@@ -7476,7 +7476,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 393
+      "source_line": 450
     },
     {
       "namespace": "hd::ga",
@@ -8242,7 +8242,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1142
+      "source_line": 1143
     },
     {
       "namespace": "hd::ga::pga",
@@ -8266,7 +8266,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1128
+      "source_line": 1129
     },
     {
       "namespace": "hd::ga::pga",
@@ -8384,7 +8384,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1315
+      "source_line": 1316
     },
     {
       "namespace": "hd::ga::pga",
@@ -8416,7 +8416,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1353
+      "source_line": 1354
     },
     {
       "namespace": "hd::ga::pga",
@@ -8444,7 +8444,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1248
+      "source_line": 1249
     },
     {
       "namespace": "hd::ga::pga",
@@ -8472,7 +8472,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1286
+      "source_line": 1287
     },
     {
       "namespace": "hd::ga::pga",
@@ -8536,7 +8536,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1335
+      "source_line": 1336
     },
     {
       "namespace": "hd::ga::pga",
@@ -8600,7 +8600,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1373
+      "source_line": 1374
     },
     {
       "namespace": "hd::ga::pga",
@@ -8628,7 +8628,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 815
+      "source_line": 816
     },
     {
       "namespace": "hd::ga::pga",
@@ -8656,7 +8656,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 923
+      "source_line": 924
     },
     {
       "namespace": "hd::ga::pga",
@@ -8756,7 +8756,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 433
+      "source_line": 434
     },
     {
       "namespace": "hd::ga::pga",
@@ -8776,7 +8776,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 545
+      "source_line": 546
     },
     {
       "namespace": "hd::ga::pga",
@@ -8800,7 +8800,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 455
+      "source_line": 456
     },
     {
       "namespace": "hd::ga::pga",
@@ -8820,7 +8820,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 486
+      "source_line": 487
     },
     {
       "namespace": "hd::ga::pga",
@@ -8840,7 +8840,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 621
+      "source_line": 622
     },
     {
       "namespace": "hd::ga::pga",
@@ -8851,7 +8851,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1422
+      "source_line": 1423
     },
     {
       "namespace": "hd::ga::pga",
@@ -8862,7 +8862,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1423
+      "source_line": 1424
     },
     {
       "namespace": "hd::ga::pga",
@@ -8873,7 +8873,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1424
+      "source_line": 1425
     },
     {
       "namespace": "hd::ga::pga",
@@ -8884,7 +8884,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1425
+      "source_line": 1426
     },
     {
       "namespace": "hd::ga::pga",
@@ -8929,7 +8929,7 @@
       ],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 801
+      "source_line": 802
     },
     {
       "namespace": "hd::ga::pga",
@@ -8989,7 +8989,7 @@
       ],
       "base_class": null,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 913
+      "source_line": 914
     },
     {
       "namespace": "hd::ga::pga",
@@ -9020,7 +9020,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1421
+      "source_line": 1422
     },
     {
       "namespace": "hd::ga::sta",
@@ -9057,7 +9057,7 @@
             "const line_current &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 172
+          "source_line": 177
         }
       ]
     },
@@ -9072,7 +9072,7 @@
             "const current_segment &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 284
+          "source_line": 289
         }
       ]
     },
@@ -9366,7 +9366,7 @@
             "const magnetised_box &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 532
+          "source_line": 589
         }
       ]
     },
@@ -9381,7 +9381,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 355
+          "source_line": 360
         },
         {
           "return_type": "bivec3d",
@@ -9390,7 +9390,7 @@
             "const bivec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 366
+          "source_line": 371
         }
       ]
     },
@@ -9405,7 +9405,7 @@
             "const line_current &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 164
+          "source_line": 169
         }
       ]
     },
@@ -9420,7 +9420,7 @@
             "std::span<const line_current>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 178
+          "source_line": 183
         }
       ]
     },
@@ -9435,7 +9435,7 @@
             "const current_segment &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 271
+          "source_line": 276
         }
       ]
     },
@@ -9450,7 +9450,7 @@
             "std::span<const current_segment>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 307
+          "source_line": 312
         }
       ]
     },
@@ -9466,7 +9466,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 560
+          "source_line": 617
         }
       ]
     },
@@ -9517,7 +9517,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 212
+          "source_line": 217
         }
       ]
     },
@@ -9535,7 +9535,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 331
+          "source_line": 336
         }
       ]
     },
@@ -9640,7 +9640,61 @@
             "const bivec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 378
+          "source_line": 383
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "dipole_force",
+      "overloads": [
+        {
+          "return_type": "vec3d",
+          "param_types": [
+            "const vec3d &",
+            "const vec3d &",
+            "const vec3d &"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 397
+        },
+        {
+          "return_type": "vec3d",
+          "param_types": [
+            "const vec3d &",
+            "const bivec3d &",
+            "const bivec3d &"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 410
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "dipole_wrench",
+      "overloads": [
+        {
+          "return_type": "bivec3dp",
+          "param_types": [
+            "const vec3d &",
+            "const bivec3d &",
+            "const vec3d &",
+            "const bivec3d &"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 423
+        },
+        {
+          "return_type": "bivec3dp",
+          "param_types": [
+            "const vec3d &",
+            "const vec3d &",
+            "const vec3d &",
+            "const vec3d &"
+          ],
+          "source_file": "ga/ga_usr_magnetostatics.hpp",
+          "source_line": 434
         }
       ]
     },
@@ -10801,7 +10855,7 @@
             "pscalar2d"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 190
+          "source_line": 195
         },
         {
           "return_type": "vec3d",
@@ -10810,7 +10864,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 348
+          "source_line": 353
         }
       ]
     },
@@ -10891,7 +10945,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 249
+          "source_line": 254
         }
       ]
     },
@@ -10909,7 +10963,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 446
+          "source_line": 503
         }
       ]
     },
@@ -11455,7 +11509,7 @@
             "size_t"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 401
+          "source_line": 458
         }
       ]
     },
@@ -11565,7 +11619,7 @@
             "std::span<const contour_point>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 228
+          "source_line": 233
         },
         {
           "return_type": "bivec3dp",
@@ -11574,7 +11628,7 @@
             "std::span<const surface_point>"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 423
+          "source_line": 480
         }
       ]
     },
@@ -11589,7 +11643,7 @@
             "const vec2d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 241
+          "source_line": 246
         },
         {
           "return_type": "vec3d",
@@ -11598,7 +11652,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 436
+          "source_line": 493
         }
       ]
     },
@@ -11797,7 +11851,7 @@
             "const vec2d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 197
+          "source_line": 202
         },
         {
           "return_type": "vec3d",
@@ -11806,7 +11860,7 @@
             "const vec3d &"
           ],
           "source_file": "ga/ga_usr_magnetostatics.hpp",
-          "source_line": 385
+          "source_line": 442
         }
       ]
     },
@@ -26176,7 +26230,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 69
+          "source_line": 70
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26185,7 +26239,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 87
+          "source_line": 88
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26194,7 +26248,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 75
+          "source_line": 76
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26203,7 +26257,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 93
+          "source_line": 94
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26212,7 +26266,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 124
+          "source_line": 125
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26221,7 +26275,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 139
+          "source_line": 140
         },
         {
           "return_type": "std::common_type_t<T, U>",
@@ -26230,7 +26284,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 154
+          "source_line": 155
         }
       ]
     },
@@ -26244,7 +26298,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 749
+          "source_line": 750
         },
         {
           "return_type": "Scalar2dp<T>",
@@ -26252,7 +26306,7 @@
             "const Point2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 756
+          "source_line": 757
         },
         {
           "return_type": "Vec2dp<T>",
@@ -26260,7 +26314,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 764
+          "source_line": 765
         },
         {
           "return_type": "Vec2dp<T>",
@@ -26268,7 +26322,7 @@
             "const Line2d<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 771
+          "source_line": 772
         },
         {
           "return_type": "BiVec2dp<T>",
@@ -26276,7 +26330,7 @@
             "PScalar2dp<T>"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 778
+          "source_line": 779
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -26284,7 +26338,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1334
+          "source_line": 1335
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -26292,7 +26346,7 @@
             "const Point3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1341
+          "source_line": 1342
         },
         {
           "return_type": "Vec3dp<T>",
@@ -26300,7 +26354,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1349
+          "source_line": 1350
         },
         {
           "return_type": "Vec3dp<T>",
@@ -26308,7 +26362,7 @@
             "const Line3d<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1356
+          "source_line": 1357
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -26316,7 +26370,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1364
+          "source_line": 1365
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -26324,7 +26378,7 @@
             "const Plane3d<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1371
+          "source_line": 1372
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -26332,7 +26386,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1379
+          "source_line": 1380
         }
       ]
     },
@@ -26348,7 +26402,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 936
+          "source_line": 958
         },
         {
           "return_type": "std::array<TriVec3dp<T>, 6>",
@@ -26359,7 +26413,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1569
+          "source_line": 1591
         }
       ]
     },
@@ -26924,7 +26978,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 578
+          "source_line": 579
         }
       ]
     },
@@ -26939,7 +26993,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1045
+          "source_line": 1046
         }
       ]
     },
@@ -26954,7 +27008,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 554
+          "source_line": 555
         }
       ]
     },
@@ -26969,7 +27023,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1016
+          "source_line": 1017
         }
       ]
     },
@@ -27457,7 +27511,7 @@
             "const Inertia2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 418
+          "source_line": 419
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -27468,7 +27522,7 @@
             "const Inertia3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 526
+          "source_line": 527
         }
       ]
     },
@@ -27610,7 +27664,7 @@
             "size_t *"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 885
+          "source_line": 907
         },
         {
           "return_type": "T",
@@ -27622,7 +27676,7 @@
             "size_t *"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 905
+          "source_line": 927
         },
         {
           "return_type": "T",
@@ -27632,7 +27686,7 @@
             "size_t *"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1516
+          "source_line": 1538
         },
         {
           "return_type": "T",
@@ -27644,7 +27698,29 @@
             "size_t *"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1538
+          "source_line": 1560
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "couple",
+      "overloads": [
+        {
+          "return_type": "BiVec2dp<T>",
+          "param_types": [
+            "PScalar2d<T>"
+          ],
+          "source_file": "ga/pga/ga_pga2dp_ops.hpp",
+          "source_line": 846
+        },
+        {
+          "return_type": "BiVec3dp<T>",
+          "param_types": [
+            "const BiVec3d<T> &"
+          ],
+          "source_file": "ga/pga/ga_pga3dp_ops.hpp",
+          "source_line": 1473
         }
       ]
     },
@@ -27659,7 +27735,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 834
+          "source_line": 856
         }
       ]
     },
@@ -27674,7 +27750,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1462
+          "source_line": 1484
         }
       ]
     },
@@ -27923,7 +27999,7 @@
             "const Line2d<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 649
+          "source_line": 650
         },
         {
           "return_type": "Line3d<std::common_type_t<T, U>>",
@@ -27932,7 +28008,7 @@
             "const Plane3d<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1176
+          "source_line": 1177
         },
         {
           "return_type": "Plane3d<std::common_type_t<T, U>>",
@@ -27941,7 +28017,7 @@
             "const Line3d<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1187
+          "source_line": 1188
         },
         {
           "return_type": "Plane3d<std::common_type_t<T, U>>",
@@ -27950,7 +28026,7 @@
             "const Plane3d<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1198
+          "source_line": 1199
         }
       ]
     },
@@ -28244,7 +28320,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 361
+          "source_line": 362
         }
       ]
     },
@@ -28260,7 +28336,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 310
+          "source_line": 311
         },
         {
           "return_type": "Inertia3dp<T>",
@@ -28271,7 +28347,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 415
+          "source_line": 416
         }
       ]
     },
@@ -28285,7 +28361,7 @@
             "const Inertia2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 356
+          "source_line": 357
         },
         {
           "return_type": "Inertia3dp<T>",
@@ -28293,7 +28369,7 @@
             "const Inertia3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 464
+          "source_line": 465
         }
       ]
     },
@@ -28308,7 +28384,7 @@
             "U"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 247
+          "source_line": 248
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -28316,7 +28392,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 280
+          "source_line": 281
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -28324,7 +28400,7 @@
             "const Vector2d<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 288
+          "source_line": 289
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -28333,7 +28409,7 @@
             "U"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 398
+          "source_line": 399
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -28341,7 +28417,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 432
+          "source_line": 433
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -28349,7 +28425,7 @@
             "const Vector3d<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 442
+          "source_line": 443
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U, V>>",
@@ -28359,7 +28435,7 @@
             "V"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 455
+          "source_line": 456
         }
       ]
     },
@@ -28374,7 +28450,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 297
+          "source_line": 298
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -28383,7 +28459,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 525
+          "source_line": 526
         }
       ]
     },
@@ -28398,7 +28474,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 483
+          "source_line": 484
         }
       ]
     },
@@ -28415,7 +28491,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 266
+          "source_line": 267
         }
       ]
     },
@@ -28430,7 +28506,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 207
+          "source_line": 208
         },
         {
           "return_type": "Inertia3dp<T>",
@@ -28439,7 +28515,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 217
+          "source_line": 218
         }
       ]
     },
@@ -28750,7 +28826,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 698
+          "source_line": 699
         },
         {
           "return_type": "BiVec2dp<std::common_type_t<T, U>>",
@@ -28759,7 +28835,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 710
+          "source_line": 711
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -28768,7 +28844,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1255
+          "source_line": 1256
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -28777,7 +28853,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1267
+          "source_line": 1268
         },
         {
           "return_type": "TriVec3dp<std::common_type_t<T, U>>",
@@ -28786,7 +28862,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1279
+          "source_line": 1280
         }
       ]
     },
@@ -28802,7 +28878,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1019
+          "source_line": 1041
         },
         {
           "return_type": "bool",
@@ -28812,7 +28888,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1026
+          "source_line": 1048
         },
         {
           "return_type": "bool",
@@ -28822,7 +28898,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1034
+          "source_line": 1056
         },
         {
           "return_type": "bool",
@@ -28832,7 +28908,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1042
+          "source_line": 1064
         },
         {
           "return_type": "bool",
@@ -28842,7 +28918,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1049
+          "source_line": 1071
         },
         {
           "return_type": "bool",
@@ -28852,7 +28928,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1059
+          "source_line": 1081
         },
         {
           "return_type": "bool",
@@ -28862,7 +28938,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1069
+          "source_line": 1091
         },
         {
           "return_type": "bool",
@@ -28872,7 +28948,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1081
+          "source_line": 1103
         },
         {
           "return_type": "bool",
@@ -28882,7 +28958,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1701
+          "source_line": 1723
         },
         {
           "return_type": "bool",
@@ -28892,7 +28968,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1708
+          "source_line": 1730
         },
         {
           "return_type": "bool",
@@ -28902,7 +28978,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1717
+          "source_line": 1739
         },
         {
           "return_type": "bool",
@@ -28912,7 +28988,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1728
+          "source_line": 1750
         },
         {
           "return_type": "bool",
@@ -28922,7 +28998,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1738
+          "source_line": 1760
         },
         {
           "return_type": "bool",
@@ -28932,7 +29008,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1745
+          "source_line": 1767
         },
         {
           "return_type": "bool",
@@ -28942,7 +29018,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1758
+          "source_line": 1780
         },
         {
           "return_type": "bool",
@@ -28952,7 +29028,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1771
+          "source_line": 1793
         },
         {
           "return_type": "bool",
@@ -28962,7 +29038,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1787
+          "source_line": 1809
         }
       ]
     },
@@ -28978,7 +29054,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 952
+          "source_line": 974
         },
         {
           "return_type": "bool",
@@ -28988,7 +29064,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 969
+          "source_line": 991
         },
         {
           "return_type": "bool",
@@ -28998,7 +29074,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 980
+          "source_line": 1002
         },
         {
           "return_type": "bool",
@@ -29008,7 +29084,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 991
+          "source_line": 1013
         },
         {
           "return_type": "bool",
@@ -29018,7 +29094,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1621
+          "source_line": 1643
         },
         {
           "return_type": "bool",
@@ -29028,7 +29104,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1638
+          "source_line": 1660
         },
         {
           "return_type": "bool",
@@ -29038,7 +29114,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1649
+          "source_line": 1671
         },
         {
           "return_type": "bool",
@@ -29048,7 +29124,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1662
+          "source_line": 1684
         },
         {
           "return_type": "bool",
@@ -29058,7 +29134,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1673
+          "source_line": 1695
         }
       ]
     },
@@ -29089,7 +29165,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 1114
+          "source_line": 1136
         },
         {
           "return_type": "bool",
@@ -29099,7 +29175,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1820
+          "source_line": 1842
         }
       ]
     },
@@ -29114,7 +29190,7 @@
             "T"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 961
+          "source_line": 962
         }
       ]
     },
@@ -29128,7 +29204,7 @@
             "const joint_range2dp &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1284
+          "source_line": 1285
         },
         {
           "return_type": "bool",
@@ -29136,7 +29212,7 @@
             "const joint_range3dp &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1322
+          "source_line": 1323
         }
       ]
     },
@@ -29627,7 +29703,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1174
+          "source_line": 1175
         },
         {
           "return_type": "body3dp",
@@ -29641,7 +29717,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1171
+          "source_line": 1172
         }
       ]
     },
@@ -29658,7 +29734,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1143
+          "source_line": 1144
         }
       ]
     },
@@ -29673,7 +29749,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1165
+          "source_line": 1166
         },
         {
           "return_type": "body3dp",
@@ -29683,7 +29759,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1153
+          "source_line": 1154
         }
       ]
     },
@@ -29719,7 +29795,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1157
+          "source_line": 1158
         }
       ]
     },
@@ -29733,7 +29809,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1195
+          "source_line": 1196
         }
       ]
     },
@@ -29747,7 +29823,7 @@
             "value_t"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1206
+          "source_line": 1207
         }
       ]
     },
@@ -29840,7 +29916,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 122
+          "source_line": 123
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -29849,7 +29925,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 121
+          "source_line": 122
         }
       ]
     },
@@ -29864,7 +29940,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 195
+          "source_line": 196
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -29873,7 +29949,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 321
+          "source_line": 322
         }
       ]
     },
@@ -29888,7 +29964,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 202
+          "source_line": 203
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -29897,7 +29973,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 328
+          "source_line": 329
         }
       ]
     },
@@ -29911,7 +29987,7 @@
             "const pose2dp &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 529
+          "source_line": 530
         }
       ]
     },
@@ -29925,7 +30001,7 @@
             "const pose3dp &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 665
+          "source_line": 666
         }
       ]
     },
@@ -29940,7 +30016,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 336
+          "source_line": 337
         },
         {
           "return_type": "BiVec2dp<std::common_type_t<T, U>>",
@@ -29949,7 +30025,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 348
+          "source_line": 349
         },
         {
           "return_type": "MVec2dp_U<std::common_type_t<T, U>>",
@@ -29958,7 +30034,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 361
+          "source_line": 362
         },
         {
           "return_type": "MVec2dp<std::common_type_t<T, U>>",
@@ -29967,7 +30043,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 375
+          "source_line": 376
         },
         {
           "return_type": "std::vector<Vec2dp<std::common_type_t<T, U>>>",
@@ -29976,7 +30052,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 418
+          "source_line": 419
         },
         {
           "return_type": "std::vector<BiVec2dp<std::common_type_t<T, U>>>",
@@ -29985,7 +30061,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 481
+          "source_line": 482
         }
       ]
     },
@@ -30000,7 +30076,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 388
+          "source_line": 389
         },
         {
           "return_type": "BiVec2dp<std::common_type_t<T, U>>",
@@ -30009,7 +30085,7 @@
             "const MVec2dp_U<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 452
+          "source_line": 453
         }
       ]
     },
@@ -30024,7 +30100,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 559
+          "source_line": 560
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -30033,7 +30109,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 571
+          "source_line": 572
         },
         {
           "return_type": "TriVec3dp<std::common_type_t<T, U>>",
@@ -30042,7 +30118,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 583
+          "source_line": 584
         },
         {
           "return_type": "MVec3dp_E<std::common_type_t<T, U>>",
@@ -30051,7 +30127,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 596
+          "source_line": 597
         },
         {
           "return_type": "MVec3dp<std::common_type_t<T, U>>",
@@ -30060,7 +30136,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 610
+          "source_line": 611
         },
         {
           "return_type": "std::vector<Vec3dp<std::common_type_t<T, U>>>",
@@ -30069,7 +30145,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 665
+          "source_line": 666
         },
         {
           "return_type": "std::vector<BiVec3dp<std::common_type_t<T, U>>>",
@@ -30078,7 +30154,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 781
+          "source_line": 782
         },
         {
           "return_type": "std::vector<TriVec3dp<std::common_type_t<T, U>>>",
@@ -30087,7 +30163,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 897
+          "source_line": 898
         }
       ]
     },
@@ -30102,7 +30178,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 622
+          "source_line": 623
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -30111,7 +30187,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 713
+          "source_line": 714
         },
         {
           "return_type": "TriVec3dp<std::common_type_t<T, U>>",
@@ -30120,7 +30196,7 @@
             "const MVec3dp_E<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 854
+          "source_line": 855
         }
       ]
     },
@@ -30135,7 +30211,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 569
+          "source_line": 570
         }
       ]
     },
@@ -30150,7 +30226,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1036
+          "source_line": 1037
         }
       ]
     },
@@ -30165,7 +30241,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 540
+          "source_line": 541
         }
       ]
     },
@@ -30180,7 +30256,7 @@
             "arg2 &&"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 997
+          "source_line": 998
         }
       ]
     },
@@ -30242,7 +30318,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 541
+          "source_line": 542
         }
       ]
     },
@@ -30256,7 +30332,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 679
+          "source_line": 680
         }
       ]
     },
@@ -30295,7 +30371,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 597
+          "source_line": 598
         },
         {
           "return_type": "Vec2dp<std::common_type_t<T, U>>",
@@ -30304,7 +30380,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 628
+          "source_line": 629
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -30313,7 +30389,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1064
+          "source_line": 1065
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -30322,7 +30398,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1096
+          "source_line": 1097
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -30331,7 +30407,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1118
+          "source_line": 1119
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -30340,7 +30416,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1139
+          "source_line": 1140
         }
       ]
     },
@@ -31219,7 +31295,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 667
+          "source_line": 668
         },
         {
           "return_type": "BiVec2dp<std::common_type_t<T, U>>",
@@ -31228,7 +31304,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 679
+          "source_line": 680
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -31237,7 +31313,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1213
+          "source_line": 1214
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -31246,7 +31322,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1225
+          "source_line": 1226
         },
         {
           "return_type": "TriVec3dp<std::common_type_t<T, U>>",
@@ -31255,7 +31331,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1237
+          "source_line": 1238
         }
       ]
     },
@@ -31270,7 +31346,7 @@
             "const Vec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 614
+          "source_line": 615
         },
         {
           "return_type": "Vec2dp<std::common_type_t<T, U>>",
@@ -31279,7 +31355,7 @@
             "const BiVec2dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 638
+          "source_line": 639
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -31288,7 +31364,7 @@
             "const Vec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1082
+          "source_line": 1083
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -31297,7 +31373,7 @@
             "const BiVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1107
+          "source_line": 1108
         },
         {
           "return_type": "Vec3dp<std::common_type_t<T, U>>",
@@ -31306,7 +31382,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1129
+          "source_line": 1130
         },
         {
           "return_type": "BiVec3dp<std::common_type_t<T, U>>",
@@ -31315,7 +31391,7 @@
             "const TriVec3dp<U> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1165
+          "source_line": 1166
         }
       ]
     },
@@ -31455,7 +31531,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 109
+          "source_line": 110
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -31463,7 +31539,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 174
+          "source_line": 175
         }
       ]
     },
@@ -32610,7 +32686,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 144
+          "source_line": 145
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -32618,7 +32694,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 245
+          "source_line": 246
         }
       ]
     },
@@ -32633,7 +32709,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 209
+          "source_line": 210
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -32642,7 +32718,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 335
+          "source_line": 336
         }
       ]
     },
@@ -32656,7 +32732,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 188
+          "source_line": 189
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -32664,7 +32740,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 314
+          "source_line": 315
         }
       ]
     },
@@ -32804,7 +32880,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 127
+          "source_line": 128
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -32812,7 +32888,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 212
+          "source_line": 213
         }
       ]
     },
@@ -33999,7 +34075,7 @@
             "const vec2dp &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 464
+          "source_line": 465
         },
         {
           "return_type": "screw_axis2dp",
@@ -34007,7 +34083,7 @@
             "const mvec2dp_u &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 475
+          "source_line": 476
         },
         {
           "return_type": "screw_axis3dp",
@@ -34015,7 +34091,7 @@
             "const bivec3dp &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 579
+          "source_line": 580
         },
         {
           "return_type": "screw_axis3dp",
@@ -34023,7 +34099,7 @@
             "const mvec3dp_e &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 603
+          "source_line": 604
         }
       ]
     },
@@ -34038,7 +34114,7 @@
             "double"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 491
+          "source_line": 492
         },
         {
           "return_type": "screw_system3dp",
@@ -34047,7 +34123,7 @@
             "double"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 626
+          "source_line": 627
         }
       ]
     },
@@ -34064,7 +34140,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 856
+          "source_line": 878
         },
         {
           "return_type": "T",
@@ -34075,7 +34151,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1486
+          "source_line": 1508
         }
       ]
     },
@@ -34089,7 +34165,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 725
+          "source_line": 726
         },
         {
           "return_type": "Vec3dp<T>",
@@ -34097,7 +34173,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1294
+          "source_line": 1295
         },
         {
           "return_type": "Vec3dp<T>",
@@ -34105,7 +34181,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1310
+          "source_line": 1311
         }
       ]
     },
@@ -34119,7 +34195,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1437
+          "source_line": 1438
         }
       ]
     },
@@ -34148,7 +34224,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 824
+          "source_line": 825
         }
       ]
     },
@@ -34162,7 +34238,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1451
+          "source_line": 1452
         }
       ]
     },
@@ -34176,7 +34252,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 806
+          "source_line": 807
         },
         {
           "return_type": "Vec2d<T>",
@@ -34184,7 +34260,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops.hpp",
-          "source_line": 817
+          "source_line": 818
         }
       ]
     },
@@ -34198,7 +34274,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1419
+          "source_line": 1420
         },
         {
           "return_type": "Vec3d<T>",
@@ -34206,7 +34282,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1430
+          "source_line": 1431
         },
         {
           "return_type": "Vec3d<T>",
@@ -34214,7 +34290,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1444
+          "source_line": 1445
         }
       ]
     },
@@ -34325,7 +34401,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops.hpp",
-          "source_line": 1601
+          "source_line": 1623
         }
       ]
     },
@@ -56072,7 +56148,7 @@
             "const joint_range2dp &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1273
+          "source_line": 1274
         },
         {
           "return_type": "bool",
@@ -56081,7 +56157,7 @@
             "const joint_drive2dp &"
           ],
           "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-          "source_line": 1325
+          "source_line": 1326
         },
         {
           "return_type": "bool",
@@ -56090,7 +56166,7 @@
             "const joint_range3dp &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1311
+          "source_line": 1312
         },
         {
           "return_type": "bool",
@@ -56099,7 +56175,7 @@
             "const joint_drive3dp &"
           ],
           "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-          "source_line": 1363
+          "source_line": 1364
         }
       ]
     },
@@ -58270,7 +58346,7 @@
       "name": "mu0",
       "type": "const value_t",
       "source_file": "ga/ga_usr_magnetostatics.hpp",
-      "source_line": 151
+      "source_line": 156
     },
     {
       "namespace": "hd::ga",
@@ -60604,7 +60680,7 @@
       ],
       "scoped": true,
       "source_file": "ga/pga/ga_pga2dp_ops_mechanics.hpp",
-      "source_line": 1217
+      "source_line": 1218
     },
     {
       "namespace": "hd::ga::pga",
@@ -60621,7 +60697,7 @@
       ],
       "scoped": true,
       "source_file": "ga/pga/ga_pga3dp_ops_mechanics.hpp",
-      "source_line": 1248
+      "source_line": 1249
     }
   ]
 }

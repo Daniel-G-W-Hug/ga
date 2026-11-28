@@ -474,6 +474,53 @@ TEST_SUITE("magnetostatics 3d")
                 wdg(vec3dp(t.x, t.y, t.z, 0.0), vec3dp(q.P.x, q.P.y, q.P.z, 1.0)) * q.dA;
         }
         CHECK(err(Wbad, W_ref) > 1.0);
+        // the library's closed form of the same wrench, in both conventions, and its
+        // couple as the one written out above
+        CHECK(err(dipole_wrench(pi_, mi, pj, mj), W_ref) < 1e-14);
+        CHECK(dipole_wrench(pi_, mi, pj, mj) ==
+              dipole_wrench(pi_, bivec3d(dual(mi)), pj, bivec3d(dual(mj))));
+        CHECK(couple(bivec3d(T.x, T.y, T.z)) == bivec3dp{0.0, 0.0, 0.0, T.x, T.y, T.z});
+    }
+
+    TEST_CASE("magnetostatics 3d: dipole_force and dipole_wrench in closed form")
+    {
+        // the force against the classical form written out above, in both conventions;
+        // the wrench as the force line through the second dipole plus the couple of its
+        // torque; action = reaction as one bivector identity, though the forces are not
+        // central and the torques differ
+        vec3d const p1{0.01, -0.02, 0.0}, p2{0.07, 0.015, 0.03};
+        vec3d const mu1{0.3, -0.2, 1.1}, mu2{-0.6, 0.9, 0.4}; // A m^2
+        vec3d const r = p2 - p1;
+        vec3d const F = dipole_force(r, mu1, mu2);
+        CHECK(rel(F, F_dipoles(r, mu1, mu2)) < 1e-14);
+        CHECK(F == dipole_force(r, bivec3d(dual(mu1)), bivec3d(dual(mu2))));
+        // symmetric in the moments and odd in r: the force on the first is the negative
+        CHECK(rel(dipole_force(-1.0 * r, mu2, mu1), -1.0 * F) < 1e-15);
+
+        // the wrench: its weight is the force, its moment about p2 the torque
+        // mu2 x b1(p2) of the couple alone
+        bivec3dp const W12 = dipole_wrench(p1, mu1, p2, mu2);
+        vec3d const T2 = cross3(mu2, b_dipole(r, mu1));
+        CHECK(rel(to_vec3d(W12), F) < 1e-15);
+        bivec3dp const M2 = moment_about(vec3dp(p2.x, p2.y, p2.z, 1.0), W12);
+        CHECK(rel(vec3d(M2.mx, M2.my, M2.mz), T2) < 1e-13);
+
+        // action = reaction: the wrench of 2 on 1 is the negative
+        bivec3dp const W21 = dipole_wrench(p2, mu2, p1, mu1);
+        vec3d const T1 = cross3(mu1, b_dipole(-1.0 * r, mu2));
+        double const scale = nrm(F) * nrm(r) + nrm(T2);
+        auto worst = [](bivec3dp const& X) {
+            return std::max({std::abs(X.vx), std::abs(X.vy), std::abs(X.vz),
+                             std::abs(X.mx), std::abs(X.my), std::abs(X.mz)});
+        };
+        CHECK(worst(W12 + W21) < 1e-13 * (nrm(F) + scale / nrm(r)));
+        // ... though neither part cancels alone: the torques differ, and the force lines
+        // leave the moment r x F of non-central forces -- the falsifier
+        CHECK(nrm(T1 + T2) > 0.1 * nrm(T2));
+        bivec3dp const lines =
+            wdg(vec3dp(p2.x, p2.y, p2.z, 1.0), vec3dp(F.x, F.y, F.z, 0.0)) +
+            wdg(vec3dp(p1.x, p1.y, p1.z, 1.0), vec3dp(-F.x, -F.y, -F.z, 0.0));
+        CHECK(worst(lines) > 1e-3 * scale);
     }
 
     TEST_CASE("magnetostatics 3d: a magnetised sphere as surface currents K = m x n")

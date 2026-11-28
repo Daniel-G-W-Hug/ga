@@ -351,5 +351,10 @@ TEST_SUITE("magnetostatics 2d")
               1e-8 * F);
         // the falsifier: the same force through the disc's centre is another line
         CHECK(rel(wdg(vec2dp(0.0, 0.0, 1.0), vec2dp(-Fw.x, -Fw.y, 0.0))) > 0.5);
+        // ... and adding the couple of the dipole torque moves it onto the line through
+        // the wire: force through the centre plus couple(mu ^ b(O)) is the wrench
+        bivec2dp const W_c = wdg(vec2dp(0.0, 0.0, 1.0), vec2dp(-Fw.x, -Fw.y, 0.0)) +
+                             couple(pscalar2d(mu.x * b0.y - mu.y * b0.x));
+        CHECK(rel(W_c) < 1e-10);
     }
 }

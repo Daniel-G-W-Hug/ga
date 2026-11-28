@@ -580,4 +580,17 @@
            defect. Bound to Python (magnetised_box in ga_py.ega and b_box;
            box_wrench, a template like stress_wrench, is not) and to Lua (all three,
            box_wrench taking the field as a Lua function), which stands at 1840/1870.
-
+- 2026/11: couple(M) in pga2dp and pga3dp (ga_pga{2,3}dp_ops.hpp): a torque lifted to
+           the bivector of zero weight whose bulk is M, the lift to_bivec3d /
+           to_pscalar2d return from, with the same moment about every point.
+           dipole_force (the gradient of dipole_coupling in closed form, vector and
+           bivector convention) and dipole_wrench (the force line through the second
+           dipole plus couple(cmt(B, m)), one screw) in ga_usr_magnetostatics.hpp.
+           Gated: a couple's moment about every point, the force line moved sideways by
+           one (2D), the force against its classical form written out, action =
+           reaction as one bivector while neither the torques nor the force lines
+           cancel alone, the stress wrench of two dipoles, and a magnetized disc's
+           wrench as the force through its centre plus couple(mu ^ b(O)). Bound to
+           Python together with the floating-point constants eps, eps_congruent and mu0
+           (the emitter skipped every primitive constant), and to Lua, which now has
+           eps_congruent too and stands at 1846/1876.

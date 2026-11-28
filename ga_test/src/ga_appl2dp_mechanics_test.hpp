@@ -497,6 +497,36 @@ TEST_SUITE("PGA2DP: physics tests prep")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: couple - a torque as a wrench of zero weight")
+    {
+        fmt::println("pga2dp: couple - a torque as a wrench of zero weight");
+
+        // a couple is the bivector of zero weight whose e12 component is the torque:
+        // to_pscalar2d() is its return trip, and its moment is the same about every point
+        pscalar2d const T{0.75};
+        bivec2dp const C = couple(T);
+        CHECK(C == bivec2dp{0.0, 0.0, 0.75});
+        CHECK(to_pscalar2d(C) == T);
+        for (vec2dp const R :
+             {vec2dp{0.0, 0.0, 1.0}, vec2dp{-2.0, 0.8, 1.0}, vec2dp{3.0, -1.0, 2.0}})
+            CHECK(is_close(moment_about(R, C), C));
+
+        // a force line plus a couple is the same force on a line moved sideways: its
+        // moment about the old line's point P is the couple, and it vanishes at the point
+        // Q a distance T / |f| to the side -- to the right of f for a positive T
+        vec2dp const P{1.5, -0.7, 1.0};
+        vec2dp const f{0.3, 1.1, 0.0};
+        bivec2dp const W = wdg(P, f) + C;
+        CHECK(moment_about(P, W).z == doctest::Approx(0.75));
+        double const f2 = f.x * f.x + f.y * f.y;
+        vec2dp const Q{P.x + 0.75 * f.y / f2, P.y - 0.75 * f.x / f2, 1.0};
+        CHECK(std::abs(moment_about(Q, W).z) < 1e-13);
+        // the falsifier: the same distance to the other side
+        vec2dp const Qbad{P.x - 0.75 * f.y / f2, P.y + 0.75 * f.x / f2, 1.0};
+        CHECK(std::abs(moment_about(Qbad, W).z) > 1.0);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests prep")
 
 /////////////////////////////////////////////////////////////////////////////////////////

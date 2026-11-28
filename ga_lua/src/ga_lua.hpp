@@ -5574,6 +5574,9 @@ void register_functions(sol::state& lua)
         sol::overload(
             sol::resolve<bivec2dp(vec2dp const&, bivec2dp const&)>(moment_about),
             sol::resolve<bivec3dp(vec3dp const&, bivec3dp const&)>(moment_about)));
+    // a torque lifted to the bivector of zero weight whose bulk is it
+    lua.set_function("couple", sol::overload([](pscalar2d M) { return couple(M); },
+                                             [](bivec3d const& M) { return couple(M); }));
 
     // STA bivector structure: a simple bivector is a pure rotation or a pure boost,
     // and a general one splits into the two commuting parts
@@ -5617,8 +5620,9 @@ void register_constants(sol::state& lua)
     using namespace hd::ga::cga;
 
     // general constants
-    lua["eps"] = eps; // this is from ga_value_t.hpp,
-                      // while all else is from ga_usr_consts.hpp
+    lua["eps"] = eps;                     // this is from ga_value_t.hpp,
+                                          // while all else is from ga_usr_consts.hpp
+    lua["eps_congruent"] = eps_congruent; // is_congruent's default tolerance
 
     // 2d constants
     lua["e1_2d"] = e1_2d; // as 2d vector
@@ -8264,6 +8268,19 @@ void register_magnetostatics(sol::state& lua)
                      [](vec3d const& r, bivec3d const& mi, bivec3d const& mj) {
                          return dipole_coupling(r, mi, mj);
                      });
+    lua.set_function(
+        "dipole_force",
+        sol::overload([](vec3d const& r, vec3d const& mi,
+                         vec3d const& mj) { return dipole_force(r, mi, mj); },
+                      [](vec3d const& r, bivec3d const& mi, bivec3d const& mj) {
+                          return dipole_force(r, mi, mj);
+                      }));
+    lua.set_function(
+        "dipole_wrench",
+        sol::overload([](vec3d const& pi_, vec3d const& mi, vec3d const& pj,
+                         vec3d const& mj) { return dipole_wrench(pi_, mi, pj, mj); },
+                      [](vec3d const& pi_, bivec3d const& mi, vec3d const& pj,
+                         bivec3d const& mj) { return dipole_wrench(pi_, mi, pj, mj); }));
     lua.set_function("circle_contour", [](vec2d const& c, value_t R, size_t N) {
         return sol::as_table(circle_contour(c, R, N));
     });

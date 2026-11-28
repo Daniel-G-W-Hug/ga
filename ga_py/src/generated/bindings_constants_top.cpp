@@ -32,6 +32,9 @@ using namespace hd::ga::sta;
 
 void register_constants_top(nb::module_& m)
 {
+    m.attr("eps") = nb::cast(hd::ga::eps);
+    m.attr("eps_congruent") = nb::cast(hd::ga::eps_congruent);
     m.attr("grs80") = nb::cast(hd::ga::grs80);
+    m.attr("mu0") = nb::cast(hd::ga::mu0);
     m.attr("wgs84") = nb::cast(hd::ga::wgs84);
 }

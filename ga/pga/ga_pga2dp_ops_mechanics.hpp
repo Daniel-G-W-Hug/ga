@@ -61,6 +61,7 @@
 //
 // - motor_from_pose2dp() / pose2dp_from_motor() -> the pose <-> motor converters
 // - moment_about(R, F)  -> the torque of a force line about a point
+// - couple(M)           -> the wrench of a torque alone (ga_pga2dp_ops.hpp)
 // - compute_omega_dot() -> the angular acceleration of a moving frame
 //
 // Read-offs on dynamic_system2dp (the ones an external law consumes):

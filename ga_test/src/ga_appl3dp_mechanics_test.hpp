@@ -535,6 +535,34 @@ TEST_SUITE("PGA3DP: physics tests prep")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: couple - a torque as a wrench of zero weight")
+    {
+        fmt::println("pga3dp: couple - a torque as a wrench of zero weight");
+
+        // a couple is the bivector of zero weight whose bulk is the torque: to_bivec3d()
+        // is its return trip, and its moment is the same about every point
+        bivec3d const T{0.4, -1.3, 0.25};
+        bivec3dp const C = couple(T);
+        CHECK(C == bivec3dp{0.0, 0.0, 0.0, 0.4, -1.3, 0.25});
+        CHECK(to_bivec3d(C) == T);
+        CHECK(to_vec3d(C) == vec3d{}); // no force
+        for (vec3dp const R : {vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{-2.0, 0.8, 0.5, 1.0},
+                               vec3dp{3.0, -1.0, 4.0, 2.0}})
+            CHECK(is_close(moment_about(R, C), C));
+
+        // a force line plus a couple: about a point P on the line the torque is the
+        // couple's alone, about any other point the line's own moment is added
+        vec3dp const P{1.5, -0.7, 2.2, 1.0};
+        vec3dp const f{0.3, 1.1, -0.4, 0.0};
+        vec3dp const R{-2.0, 0.8, 0.5, 1.0};
+        bivec3dp const W = wdg(P, f) + C;
+        CHECK(is_close(moment_about(P, W), C));
+        CHECK(is_close(moment_about(R, W), moment_about(R, wdg(P, f)) + C));
+        // the falsifier: a force line's moment does depend on the point
+        CHECK(!is_close(moment_about(R, wdg(P, f)), moment_about(P, wdg(P, f))));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: physics tests prep")
 
 

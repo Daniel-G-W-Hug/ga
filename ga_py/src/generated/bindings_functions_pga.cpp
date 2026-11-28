@@ -196,6 +196,8 @@ void register_functions_pga(nb::module_& m)
     m.def("conj", [](mvec3dp_e const& a0) { return conj(a0); });
     m.def("conj", [](mvec3dp_u const& a0) { return conj(a0); });
     m.def("conj", [](mvec3dp const& a0) { return conj(a0); });
+    m.def("couple", [](pscalar2d const& a0) { return couple(a0); });
+    m.def("couple", [](bivec3d const& a0) { return couple(a0); });
     m.def("dot", [](mvec2dp const& a0, mvec2dp const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dp_e const& a0, mvec2dp_e const& a1) { return dot(a0, a1); });
     m.def("dot", [](mvec2dp_u const& a0, mvec2dp_u const& a1) { return dot(a0, a1); });

@@ -66,6 +66,18 @@ void register_functions_top(nb::module_& m)
     m.def("dipole_coupling", [](vec3d const& a0, bivec3d const& a1, bivec3d const& a2) {
         return dipole_coupling(a0, a1, a2);
     });
+    m.def("dipole_force", [](vec3d const& a0, vec3d const& a1, vec3d const& a2) {
+        return dipole_force(a0, a1, a2);
+    });
+    m.def("dipole_force", [](vec3d const& a0, bivec3d const& a1, bivec3d const& a2) {
+        return dipole_force(a0, a1, a2);
+    });
+    m.def("dipole_wrench",
+          [](vec3d const& a0, bivec3d const& a1, vec3d const& a2, bivec3d const& a3) {
+              return dipole_wrench(a0, a1, a2, a3);
+          });
+    m.def("dipole_wrench", [](vec3d const& a0, vec3d const& a1, vec3d const& a2,
+                              vec3d const& a3) { return dipole_wrench(a0, a1, a2, a3); });
     m.def("distance_from_geocenter", [](geo_pos const& a0, ellipsoid const& a1) {
         return distance_from_geocenter(a0, a1);
     });

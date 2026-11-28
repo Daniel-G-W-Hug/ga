@@ -45,6 +45,7 @@
 // - att()                               -> object attitude
 //
 // - to_vec2d(), to_pscalar2d()          -> the Euclidean (ega) part of an object
+// - couple()                             -> a torque lifted to a bivector of zero weight
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
 // - segment_distance()                  -> distance of two segments (bounded lines)
 // - convex_distance(), box_faces()      -> how far a point, or a segment, is outside a
@@ -824,6 +825,27 @@ template <typename T>
 constexpr PScalar2d<T> to_pscalar2d(BiVec2dp<T> const& l)
 {
     return PScalar2d<T>(l.z);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// couple: a torque lifted into pga, the wrench of a torque with no force
+//
+// A torque M (an ega2d pseudoscalar, positive counter-clockwise) acts on a body as the
+// bivector of zero weight whose bulk, the e12 component, is M (ga_docu, "Modeling force
+// and torque"): the ideal line scaled by M, and the lift for which to_pscalar2d() is the
+// return trip. It has the same moment about every point,
+//
+//     moment_about(R, couple(M)) == couple(M)        for every point R
+//
+// with the sign moment_about() reports, so wdg(P, f) + couple(M) is the force line moved
+// sideways by the couple. Same construction as the 3D case.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec2dp<T> couple(PScalar2d<T> M)
+{
+    return BiVec2dp<T>(T(0.0), T(0.0), T(M));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
