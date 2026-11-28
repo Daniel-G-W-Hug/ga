@@ -3,6 +3,7 @@
 
 #include "ga_test_arith_check.hpp"
 #include "ga_test_equivariance.hpp"
+#include "ga_test_transwedge.hpp"
 
 #include <array>
 #include <bit>
@@ -1218,5 +1219,62 @@ TEST_SUITE("PGA contracts")
         fmt::println("    a half turn: phi/sin {:.2f}, rlog_shortest {:.2e}",
                      std::atan2(sh, value_t(H.c7)) / sh, err(H, rlog_shortest(H)));
         fmt::println("");
+    }
+
+    TEST_CASE("pga2dp / pga3dp: the transwedge sums are the geometric products on every "
+              "basis pair")
+    {
+        fmt::println("pga2dp / pga3dp: the transwedge sums are the geometric products on "
+                     "every basis pair");
+
+        // eqn. (grp_twdg) of the documentation from the algebra's own wedge, regressive
+        // wedge, complements and dual, on every pair of basis blades; the regressive form
+        // where the algebra has a regressive geometric product. The falsifiers: the
+        // other sign pattern, (-1)^(k(k+1)/2), and the complement in place of the dual,
+        // which only an identity metric cannot tell apart
+        struct twdg_pga2dp {
+            static mvec2dp lc(mvec2dp const& x) { return cmpl(x); }
+            static mvec2dp rc(mvec2dp const& x) { return cmpl(x); }
+            static mvec2dp rd(mvec2dp const& x) { return bulk_dual(x); }
+            static mvec2dp w(mvec2dp const& x, mvec2dp const& y)
+            {
+                return hd::ga::pga::wdg(x, y);
+            }
+            static mvec2dp rw(mvec2dp const& x, mvec2dp const& y)
+            {
+                return hd::ga::pga::rwdg(x, y);
+            }
+            static mvec2dp gp(mvec2dp const& x, mvec2dp const& y) { return x * y; }
+            static mvec2dp rgp(mvec2dp const& x, mvec2dp const& y)
+            {
+                return hd::ga::pga::rgpr(x, y);
+            }
+        };
+        struct twdg_pga3dp {
+            static mvec3dp lc(mvec3dp const& x) { return l_cmpl(x); }
+            static mvec3dp rc(mvec3dp const& x) { return r_cmpl(x); }
+            static mvec3dp rd(mvec3dp const& x) { return r_bulk_dual(x); }
+            static mvec3dp w(mvec3dp const& x, mvec3dp const& y)
+            {
+                return hd::ga::pga::wdg(x, y);
+            }
+            static mvec3dp rw(mvec3dp const& x, mvec3dp const& y)
+            {
+                return hd::ga::pga::rwdg(x, y);
+            }
+            static mvec3dp gp(mvec3dp const& x, mvec3dp const& y) { return x * y; }
+            static mvec3dp rgp(mvec3dp const& x, mvec3dp const& y)
+            {
+                return hd::ga::pga::rgpr(x, y);
+            }
+        };
+        CHECK(transwedge::gpr_mismatches<mvec2dp, 3, twdg_pga2dp>() == 0);
+        CHECK(transwedge::rgpr_mismatches<mvec2dp, 3, twdg_pga2dp>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec2dp, 3, twdg_pga2dp>(true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec2dp, 3, twdg_pga2dp>(false, true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dp, 4, twdg_pga3dp>() == 0);
+        CHECK(transwedge::rgpr_mismatches<mvec3dp, 4, twdg_pga3dp>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dp, 4, twdg_pga3dp>(true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dp, 4, twdg_pga3dp>(false, true) > 0);
     }
 }

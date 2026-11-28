@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_test_arith_check.hpp"
+#include "ga_test_transwedge.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // STA contracts: the arithmetic of every value type, and the operations of
@@ -162,5 +163,34 @@ TEST_SUITE("STA contracts")
             CHECK(is_close(vec4ds(1.0e-6 * F[i]), U[i]));
         // a NULL target is degenerate at any scale, and stays refused
         CHECK_THROWS(project_onto(v, vec4ds{1.0, 0.0, 0.0, 1.0}));
+    }
+
+    TEST_CASE("sta4ds: the transwedge sum is the geometric product on every basis pair")
+    {
+        fmt::println(
+            "sta4ds: the transwedge sum is the geometric product on every basis pair");
+
+        // eqn. (grp_twdg) of the documentation from the algebra's own wedge, regressive
+        // wedge, complements and dual, on every pair of basis blades; the regressive form
+        // where the algebra has a regressive geometric product. The falsifiers: the
+        // other sign pattern, (-1)^(k(k+1)/2), and the complement in place of the dual,
+        // which only an identity metric cannot tell apart
+        struct twdg_sta4ds {
+            static mvec4ds lc(mvec4ds const& x) { return l_cmpl(x); }
+            static mvec4ds rc(mvec4ds const& x) { return r_cmpl(x); }
+            static mvec4ds rd(mvec4ds const& x) { return r_dual(x); }
+            static mvec4ds w(mvec4ds const& x, mvec4ds const& y)
+            {
+                return hd::ga::sta::wdg(x, y);
+            }
+            static mvec4ds rw(mvec4ds const& x, mvec4ds const& y)
+            {
+                return hd::ga::sta::rwdg(x, y);
+            }
+            static mvec4ds gp(mvec4ds const& x, mvec4ds const& y) { return x * y; }
+        };
+        CHECK(transwedge::gpr_mismatches<mvec4ds, 4, twdg_sta4ds>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec4ds, 4, twdg_sta4ds>(true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec4ds, 4, twdg_sta4ds>(false, true) > 0);
     }
 }

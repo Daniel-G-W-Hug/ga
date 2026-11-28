@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_test_arith_check.hpp"
+#include "ga_test_transwedge.hpp"
 
 #include <cmath>
 
@@ -383,5 +384,62 @@ TEST_SUITE("CGA contracts")
                          e_acosh, e2, e3);
         }
         fmt::println("");
+    }
+
+    TEST_CASE("cga2dc / cga3dc: the transwedge sums are the geometric products on every "
+              "basis pair")
+    {
+        fmt::println("cga2dc / cga3dc: the transwedge sums are the geometric products on "
+                     "every basis pair");
+
+        // eqn. (grp_twdg) of the documentation from the algebra's own wedge, regressive
+        // wedge, complements and dual, on every pair of basis blades; the regressive form
+        // where the algebra has a regressive geometric product. The falsifiers: the
+        // other sign pattern, (-1)^(k(k+1)/2), and the complement in place of the dual,
+        // which only an identity metric cannot tell apart
+        struct twdg_cga2dc {
+            static mvec2dc lc(mvec2dc const& x) { return l_cmpl(x); }
+            static mvec2dc rc(mvec2dc const& x) { return r_cmpl(x); }
+            static mvec2dc rd(mvec2dc const& x) { return r_dual(x); }
+            static mvec2dc w(mvec2dc const& x, mvec2dc const& y)
+            {
+                return hd::ga::cga::wdg(x, y);
+            }
+            static mvec2dc rw(mvec2dc const& x, mvec2dc const& y)
+            {
+                return hd::ga::cga::rwdg(x, y);
+            }
+            static mvec2dc gp(mvec2dc const& x, mvec2dc const& y) { return x * y; }
+            static mvec2dc rgp(mvec2dc const& x, mvec2dc const& y)
+            {
+                return hd::ga::cga::rgpr(x, y);
+            }
+        };
+        struct twdg_cga3dc {
+            static mvec3dc lc(mvec3dc const& x) { return cmpl(x); }
+            static mvec3dc rc(mvec3dc const& x) { return cmpl(x); }
+            static mvec3dc rd(mvec3dc const& x) { return dual(x); }
+            static mvec3dc w(mvec3dc const& x, mvec3dc const& y)
+            {
+                return hd::ga::cga::wdg(x, y);
+            }
+            static mvec3dc rw(mvec3dc const& x, mvec3dc const& y)
+            {
+                return hd::ga::cga::rwdg(x, y);
+            }
+            static mvec3dc gp(mvec3dc const& x, mvec3dc const& y) { return x * y; }
+            static mvec3dc rgp(mvec3dc const& x, mvec3dc const& y)
+            {
+                return hd::ga::cga::rgpr(x, y);
+            }
+        };
+        CHECK(transwedge::gpr_mismatches<mvec2dc, 4, twdg_cga2dc>() == 0);
+        CHECK(transwedge::rgpr_mismatches<mvec2dc, 4, twdg_cga2dc>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec2dc, 4, twdg_cga2dc>(true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec2dc, 4, twdg_cga2dc>(false, true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dc, 5, twdg_cga3dc>() == 0);
+        CHECK(transwedge::rgpr_mismatches<mvec3dc, 5, twdg_cga3dc>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dc, 5, twdg_cga3dc>(true) > 0);
+        CHECK(transwedge::gpr_mismatches<mvec3dc, 5, twdg_cga3dc>(false, true) > 0);
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_test_arith_check.hpp"
+#include "ga_test_transwedge.hpp"
 
 #include <array>
 #include <cmath>
@@ -277,5 +278,54 @@ TEST_SUITE("EGA contracts")
                 r1[2] / r2[2], r1[3], r1[3] / r2[3]);
         }
         fmt::println("");
+    }
+
+    TEST_CASE(
+        "ega2d / ega3d: the transwedge sum is the geometric product on every basis pair")
+    {
+        fmt::println("ega2d / ega3d: the transwedge sum is the geometric product on "
+                     "every basis pair");
+
+        // eqn. (grp_twdg) of the documentation from the algebra's own wedge, regressive
+        // wedge, complements and dual, on every pair of basis blades; the regressive form
+        // where the algebra has a regressive geometric product. The falsifiers: the
+        // other sign pattern, (-1)^(k(k+1)/2), and the complement in place of the dual,
+        // which only an identity metric cannot tell apart
+        struct twdg_ega2d {
+            static mvec2d lc(mvec2d const& x) { return l_cmpl(x); }
+            static mvec2d rc(mvec2d const& x) { return r_cmpl(x); }
+            static mvec2d rd(mvec2d const& x) { return r_dual(x); }
+            static mvec2d w(mvec2d const& x, mvec2d const& y)
+            {
+                return hd::ga::ega::wdg(x, y);
+            }
+            static mvec2d rw(mvec2d const& x, mvec2d const& y)
+            {
+                return hd::ga::ega::rwdg(x, y);
+            }
+            static mvec2d gp(mvec2d const& x, mvec2d const& y) { return x * y; }
+        };
+        struct twdg_ega3d {
+            static mvec3d lc(mvec3d const& x) { return cmpl(x); }
+            static mvec3d rc(mvec3d const& x) { return cmpl(x); }
+            static mvec3d rd(mvec3d const& x) { return dual(x); }
+            static mvec3d w(mvec3d const& x, mvec3d const& y)
+            {
+                return hd::ga::ega::wdg(x, y);
+            }
+            static mvec3d rw(mvec3d const& x, mvec3d const& y)
+            {
+                return hd::ga::ega::rwdg(x, y);
+            }
+            static mvec3d gp(mvec3d const& x, mvec3d const& y) { return x * y; }
+        };
+        CHECK(transwedge::gpr_mismatches<mvec2d, 2, twdg_ega2d>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec2d, 2, twdg_ega2d>(true) > 0);
+        // identity metric: the complement in place of the dual changes nothing
+        CHECK(transwedge::gpr_mismatches<mvec2d, 2, twdg_ega2d>(false, true) == 0);
+        CHECK(transwedge::gpr_mismatches<mvec3d, 3, twdg_ega3d>() == 0);
+        CHECK(transwedge::gpr_mismatches<mvec3d, 3, twdg_ega3d>(true) > 0);
+        // identity metric: the complement in place of the dual changes nothing
+        CHECK(transwedge::gpr_mismatches<mvec3d, 3, twdg_ega3d>(false, true) == 0);
     }
 }
